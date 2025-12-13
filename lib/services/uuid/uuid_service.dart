@@ -50,7 +50,7 @@ class UuidService {
   ///
   /// Example: 'offline_txn_550e8400-e29b-41d4-a716-446655440000'
   String generateTransactionId() {
-    final id = '$_transactionPrefix${_uuid.v4()}';
+    final String id = '$_transactionPrefix${_uuid.v4()}';
     _logger.fine('Generated transaction ID: $id');
     return id;
   }
@@ -61,7 +61,7 @@ class UuidService {
   ///
   /// Example: 'offline_acc_550e8400-e29b-41d4-a716-446655440000'
   String generateAccountId() {
-    final id = '$_accountPrefix${_uuid.v4()}';
+    final String id = '$_accountPrefix${_uuid.v4()}';
     _logger.fine('Generated account ID: $id');
     return id;
   }
@@ -72,7 +72,7 @@ class UuidService {
   ///
   /// Example: 'offline_cat_550e8400-e29b-41d4-a716-446655440000'
   String generateCategoryId() {
-    final id = '$_categoryPrefix${_uuid.v4()}';
+    final String id = '$_categoryPrefix${_uuid.v4()}';
     _logger.fine('Generated category ID: $id');
     return id;
   }
@@ -83,7 +83,7 @@ class UuidService {
   ///
   /// Example: 'offline_bdg_550e8400-e29b-41d4-a716-446655440000'
   String generateBudgetId() {
-    final id = '$_budgetPrefix${_uuid.v4()}';
+    final String id = '$_budgetPrefix${_uuid.v4()}';
     _logger.fine('Generated budget ID: $id');
     return id;
   }
@@ -94,7 +94,7 @@ class UuidService {
   ///
   /// Example: 'offline_bil_550e8400-e29b-41d4-a716-446655440000'
   String generateBillId() {
-    final id = '$_billPrefix${_uuid.v4()}';
+    final String id = '$_billPrefix${_uuid.v4()}';
     _logger.fine('Generated bill ID: $id');
     return id;
   }
@@ -105,7 +105,7 @@ class UuidService {
   ///
   /// Example: 'offline_pig_550e8400-e29b-41d4-a716-446655440000'
   String generatePiggyBankId() {
-    final id = '$_piggyBankPrefix${_uuid.v4()}';
+    final String id = '$_piggyBankPrefix${_uuid.v4()}';
     _logger.fine('Generated piggy bank ID: $id');
     return id;
   }
@@ -116,7 +116,7 @@ class UuidService {
   ///
   /// Example: 'offline_op_550e8400-e29b-41d4-a716-446655440000'
   String generateOperationId() {
-    final id = '$_operationPrefix${_uuid.v4()}';
+    final String id = '$_operationPrefix${_uuid.v4()}';
     _logger.fine('Generated operation ID: $id');
     return id;
   }
@@ -127,7 +127,7 @@ class UuidService {
   ///
   /// Example: '550e8400-e29b-41d4-a716-446655440000'
   String generateUuid() {
-    final id = _uuid.v4();
+    final String id = _uuid.v4();
     _logger.fine('Generated plain UUID: $id');
     return id;
   }
@@ -189,7 +189,7 @@ class UuidService {
       return id;
     }
 
-    final prefixes = [
+    final List<String> prefixes = <String>[
       _transactionPrefix,
       _accountPrefix,
       _categoryPrefix,
@@ -199,7 +199,7 @@ class UuidService {
       _operationPrefix,
     ];
 
-    for (final prefix in prefixes) {
+    for (final String prefix in prefixes) {
       if (id.startsWith(prefix)) {
         return id.substring(prefix.length);
       }
@@ -213,10 +213,10 @@ class UuidService {
   /// Returns `true` if the string matches UUID v4 format.
   bool isValidUuid(String id) {
     // Remove prefix if present
-    final uuid = extractUuid(id);
+    final String uuid = extractUuid(id);
 
     // UUID v4 regex pattern
-    final uuidPattern = RegExp(
+    final RegExp uuidPattern = RegExp(
       r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
       caseSensitive: false,
     );

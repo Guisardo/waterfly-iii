@@ -50,10 +50,10 @@ class Bills extends Table {
       text().withDefault(const Constant('pending'))();
 
   @override
-  Set<Column> get primaryKey => {id};
+  Set<Column> get primaryKey => <Column<Object>>{id};
 
   @override
-  List<Set<Column>> get uniqueKeys => [
-        {serverId}
+  List<Set<Column>> get uniqueKeys => <Set<Column<Object>>>[
+        <Column<Object>>{serverId}
       ];
 }

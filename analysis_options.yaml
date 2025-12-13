@@ -45,3 +45,5 @@ linter:
 analyzer:
   exclude:
     - lib/generated/**
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"

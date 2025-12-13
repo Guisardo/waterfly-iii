@@ -27,7 +27,7 @@ part 'app_database.g.dart';
 /// - Sync queue for pending operations
 /// - Sync metadata for tracking sync state
 /// - ID mapping for local-to-server ID resolution
-@DriftDatabase(tables: [
+@DriftDatabase(tables: <Type>[
   Transactions,
   Accounts,
   Categories,
@@ -95,7 +95,7 @@ class AppDatabase extends _$AppDatabase {
         //   await m.addColumn(transactions, transactions.newColumn);
         // }
       },
-      beforeOpen: (details) async {
+      beforeOpen: (OpeningDetails details) async {
         // Enable foreign key constraints
         await customStatement('PRAGMA foreign_keys = ON');
         
@@ -123,8 +123,8 @@ class AppDatabase extends _$AppDatabase {
 /// Returns a [LazyDatabase] that opens the connection on first access.
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'waterfly_offline.db'));
+    final Directory dbFolder = await getApplicationDocumentsDirectory();
+    final File file = File(p.join(dbFolder.path, 'waterfly_offline.db'));
     
     return NativeDatabase.createInBackground(
       file,

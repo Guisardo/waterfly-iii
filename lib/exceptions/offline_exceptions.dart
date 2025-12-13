@@ -14,7 +14,7 @@ abstract class OfflineException implements Exception {
 
   @override
   String toString() {
-    final buffer = StringBuffer('$runtimeType: $message');
+    final StringBuffer buffer = StringBuffer('$runtimeType: $message');
     if (context != null && context!.isNotEmpty) {
       buffer.write('\nContext: $context');
     }
@@ -38,7 +38,7 @@ class DatabaseException extends OfflineException {
   ]) {
     return DatabaseException(
       'Database query failed: $error',
-      {
+      <String, dynamic>{
         'query': query,
         'error': error.toString(),
         if (stackTrace != null) 'stackTrace': stackTrace.toString(),
@@ -50,7 +50,7 @@ class DatabaseException extends OfflineException {
   factory DatabaseException.connectionFailed(Object error) {
     return DatabaseException(
       'Failed to connect to database: $error',
-      {'error': error.toString()},
+      <String, dynamic>{'error': error.toString()},
     );
   }
 
@@ -61,7 +61,7 @@ class DatabaseException extends OfflineException {
   ) {
     return DatabaseException(
       'Database transaction failed during $operation: $error',
-      {
+      <String, dynamic>{
         'operation': operation,
         'error': error.toString(),
       },
@@ -85,7 +85,7 @@ class SyncException extends OfflineException {
   ) {
     return SyncException(
       'Sync operation failed: $error',
-      {
+      <String, dynamic>{
         'operationId': operationId,
         'entityType': entityType,
         'error': error.toString(),
@@ -100,7 +100,7 @@ class SyncException extends OfflineException {
   ) {
     return SyncException(
       'Server returned error: $message',
-      {
+      <String, dynamic>{
         'statusCode': statusCode,
         'message': message,
       },
@@ -111,7 +111,7 @@ class SyncException extends OfflineException {
   factory SyncException.timeout(String operation) {
     return SyncException(
       'Sync operation timed out: $operation',
-      {'operation': operation},
+      <String, dynamic>{'operation': operation},
     );
   }
 
@@ -122,7 +122,7 @@ class SyncException extends OfflineException {
   ) {
     return SyncException(
       'Max sync retries exceeded',
-      {
+      <String, dynamic>{
         'operationId': operationId,
         'attempts': attempts,
       },
@@ -149,7 +149,7 @@ class ConnectivityException extends OfflineException {
   factory ConnectivityException.serverUnreachable(String serverUrl) {
     return ConnectivityException(
       'Server is unreachable',
-      {'serverUrl': serverUrl},
+      <String, dynamic>{'serverUrl': serverUrl},
     );
   }
 
@@ -157,7 +157,7 @@ class ConnectivityException extends OfflineException {
   factory ConnectivityException.timeout(Duration timeout) {
     return ConnectivityException(
       'Connectivity check timed out',
-      {'timeout': timeout.toString()},
+      <String, dynamic>{'timeout': timeout.toString()},
     );
   }
 }
@@ -195,7 +195,7 @@ class ConflictException extends OfflineException {
       'Entity was modified both locally and on server',
       localData,
       serverData,
-      {
+      <String, dynamic>{
         'entityType': entityType,
         'entityId': entityId,
       },
@@ -209,7 +209,7 @@ class ConflictException extends OfflineException {
   ) {
     return ConflictException(
       'Entity was deleted on server but modified locally',
-      {
+      <String, dynamic>{
         'entityType': entityType,
         'entityId': entityId,
       },
@@ -245,7 +245,7 @@ class ValidationException extends OfflineException {
       'Required field is missing',
       field,
       null,
-      {'field': field},
+      <String, dynamic>{'field': field},
     );
   }
 
@@ -259,7 +259,7 @@ class ValidationException extends OfflineException {
       'Invalid value for field $field: $reason',
       field,
       value,
-      {
+      <String, dynamic>{
         'field': field,
         'value': value?.toString(),
         'reason': reason,
@@ -277,7 +277,7 @@ class ValidationException extends OfflineException {
       'Type mismatch for field $field: expected $expected, got $actual',
       field,
       null,
-      {
+      <String, dynamic>{
         'field': field,
         'expected': expected.toString(),
         'actual': actual.toString(),
@@ -298,7 +298,7 @@ class ConfigurationException extends OfflineException {
   factory ConfigurationException.missingConfig(String key) {
     return ConfigurationException(
       'Required configuration is missing',
-      {'key': key},
+      <String, dynamic>{'key': key},
     );
   }
 
@@ -309,7 +309,7 @@ class ConfigurationException extends OfflineException {
   ) {
     return ConfigurationException(
       'Invalid configuration for $key: $reason',
-      {
+      <String, dynamic>{
         'key': key,
         'reason': reason,
       },
@@ -328,7 +328,7 @@ class StorageException extends OfflineException {
   factory StorageException.insufficientSpace(int required, int available) {
     return StorageException(
       'Insufficient storage space',
-      {
+      <String, dynamic>{
         'required': required,
         'available': available,
       },
@@ -339,7 +339,7 @@ class StorageException extends OfflineException {
   factory StorageException.permissionDenied(String path) {
     return StorageException(
       'Permission denied accessing storage',
-      {'path': path},
+      <String, dynamic>{'path': path},
     );
   }
 
@@ -347,7 +347,7 @@ class StorageException extends OfflineException {
   factory StorageException.corruptedDatabase(String path) {
     return StorageException(
       'Database file is corrupted',
-      {'path': path},
+      <String, dynamic>{'path': path},
     );
   }
 }

@@ -4,9 +4,9 @@ import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../connectivity/connectivity_service.dart';
-import '../connectivity/connectivity_status.dart';
-import 'app_mode.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
+import 'package:waterflyiii/services/app_mode/app_mode.dart';
 
 /// Manages the application's operational mode (online/offline/syncing).
 ///
@@ -133,7 +133,7 @@ class AppModeManager {
 
       if (_manualOverride) {
         // Restore manual mode
-        final lastModeIndex = _prefs?.getInt(_prefKeyLastMode);
+        final int? lastModeIndex = _prefs?.getInt(_prefKeyLastMode);
         if (lastModeIndex != null && lastModeIndex < AppMode.values.length) {
           _manualMode = AppMode.values[lastModeIndex];
           _updateMode(_manualMode!);
@@ -143,9 +143,9 @@ class AppModeManager {
         }
       } else {
         // Restore last automatic mode
-        final lastModeIndex = _prefs?.getInt(_prefKeyLastMode);
+        final int? lastModeIndex = _prefs?.getInt(_prefKeyLastMode);
         if (lastModeIndex != null && lastModeIndex < AppMode.values.length) {
-          final lastMode = AppMode.values[lastModeIndex];
+          final AppMode lastMode = AppMode.values[lastModeIndex];
           _updateMode(lastMode);
           _logger.info('Restored last mode: ${lastMode.displayName}');
         }
@@ -179,9 +179,9 @@ class AppModeManager {
       return; // Don't change mode if manual override is active
     }
 
-    final connectivityStatus = _connectivityService.currentStatus;
+    final ConnectivityStatus connectivityStatus = _connectivityService.currentStatus;
 
-    final newMode = switch (connectivityStatus) {
+    final AppMode newMode = switch (connectivityStatus) {
       ConnectivityStatus.online => AppMode.online,
       ConnectivityStatus.offline => AppMode.offline,
       ConnectivityStatus.unknown => AppMode.offline, // Safe default
@@ -198,7 +198,7 @@ class AppModeManager {
       return; // No change
     }
 
-    final oldMode = _modeSubject.value;
+    final AppMode oldMode = _modeSubject.value;
     _logger.info(
       'App mode changing: ${oldMode.displayName} → ${newMode.displayName}',
     );

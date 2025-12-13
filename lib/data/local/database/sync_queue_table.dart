@@ -40,5 +40,5 @@ class SyncQueue extends Table {
   IntColumn get priority => integer().withDefault(const Constant(5))();
 
   @override
-  Set<Column> get primaryKey => {id};
+  Set<Column> get primaryKey => <Column<Object>>{id};
 }

@@ -15,5 +15,5 @@ class SyncMetadata extends Table {
   DateTimeColumn get updatedAt => dateTime()();
 
   @override
-  Set<Column> get primaryKey => {key};
+  Set<Column> get primaryKey => <Column<Object>>{key};
 }

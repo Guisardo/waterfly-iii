@@ -5,7 +5,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'connectivity_status.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
 
 /// Service for monitoring network connectivity and server reachability.
 ///
@@ -173,7 +173,7 @@ class ConnectivityService {
       _logger.fine('Checking connectivity');
 
       // Check network connectivity
-      final connectivityResults = await _connectivity.checkConnectivity();
+      final List<ConnectivityResult> connectivityResults = await _connectivity.checkConnectivity();
       
       if (connectivityResults.contains(ConnectivityResult.none)) {
         _logger.info('No network connectivity');
@@ -183,7 +183,7 @@ class ConnectivityService {
       }
 
       // Check internet access
-      final hasInternet = await _internetChecker.hasInternetAccess;
+      final bool hasInternet = await _internetChecker.hasInternetAccess;
       
       if (!hasInternet) {
         _logger.info('Network connected but no internet access');
@@ -227,7 +227,7 @@ class ConnectivityService {
     try {
       // TODO: Implement server ping using API client
       // For now, return true if we have internet
-      final hasInternet = await _internetChecker.hasInternetAccess;
+      final bool hasInternet = await _internetChecker.hasInternetAccess;
       
       if (hasInternet) {
         _logger.info('Server reachability check passed');

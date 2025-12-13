@@ -2,10 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
-import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 
-import 'base_repository.dart';
+import 'package:waterflyiii/data/repositories/base_repository.dart';
 
 /// Repository for managing account data.
 ///
@@ -15,14 +14,11 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   /// Creates an account repository.
   AccountRepository({
     required AppDatabase database,
-    AppModeManager? appModeManager,
     UuidService? uuidService,
   })  : _database = database,
-        _appModeManager = appModeManager ?? AppModeManager(),
         _uuidService = uuidService ?? UuidService();
 
   final AppDatabase _database;
-  final AppModeManager _appModeManager;
   final UuidService _uuidService;
 
   @override
@@ -32,7 +28,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<List<AccountEntity>> getAll() async {
     try {
       logger.fine('Fetching all accounts');
-      final accounts = await _database.select(_database.accounts).get();
+      final List<AccountEntity> accounts = await _database.select(_database.accounts).get();
       logger.info('Retrieved ${accounts.length} accounts');
       return accounts;
     } catch (error, stackTrace) {
@@ -55,9 +51,9 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<AccountEntity?> getById(String id) async {
     try {
       logger.fine('Fetching account by ID: $id');
-      final query = _database.select(_database.accounts)
-        ..where((a) => a.id.equals(id));
-      final account = await query.getSingleOrNull();
+      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = _database.select(_database.accounts)
+        ..where(($AccountsTable a) => a.id.equals(id));
+      final AccountEntity? account = await query.getSingleOrNull();
 
       if (account != null) {
         logger.fine('Found account: $id');
@@ -79,8 +75,8 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   @override
   Stream<AccountEntity?> watchById(String id) {
     logger.fine('Watching account: $id');
-    final query = _database.select(_database.accounts)
-      ..where((a) => a.id.equals(id));
+    final SimpleSelectStatement<$AccountsTable, AccountEntity> query = _database.select(_database.accounts)
+      ..where(($AccountsTable a) => a.id.equals(id));
     return query.watchSingleOrNull();
   }
 
@@ -89,10 +85,10 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
     try {
       logger.info('Creating account');
 
-      final id = entity.id.isEmpty ? _uuidService.generateAccountId() : entity.id;
-      final now = DateTime.now();
+      final String id = entity.id.isEmpty ? _uuidService.generateAccountId() : entity.id;
+      final DateTime now = DateTime.now();
 
-      final companion = AccountEntityCompanion.insert(
+      final AccountEntityCompanion companion = AccountEntityCompanion.insert(
         id: id,
         serverId: Value(entity.serverId),
         name: entity.name,
@@ -115,9 +111,9 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
 
       await _database.into(_database.accounts).insert(companion);
 
-      final created = await getById(id);
+      final AccountEntity? created = await getById(id);
       if (created == null) {
-        throw DatabaseException('Failed to retrieve created account');
+        throw const DatabaseException('Failed to retrieve created account');
       }
 
       logger.info('Account created successfully: $id');
@@ -134,12 +130,12 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
     try {
       logger.info('Updating account: $id');
 
-      final existing = await getById(id);
+      final AccountEntity? existing = await getById(id);
       if (existing == null) {
         throw DatabaseException('Account not found: $id');
       }
 
-      final companion = AccountEntityCompanion(
+      final AccountEntityCompanion companion = AccountEntityCompanion(
         id: Value(id),
         serverId: Value(entity.serverId),
         name: Value(entity.name),
@@ -161,9 +157,9 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
 
       await _database.update(_database.accounts).replace(companion);
 
-      final updated = await getById(id);
+      final AccountEntity? updated = await getById(id);
       if (updated == null) {
-        throw DatabaseException('Failed to retrieve updated account');
+        throw const DatabaseException('Failed to retrieve updated account');
       }
 
       logger.info('Account updated successfully: $id');
@@ -180,12 +176,12 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
     try {
       logger.info('Deleting account: $id');
 
-      final existing = await getById(id);
+      final AccountEntity? existing = await getById(id);
       if (existing == null) {
         throw DatabaseException('Account not found: $id');
       }
 
-      await (_database.delete(_database.accounts)..where((a) => a.id.equals(id))).go();
+      await (_database.delete(_database.accounts)..where(($AccountsTable a) => a.id.equals(id))).go();
 
       logger.info('Account deleted successfully: $id');
     } catch (error, stackTrace) {
@@ -199,9 +195,9 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<List<AccountEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced accounts');
-      final query = _database.select(_database.accounts)
-        ..where((a) => a.isSynced.equals(false));
-      final accounts = await query.get();
+      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = _database.select(_database.accounts)
+        ..where(($AccountsTable a) => a.isSynced.equals(false));
+      final List<AccountEntity> accounts = await query.get();
       logger.info('Found ${accounts.length} unsynced accounts');
       return accounts;
     } catch (error, stackTrace) {
@@ -219,7 +215,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
     try {
       logger.info('Marking account as synced: $localId -> $serverId');
 
-      await (_database.update(_database.accounts)..where((a) => a.id.equals(localId))).write(
+      await (_database.update(_database.accounts)..where(($AccountsTable a) => a.id.equals(localId))).write(
         AccountEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -238,7 +234,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   @override
   Future<String> getSyncStatus(String id) async {
     try {
-      final account = await getById(id);
+      final AccountEntity? account = await getById(id);
       if (account == null) {
         throw DatabaseException('Account not found: $id');
       }
@@ -265,7 +261,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<int> count() async {
     try {
       logger.fine('Counting accounts');
-      final count = await _database.select(_database.accounts).get().then((list) => list.length);
+      final int count = await _database.select(_database.accounts).get().then((List<AccountEntity> list) => list.length);
       logger.fine('Account count: $count');
       return count;
     } catch (error, stackTrace) {
@@ -282,10 +278,10 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<List<AccountEntity>> getByType(String type) async {
     try {
       logger.fine('Fetching accounts by type: $type');
-      final query = _database.select(_database.accounts)
-        ..where((a) => a.type.equals(type))
-        ..orderBy([(a) => OrderingTerm.asc(a.name)]);
-      final accounts = await query.get();
+      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = _database.select(_database.accounts)
+        ..where(($AccountsTable a) => a.type.equals(type))
+        ..orderBy(<OrderClauseGenerator<$AccountsTable>>[($AccountsTable a) => OrderingTerm.asc(a.name)]);
+      final List<AccountEntity> accounts = await query.get();
       logger.info('Found ${accounts.length} accounts of type: $type');
       return accounts;
     } catch (error, stackTrace) {
@@ -302,10 +298,10 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<List<AccountEntity>> getActive() async {
     try {
       logger.fine('Fetching active accounts');
-      final query = _database.select(_database.accounts)
-        ..where((a) => a.active.equals(true))
-        ..orderBy([(a) => OrderingTerm.asc(a.name)]);
-      final accounts = await query.get();
+      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = _database.select(_database.accounts)
+        ..where(($AccountsTable a) => a.active.equals(true))
+        ..orderBy(<OrderClauseGenerator<$AccountsTable>>[($AccountsTable a) => OrderingTerm.asc(a.name)]);
+      final List<AccountEntity> accounts = await query.get();
       logger.info('Found ${accounts.length} active accounts');
       return accounts;
     } catch (error, stackTrace) {
@@ -322,8 +318,8 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<double> getTotalAssetBalance() async {
     try {
       logger.fine('Calculating total asset balance');
-      final assetAccounts = await getByType('asset');
-      final total = assetAccounts.fold<double>(0.0, (sum, account) => sum + account.currentBalance);
+      final List<AccountEntity> assetAccounts = await getByType('asset');
+      final double total = assetAccounts.fold<double>(0.0, (double sum, AccountEntity account) => sum + account.currentBalance);
       logger.info('Total asset balance: $total');
       return total;
     } catch (error, stackTrace) {

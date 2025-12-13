@@ -171,7 +171,7 @@ class OfflineConfig {
   }
 
   set conflictResolutionStrategy(String value) {
-    final validStrategies = [
+    final List<String> validStrategies = <String>[
       'last_write_wins',
       'server_wins',
       'local_wins',
@@ -207,7 +207,7 @@ class OfflineConfig {
 
   /// Returns a map of all current settings.
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
       'offlineModeEnabled': offlineModeEnabled,
       'autoSyncEnabled': autoSyncEnabled,
       'syncFrequencyMinutes': syncFrequencyMinutes,

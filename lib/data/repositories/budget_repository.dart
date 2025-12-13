@@ -2,10 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
-import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 
-import 'base_repository.dart';
+import 'package:waterflyiii/data/repositories/base_repository.dart';
 
 /// Repository for managing budget data.
 ///
@@ -15,14 +14,11 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   /// Creates a budget repository.
   BudgetRepository({
     required AppDatabase database,
-    AppModeManager? appModeManager,
     UuidService? uuidService,
   })  : _database = database,
-        _appModeManager = appModeManager ?? AppModeManager(),
         _uuidService = uuidService ?? UuidService();
 
   final AppDatabase _database;
-  final AppModeManager _appModeManager;
   final UuidService _uuidService;
 
   @override
@@ -32,8 +28,8 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   Future<List<BudgetEntity>> getAll() async {
     try {
       logger.fine('Fetching all budgets');
-      final budgets = await (_database.select(_database.budgets)
-            ..orderBy([(b) => OrderingTerm.asc(b.name)]))
+      final List<BudgetEntity> budgets = await (_database.select(_database.budgets)
+            ..orderBy(<OrderClauseGenerator<$BudgetsTable>>[($BudgetsTable b) => OrderingTerm.asc(b.name)]))
           .get();
       logger.info('Retrieved ${budgets.length} budgets');
       return budgets;
@@ -50,7 +46,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   @override
   Stream<List<BudgetEntity>> watchAll() {
     logger.fine('Watching all budgets');
-    return (_database.select(_database.budgets)..orderBy([(b) => OrderingTerm.asc(b.name)]))
+    return (_database.select(_database.budgets)..orderBy(<OrderClauseGenerator<$BudgetsTable>>[($BudgetsTable b) => OrderingTerm.asc(b.name)]))
         .watch();
   }
 
@@ -58,8 +54,8 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   Future<BudgetEntity?> getById(String id) async {
     try {
       logger.fine('Fetching budget by ID: $id');
-      final query = _database.select(_database.budgets)..where((b) => b.id.equals(id));
-      final budget = await query.getSingleOrNull();
+      final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = _database.select(_database.budgets)..where(($BudgetsTable b) => b.id.equals(id));
+      final BudgetEntity? budget = await query.getSingleOrNull();
 
       if (budget != null) {
         logger.fine('Found budget: $id');
@@ -81,7 +77,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   @override
   Stream<BudgetEntity?> watchById(String id) {
     logger.fine('Watching budget: $id');
-    final query = _database.select(_database.budgets)..where((b) => b.id.equals(id));
+    final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = _database.select(_database.budgets)..where(($BudgetsTable b) => b.id.equals(id));
     return query.watchSingleOrNull();
   }
 
@@ -90,10 +86,10 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
     try {
       logger.info('Creating budget');
 
-      final id = entity.id.isEmpty ? _uuidService.generateBudgetId() : entity.id;
-      final now = DateTime.now();
+      final String id = entity.id.isEmpty ? _uuidService.generateBudgetId() : entity.id;
+      final DateTime now = DateTime.now();
 
-      final companion = BudgetEntityCompanion.insert(
+      final BudgetEntityCompanion companion = BudgetEntityCompanion.insert(
         id: id,
         serverId: Value(entity.serverId),
         name: entity.name,
@@ -109,9 +105,9 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
 
       await _database.into(_database.budgets).insert(companion);
 
-      final created = await getById(id);
+      final BudgetEntity? created = await getById(id);
       if (created == null) {
-        throw DatabaseException('Failed to retrieve created budget');
+        throw const DatabaseException('Failed to retrieve created budget');
       }
 
       logger.info('Budget created successfully: $id');
@@ -128,12 +124,12 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
     try {
       logger.info('Updating budget: $id');
 
-      final existing = await getById(id);
+      final BudgetEntity? existing = await getById(id);
       if (existing == null) {
         throw DatabaseException('Budget not found: $id');
       }
 
-      final companion = BudgetEntityCompanion(
+      final BudgetEntityCompanion companion = BudgetEntityCompanion(
         id: Value(id),
         serverId: Value(entity.serverId),
         name: Value(entity.name),
@@ -148,9 +144,9 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
 
       await _database.update(_database.budgets).replace(companion);
 
-      final updated = await getById(id);
+      final BudgetEntity? updated = await getById(id);
       if (updated == null) {
-        throw DatabaseException('Failed to retrieve updated budget');
+        throw const DatabaseException('Failed to retrieve updated budget');
       }
 
       logger.info('Budget updated successfully: $id');
@@ -167,12 +163,12 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
     try {
       logger.info('Deleting budget: $id');
 
-      final existing = await getById(id);
+      final BudgetEntity? existing = await getById(id);
       if (existing == null) {
         throw DatabaseException('Budget not found: $id');
       }
 
-      await (_database.delete(_database.budgets)..where((b) => b.id.equals(id))).go();
+      await (_database.delete(_database.budgets)..where(($BudgetsTable b) => b.id.equals(id))).go();
 
       logger.info('Budget deleted successfully: $id');
     } catch (error, stackTrace) {
@@ -186,9 +182,9 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   Future<List<BudgetEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced budgets');
-      final query = _database.select(_database.budgets)
-        ..where((b) => b.isSynced.equals(false));
-      final budgets = await query.get();
+      final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = _database.select(_database.budgets)
+        ..where(($BudgetsTable b) => b.isSynced.equals(false));
+      final List<BudgetEntity> budgets = await query.get();
       logger.info('Found ${budgets.length} unsynced budgets');
       return budgets;
     } catch (error, stackTrace) {
@@ -206,7 +202,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
     try {
       logger.info('Marking budget as synced: $localId -> $serverId');
 
-      await (_database.update(_database.budgets)..where((b) => b.id.equals(localId))).write(
+      await (_database.update(_database.budgets)..where(($BudgetsTable b) => b.id.equals(localId))).write(
         BudgetEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -225,7 +221,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   @override
   Future<String> getSyncStatus(String id) async {
     try {
-      final budget = await getById(id);
+      final BudgetEntity? budget = await getById(id);
       if (budget == null) {
         throw DatabaseException('Budget not found: $id');
       }
@@ -252,7 +248,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   Future<int> count() async {
     try {
       logger.fine('Counting budgets');
-      final count = await _database.select(_database.budgets).get().then((list) => list.length);
+      final int count = await _database.select(_database.budgets).get().then((List<BudgetEntity> list) => list.length);
       logger.fine('Budget count: $count');
       return count;
     } catch (error, stackTrace) {
@@ -269,10 +265,10 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   Future<List<BudgetEntity>> getActive() async {
     try {
       logger.fine('Fetching active budgets');
-      final query = _database.select(_database.budgets)
-        ..where((b) => b.active.equals(true))
-        ..orderBy([(b) => OrderingTerm.asc(b.name)]);
-      final budgets = await query.get();
+      final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = _database.select(_database.budgets)
+        ..where(($BudgetsTable b) => b.active.equals(true))
+        ..orderBy(<OrderClauseGenerator<$BudgetsTable>>[($BudgetsTable b) => OrderingTerm.asc(b.name)]);
+      final List<BudgetEntity> budgets = await query.get();
       logger.info('Found ${budgets.length} active budgets');
       return budgets;
     } catch (error, stackTrace) {
@@ -289,10 +285,10 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   Future<List<BudgetEntity>> getAutoBudgets() async {
     try {
       logger.fine('Fetching auto-budgets');
-      final query = _database.select(_database.budgets)
-        ..where((b) => b.autoBudgetType.isNotNull())
-        ..orderBy([(b) => OrderingTerm.asc(b.name)]);
-      final budgets = await query.get();
+      final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = _database.select(_database.budgets)
+        ..where(($BudgetsTable b) => b.autoBudgetType.isNotNull())
+        ..orderBy(<OrderClauseGenerator<$BudgetsTable>>[($BudgetsTable b) => OrderingTerm.asc(b.name)]);
+      final List<BudgetEntity> budgets = await query.get();
       logger.info('Found ${budgets.length} auto-budgets');
       return budgets;
     } catch (error, stackTrace) {
@@ -314,15 +310,15 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
     try {
       logger.fine('Calculating spending for budget: $budgetId from $startDate to $endDate');
 
-      final transactions = await (_database.select(_database.transactions)
-            ..where((t) =>
+      final List<TransactionEntity> transactions = await (_database.select(_database.transactions)
+            ..where(($TransactionsTable t) =>
                 t.budgetId.equals(budgetId) &
                 t.type.equals('withdrawal') &
                 t.date.isBiggerOrEqualValue(startDate) &
                 t.date.isSmallerOrEqualValue(endDate)))
           .get();
 
-      final total = transactions.fold<double>(0.0, (sum, txn) => sum + txn.amount);
+      final double total = transactions.fold<double>(0.0, (double sum, TransactionEntity txn) => sum + txn.amount);
 
       logger.fine('Budget $budgetId spending: $total');
       return total;

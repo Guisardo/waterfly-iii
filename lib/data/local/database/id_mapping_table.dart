@@ -22,10 +22,10 @@ class IdMapping extends Table {
   DateTimeColumn get syncedAt => dateTime()();
 
   @override
-  Set<Column> get primaryKey => {localId};
+  Set<Column> get primaryKey => <Column<Object>>{localId};
 
   @override
-  List<Set<Column>> get uniqueKeys => [
-        {serverId, entityType}
+  List<Set<Column>> get uniqueKeys => <Set<Column<Object>>>[
+        <Column<Object>>{serverId, entityType}
       ];
 }

@@ -2,10 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
-import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 
-import 'base_repository.dart';
+import 'package:waterflyiii/data/repositories/base_repository.dart';
 
 /// Repository for managing transaction data.
 ///
@@ -16,14 +15,11 @@ class TransactionRepository
   /// Creates a transaction repository.
   TransactionRepository({
     required AppDatabase database,
-    AppModeManager? appModeManager,
     UuidService? uuidService,
   })  : _database = database,
-        _appModeManager = appModeManager ?? AppModeManager(),
         _uuidService = uuidService ?? UuidService();
 
   final AppDatabase _database;
-  final AppModeManager _appModeManager;
   final UuidService _uuidService;
 
   @override
@@ -33,7 +29,7 @@ class TransactionRepository
   Future<List<TransactionEntity>> getAll() async {
     try {
       logger.fine('Fetching all transactions');
-      final transactions = await _database.select(_database.transactions).get();
+      final List<TransactionEntity> transactions = await _database.select(_database.transactions).get();
       logger.info('Retrieved ${transactions.length} transactions');
       return transactions;
     } catch (error, stackTrace) {
@@ -56,9 +52,9 @@ class TransactionRepository
   Future<TransactionEntity?> getById(String id) async {
     try {
       logger.fine('Fetching transaction by ID: $id');
-      final query = _database.select(_database.transactions)
-        ..where((t) => t.id.equals(id));
-      final transaction = await query.getSingleOrNull();
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = _database.select(_database.transactions)
+        ..where(($TransactionsTable t) => t.id.equals(id));
+      final TransactionEntity? transaction = await query.getSingleOrNull();
       
       if (transaction != null) {
         logger.fine('Found transaction: $id');
@@ -80,8 +76,8 @@ class TransactionRepository
   @override
   Stream<TransactionEntity?> watchById(String id) {
     logger.fine('Watching transaction: $id');
-    final query = _database.select(_database.transactions)
-      ..where((t) => t.id.equals(id));
+    final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = _database.select(_database.transactions)
+      ..where(($TransactionsTable t) => t.id.equals(id));
     return query.watchSingleOrNull();
   }
 
@@ -91,10 +87,10 @@ class TransactionRepository
       logger.info('Creating transaction');
 
       // Generate ID if not provided
-      final id = entity.id.isEmpty ? _uuidService.generateTransactionId() : entity.id;
+      final String id = entity.id.isEmpty ? _uuidService.generateTransactionId() : entity.id;
       
-      final now = DateTime.now();
-      final companion = TransactionEntityCompanion.insert(
+      final DateTime now = DateTime.now();
+      final TransactionEntityCompanion companion = TransactionEntityCompanion.insert(
         id: id,
         serverId: Value(entity.serverId),
         type: entity.type,
@@ -120,9 +116,9 @@ class TransactionRepository
 
       await _database.into(_database.transactions).insert(companion);
       
-      final created = await getById(id);
+      final TransactionEntity? created = await getById(id);
       if (created == null) {
-        throw DatabaseException('Failed to retrieve created transaction');
+        throw const DatabaseException('Failed to retrieve created transaction');
       }
 
       logger.info('Transaction created successfully: $id');
@@ -142,12 +138,12 @@ class TransactionRepository
     try {
       logger.info('Updating transaction: $id');
 
-      final existing = await getById(id);
+      final TransactionEntity? existing = await getById(id);
       if (existing == null) {
         throw DatabaseException('Transaction not found: $id');
       }
 
-      final companion = TransactionEntityCompanion(
+      final TransactionEntityCompanion companion = TransactionEntityCompanion(
         id: Value(id),
         serverId: Value(entity.serverId),
         type: Value(entity.type),
@@ -168,13 +164,13 @@ class TransactionRepository
         syncStatus: const Value('pending'),
       );
 
-      final query = _database.update(_database.transactions)
-        ..where((t) => t.id.equals(id));
+      final UpdateStatement<$TransactionsTable, TransactionEntity> query = _database.update(_database.transactions)
+        ..where(($TransactionsTable t) => t.id.equals(id));
       await query.write(companion);
 
-      final updated = await getById(id);
+      final TransactionEntity? updated = await getById(id);
       if (updated == null) {
-        throw DatabaseException('Failed to retrieve updated transaction');
+        throw const DatabaseException('Failed to retrieve updated transaction');
       }
 
       logger.info('Transaction updated successfully: $id');
@@ -194,14 +190,14 @@ class TransactionRepository
     try {
       logger.info('Deleting transaction: $id');
 
-      final existing = await getById(id);
+      final TransactionEntity? existing = await getById(id);
       if (existing == null) {
         logger.warning('Transaction not found for deletion: $id');
         return;
       }
 
-      final query = _database.delete(_database.transactions)
-        ..where((t) => t.id.equals(id));
+      final DeleteStatement<$TransactionsTable, TransactionEntity> query = _database.delete(_database.transactions)
+        ..where(($TransactionsTable t) => t.id.equals(id));
       await query.go();
 
       logger.info('Transaction deleted successfully: $id');
@@ -217,9 +213,9 @@ class TransactionRepository
   Future<List<TransactionEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced transactions');
-      final query = _database.select(_database.transactions)
-        ..where((t) => t.isSynced.equals(false));
-      final transactions = await query.get();
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = _database.select(_database.transactions)
+        ..where(($TransactionsTable t) => t.isSynced.equals(false));
+      final List<TransactionEntity> transactions = await query.get();
       logger.info('Found ${transactions.length} unsynced transactions');
       return transactions;
     } catch (error, stackTrace) {
@@ -237,7 +233,7 @@ class TransactionRepository
     try {
       logger.info('Marking transaction as synced: $localId -> $serverId');
 
-      final companion = TransactionEntityCompanion(
+      final TransactionEntityCompanion companion = TransactionEntityCompanion(
         serverId: Value(serverId),
         isSynced: const Value(true),
         syncStatus: const Value('synced'),
@@ -245,8 +241,8 @@ class TransactionRepository
         syncError: const Value.absent(),
       );
 
-      final query = _database.update(_database.transactions)
-        ..where((t) => t.id.equals(localId));
+      final UpdateStatement<$TransactionsTable, TransactionEntity> query = _database.update(_database.transactions)
+        ..where(($TransactionsTable t) => t.id.equals(localId));
       await query.write(companion);
 
       logger.info('Transaction marked as synced: $localId');
@@ -263,7 +259,7 @@ class TransactionRepository
   @override
   Future<String> getSyncStatus(String id) async {
     try {
-      final transaction = await getById(id);
+      final TransactionEntity? transaction = await getById(id);
       if (transaction == null) {
         throw DatabaseException('Transaction not found: $id');
       }
@@ -294,11 +290,11 @@ class TransactionRepository
   @override
   Future<int> count() async {
     try {
-      final countExp = _database.transactions.id.count();
-      final query = _database.selectOnly(_database.transactions)
-        ..addColumns([countExp]);
-      final result = await query.getSingle();
-      final count = result.read(countExp) ?? 0;
+      final Expression<int> countExp = _database.transactions.id.count();
+      final JoinedSelectStatement<$TransactionsTable, TransactionEntity> query = _database.selectOnly(_database.transactions)
+        ..addColumns(<Expression<Object>>[countExp]);
+      final TypedResult result = await query.getSingle();
+      final int count = result.read(countExp) ?? 0;
       logger.fine('Transaction count: $count');
       return count;
     } catch (error, stackTrace) {
@@ -317,11 +313,11 @@ class TransactionRepository
   ) async {
     try {
       logger.fine('Fetching transactions from $startDate to $endDate');
-      final query = _database.select(_database.transactions)
-        ..where((t) => t.date.isBiggerOrEqualValue(startDate))
-        ..where((t) => t.date.isSmallerOrEqualValue(endDate))
-        ..orderBy([(t) => OrderingTerm.desc(t.date)]);
-      final transactions = await query.get();
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = _database.select(_database.transactions)
+        ..where(($TransactionsTable t) => t.date.isBiggerOrEqualValue(startDate))
+        ..where(($TransactionsTable t) => t.date.isSmallerOrEqualValue(endDate))
+        ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[($TransactionsTable t) => OrderingTerm.desc(t.date)]);
+      final List<TransactionEntity> transactions = await query.get();
       logger.info('Found ${transactions.length} transactions in date range');
       return transactions;
     } catch (error, stackTrace) {
@@ -340,12 +336,12 @@ class TransactionRepository
   Future<List<TransactionEntity>> getByAccount(String accountId) async {
     try {
       logger.fine('Fetching transactions for account: $accountId');
-      final query = _database.select(_database.transactions)
-        ..where((t) =>
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = _database.select(_database.transactions)
+        ..where(($TransactionsTable t) =>
             t.sourceAccountId.equals(accountId) |
             t.destinationAccountId.equals(accountId))
-        ..orderBy([(t) => OrderingTerm.desc(t.date)]);
-      final transactions = await query.get();
+        ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[($TransactionsTable t) => OrderingTerm.desc(t.date)]);
+      final List<TransactionEntity> transactions = await query.get();
       logger.info('Found ${transactions.length} transactions for account');
       return transactions;
     } catch (error, stackTrace) {
@@ -368,10 +364,10 @@ class TransactionRepository
   Future<List<TransactionEntity>> getByCategory(String categoryId) async {
     try {
       logger.fine('Fetching transactions for category: $categoryId');
-      final query = _database.select(_database.transactions)
-        ..where((t) => t.categoryId.equals(categoryId))
-        ..orderBy([(t) => OrderingTerm.desc(t.date)]);
-      final transactions = await query.get();
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = _database.select(_database.transactions)
+        ..where(($TransactionsTable t) => t.categoryId.equals(categoryId))
+        ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[($TransactionsTable t) => OrderingTerm.desc(t.date)]);
+      final List<TransactionEntity> transactions = await query.get();
       logger.info('Found ${transactions.length} transactions for category');
       return transactions;
     } catch (error, stackTrace) {

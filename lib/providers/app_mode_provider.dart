@@ -93,7 +93,7 @@ class AppModeProvider extends ChangeNotifier {
   /// Transitions from online to syncing mode.
   /// Returns `true` if successful, `false` if transition is not allowed.
   bool startSyncing() {
-    final success = _appModeManager.startSyncing();
+    final bool success = _appModeManager.startSyncing();
     if (success) {
       _mode = _appModeManager.currentMode;
       notifyListeners();
@@ -106,7 +106,7 @@ class AppModeProvider extends ChangeNotifier {
   /// Transitions from syncing back to online mode.
   /// Returns `true` if successful, `false` if transition is not allowed.
   bool stopSyncing() {
-    final success = _appModeManager.stopSyncing();
+    final bool success = _appModeManager.stopSyncing();
     if (success) {
       _mode = _appModeManager.currentMode;
       notifyListeners();

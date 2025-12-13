@@ -80,7 +80,7 @@ class ConnectivityProvider extends ChangeNotifier {
   ///
   /// Useful for pull-to-refresh or manual retry scenarios.
   Future<bool> checkConnectivity() async {
-    final isOnline = await _connectivityService.checkConnectivity();
+    final bool isOnline = await _connectivityService.checkConnectivity();
     _status = _connectivityService.currentStatus;
     notifyListeners();
     return isOnline;
@@ -90,7 +90,7 @@ class ConnectivityProvider extends ChangeNotifier {
   ///
   /// Returns `true` if the Firefly III server can be reached.
   Future<bool> checkServerReachability() async {
-    return await _connectivityService.checkServerReachability();
+    return _connectivityService.checkServerReachability();
   }
 
   @override

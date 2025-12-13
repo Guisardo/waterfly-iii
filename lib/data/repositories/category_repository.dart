@@ -2,10 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
-import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 
-import 'base_repository.dart';
+import 'package:waterflyiii/data/repositories/base_repository.dart';
 
 /// Repository for managing category data.
 ///
@@ -15,14 +14,11 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
   /// Creates a category repository.
   CategoryRepository({
     required AppDatabase database,
-    AppModeManager? appModeManager,
     UuidService? uuidService,
   })  : _database = database,
-        _appModeManager = appModeManager ?? AppModeManager(),
         _uuidService = uuidService ?? UuidService();
 
   final AppDatabase _database;
-  final AppModeManager _appModeManager;
   final UuidService _uuidService;
 
   @override
@@ -32,8 +28,8 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
   Future<List<CategoryEntity>> getAll() async {
     try {
       logger.fine('Fetching all categories');
-      final categories = await (_database.select(_database.categories)
-            ..orderBy([(c) => OrderingTerm.asc(c.name)]))
+      final List<CategoryEntity> categories = await (_database.select(_database.categories)
+            ..orderBy(<OrderClauseGenerator<$CategoriesTable>>[($CategoriesTable c) => OrderingTerm.asc(c.name)]))
           .get();
       logger.info('Retrieved ${categories.length} categories');
       return categories;
@@ -50,7 +46,7 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
   @override
   Stream<List<CategoryEntity>> watchAll() {
     logger.fine('Watching all categories');
-    return (_database.select(_database.categories)..orderBy([(c) => OrderingTerm.asc(c.name)]))
+    return (_database.select(_database.categories)..orderBy(<OrderClauseGenerator<$CategoriesTable>>[($CategoriesTable c) => OrderingTerm.asc(c.name)]))
         .watch();
   }
 
@@ -58,8 +54,8 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
   Future<CategoryEntity?> getById(String id) async {
     try {
       logger.fine('Fetching category by ID: $id');
-      final query = _database.select(_database.categories)..where((c) => c.id.equals(id));
-      final category = await query.getSingleOrNull();
+      final SimpleSelectStatement<$CategoriesTable, CategoryEntity> query = _database.select(_database.categories)..where(($CategoriesTable c) => c.id.equals(id));
+      final CategoryEntity? category = await query.getSingleOrNull();
 
       if (category != null) {
         logger.fine('Found category: $id');
@@ -81,7 +77,7 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
   @override
   Stream<CategoryEntity?> watchById(String id) {
     logger.fine('Watching category: $id');
-    final query = _database.select(_database.categories)..where((c) => c.id.equals(id));
+    final SimpleSelectStatement<$CategoriesTable, CategoryEntity> query = _database.select(_database.categories)..where(($CategoriesTable c) => c.id.equals(id));
     return query.watchSingleOrNull();
   }
 
@@ -90,10 +86,10 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
     try {
       logger.info('Creating category');
 
-      final id = entity.id.isEmpty ? _uuidService.generateCategoryId() : entity.id;
-      final now = DateTime.now();
+      final String id = entity.id.isEmpty ? _uuidService.generateCategoryId() : entity.id;
+      final DateTime now = DateTime.now();
 
-      final companion = CategoryEntityCompanion.insert(
+      final CategoryEntityCompanion companion = CategoryEntityCompanion.insert(
         id: id,
         serverId: Value(entity.serverId),
         name: entity.name,
@@ -106,9 +102,9 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
 
       await _database.into(_database.categories).insert(companion);
 
-      final created = await getById(id);
+      final CategoryEntity? created = await getById(id);
       if (created == null) {
-        throw DatabaseException('Failed to retrieve created category');
+        throw const DatabaseException('Failed to retrieve created category');
       }
 
       logger.info('Category created successfully: $id');
@@ -125,12 +121,12 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
     try {
       logger.info('Updating category: $id');
 
-      final existing = await getById(id);
+      final CategoryEntity? existing = await getById(id);
       if (existing == null) {
         throw DatabaseException('Category not found: $id');
       }
 
-      final companion = CategoryEntityCompanion(
+      final CategoryEntityCompanion companion = CategoryEntityCompanion(
         id: Value(id),
         serverId: Value(entity.serverId),
         name: Value(entity.name),
@@ -142,9 +138,9 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
 
       await _database.update(_database.categories).replace(companion);
 
-      final updated = await getById(id);
+      final CategoryEntity? updated = await getById(id);
       if (updated == null) {
-        throw DatabaseException('Failed to retrieve updated category');
+        throw const DatabaseException('Failed to retrieve updated category');
       }
 
       logger.info('Category updated successfully: $id');
@@ -161,12 +157,12 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
     try {
       logger.info('Deleting category: $id');
 
-      final existing = await getById(id);
+      final CategoryEntity? existing = await getById(id);
       if (existing == null) {
         throw DatabaseException('Category not found: $id');
       }
 
-      await (_database.delete(_database.categories)..where((c) => c.id.equals(id))).go();
+      await (_database.delete(_database.categories)..where(($CategoriesTable c) => c.id.equals(id))).go();
 
       logger.info('Category deleted successfully: $id');
     } catch (error, stackTrace) {
@@ -180,9 +176,9 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
   Future<List<CategoryEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced categories');
-      final query = _database.select(_database.categories)
-        ..where((c) => c.isSynced.equals(false));
-      final categories = await query.get();
+      final SimpleSelectStatement<$CategoriesTable, CategoryEntity> query = _database.select(_database.categories)
+        ..where(($CategoriesTable c) => c.isSynced.equals(false));
+      final List<CategoryEntity> categories = await query.get();
       logger.info('Found ${categories.length} unsynced categories');
       return categories;
     } catch (error, stackTrace) {
@@ -200,7 +196,7 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
     try {
       logger.info('Marking category as synced: $localId -> $serverId');
 
-      await (_database.update(_database.categories)..where((c) => c.id.equals(localId))).write(
+      await (_database.update(_database.categories)..where(($CategoriesTable c) => c.id.equals(localId))).write(
         CategoryEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -219,7 +215,7 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
   @override
   Future<String> getSyncStatus(String id) async {
     try {
-      final category = await getById(id);
+      final CategoryEntity? category = await getById(id);
       if (category == null) {
         throw DatabaseException('Category not found: $id');
       }
@@ -246,7 +242,7 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
   Future<int> count() async {
     try {
       logger.fine('Counting categories');
-      final count = await _database.select(_database.categories).get().then((list) => list.length);
+      final int count = await _database.select(_database.categories).get().then((List<CategoryEntity> list) => list.length);
       logger.fine('Category count: $count');
       return count;
     } catch (error, stackTrace) {
@@ -263,10 +259,10 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
   Future<List<CategoryEntity>> searchByName(String query) async {
     try {
       logger.fine('Searching categories by name: $query');
-      final searchQuery = _database.select(_database.categories)
-        ..where((c) => c.name.like('%$query%'))
-        ..orderBy([(c) => OrderingTerm.asc(c.name)]);
-      final categories = await searchQuery.get();
+      final SimpleSelectStatement<$CategoriesTable, CategoryEntity> searchQuery = _database.select(_database.categories)
+        ..where(($CategoriesTable c) => c.name.like('%$query%'))
+        ..orderBy(<OrderClauseGenerator<$CategoriesTable>>[($CategoriesTable c) => OrderingTerm.asc(c.name)]);
+      final List<CategoryEntity> categories = await searchQuery.get();
       logger.info('Found ${categories.length} categories matching: $query');
       return categories;
     } catch (error, stackTrace) {
@@ -283,10 +279,10 @@ class CategoryRepository implements BaseRepository<CategoryEntity, String> {
   Future<int> getTransactionCount(String categoryId) async {
     try {
       logger.fine('Counting transactions for category: $categoryId');
-      final transactions = await (_database.select(_database.transactions)
-            ..where((t) => t.categoryId.equals(categoryId)))
+      final List<TransactionEntity> transactions = await (_database.select(_database.transactions)
+            ..where(($TransactionsTable t) => t.categoryId.equals(categoryId)))
           .get();
-      final count = transactions.length;
+      final int count = transactions.length;
       logger.fine('Category $categoryId has $count transactions');
       return count;
     } catch (error, stackTrace) {
