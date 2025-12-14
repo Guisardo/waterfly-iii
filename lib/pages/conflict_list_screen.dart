@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/models/conflict.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
+import 'package:waterflyiii/services/sync/conflict_resolver.dart';
 
 final Logger _log = Logger('ConflictListScreen');
 
@@ -188,8 +191,17 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   }
 
   /// Build conflict card.
-  Widget _buildConflictCard(BuildContext context, dynamic conflict, int index) {
-    final conflictId = 'conflict_$index'; // TODO: Use actual conflict ID
+  Widget _buildConflictCard(BuildContext context, dynamic conflictEntity, int index) {
+    // Convert ConflictEntity to usable data
+    final conflictId = conflictEntity.id as String;
+    final entityType = conflictEntity.entityType as String;
+    final conflictType = conflictEntity.conflictType as String;
+    final detectedAt = conflictEntity.detectedAt as DateTime;
+    
+    // Parse conflicting fields to determine severity
+    final conflictingFieldsJson = conflictEntity.conflictingFields as String;
+    final severity = _determineSeverity(conflictingFieldsJson, entityType);
+    
     final isSelected = _selectedConflicts.contains(conflictId);
 
     return Card(
@@ -199,7 +211,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
           if (_isSelectionMode) {
             _toggleSelection(conflictId);
           } else {
-            _showConflictDetails(context, conflict);
+            _showConflictDetails(context, conflictEntity);
           }
         },
         onLongPress: () {
@@ -228,24 +240,24 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
                       children: [
                         Icon(
                           Icons.warning_amber,
-                          color: Colors.orange[700],
+                          color: _getSeverityColor(severity),
                           size: 20,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Conflict #${index + 1}',
+                            _formatConflictTitle(conflictType, entityType),
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
                         ),
-                        _buildSeverityBadge('Medium'),
+                        _buildSeverityBadge(severity),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      conflict.toString(),
+                      _formatConflictDescription(conflictType, entityType),
                       style: Theme.of(context).textTheme.bodyMedium,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -256,14 +268,14 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
                         Icon(Icons.category, size: 14, color: Colors.grey[600]),
                         const SizedBox(width: 4),
                         Text(
-                          'Transaction', // TODO: Get actual entity type
+                          _formatEntityType(entityType),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(width: 16),
                         Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
                         const SizedBox(width: 4),
                         Text(
-                          'Just now', // TODO: Get actual timestamp
+                          _formatTimestamp(detectedAt),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -514,18 +526,183 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
     );
   }
 
-  /// Filter conflicts.
+  /// Filter conflicts based on current filters.
   List<dynamic> _filterConflicts(List<dynamic> conflicts) {
-    return conflicts.where((conflict) {
-      // TODO: Implement actual filtering based on conflict properties
+    return conflicts.where((conflictEntity) {
+      // Filter by entity type
+      if (_filterEntityType != null) {
+        final entityType = conflictEntity.entityType as String;
+        if (entityType != _filterEntityType) {
+          return false;
+        }
+      }
+      
+      // Filter by severity
+      if (_filterSeverity != null) {
+        final conflictingFieldsJson = conflictEntity.conflictingFields as String;
+        final entityType = conflictEntity.entityType as String;
+        final severity = _determineSeverity(conflictingFieldsJson, entityType);
+        if (severity != _filterSeverity) {
+          return false;
+        }
+      }
+      
       return true;
     }).toList();
   }
 
-  /// Sort conflicts.
+  /// Sort conflicts based on current sort option.
   List<dynamic> _sortConflicts(List<dynamic> conflicts) {
-    // TODO: Implement actual sorting based on _sortBy
-    return conflicts;
+    final sortedList = List<dynamic>.from(conflicts);
+    
+    switch (_sortBy) {
+      case 'date':
+        sortedList.sort((a, b) {
+          final aDate = a.detectedAt as DateTime;
+          final bDate = b.detectedAt as DateTime;
+          return bDate.compareTo(aDate); // Newest first
+        });
+        break;
+      case 'entity_type':
+        sortedList.sort((a, b) {
+          final aType = a.entityType as String;
+          final bType = b.entityType as String;
+          return aType.compareTo(bType);
+        });
+        break;
+      case 'severity':
+        sortedList.sort((a, b) {
+          final aFields = a.conflictingFields as String;
+          final bFields = b.conflictingFields as String;
+          final aType = a.entityType as String;
+          final bType = b.entityType as String;
+          final aSeverity = _determineSeverity(aFields, aType);
+          final bSeverity = _determineSeverity(bFields, bType);
+          
+          // High > Medium > Low
+          final severityOrder = {'High': 3, 'Medium': 2, 'Low': 1};
+          return (severityOrder[bSeverity] ?? 0).compareTo(severityOrder[aSeverity] ?? 0);
+        });
+        break;
+    }
+    
+    return sortedList;
+  }
+
+  /// Determine conflict severity based on conflicting fields and entity type.
+  String _determineSeverity(String conflictingFieldsJson, String entityType) {
+    try {
+      final fields = (jsonDecode(conflictingFieldsJson) as List).cast<String>();
+      
+      // Critical fields that indicate high severity
+      final criticalFields = {
+        'transaction': ['amount', 'date', 'source_id', 'destination_id'],
+        'account': ['account_number', 'iban', 'opening_balance'],
+        'category': ['name'],
+        'budget': ['amount', 'start', 'end'],
+        'bill': ['amount_min', 'amount_max', 'date'],
+        'piggy_bank': ['target_amount', 'current_amount'],
+      };
+      
+      // Check if any critical fields are in conflict
+      final entityCriticalFields = criticalFields[entityType] ?? [];
+      final hasCriticalConflict = fields.any((field) => entityCriticalFields.contains(field));
+      
+      if (hasCriticalConflict) {
+        return 'High';
+      } else if (fields.length > 3) {
+        return 'Medium';
+      } else {
+        return 'Low';
+      }
+    } catch (e) {
+      _log.warning('Failed to determine severity: $e');
+      return 'Medium'; // Default to medium if parsing fails
+    }
+  }
+
+  /// Get color for severity level.
+  Color _getSeverityColor(String severity) {
+    switch (severity) {
+      case 'High':
+        return Colors.red[700]!;
+      case 'Medium':
+        return Colors.orange[700]!;
+      case 'Low':
+        return Colors.yellow[700]!;
+      default:
+        return Colors.grey[700]!;
+    }
+  }
+
+  /// Format conflict title based on type and entity.
+  String _formatConflictTitle(String conflictType, String entityType) {
+    final formattedEntity = _formatEntityType(entityType);
+    
+    switch (conflictType) {
+      case 'update_conflict':
+        return '$formattedEntity Update Conflict';
+      case 'delete_conflict':
+        return '$formattedEntity Delete Conflict';
+      case 'create_conflict':
+        return '$formattedEntity Creation Conflict';
+      default:
+        return '$formattedEntity Conflict';
+    }
+  }
+
+  /// Format conflict description.
+  String _formatConflictDescription(String conflictType, String entityType) {
+    final formattedEntity = _formatEntityType(entityType).toLowerCase();
+    
+    switch (conflictType) {
+      case 'update_conflict':
+        return 'Both local and remote versions of this $formattedEntity were modified';
+      case 'delete_conflict':
+        return 'This $formattedEntity was deleted remotely but modified locally';
+      case 'create_conflict':
+        return 'This $formattedEntity already exists on the server';
+      default:
+        return 'Conflict detected for this $formattedEntity';
+    }
+  }
+
+  /// Format entity type for display.
+  String _formatEntityType(String entityType) {
+    switch (entityType) {
+      case 'transaction':
+        return 'Transaction';
+      case 'account':
+        return 'Account';
+      case 'category':
+        return 'Category';
+      case 'budget':
+        return 'Budget';
+      case 'bill':
+        return 'Bill';
+      case 'piggy_bank':
+        return 'Piggy Bank';
+      default:
+        return entityType;
+    }
+  }
+
+  /// Format timestamp for display.
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+    
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+    }
   }
 
   /// Toggle conflict selection.
@@ -542,10 +719,22 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
     });
   }
 
-  /// Select all conflicts.
+  /// Select all visible conflicts.
   void _selectAll() {
-    // TODO: Select all visible conflicts
-    _log.info('Select all conflicts');
+    setState(() {
+      final provider = Provider.of<SyncStatusProvider>(context, listen: false);
+      final conflicts = provider.unresolvedConflicts;
+      final filteredConflicts = _filterConflicts(conflicts);
+      
+      // Add all visible conflict IDs to selection
+      _selectedConflicts.clear();
+      for (final conflictEntity in filteredConflicts) {
+        final conflictId = conflictEntity.id as String;
+        _selectedConflicts.add(conflictId);
+      }
+      
+      _log.info('Selected ${_selectedConflicts.length} conflicts');
+    });
   }
 
   /// Exit selection mode.
@@ -556,26 +745,276 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
     });
   }
 
-  /// Resolve single conflict.
-  void _resolveConflict(
+  /// Resolve single conflict with comprehensive error handling.
+  Future<void> _resolveConflict(
     BuildContext context,
-    dynamic conflict,
+    dynamic conflictEntity,
     ResolutionStrategy strategy,
-  ) {
-    _log.info('Resolving conflict with strategy: $strategy');
-    // TODO: Call conflict resolver service
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Conflict resolved')),
-    );
+  ) async {
+    try {
+      _log.info('Resolving conflict ${conflictEntity.id} with strategy: $strategy');
+      
+      // Show loading indicator
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+      
+      // Convert ConflictEntity to Conflict model
+      final conflict = _convertToConflictModel(conflictEntity);
+      
+      // Create resolver and resolve conflict
+      final resolver = ConflictResolver();
+      final resolution = await resolver.resolveConflict(conflict, strategy);
+      
+      // Close loading indicator
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      
+      if (resolution.success) {
+        // Refresh conflicts list
+        final provider = Provider.of<SyncStatusProvider>(context, listen: false);
+        await provider.refresh();
+        
+        // Show success message
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Conflict resolved using ${_formatStrategy(strategy)}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        // Show error message
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to resolve conflict: ${resolution.errorMessage}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      _log.severe('Failed to resolve conflict', e, stackTrace);
+      
+      // Close loading indicator if still showing
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      
+      // Show error message
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error resolving conflict: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
-  /// Resolve multiple conflicts.
-  void _resolveBulk(ResolutionStrategy strategy) {
-    _log.info('Resolving ${_selectedConflicts.length} conflicts with strategy: $strategy');
-    // TODO: Call conflict resolver service for bulk resolution
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${_selectedConflicts.length} conflicts resolved')),
-    );
-    _exitSelectionMode();
+  /// Resolve multiple conflicts with comprehensive error handling.
+  Future<void> _resolveBulk(ResolutionStrategy strategy) async {
+    try {
+      _log.info('Resolving ${_selectedConflicts.length} conflicts with strategy: $strategy');
+      
+      // Show loading indicator
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Resolving ${_selectedConflicts.length} conflicts...',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      );
+      
+      // Get all conflicts
+      final provider = Provider.of<SyncStatusProvider>(context, listen: false);
+      final allConflicts = provider.unresolvedConflicts;
+      
+      // Filter selected conflicts
+      final selectedConflictEntities = allConflicts.where((conflictEntity) {
+        final conflictId = conflictEntity.id as String;
+        return _selectedConflicts.contains(conflictId);
+      }).toList();
+      
+      // Resolve each conflict
+      final resolver = ConflictResolver();
+      int successCount = 0;
+      int failureCount = 0;
+      final List<String> errors = [];
+      
+      for (final conflictEntity in selectedConflictEntities) {
+        try {
+          final conflict = _convertToConflictModel(conflictEntity);
+          final resolution = await resolver.resolveConflict(conflict, strategy);
+          
+          if (resolution.success) {
+            successCount++;
+          } else {
+            failureCount++;
+            errors.add('${conflict.id}: ${resolution.errorMessage}');
+          }
+        } catch (e) {
+          failureCount++;
+          errors.add('${conflictEntity.id}: $e');
+          _log.warning('Failed to resolve conflict ${conflictEntity.id}', e);
+        }
+      }
+      
+      // Close loading indicator
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      
+      // Refresh conflicts list
+      await provider.refresh();
+      
+      // Exit selection mode
+      _exitSelectionMode();
+      
+      // Show results
+      if (!mounted) return;
+      if (failureCount == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Successfully resolved $successCount conflicts'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        // Show detailed error dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Bulk Resolution Results'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('✓ Resolved: $successCount'),
+                  Text('✗ Failed: $failureCount'),
+                  if (errors.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const Text('Errors:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    ...errors.take(5).map((error) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text('• $error', style: const TextStyle(fontSize: 12)),
+                    )),
+                    if (errors.length > 5)
+                      Text('... and ${errors.length - 5} more errors'),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      _log.severe('Failed to resolve conflicts in bulk', e, stackTrace);
+      
+      // Close loading indicator if still showing
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      
+      // Show error message
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error resolving conflicts: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+  }
+
+  /// Convert ConflictEntity from database to Conflict model.
+  Conflict _convertToConflictModel(dynamic conflictEntity) {
+    try {
+      final localData = jsonDecode(conflictEntity.localData as String) as Map<String, dynamic>;
+      final remoteData = jsonDecode(conflictEntity.serverData as String) as Map<String, dynamic>;
+      final conflictingFields = (jsonDecode(conflictEntity.conflictingFields as String) as List).cast<String>();
+      
+      // Determine conflict type
+      final conflictTypeStr = conflictEntity.conflictType as String;
+      final conflictType = ConflictType.values.firstWhere(
+        (e) => e.name == conflictTypeStr.replaceAll('_', ''),
+        orElse: () => ConflictType.updateUpdate,
+      );
+      
+      // Determine severity
+      final severityStr = _determineSeverity(
+        conflictEntity.conflictingFields as String,
+        conflictEntity.entityType as String,
+      );
+      final severity = ConflictSeverity.values.firstWhere(
+        (e) => e.name.toLowerCase() == severityStr.toLowerCase(),
+        orElse: () => ConflictSeverity.medium,
+      );
+      
+      return Conflict(
+        id: conflictEntity.id as String,
+        operationId: conflictEntity.entityId as String, // Using entityId as operationId
+        entityType: conflictEntity.entityType as String,
+        entityId: conflictEntity.entityId as String,
+        conflictType: conflictType,
+        localData: localData,
+        remoteData: remoteData,
+        conflictingFields: conflictingFields,
+        severity: severity,
+        detectedAt: conflictEntity.detectedAt as DateTime,
+        resolvedAt: conflictEntity.resolvedAt as DateTime?,
+        resolutionStrategy: conflictEntity.resolutionStrategy != null
+            ? ResolutionStrategy.values.firstWhere(
+                (e) => e.name == conflictEntity.resolutionStrategy,
+                orElse: () => ResolutionStrategy.manual,
+              )
+            : null,
+        resolvedBy: conflictEntity.resolvedBy as String?,
+      );
+    } catch (e, stackTrace) {
+      _log.severe('Failed to convert ConflictEntity to Conflict model', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Format resolution strategy for display.
+  String _formatStrategy(ResolutionStrategy strategy) {
+    switch (strategy) {
+      case ResolutionStrategy.localWins:
+        return 'local version';
+      case ResolutionStrategy.remoteWins:
+        return 'remote version';
+      case ResolutionStrategy.lastWriteWins:
+        return 'last write wins';
+      case ResolutionStrategy.merge:
+        return 'merge';
+      case ResolutionStrategy.manual:
+        return 'manual resolution';
+    }
   }
 }

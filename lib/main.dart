@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 import 'package:waterflyiii/app.dart';
+import 'package:waterflyiii/services/sync/background_sync_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,5 +31,13 @@ void main() async {
   tz.initializeTimeZones();
   Intl.defaultLocale = await findSystemLocale();
   await initializeDateFormatting();
+  
+  // Initialize workmanager for background sync
+  try {
+    await initializeBackgroundSync();
+  } catch (e) {
+    Logger('main').warning('Failed to initialize background sync: $e');
+  }
+  
   return runApp(const WaterflyApp());
 }
