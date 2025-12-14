@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:workmanager/workmanager.dart';
 
 import '../../data/local/database/app_database.dart';
 import '../../models/sync_operation.dart';
@@ -2073,22 +2074,36 @@ class SyncManager {
   /// Schedule periodic sync.
   Future<void> schedulePeriodicSync(Duration interval) async {
     _logger.info('Scheduling periodic sync every ${interval.inMinutes} minutes');
-    // TODO: Use workmanager to schedule background sync
-    // await Workmanager().registerPeriodicTask(
-    //   'sync',
-    //   'syncTask',
-    //   frequency: interval,
-    //   constraints: Constraints(
-    //     networkType: NetworkType.connected,
-    //   ),
-    // );
+    
+    try {
+      await Workmanager().registerPeriodicTask(
+        'waterfly-sync',
+        'syncTask',
+        frequency: interval,
+        constraints: Constraints(
+          networkType: NetworkType.connected,
+        ),
+        existingWorkPolicy: ExistingWorkPolicy.replace,
+      );
+      
+      _logger.info('Background sync scheduled successfully');
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to schedule background sync', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Cancel scheduled sync.
   Future<void> cancelScheduledSync() async {
     _logger.info('Cancelling scheduled sync');
-    // TODO: Cancel workmanager task
-    // await Workmanager().cancelByUniqueName('sync');
+    
+    try {
+      await Workmanager().cancelByUniqueName('waterfly-sync');
+      _logger.info('Background sync cancelled successfully');
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to cancel background sync', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Store conflict in database for user resolution.

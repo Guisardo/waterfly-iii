@@ -69,7 +69,7 @@ dependencies:
   synchronized: ^3.4.0
   # Phase 3 Dependencies - Synchronization (Added 2024-12-13)
   retry: ^3.1.2
-  # workmanager: ^0.5.2  # Temporarily disabled for build
+  workmanager: ^0.5.2
   equatable: ^2.0.7
   crypto: ^3.0.3
   dio: ^5.4.0
