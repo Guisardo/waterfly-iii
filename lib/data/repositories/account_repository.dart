@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
-import 'package:waterflyiii/models/sync_operation.dart';
 import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 import 'package:waterflyiii/validators/account_validator.dart';

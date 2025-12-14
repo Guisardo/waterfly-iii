@@ -3,7 +3,6 @@ import 'package:logging/logging.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
 import 'package:waterflyiii/exceptions/sync_exceptions.dart' as sync_ex;
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/models/sync_progress.dart';
 import 'package:waterflyiii/services/sync/conflict_detector.dart';
 import 'package:waterflyiii/services/sync/conflict_resolver.dart';

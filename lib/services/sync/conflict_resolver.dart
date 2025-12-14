@@ -1,7 +1,6 @@
 import 'package:logging/logging.dart';
 
 import '../../models/conflict.dart';
-import '../../models/sync_operation.dart';
 import '../../exceptions/sync_exceptions.dart';
 import '../../validators/transaction_validator.dart';
 import '../../validators/account_validator.dart';

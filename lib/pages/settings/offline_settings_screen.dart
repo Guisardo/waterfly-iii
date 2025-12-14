@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:waterflyiii/models/conflict.dart';
 import 'package:waterflyiii/providers/offline_settings_provider.dart';
-import 'package:waterflyiii/services/sync/background_sync_scheduler.dart';
-import 'package:waterflyiii/services/sync/conflict_resolver.dart';
-import 'package:waterflyiii/services/sync/consistency_service.dart';
-import 'package:waterflyiii/services/sync/sync_service.dart';
-import 'package:waterflyiii/widgets/sync_progress_dialog.dart';
+import 'package:waterflyiii/widgets/sync_progress_widget.dart';
 
 final Logger _log = Logger('OfflineSettingsScreen');
 
@@ -443,15 +440,15 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
     BuildContext context,
     OfflineSettingsProvider settings,
   ) async {
-    final selected = await showDialog<ConflictResolutionStrategy>(
+    final selected = await showDialog<ResolutionStrategy>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Conflict Resolution Strategy'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: ConflictResolutionStrategy.values.map((strategy) {
-              return RadioListTile<ConflictResolutionStrategy>(
+            children: ResolutionStrategy.values.map((strategy) {
+              return RadioListTile<ResolutionStrategy>(
                 title: Text(_getStrategyLabel(strategy)),
                 subtitle: Text(_getStrategyDescription(strategy)),
                 value: strategy,
@@ -581,7 +578,9 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         await showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => const SyncProgressDialog(),
+          builder: (context) => const SyncProgressWidget(
+            displayMode: SyncProgressDisplayMode.dialog,
+          ),
         );
       }
     } catch (e) {
@@ -626,10 +625,12 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         // TODO: Get SyncService and trigger full sync
         if (mounted) {
           await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => const SyncProgressDialog(),
-          );
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const SyncProgressWidget(
+            displayMode: SyncProgressDisplayMode.dialog,
+          ),
+        );
         }
       } catch (e) {
         _log.severe('Full sync failed', e);
@@ -768,30 +769,34 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   }
 
   /// Get conflict strategy label.
-  String _getStrategyLabel(ConflictResolutionStrategy strategy) {
+  String _getStrategyLabel(ResolutionStrategy strategy) {
     switch (strategy) {
-      case ConflictResolutionStrategy.localWins:
+      case ResolutionStrategy.localWins:
         return 'Local Wins';
-      case ConflictResolutionStrategy.remoteWins:
+      case ResolutionStrategy.remoteWins:
         return 'Remote Wins';
-      case ConflictResolutionStrategy.lastWriteWins:
+      case ResolutionStrategy.lastWriteWins:
         return 'Last Write Wins';
-      case ConflictResolutionStrategy.manual:
+      case ResolutionStrategy.manual:
         return 'Manual Resolution';
+      case ResolutionStrategy.merge:
+        return 'Merge Changes';
     }
   }
 
   /// Get conflict strategy description.
-  String _getStrategyDescription(ConflictResolutionStrategy strategy) {
+  String _getStrategyDescription(ResolutionStrategy strategy) {
     switch (strategy) {
-      case ConflictResolutionStrategy.localWins:
+      case ResolutionStrategy.localWins:
         return 'Always keep local changes';
-      case ConflictResolutionStrategy.remoteWins:
+      case ResolutionStrategy.remoteWins:
         return 'Always keep server changes';
-      case ConflictResolutionStrategy.lastWriteWins:
+      case ResolutionStrategy.lastWriteWins:
         return 'Keep most recently modified version';
-      case ConflictResolutionStrategy.manual:
+      case ResolutionStrategy.manual:
         return 'Manually resolve each conflict';
+      case ResolutionStrategy.merge:
+        return 'Automatically merge non-conflicting changes';
     }
   }
 }

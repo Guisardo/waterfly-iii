@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waterflyiii/models/conflict.dart';
 import 'package:waterflyiii/services/sync/background_sync_scheduler.dart';
-import 'package:waterflyiii/services/sync/conflict_resolver.dart';
 
 final Logger _log = Logger('OfflineSettingsProvider');
 
@@ -61,8 +61,8 @@ class OfflineSettingsProvider extends ChangeNotifier {
   SyncInterval _syncInterval = SyncInterval.oneHour;
   bool _autoSyncEnabled = true;
   bool _wifiOnlyEnabled = false;
-  ConflictResolutionStrategy _conflictStrategy =
-      ConflictResolutionStrategy.lastWriteWins;
+  ResolutionStrategy _conflictStrategy =
+      ResolutionStrategy.lastWriteWins;
   DateTime? _lastSyncTime;
   DateTime? _nextSyncTime;
   int _totalSyncs = 0;
@@ -77,7 +77,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
   SyncInterval get syncInterval => _syncInterval;
   bool get autoSyncEnabled => _autoSyncEnabled;
   bool get wifiOnlyEnabled => _wifiOnlyEnabled;
-  ConflictResolutionStrategy get conflictStrategy => _conflictStrategy;
+  ResolutionStrategy get conflictStrategy => _conflictStrategy;
   DateTime? get lastSyncTime => _lastSyncTime;
   DateTime? get nextSyncTime => _nextSyncTime;
   int get totalSyncs => _totalSyncs;
@@ -107,8 +107,8 @@ class OfflineSettingsProvider extends ChangeNotifier {
       final strategyIndex = _prefs.getInt(_keyConflictStrategy);
       if (strategyIndex != null &&
           strategyIndex >= 0 &&
-          strategyIndex < ConflictResolutionStrategy.values.length) {
-        _conflictStrategy = ConflictResolutionStrategy.values[strategyIndex];
+          strategyIndex < ResolutionStrategy.values.length) {
+        _conflictStrategy = ResolutionStrategy.values[strategyIndex];
       }
 
       // Load statistics
@@ -148,10 +148,10 @@ class OfflineSettingsProvider extends ChangeNotifier {
       // Update background scheduler if auto-sync is enabled
       if (_autoSyncEnabled && _syncScheduler != null) {
         if (interval == SyncInterval.manual) {
-          await _syncScheduler!.cancelScheduledSync();
+          await _syncScheduler!.cancelAll();
           _log.info('Cancelled scheduled sync (manual mode)');
         } else if (interval.duration != null) {
-          await _syncScheduler!.schedulePeriodicSync(interval.duration!);
+          await _syncScheduler!.schedulePeriodicSync(interval: interval.duration!);
           _log.info('Scheduled periodic sync: ${interval.duration}');
         }
       }
@@ -174,10 +174,10 @@ class OfflineSettingsProvider extends ChangeNotifier {
       // Update background scheduler
       if (_syncScheduler != null) {
         if (enabled && _syncInterval.duration != null) {
-          await _syncScheduler!.schedulePeriodicSync(_syncInterval.duration!);
+          await _syncScheduler!.schedulePeriodicSync(interval: _syncInterval.duration!);
           _log.info('Enabled periodic sync: ${_syncInterval.duration}');
         } else {
-          await _syncScheduler!.cancelScheduledSync();
+          await _syncScheduler!.cancelAll();
           _log.info('Disabled periodic sync');
         }
       }
@@ -204,7 +204,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
   }
 
   /// Set conflict resolution strategy.
-  Future<void> setConflictStrategy(ConflictResolutionStrategy strategy) async {
+  Future<void> setConflictStrategy(ResolutionStrategy strategy) async {
     _log.info('Setting conflict resolution strategy: $strategy');
 
     try {
