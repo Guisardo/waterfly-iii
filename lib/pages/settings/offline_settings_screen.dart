@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/models/conflict.dart';
 import 'package:waterflyiii/providers/offline_settings_provider.dart';
+import 'package:waterflyiii/providers/sync_status_provider.dart';
+import 'package:waterflyiii/services/cache/query_cache.dart';
+import 'package:waterflyiii/services/sync/consistency_service.dart';
 import 'package:waterflyiii/widgets/sync_progress_widget.dart';
 
 final Logger _log = Logger('OfflineSettingsScreen');
@@ -514,11 +518,24 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
     );
 
     if (confirmed == true) {
-      // TODO: Implement cache clearing
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cache cleared')),
-        );
+      try {
+        // Clear query cache
+        final queryCache = QueryCache();
+        queryCache.clear();
+        
+        _log.info('Cache cleared successfully');
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Cache cleared')),
+          );
+        }
+      } catch (e, stackTrace) {
+        _log.severe('Failed to clear cache', e, stackTrace);
+        
+        if (mounted) {
+          _showError(context, 'Failed to clear cache: ${e.toString()}');
+        }
       }
     }
   }
@@ -572,8 +589,17 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
     setState(() => _isSyncing = true);
 
     try {
-      // TODO: Get SyncService from provider/dependency injection
-      // For now, show placeholder dialog
+      // Get SyncManager from SyncStatusProvider
+      final syncStatusProvider = Provider.of<SyncStatusProvider>(
+        context,
+        listen: false,
+      );
+      
+      _log.info('Triggering manual sync');
+      
+      // Start sync in background and show progress dialog
+      final syncFuture = syncStatusProvider.syncManager.synchronize();
+      
       if (mounted) {
         await showDialog(
           context: context,
@@ -583,8 +609,13 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
           ),
         );
       }
-    } catch (e) {
-      _log.severe('Manual sync failed', e);
+      
+      // Wait for sync to complete
+      await syncFuture;
+      
+      _log.info('Manual sync completed successfully');
+    } catch (e, stackTrace) {
+      _log.severe('Manual sync failed', e, stackTrace);
       if (mounted) {
         _showError(context, 'Sync failed: ${e.toString()}');
       }
@@ -622,18 +653,33 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
       setState(() => _isSyncing = true);
 
       try {
-        // TODO: Get SyncService and trigger full sync
+        // Get SyncManager from SyncStatusProvider
+        final syncStatusProvider = Provider.of<SyncStatusProvider>(
+          context,
+          listen: false,
+        );
+        
+        _log.info('Triggering full sync');
+        
+        // Start full sync in background and show progress dialog
+        final syncFuture = syncStatusProvider.syncManager.synchronize(fullSync: true);
+        
         if (mounted) {
           await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const SyncProgressWidget(
-            displayMode: SyncProgressDisplayMode.dialog,
-          ),
-        );
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const SyncProgressWidget(
+              displayMode: SyncProgressDisplayMode.dialog,
+            ),
+          );
         }
-      } catch (e) {
-        _log.severe('Full sync failed', e);
+        
+        // Wait for sync to complete
+        await syncFuture;
+        
+        _log.info('Full sync completed successfully');
+      } catch (e, stackTrace) {
+        _log.severe('Full sync failed', e, stackTrace);
         if (mounted) {
           _showError(context, 'Full sync failed: ${e.toString()}');
         }
@@ -647,6 +693,153 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
 
   /// Run consistency check.
   Future<void> _runConsistencyCheck(BuildContext context) async {
+    setState(() => _isCheckingConsistency = true);
+
+    try {
+      // Get database from provider
+      final database = Provider.of<AppDatabase>(context, listen: false);
+      
+      // Create ConsistencyService
+      final consistencyService = ConsistencyService(database: database);
+      
+      _log.info('Running consistency check');
+      
+      // Run check
+      final issues = await consistencyService.check();
+      
+      _log.info('Consistency check completed: ${issues.length} issues found');
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Consistency Check Complete'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  issues.isEmpty
+                      ? 'No issues found. Your data is consistent.'
+                      : '${issues.length} issue(s) found.',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                if (issues.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Issue breakdown:',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  ...issues.take(5).map((issue) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          '• ${issue.description}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      )),
+                  if (issues.length > 5)
+                    Text(
+                      '... and ${issues.length - 5} more',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontStyle: FontStyle.italic,
+                          ),
+                    ),
+                ],
+              ],
+            ),
+            actions: [
+              if (issues.isNotEmpty)
+                TextButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await _repairInconsistencies(context, consistencyService);
+                  },
+                  child: const Text('Repair'),
+                ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      _log.severe('Consistency check failed', e, stackTrace);
+      if (mounted) {
+        _showError(context, 'Consistency check failed: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isCheckingConsistency = false);
+      }
+    }
+  }
+
+  /// Repair detected inconsistencies.
+  Future<void> _repairInconsistencies(
+    BuildContext context,
+    ConsistencyService consistencyService,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Repair Inconsistencies'),
+        content: const Text(
+          'This will attempt to automatically fix detected issues. '
+          'Some issues may require manual intervention.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Repair'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        _log.info('Repairing inconsistencies');
+        
+        final result = await consistencyService.repairAll();
+        
+        _log.info('Repair completed: ${result.repaired} repaired, ${result.failed} failed');
+
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Repair Complete'),
+              content: Text(
+                '${result.repaired} issue(s) repaired.\n'
+                '${result.failed} issue(s) could not be repaired.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close'),
+                ),
+              ],
+            ),
+          );
+        }
+      } catch (e, stackTrace) {
+        _log.severe('Repair failed', e, stackTrace);
+        if (mounted) {
+          _showError(context, 'Repair failed: ${e.toString()}');
+        }
+      }
+    }
+  }
+
+  /// Run consistency check (old placeholder method - now replaced above).
+  Future<void> _runConsistencyCheckOld(BuildContext context) async {
     setState(() => _isCheckingConsistency = true);
 
     try {
