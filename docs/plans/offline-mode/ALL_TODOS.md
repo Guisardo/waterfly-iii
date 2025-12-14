@@ -531,10 +531,19 @@ This document catalogs all TODO items across the entire project.
 
 ### `lib/services/sync/sync_statistics.dart`
 
-- [ ] Line 152: Persist to database
-- [ ] Line 159: Persist to database
-- [ ] Line 166: Persist to database
-- [ ] Line 186: Clear from database
+- [x] Line 152: Persist to database ✅ **COMPLETED 2024-12-14**
+  - Implemented _persistStatistics() method
+  - Stores key statistics in sync_statistics table
+  
+- [x] Line 159: Persist to database ✅ **COMPLETED 2024-12-14**
+  - Full sync time persisted via _persistStatistics()
+  
+- [x] Line 166: Persist to database ✅ **COMPLETED 2024-12-14**
+  - Next scheduled sync persisted via _persistStatistics()
+  
+- [x] Line 186: Clear from database ✅ **COMPLETED 2024-12-14**
+  - Implemented _clearFromDatabase() method
+  - Clears all statistics from sync_statistics table
 
 ---
 
@@ -694,10 +703,10 @@ This document catalogs all TODO items across the entire project.
 | Phase 1: Core Sync | 27 | 15 | 56% |
 | Phase 2: Conflict & Error | 15 | 6 | 40% |
 | Phase 3: UI/UX | 13 | 0 | 0% |
-| Phase 4: Enhancements | 11 | 0 | 0% |
+| Phase 4: Enhancements | 11 | 4 | 36% |
 | Phase 5: Polish | 12 | 0 | 0% |
 | **New TODOs** | **37** | **30** | **81%** |
-| **TOTAL** | **114** | **57** | **50%** |
+| **TOTAL** | **114** | **61** | **54%** |
 
 ### Implementation Status
 ✅ **All Critical Items Complete** (27/27)

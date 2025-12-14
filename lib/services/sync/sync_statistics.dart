@@ -1,4 +1,5 @@
 import 'package:logging/logging.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
 
 /// Statistics about synchronization operations.
 class SyncStatistics {
@@ -74,8 +75,11 @@ class SyncStatistics {
 /// Service for tracking and managing sync statistics.
 class SyncStatisticsService {
   final Logger _logger = Logger('SyncStatisticsService');
+  final AppDatabase _database;
 
-  // In-memory statistics (would be persisted to database in real implementation)
+  SyncStatisticsService(this._database);
+
+  // In-memory cache
   int _totalSyncs = 0;
   int _successfulSyncs = 0;
   int _failedSyncs = 0;
@@ -149,21 +153,21 @@ class SyncStatisticsService {
       'operations=$operationsProcessed, conflicts=$conflictsDetected',
     );
 
-    // TODO: Persist to database
+    await _persistStatistics();
   }
 
   /// Record a full sync.
   Future<void> recordFullSync() async {
     _lastFullSyncTime = DateTime.now();
     _logger.info('Recorded full sync at $_lastFullSyncTime');
-    // TODO: Persist to database
+    await _persistStatistics();
   }
 
   /// Set next scheduled sync time.
   Future<void> setNextScheduledSync(DateTime time) async {
     _nextScheduledSync = time;
     _logger.fine('Next scheduled sync: $time');
-    // TODO: Persist to database
+    await _persistStatistics();
   }
 
   /// Reset all statistics.
@@ -183,7 +187,7 @@ class SyncStatisticsService {
     _totalDataTransferred = 0;
     _throughputSamples.clear();
 
-    // TODO: Clear from database
+    await _clearFromDatabase();
   }
 
   /// Calculate success rate.
@@ -210,5 +214,53 @@ class SyncStatisticsService {
     
     final sum = _throughputSamples.fold<double>(0.0, (a, b) => a + b);
     return sum / _throughputSamples.length;
+  }
+
+  /// Persist statistics to database.
+  Future<void> _persistStatistics() async {
+    try {
+      final now = DateTime.now();
+      await _database.into(_database.syncStatisticsTable).insertOnConflictUpdate(
+        SyncStatisticsEntityCompanion.insert(
+          key: 'total_syncs',
+          value: _totalSyncs.toString(),
+          updatedAt: now,
+        ),
+      );
+      await _database.into(_database.syncStatisticsTable).insertOnConflictUpdate(
+        SyncStatisticsEntityCompanion.insert(
+          key: 'successful_syncs',
+          value: _successfulSyncs.toString(),
+          updatedAt: now,
+        ),
+      );
+      await _database.into(_database.syncStatisticsTable).insertOnConflictUpdate(
+        SyncStatisticsEntityCompanion.insert(
+          key: 'failed_syncs',
+          value: _failedSyncs.toString(),
+          updatedAt: now,
+        ),
+      );
+      if (_lastSyncTime != null) {
+        await _database.into(_database.syncStatisticsTable).insertOnConflictUpdate(
+          SyncStatisticsEntityCompanion.insert(
+            key: 'last_sync_time',
+            value: _lastSyncTime!.toIso8601String(),
+            updatedAt: now,
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      _logger.warning('Failed to persist statistics', e, stackTrace);
+    }
+  }
+
+  /// Clear statistics from database.
+  Future<void> _clearFromDatabase() async {
+    try {
+      await _database.delete(_database.syncStatisticsTable).go();
+    } catch (e, stackTrace) {
+      _logger.warning('Failed to clear statistics', e, stackTrace);
+    }
   }
 }

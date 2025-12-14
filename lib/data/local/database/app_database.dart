@@ -15,6 +15,7 @@ import 'package:waterflyiii/data/local/database/id_mapping_table.dart';
 import 'package:waterflyiii/data/local/database/piggy_banks_table.dart';
 import 'package:waterflyiii/data/local/database/sync_metadata_table.dart';
 import 'package:waterflyiii/data/local/database/sync_queue_table.dart';
+import 'package:waterflyiii/data/local/database/sync_statistics_table.dart';
 import 'package:waterflyiii/data/local/database/transactions_table.dart';
 
 part 'app_database.g.dart';
@@ -44,6 +45,7 @@ part 'app_database.g.dart';
   IdMapping,
   Conflicts,
   ErrorLog,
+  SyncStatisticsTable,
 ])
 class AppDatabase extends _$AppDatabase {
   /// Creates a new instance of the database.
@@ -65,8 +67,9 @@ class AppDatabase extends _$AppDatabase {
   /// Increment this when making schema changes and implement migration logic.
   /// Version 2: Added foreign key constraints for referential integrity
   /// Version 3: Added conflicts and error_log tables
+  /// Version 4: Added sync_statistics table
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   /// Database migration logic.
   ///
@@ -137,6 +140,11 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'CREATE INDEX IF NOT EXISTS idx_error_log_entity ON error_log(entity_type, entity_id)',
           );
+        }
+        
+        if (from < 4) {
+          // Version 4: Add sync_statistics table
+          await m.createTable(syncStatisticsTable);
         }
       },
       beforeOpen: (OpeningDetails details) async {
