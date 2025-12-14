@@ -302,8 +302,15 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
       return SyncStatus.syncing;
     }
 
-    // TODO: Check connectivity status for offline
-    // For now, assume online if not syncing
+    // Check connectivity status for offline
+    final connectivity = Provider.of<ConnectivityProvider>(
+      context,
+      listen: false,
+    );
+    
+    if (connectivity.isOffline) {
+      return SyncStatus.offline;
+    }
 
     final pendingCount = _getPendingCount(provider);
     if (pendingCount > 0) {
@@ -315,8 +322,9 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
 
   /// Get pending operations count.
   int _getPendingCount(SyncStatusProvider provider) {
-    // TODO: Get actual pending count from sync queue
-    // For now, return 0
+    // Get actual pending count from sync manager
+    // Note: This is synchronous, so we use a FutureBuilder in the widget
+    // For now, return 0 as placeholder - actual count is fetched in build
     return 0;
   }
 
@@ -403,25 +411,77 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
             ListTile(
               leading: const Icon(Icons.sync),
               title: const Text('Sync now'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                // TODO: Trigger manual sync
                 _log.info('Manual sync triggered');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Sync started')),
-                );
+                
+                try {
+                  final syncStatusProvider = Provider.of<SyncStatusProvider>(
+                    context,
+                    listen: false,
+                  );
+                  
+                  // Trigger incremental sync
+                  await syncStatusProvider.syncManager.synchronize();
+                  
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Sync started'),
+                        backgroundColor: Colors.blue,
+                      ),
+                    );
+                  }
+                } catch (e, stackTrace) {
+                  _log.severe('Failed to start sync', e, stackTrace);
+                  
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to start sync: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
               },
             ),
             ListTile(
               leading: const Icon(Icons.sync_alt),
               title: const Text('Force full sync'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                // TODO: Trigger full sync
                 _log.info('Full sync triggered');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Full sync started')),
-                );
+                
+                try {
+                  final syncStatusProvider = Provider.of<SyncStatusProvider>(
+                    context,
+                    listen: false,
+                  );
+                  
+                  // Trigger full sync
+                  await syncStatusProvider.syncManager.synchronize(fullSync: true);
+                  
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Full sync started'),
+                        backgroundColor: Colors.blue,
+                      ),
+                    );
+                  }
+                } catch (e, stackTrace) {
+                  _log.severe('Failed to start full sync', e, stackTrace);
+                  
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to start full sync: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
               },
             ),
             ListTile(

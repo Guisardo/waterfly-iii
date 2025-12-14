@@ -57,6 +57,9 @@ class ConnectivityService {
   final BehaviorSubject<ConnectivityStatus> _statusSubject =
       BehaviorSubject<ConnectivityStatus>.seeded(ConnectivityStatus.unknown);
 
+  /// Current network types (WiFi, mobile, ethernet, etc.)
+  List<ConnectivityResult> _currentNetworkTypes = [ConnectivityResult.none];
+
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   StreamSubscription<InternetStatus>? _internetSubscription;
   Timer? _periodicCheckTimer;
@@ -76,6 +79,17 @@ class ConnectivityService {
   /// Returns the most recent connectivity status. If the service hasn't
   /// been initialized, returns [ConnectivityStatus.unknown].
   ConnectivityStatus get currentStatus => _statusSubject.value;
+
+  /// Current network types.
+  ///
+  /// Returns list of active network connection types (WiFi, mobile, etc.).
+  List<ConnectivityResult> get currentNetworkTypes => List.unmodifiable(_currentNetworkTypes);
+
+  /// Detailed connectivity information including network type.
+  ConnectivityInfo get connectivityInfo => ConnectivityInfo(
+        status: currentStatus,
+        networkTypes: currentNetworkTypes,
+      );
 
   /// Whether the service has been initialized.
   bool get isInitialized => _isInitialized;
@@ -138,6 +152,9 @@ class ConnectivityService {
   void _onConnectivityChanged(List<ConnectivityResult> results) {
     _logger.info('Connectivity changed: $results');
 
+    // Update current network types
+    _currentNetworkTypes = results;
+
     if (results.contains(ConnectivityResult.none)) {
       _updateStatus(ConnectivityStatus.offline);
       _startPeriodicChecks();
@@ -183,6 +200,9 @@ class ConnectivityService {
 
       // Check network connectivity
       final List<ConnectivityResult> connectivityResults = await _connectivity.checkConnectivity();
+      
+      // Update current network types
+      _currentNetworkTypes = connectivityResults;
       
       if (connectivityResults.contains(ConnectivityResult.none)) {
         _logger.info('No network connectivity');

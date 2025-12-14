@@ -562,13 +562,32 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
             child: const Text('Continue Syncing'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context); // Close confirmation dialog
               if (widget.onCancel != null) {
                 widget.onCancel!();
               } else {
-                // TODO: Call sync manager to cancel sync
-                _log.warning('Cancel sync requested but no callback provided');
+                try {
+                  // Get SyncManager from provider and cancel sync
+                  final syncStatusProvider = Provider.of<SyncStatusProvider>(
+                    context,
+                    listen: false,
+                  );
+                  
+                  if (syncStatusProvider.syncManager != null) {
+                    _log.info('Cancelling sync via SyncManager');
+                    await syncStatusProvider.syncManager!.cancelSync();
+                    _log.info('Sync cancelled successfully');
+                  } else {
+                    _log.warning('SyncManager not available in provider');
+                  }
+                } catch (e, stackTrace) {
+                  _log.severe(
+                    'Failed to cancel sync',
+                    e,
+                    stackTrace,
+                  );
+                }
               }
               Navigator.pop(context); // Close progress widget
             },

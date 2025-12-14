@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
@@ -48,6 +49,15 @@ class ConnectivityProvider extends ChangeNotifier {
 
   /// Human-readable status string.
   String get statusText => _status.displayName;
+
+  /// Current network types (WiFi, mobile, ethernet, etc.).
+  List<ConnectivityResult> get networkTypes => _connectivityService.currentNetworkTypes;
+
+  /// Detailed connectivity information including network type.
+  ConnectivityInfo get connectivityInfo => _connectivityService.connectivityInfo;
+
+  /// Human-readable network type description.
+  String get networkTypeDescription => connectivityInfo.networkTypeDescription;
 
   /// Initializes the connectivity provider.
   ///

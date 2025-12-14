@@ -237,9 +237,17 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
 
   /// Get network type text.
   String _getNetworkTypeText(ConnectivityStatus status) {
-    // TODO: Get actual network type from connectivity service
-    // For now, return generic text
-    return 'Connected';
+    // Get actual network type from connectivity service via provider
+    final connectivity = Provider.of<ConnectivityProvider>(
+      context,
+      listen: false,
+    );
+    
+    if (connectivity.isOffline) {
+      return 'No connection';
+    }
+    
+    return connectivity.networkTypeDescription;
   }
 
   /// Show network details dialog.
@@ -290,10 +298,43 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
         actions: [
           if (connectivity.isOffline)
             TextButton.icon(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
-                // TODO: Trigger connectivity check
                 _log.info('Manual connectivity check requested');
+                
+                try {
+                  // Trigger connectivity check via provider
+                  final connectivityProvider = Provider.of<ConnectivityProvider>(
+                    context,
+                    listen: false,
+                  );
+                  
+                  final isOnline = await connectivityProvider.checkConnectivity();
+                  
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          isOnline
+                              ? 'Connection restored!'
+                              : 'Still offline. Please check your network settings.',
+                        ),
+                        backgroundColor: isOnline ? Colors.green : Colors.orange,
+                      ),
+                    );
+                  }
+                } catch (e, stackTrace) {
+                  _log.severe('Failed to check connectivity', e, stackTrace);
+                  
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Failed to check connectivity'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),

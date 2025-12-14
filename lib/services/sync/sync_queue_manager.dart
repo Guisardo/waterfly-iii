@@ -55,6 +55,23 @@ class SyncQueueManager {
     )).toList();
   }
 
+  /// Get count of pending operations in queue.
+  ///
+  /// Returns the number of operations with 'pending' status.
+  /// This is more efficient than calling getPendingOperations().length
+  /// as it only counts without loading all data.
+  Future<int> getPendingCount() async {
+    final query = database.selectOnly(database.syncQueue)
+      ..addColumns([database.syncQueue.id.count()])
+      ..where(database.syncQueue.status.equals('pending'));
+
+    final result = await query.getSingle();
+    final count = result.read(database.syncQueue.id.count()) ?? 0;
+    
+    _logger.fine('Pending operations count: $count');
+    return count;
+  }
+
   /// Remove operation from queue.
   Future<void> removeOperation(String operationId) async {
     await (database.delete(database.syncQueue)

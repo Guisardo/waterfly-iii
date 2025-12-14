@@ -61,6 +61,7 @@ class SyncStatusProvider extends ChangeNotifier {
   bool _isLoading = false;
 
   // Getters
+  SyncManager get syncManager => _syncManager;
   SyncProgress? get currentProgress => _currentProgress;
   bool get isSyncing => _isSyncing;
   String? get currentError => _currentError;

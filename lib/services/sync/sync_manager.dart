@@ -116,6 +116,19 @@ class SyncManager {
   /// Watch sync events.
   Stream<SyncEvent> watchEvents() => _progressTracker.watchEvents();
 
+  /// Get count of pending operations in sync queue.
+  ///
+  /// Returns the number of operations waiting to be synchronized.
+  /// Useful for displaying pending sync count in UI.
+  Future<int> getPendingCount() async {
+    try {
+      return await _queueManager.getPendingCount();
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to get pending count', e, stackTrace);
+      return 0; // Return 0 on error to avoid UI issues
+    }
+  }
+
   /// Check if sync is currently in progress.
   bool get isSyncing => _isSyncing;
 
