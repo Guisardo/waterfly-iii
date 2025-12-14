@@ -80,4 +80,12 @@ class Transactions extends Table {
   List<Set<Column>> get uniqueKeys => <Set<Column<Object>>>[
         <Column<Object>>{serverId}
       ];
+
+  @override
+  List<String> get customConstraints => <String>[
+        'FOREIGN KEY (source_account_id) REFERENCES accounts(id) ON DELETE CASCADE',
+        'FOREIGN KEY (destination_account_id) REFERENCES accounts(id) ON DELETE CASCADE',
+        'FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL',
+        'FOREIGN KEY (budget_id) REFERENCES budgets(id) ON DELETE SET NULL',
+      ];
 }

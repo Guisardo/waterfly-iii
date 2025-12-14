@@ -1,26 +1,60 @@
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
-import 'package:waterflyiii/data/local/database/app_database.dart';
-import 'package:waterflyiii/exceptions/offline_exceptions.dart';
-import 'package:waterflyiii/services/uuid/uuid_service.dart';
 
-import 'package:waterflyiii/data/repositories/base_repository.dart';
+import '../../exceptions/offline_exceptions.dart';
+import '../../models/sync_operation.dart';
+import '../../services/cache/query_cache.dart';
+import '../../services/sync/sync_queue_manager.dart';
+import '../../services/uuid/uuid_service.dart';
+import '../../validators/transaction_validator.dart';
+import '../local/database/app_database.dart';
+import 'base_repository.dart';
 
 /// Repository for managing transaction data.
 ///
 /// Handles CRUD operations for transactions, automatically routing to
 /// local storage or remote API based on the current app mode.
+///
+/// Features:
+/// - Comprehensive validation before storage
+/// - Automatic sync queue integration
+/// - Query result caching
+/// - Offline-first design
+///
+/// Example:
+/// ```dart
+/// final repository = TransactionRepository(
+///   database: database,
+///   syncQueueManager: syncQueueManager,
+///   queryCache: queryCache,
+/// );
+///
+/// // Create transaction offline
+/// final transaction = await repository.createTransactionOffline(data);
+///
+/// // Query with caching
+/// final recent = await repository.getRecentTransactions(limit: 50);
+/// ```
 class TransactionRepository
-    implements BaseRepository<TransactionEntity, String> {
+    implements BaseRepository<TransactionsTableData, String> {
   /// Creates a transaction repository.
   TransactionRepository({
     required AppDatabase database,
+    SyncQueueManager? syncQueueManager,
+    QueryCache? queryCache,
     UuidService? uuidService,
+    TransactionValidator? validator,
   })  : _database = database,
-        _uuidService = uuidService ?? UuidService();
+        _syncQueueManager = syncQueueManager,
+        _queryCache = queryCache,
+        _uuidService = uuidService ?? UuidService(),
+        _validator = validator ?? TransactionValidator();
 
   final AppDatabase _database;
+  final SyncQueueManager? _syncQueueManager;
+  final QueryCache? _queryCache;
   final UuidService _uuidService;
+  final TransactionValidator _validator;
 
   @override
   final Logger logger = Logger('TransactionRepository');
@@ -361,13 +395,13 @@ class TransactionRepository
   /// Gets transactions for a specific category.
   ///
   /// [categoryId] - The category ID.
-  Future<List<TransactionEntity>> getByCategory(String categoryId) async {
+  Future<List<TransactionsTableData>> getByCategory(String categoryId) async {
     try {
       logger.fine('Fetching transactions for category: $categoryId');
-      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = _database.select(_database.transactions)
-        ..where(($TransactionsTable t) => t.categoryId.equals(categoryId))
-        ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[($TransactionsTable t) => OrderingTerm.desc(t.date)]);
-      final List<TransactionEntity> transactions = await query.get();
+      final query = _database.select(_database.transactionsTable)
+        ..where((t) => t.categoryId.equals(categoryId))
+        ..orderBy([(t) => OrderingTerm.desc(t.date)]);
+      final transactions = await query.get();
       logger.info('Found ${transactions.length} transactions for category');
       return transactions;
     } catch (error, stackTrace) {
@@ -382,5 +416,434 @@ class TransactionRepository
         stackTrace,
       );
     }
+  }
+
+  // ========================================================================
+  // OFFLINE CRUD OPERATIONS
+  // ========================================================================
+
+  /// Creates a transaction in offline mode
+  ///
+  /// Steps:
+  /// 1. Validate transaction data
+  /// 2. Generate UUID for new transaction
+  /// 3. Set sync flags (is_synced = false, sync_status = 'pending')
+  /// 4. Insert into local database
+  /// 5. Add to sync queue
+  /// 6. Invalidate cache
+  ///
+  /// Throws [ValidationException] if data is invalid
+  /// Throws [DatabaseException] if insert fails
+  Future<TransactionsTableData> createTransactionOffline(
+    Map<String, dynamic> data,
+  ) async {
+    logger.info('Creating transaction offline');
+
+    try {
+      // Step 1: Validate data
+      final validationResult = _validator.validate(data);
+      validationResult.throwIfInvalid();
+
+      // Validate account references if provided
+      if (data.containsKey('source_id') || data.containsKey('destination_id')) {
+        final accountValidation = await _validator.validateAccountReferences(
+          data,
+          (accountId) async {
+            final account = await _database
+                .select(_database.accountsTable)
+                .where((t) => t.id.equals(accountId))
+                .getSingleOrNull();
+            return account != null;
+          },
+        );
+        accountValidation.throwIfInvalid();
+      }
+
+      // Step 2: Generate UUID
+      final id = _uuidService.generateTransactionId();
+      final now = DateTime.now();
+
+      // Step 3 & 4: Insert with sync flags
+      final companion = TransactionsTableCompanion.insert(
+        id: id,
+        type: data['type'] as String,
+        date: data['date'] is DateTime
+            ? data['date'] as DateTime
+            : DateTime.parse(data['date'] as String),
+        amount: (data['amount'] is double
+            ? data['amount']
+            : double.parse(data['amount'].toString())) as double,
+        description: data['description'] as String,
+        sourceAccountId: Value(data['source_id'] as String?),
+        destinationAccountId: Value(data['destination_id'] as String?),
+        categoryId: Value(data['category_id'] as String?),
+        budgetId: Value(data['budget_id'] as String?),
+        currencyCode: data['currency_code'] as String? ?? 'USD',
+        foreignAmount: Value(data['foreign_amount'] as double?),
+        foreignCurrencyCode: Value(data['foreign_currency_code'] as String?),
+        notes: Value(data['notes'] as String?),
+        tags: Value(data['tags'] as String?),
+        createdAt: now,
+        updatedAt: now,
+        isSynced: const Value(false),
+        syncStatus: const Value('pending'),
+      );
+
+      await _database.into(_database.transactionsTable).insert(companion);
+
+      logger.info('Transaction inserted into database: $id');
+
+      // Step 5: Add to sync queue
+      if (_syncQueueManager != null) {
+        final operation = SyncOperation(
+          id: _uuidService.generateOperationId(),
+          entityType: 'transaction',
+          entityId: id,
+          operation: SyncOperationType.create,
+          payload: data,
+          priority: SyncPriority.normal,
+          createdAt: now,
+        );
+
+        await _syncQueueManager!.enqueue(operation);
+        logger.info('Transaction added to sync queue: $id');
+      }
+
+      // Step 6: Invalidate cache
+      _queryCache?.invalidatePattern('transactions_');
+
+      // Retrieve and return created transaction
+      final created = await getById(id);
+      if (created == null) {
+        throw const DatabaseException('Failed to retrieve created transaction');
+      }
+
+      logger.info('Transaction created successfully offline: $id');
+      return created;
+    } catch (e, stackTrace) {
+      logger.severe('Failed to create transaction offline', e, stackTrace);
+      if (e is ValidationException || e is DatabaseException) rethrow;
+      throw DatabaseException(
+        'Failed to create transaction offline',
+        originalException: e,
+      );
+    }
+  }
+
+  /// Updates a transaction in offline mode
+  ///
+  /// Steps:
+  /// 1. Verify transaction exists
+  /// 2. Validate updated data
+  /// 3. Update timestamps and sync flags
+  /// 4. Update in database
+  /// 5. Add update operation to sync queue
+  /// 6. Invalidate cache
+  ///
+  /// Throws [ValidationException] if data is invalid
+  /// Throws [DatabaseException] if transaction not found or update fails
+  Future<TransactionsTableData> updateTransactionOffline(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    logger.info('Updating transaction offline: $id');
+
+    try {
+      // Step 1: Verify exists
+      final existing = await getById(id);
+      if (existing == null) {
+        throw DatabaseException('Transaction not found: $id');
+      }
+
+      // Step 2: Validate data
+      final validationResult = _validator.validate(data);
+      validationResult.throwIfInvalid();
+
+      // Validate account references if changed
+      if (data.containsKey('source_id') || data.containsKey('destination_id')) {
+        final accountValidation = await _validator.validateAccountReferences(
+          data,
+          (accountId) async {
+            final account = await _database
+                .select(_database.accountsTable)
+                .where((t) => t.id.equals(accountId))
+                .getSingleOrNull();
+            return account != null;
+          },
+        );
+        accountValidation.throwIfInvalid();
+      }
+
+      // Step 3 & 4: Update with sync flags
+      final companion = TransactionsTableCompanion(
+        type: Value(data['type'] as String),
+        date: Value(data['date'] is DateTime
+            ? data['date'] as DateTime
+            : DateTime.parse(data['date'] as String)),
+        amount: Value((data['amount'] is double
+            ? data['amount']
+            : double.parse(data['amount'].toString())) as double),
+        description: Value(data['description'] as String),
+        sourceAccountId: Value(data['source_id'] as String?),
+        destinationAccountId: Value(data['destination_id'] as String?),
+        categoryId: Value(data['category_id'] as String?),
+        budgetId: Value(data['budget_id'] as String?),
+        currencyCode: Value(data['currency_code'] as String? ?? 'USD'),
+        foreignAmount: Value(data['foreign_amount'] as double?),
+        foreignCurrencyCode: Value(data['foreign_currency_code'] as String?),
+        notes: Value(data['notes'] as String?),
+        tags: Value(data['tags'] as String?),
+        updatedAt: Value(DateTime.now()),
+        isSynced: const Value(false),
+        syncStatus: const Value('pending'),
+      );
+
+      final updateQuery = _database.update(_database.transactionsTable)
+        ..where((t) => t.id.equals(id));
+      await updateQuery.write(companion);
+
+      logger.info('Transaction updated in database: $id');
+
+      // Step 5: Add to sync queue
+      if (_syncQueueManager != null) {
+        final operation = SyncOperation(
+          id: _uuidService.generateOperationId(),
+          entityType: 'transaction',
+          entityId: id,
+          operation: SyncOperationType.update,
+          payload: data,
+          priority: SyncPriority.normal,
+          createdAt: DateTime.now(),
+        );
+
+        await _syncQueueManager!.enqueue(operation);
+        logger.info('Transaction update added to sync queue: $id');
+      }
+
+      // Step 6: Invalidate cache
+      _queryCache?.invalidatePattern('transactions_');
+
+      // Retrieve and return updated transaction
+      final updated = await getById(id);
+      if (updated == null) {
+        throw const DatabaseException('Failed to retrieve updated transaction');
+      }
+
+      logger.info('Transaction updated successfully offline: $id');
+      return updated;
+    } catch (e, stackTrace) {
+      logger.severe('Failed to update transaction offline: $id', e, stackTrace);
+      if (e is ValidationException || e is DatabaseException) rethrow;
+      throw DatabaseException(
+        'Failed to update transaction offline',
+        originalException: e,
+      );
+    }
+  }
+
+  /// Deletes a transaction in offline mode
+  ///
+  /// Steps:
+  /// 1. Verify transaction exists
+  /// 2. Check if transaction was synced (has server_id)
+  /// 3. If synced: mark as deleted and add to sync queue
+  /// 4. If not synced: remove from database and sync queue
+  /// 5. Invalidate cache
+  ///
+  /// Throws [DatabaseException] if delete fails
+  Future<void> deleteTransactionOffline(String id) async {
+    logger.info('Deleting transaction offline: $id');
+
+    try {
+      // Step 1: Verify exists
+      final existing = await getById(id);
+      if (existing == null) {
+        logger.warning('Transaction not found for deletion: $id');
+        return;
+      }
+
+      // Step 2 & 3: Check sync status
+      final wasSynced = existing.serverId != null && existing.serverId!.isNotEmpty;
+
+      if (wasSynced) {
+        // Mark as deleted, will be synced later
+        logger.info('Transaction was synced, marking as deleted: $id');
+
+        final companion = TransactionsTableCompanion(
+          syncStatus: const Value('deleted'),
+          isSynced: const Value(false),
+          updatedAt: Value(DateTime.now()),
+        );
+
+        final updateQuery = _database.update(_database.transactionsTable)
+          ..where((t) => t.id.equals(id));
+        await updateQuery.write(companion);
+
+        // Add delete operation to sync queue
+        if (_syncQueueManager != null) {
+          final operation = SyncOperation(
+            id: _uuidService.generateOperationId(),
+            entityType: 'transaction',
+            entityId: id,
+            operation: SyncOperationType.delete,
+            payload: {'server_id': existing.serverId},
+            priority: SyncPriority.high, // DELETE has high priority
+            createdAt: DateTime.now(),
+          );
+
+          await _syncQueueManager!.enqueue(operation);
+          logger.info('Transaction delete added to sync queue: $id');
+        }
+      } else {
+        // Step 4: Not synced, remove completely
+        logger.info('Transaction not synced, removing from database: $id');
+
+        final deleteQuery = _database.delete(_database.transactionsTable)
+          ..where((t) => t.id.equals(id));
+        await deleteQuery.go();
+
+        // Remove from sync queue if present
+        // TODO: Implement sync queue removal by entity ID
+      }
+
+      // Step 5: Invalidate cache
+      _queryCache?.invalidatePattern('transactions_');
+
+      logger.info('Transaction deleted successfully offline: $id');
+    } catch (e, stackTrace) {
+      logger.severe('Failed to delete transaction offline: $id', e, stackTrace);
+      throw DatabaseException(
+        'Failed to delete transaction offline',
+        originalException: e,
+      );
+    }
+  }
+
+  /// Gets transactions with filters and pagination
+  ///
+  /// Supports:
+  /// - Date range filtering
+  /// - Account filtering
+  /// - Category filtering
+  /// - Search by description
+  /// - Pagination (limit/offset)
+  /// - Caching
+  ///
+  /// Returns sorted results (newest first)
+  Future<List<TransactionsTableData>> getTransactionsOffline({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? accountId,
+    String? categoryId,
+    String? searchQuery,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    logger.fine('Fetching transactions offline with filters');
+
+    try {
+      // Build cache key
+      final cacheKey = 'transactions_'
+          '${startDate?.toIso8601String() ?? 'all'}_'
+          '${endDate?.toIso8601String() ?? 'all'}_'
+          '${accountId ?? 'all'}_'
+          '${categoryId ?? 'all'}_'
+          '${searchQuery ?? 'all'}_'
+          '${limit}_$offset';
+
+      // Check cache
+      final cached = _queryCache?.get<List<TransactionsTableData>>(cacheKey);
+      if (cached != null) {
+        logger.fine('Returning cached transactions');
+        return cached;
+      }
+
+      // Build query
+      var query = _database.select(_database.transactionsTable);
+
+      // Apply filters
+      if (startDate != null) {
+        query = query..where((t) => t.date.isBiggerOrEqualValue(startDate));
+      }
+
+      if (endDate != null) {
+        query = query..where((t) => t.date.isSmallerOrEqualValue(endDate));
+      }
+
+      if (accountId != null) {
+        query = query
+          ..where((t) =>
+              t.sourceAccountId.equals(accountId) |
+              t.destinationAccountId.equals(accountId));
+      }
+
+      if (categoryId != null) {
+        query = query..where((t) => t.categoryId.equals(categoryId));
+      }
+
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        query = query
+          ..where((t) => t.description.contains(searchQuery) |
+              (t.notes.isNotNull() & t.notes.contains(searchQuery)));
+      }
+
+      // Exclude deleted transactions
+      query = query..where((t) => t.syncStatus.equals('deleted').not());
+
+      // Order by date (newest first)
+      query = query..orderBy([(t) => OrderingTerm.desc(t.date)]);
+
+      // Apply pagination
+      query = query
+        ..limit(limit, offset: offset);
+
+      final transactions = await query.get();
+
+      logger.info('Found ${transactions.length} transactions with filters');
+
+      // Cache results
+      _queryCache?.put(cacheKey, transactions, ttl: const Duration(minutes: 5));
+
+      return transactions;
+    } catch (e, stackTrace) {
+      logger.severe('Failed to fetch transactions offline', e, stackTrace);
+      throw DatabaseException(
+        'Failed to fetch transactions offline',
+        originalException: e,
+      );
+    }
+  }
+
+  /// Gets recent transactions (last 30 days)
+  ///
+  /// Convenience method with caching
+  Future<List<TransactionsTableData>> getRecentTransactions({
+    int limit = 50,
+  }) async {
+    final endDate = DateTime.now();
+    final startDate = endDate.subtract(const Duration(days: 30));
+
+    return getTransactionsOffline(
+      startDate: startDate,
+      endDate: endDate,
+      limit: limit,
+    );
+  }
+
+  /// Searches transactions by description or notes
+  ///
+  /// Case-insensitive search with caching
+  Future<List<TransactionsTableData>> searchTransactions(
+    String query, {
+    int limit = 50,
+  }) async {
+    if (query.trim().isEmpty) {
+      return [];
+    }
+
+    return getTransactionsOffline(
+      searchQuery: query.trim(),
+      limit: limit,
+    );
   }
 }

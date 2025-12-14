@@ -50,4 +50,9 @@ class PiggyBanks extends Table {
   List<Set<Column>> get uniqueKeys => <Set<Column<Object>>>[
         <Column<Object>>{serverId}
       ];
+
+  @override
+  List<String> get customConstraints => <String>[
+        'FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE',
+      ];
 }

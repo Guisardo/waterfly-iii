@@ -2,24 +2,37 @@ import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
+import 'package:waterflyiii/models/sync_operation.dart';
+import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
+import 'package:waterflyiii/validators/account_validator.dart';
 
 import 'package:waterflyiii/data/repositories/base_repository.dart';
 
-/// Repository for managing account data.
+/// Repository for managing account data with full offline support.
 ///
-/// Handles CRUD operations for accounts, automatically routing to
-/// local storage or remote API based on the current app mode.
+/// Provides comprehensive CRUD operations for accounts with:
+/// - Automatic sync queue integration
+/// - Data validation
+/// - Balance tracking
+/// - Referential integrity checks
+/// - Comprehensive error handling and logging
 class AccountRepository implements BaseRepository<AccountEntity, String> {
-  /// Creates an account repository.
+  /// Creates an account repository with required dependencies.
   AccountRepository({
     required AppDatabase database,
     UuidService? uuidService,
+    SyncQueueManager? syncQueueManager,
+    AccountValidator? validator,
   })  : _database = database,
-        _uuidService = uuidService ?? UuidService();
+        _uuidService = uuidService ?? UuidService(),
+        _syncQueueManager = syncQueueManager ?? SyncQueueManager(),
+        _validator = validator ?? AccountValidator();
 
   final AppDatabase _database;
   final UuidService _uuidService;
+  final SyncQueueManager _syncQueueManager;
+  final AccountValidator _validator;
 
   @override
   final Logger logger = Logger('AccountRepository');
