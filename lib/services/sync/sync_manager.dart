@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:synchronized/synchronized.dart';
@@ -2185,6 +2186,9 @@ class SyncManager {
     try {
       final conflictId = '${entityType}_${entityId}_${DateTime.now().millisecondsSinceEpoch}';
       
+      // Detect conflicting fields
+      final conflictingFields = _detectConflictingFields(localData, serverData);
+      
       await _database.into(_database.conflicts).insert(
         ConflictEntityCompanion.insert(
           id: conflictId,
@@ -2193,7 +2197,7 @@ class SyncManager {
           conflictType: 'update_conflict',
           localData: _serializeData(localData),
           serverData: _serializeData(serverData),
-          conflictingFields: '[]', // TODO: Detect specific conflicting fields
+          conflictingFields: jsonEncode(conflictingFields),
           detectedAt: DateTime.now(),
         ),
       );
@@ -2204,11 +2208,55 @@ class SyncManager {
           'conflict_id': conflictId,
           'entity_type': entityType,
           'entity_id': entityId,
+          'conflicting_fields': conflictingFields,
         },
       );
     } catch (e, stackTrace) {
       _logger.severe('Failed to store conflict', e, stackTrace);
     }
+  }
+
+  /// Detect which fields differ between local and server data.
+  List<String> _detectConflictingFields(
+    dynamic localData,
+    Map<String, dynamic> serverData,
+  ) {
+    final conflictingFields = <String>[];
+    
+    try {
+      // Convert local data to map
+      final Map<String, dynamic> localMap = localData is Map
+          ? Map<String, dynamic>.from(localData)
+          : (localData as dynamic).toJson();
+      
+      // Compare each field
+      for (final key in serverData.keys) {
+        if (!localMap.containsKey(key)) continue;
+        
+        final localValue = localMap[key];
+        final serverValue = serverData[key];
+        
+        // Skip null comparisons
+        if (localValue == null && serverValue == null) continue;
+        
+        // Check if values differ
+        if (localValue != serverValue) {
+          conflictingFields.add(key);
+        }
+      }
+      
+      // Check for fields only in local
+      for (final key in localMap.keys) {
+        if (!serverData.containsKey(key) && localMap[key] != null) {
+          conflictingFields.add(key);
+        }
+      }
+    } catch (e) {
+      _logger.warning('Failed to detect conflicting fields: $e');
+      // Return empty list on error
+    }
+    
+    return conflictingFields;
   }
 
   /// Serialize data to JSON string.

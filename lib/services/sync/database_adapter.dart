@@ -69,7 +69,7 @@ class DatabaseAdapter {
   Future<void> upsertTransaction(Map<String, dynamic> data) async {
     try {
       // Validate data
-      final ValidationResult validation = await _transactionValidator.validate(data);
+      final ValidationResult validation = _transactionValidator.validate(data);
       if (!validation.isValid) {
         throw ValidationException(
           'Transaction validation failed: ${validation.errors.join(', ')}',

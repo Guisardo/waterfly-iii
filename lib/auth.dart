@@ -50,11 +50,25 @@ class APITZReplyData {
   }
 }
 
-// :TODO: translate strings. cause returns just an identifier for the translation.
+/// Authentication error with localization support.
+///
+/// The [cause] field contains a localization key that should be translated
+/// using the app's localization system (e.g., AppLocalizations).
+///
+/// Example usage:
+/// ```dart
+/// throw AuthError('auth.error.invalid_credentials');
+/// // In UI: Text(AppLocalizations.of(context)!.translate(error.cause))
+/// ```
 class AuthError implements Exception {
   const AuthError(this.cause);
 
+  /// Localization key for the error message.
+  /// Should be translated using the app's localization system.
   final String cause;
+  
+  @override
+  String toString() => 'AuthError: $cause';
 }
 
 class AuthErrorHost extends AuthError {
