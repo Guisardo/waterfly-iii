@@ -1,7 +1,7 @@
 # Complete TODO Checklist - Waterfly III
 
 **Created**: 2024-12-14  
-**Total TODOs**: 116
+**Total TODOs**: 153 (116 original + 37 newly added)
 
 This document catalogs all TODO items across the entire project.
 
@@ -23,6 +23,7 @@ This document catalogs all TODO items across the entire project.
 | Connectivity | 3 | 🟢 Enhancement |
 | Conflict Storage | 6 | 🟡 Important |
 | Misc/Legacy | 11 | 🔵 Low Priority |
+| **Newly Added TODOs** | **37** | **🟡 Important** |
 
 ---
 
@@ -688,6 +689,144 @@ This document catalogs all TODO items across the entire project.
 
 ---
 
+## 🆕 NEWLY ADDED TODOS (37 items)
+
+**Priority**: 🟡 Important - Implementation details for existing features
+
+### Localization TODOs (4 items)
+
+#### `lib/notificationlistener.dart`
+- [ ] **Line 228**: Replace with AppLocalizations.of(context).createTransactionTitle
+  - Integrate with Flutter's localization system
+  - **Required for**: Multi-language notification support
+  
+- [ ] **Line 230**: Replace with AppLocalizations.of(context).createTransactionBody(notificationSource)
+  - Add parameter substitution for notification source
+  - **Required for**: Localized notification messages
+  
+- [ ] **Line 236**: Replace with AppLocalizations.of(context).extractTransactionChannelName
+  - Localize notification channel name
+  - **Required for**: Android notification channel localization
+  
+- [ ] **Line 239**: Replace with AppLocalizations.of(context).extractTransactionChannelDescription
+  - Localize notification channel description
+  - **Required for**: Android notification channel localization
+
+### Repository Integration TODOs (2 items)
+
+#### `lib/data/repositories/account_repository.dart`
+- [ ] **Line 33**: Use _syncQueueManager to add operations to sync queue when offline
+  - Currently unused, needs integration with offline operations
+  - **Required for**: Offline account operations
+  
+- [ ] **Line 36**: Use _validator to validate account data before operations
+  - Currently unused, needs integration with CRUD operations
+  - **Required for**: Account data validation
+
+### Service Integration TODOs (5 items)
+
+#### `lib/services/recovery/error_recovery_service.dart`
+- [ ] **Line 6**: Use _database to query and fix data inconsistencies
+  - Currently unused, needs implementation of recovery methods
+  - **Required for**: Data consistency recovery
+
+#### `lib/services/sync/operation_tracker.dart`
+- [ ] **Line 30**: Use _database to persist operation tracking data
+  - Currently unused, should persist tracking data for analytics
+  - **Required for**: Operation tracking persistence
+
+#### `lib/services/sync/background_sync_handler.dart`
+- [ ] **Line 19**: Initialize dependencies and perform sync
+  - Background sync callback needs dependency initialization
+  - **Required for**: Functional background sync
+
+### Sync Manager Implementation Notes (3 items)
+
+#### `lib/services/sync/sync_manager.dart`
+- [x] **Line 1266**: Create conflicts table in database schema ✅ **COMPLETED**
+  - Conflicts table already created in app_database.dart version 3
+  
+- [x] **Line 1373**: Create error_log table ✅ **COMPLETED**
+  - ErrorLog table already created in app_database.dart version 3
+  
+- [x] **Line 1487**: Implement connectivity listener ✅ **COMPLETED**
+  - Connectivity listener already implemented in _initializeConnectivityListener()
+
+### Legacy Sync Service TODOs (6 items) - 🔵 Low Priority
+
+**Note**: sync_service.dart is not imported anywhere - these are legacy TODOs
+
+#### `lib/services/sync/sync_service.dart`
+- [ ] **Line 55**: Use _apiAdapter for API calls in sync operations
+  - Legacy code, actual implementation in sync_manager.dart
+  
+- [ ] **Line 60**: Use _progressTracker to track sync progress
+  - Legacy code, actual implementation in sync_manager.dart
+  
+- [ ] **Line 64**: Use _conflictDetector to detect conflicts during sync
+  - Legacy code, actual implementation in sync_manager.dart
+  
+- [ ] **Line 67**: Use _conflictResolver to resolve detected conflicts
+  - Legacy code, actual implementation in sync_manager.dart
+  
+- [ ] **Line 340**: Resolve conflict using ConflictResolver
+  - Legacy code, actual implementation in sync_manager.dart
+  
+- [ ] **Line 383**: Implement actual API calls for each entity type
+  - Legacy code, actual implementation in sync_manager.dart
+
+### Conflict Resolver TODOs (10 items) - 🟡 Important
+
+#### `lib/services/sync/conflict_resolver.dart`
+- [ ] **Line 154**: Push to server via API
+  - Implement server push for local-wins resolution
+  - **Required for**: Complete conflict resolution
+  
+- [ ] **Line 185**: Update local database
+  - Implement database update for server-wins resolution
+  - **Required for**: Complete conflict resolution
+  
+- [ ] **Line 192**: Remove from sync queue
+  - Clean up sync queue after resolution
+  - **Required for**: Queue management
+  
+- [ ] **Line 286**: Push merged version to server
+  - Implement server push for merged data
+  - **Required for**: Manual merge resolution
+  
+- [ ] **Line 410**: Fetch conflict from database
+  - Implement conflict retrieval by ID
+  - **Required for**: Conflict resolution UI
+  
+- [ ] **Line 461**: Fetch conflict from database
+  - Implement conflict retrieval by entity
+  - **Required for**: Entity-specific conflict resolution
+  
+- [ ] **Line 599**: Update conflict in database
+  - Persist conflict resolution status
+  - **Required for**: Conflict tracking
+  
+- [ ] **Line 607**: Update entity in database
+  - Apply resolved data to database
+  - **Required for**: Data persistence
+  
+- [ ] **Line 614**: Update or remove from sync queue
+  - Clean up queue after resolution
+  - **Required for**: Queue management
+  
+- [ ] **Line 652**: Query database for statistics
+  - Implement conflict statistics queries
+  - **Required for**: Conflict analytics
+
+### Widget Integration TODOs (1 item)
+
+#### `lib/widgets/list_view_offline_helper.dart`
+- [ ] **Line 254**: Get SyncManager from provider/dependency injection
+  - Implement proper DI for pull-to-refresh sync
+  - **Required for**: Pull-to-refresh functionality
+
+---
+
 ## 🔵 LOW PRIORITY - Localization (3 items)
 
 ### `lib/auth.dart`
@@ -779,7 +918,7 @@ This document catalogs all TODO items across the entire project.
 
 ## 📊 Progress Tracking
 
-**Last Updated**: 2024-12-14 17:08
+**Last Updated**: 2024-12-14 17:12
 
 **Build Status**: ✅ PASSING (0 errors, 0 warnings)  
 **Test Status**: ✅ ALL TESTS PASSING (40/40 tests)  
@@ -794,7 +933,8 @@ This document catalogs all TODO items across the entire project.
 | Phase 4: Enhancements | 11 | 11 | 100% ✅ |
 | Phase 5: Polish | 12 | 3 | 25% |
 | **New TODOs** | **39** | **35** | **90%** |
-| **TOTAL** | **116** | **110** | **95%** |
+| **Newly Added TODOs** | **37** | **3** | **8%** |
+| **TOTAL** | **153** | **110** | **72%** |
 
 ### Implementation Status
 ✅ **All Critical Items Complete** (27/27)
