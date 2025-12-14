@@ -20,6 +20,7 @@ import 'conflict_detector.dart';
 import 'conflict_resolver.dart';
 import 'retry_strategy.dart';
 import 'circuit_breaker.dart';
+import 'operation_tracker.dart';
 
 /// Main synchronization manager that orchestrates the sync process.
 ///
@@ -65,6 +66,7 @@ class SyncManager {
   final ConflictResolver _conflictResolver;
   final RetryStrategy _retryStrategy;
   final CircuitBreaker _circuitBreaker;
+  final OperationTracker _operationTracker;
 
   /// Connectivity subscription
   StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
@@ -93,6 +95,7 @@ class SyncManager {
     ConflictResolver? conflictResolver,
     RetryStrategy? retryStrategy,
     CircuitBreaker? circuitBreaker,
+    OperationTracker? operationTracker,
     this.batchSize = 20,
     this.maxConcurrentOperations = 5,
     this.batchTimeout = const Duration(seconds: 60),
@@ -107,7 +110,8 @@ class SyncManager {
         _conflictDetector = conflictDetector ?? ConflictDetector(),
         _conflictResolver = conflictResolver ?? ConflictResolver(),
         _retryStrategy = retryStrategy ?? RetryStrategy(),
-        _circuitBreaker = circuitBreaker ?? CircuitBreaker() {
+        _circuitBreaker = circuitBreaker ?? CircuitBreaker(),
+        _operationTracker = operationTracker ?? OperationTracker(database) {
     _initializeConnectivityListener();
   }
 
@@ -277,6 +281,11 @@ class SyncManager {
       
       final operations = await _queueManager.getPendingOperations();
       
+      // Track all queued operations
+      for (final operation in operations) {
+        await _operationTracker.trackOperation(operation.id, 'queued');
+      }
+      
       _logger.info(
         'Retrieved ${operations.length} pending operations from queue',
         <String, dynamic>{
@@ -354,6 +363,9 @@ class SyncManager {
 
   /// Process a single operation.
   Future<void> _processOperation(SyncOperation operation) async {
+    // Track operation start
+    await _operationTracker.trackOperation(operation.id, 'processing');
+    
     try {
       _progressTracker.updateCurrentOperation(
         '${operation.operation.name} ${operation.entityType}',
@@ -369,6 +381,9 @@ class SyncManager {
       );
 
       _progressTracker.incrementCompleted(operationId: operation.id);
+      
+      // Track operation completion
+      await _operationTracker.trackOperation(operation.id, 'completed');
     } catch (e, stackTrace) {
       _logger.warning(
         'Failed to process operation ${operation.id}',
@@ -381,6 +396,9 @@ class SyncManager {
         operationId: operation.id,
         error: e.toString(),
       );
+      
+      // Track operation failure
+      await _operationTracker.trackOperation(operation.id, 'failed');
     }
   }
 
@@ -2320,6 +2338,33 @@ class SyncManager {
     }
     
     return isOnline;
+  }
+
+  /// Get operation statistics for analytics and monitoring.
+  ///
+  /// Returns comprehensive statistics including:
+  /// - Total operations processed
+  /// - Success/failure rates
+  /// - Average processing time
+  /// - Retry statistics
+  Future<OperationStatistics> getOperationStatistics() async {
+    return await _operationTracker.getOperationStatistics();
+  }
+
+  /// Get the complete history of a specific operation.
+  ///
+  /// Returns all status changes for the operation with timestamps.
+  Future<List<OperationHistoryEntry>> getOperationHistory(
+    String operationId,
+  ) async {
+    return await _operationTracker.getOperationHistory(operationId);
+  }
+
+  /// Clear old operation history to prevent unbounded growth.
+  ///
+  /// Removes history entries older than [retentionDays] (default 30 days).
+  Future<void> clearOldOperationHistory({int retentionDays = 30}) async {
+    await _operationTracker.clearOldHistory(retentionDays: retentionDays);
   }
 
   /// Dispose resources.
