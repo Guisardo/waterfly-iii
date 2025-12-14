@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/models/sync_progress.dart';
 import 'package:waterflyiii/services/sync/sync_manager.dart';
 import 'package:waterflyiii/services/sync/sync_statistics.dart';
@@ -21,13 +23,16 @@ class SyncStatusProvider extends ChangeNotifier {
   SyncStatusProvider({
     required SyncManager syncManager,
     required SyncStatisticsService statisticsService,
+    required AppDatabase database,
   })  : _syncManager = syncManager,
-        _statisticsService = statisticsService {
+        _statisticsService = statisticsService,
+        _database = database {
     _initialize();
   }
 
   final SyncManager _syncManager;
   final SyncStatisticsService _statisticsService;
+  final AppDatabase _database;
   StreamSubscription<SyncEvent>? _syncEventSubscription;
 
   // Current sync state
@@ -218,8 +223,8 @@ class SyncStatusProvider extends ChangeNotifier {
       notifyListeners();
 
       await _loadStatistics();
-      // TODO: Load conflicts from database
-      // TODO: Load recent errors from database
+      await _loadConflicts();
+      await _loadRecentErrors();
     } catch (e, stackTrace) {
       _log.severe('Failed to refresh sync status', e, stackTrace);
       _currentError = 'Failed to refresh: $e';
@@ -280,6 +285,46 @@ class SyncStatusProvider extends ChangeNotifier {
   double get overallSuccessRate {
     if (totalOperations == 0) return 100.0;
     return (totalSuccessful / totalOperations) * 100;
+  }
+
+  /// Load conflicts from database.
+  Future<void> _loadConflicts() async {
+    try {
+      final conflicts = await (_database.select(_database.conflicts)
+            ..where((tbl) => tbl.status.equals('pending'))
+            ..orderBy([(tbl) => OrderingTerm.desc(tbl.detectedAt)]))
+          .get();
+      
+      _unresolvedConflicts.clear();
+      _unresolvedConflicts.addAll(conflicts);
+      
+      _log.fine('Loaded ${conflicts.length} unresolved conflicts');
+    } catch (e, stackTrace) {
+      _log.warning('Failed to load conflicts', e, stackTrace);
+    }
+  }
+
+  /// Load recent errors from database.
+  Future<void> _loadRecentErrors() async {
+    try {
+      final errors = await (_database.select(_database.errorLog)
+            ..where((tbl) => tbl.resolved.equals(false))
+            ..orderBy([(tbl) => OrderingTerm.desc(tbl.occurredAt)])
+            ..limit(_maxErrorsSize))
+          .get();
+      
+      _recentErrors.clear();
+      _recentErrors.addAll(
+        errors.map((e) => SyncError(
+          message: e.errorMessage,
+          timestamp: e.occurredAt,
+        )),
+      );
+      
+      _log.fine('Loaded ${errors.length} recent errors');
+    } catch (e, stackTrace) {
+      _log.warning('Failed to load errors', e, stackTrace);
+    }
   }
 
   @override
