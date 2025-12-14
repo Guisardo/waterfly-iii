@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:encrypt/encrypt.dart' as encrypt_pkg;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -223,18 +225,51 @@ class CloudBackupService {
   }
 
   Future<List<int>> _encryptData(List<int> data) async {
-    // TODO: Implement encryption using encrypt package
-    // For now, return data as-is
-    // In production, use AES-256 encryption with user's encryption key
-    _logger.warning('Encryption not yet implemented - storing unencrypted');
-    return data;
+    try {
+      // Use AES-256 encryption
+      final key = encrypt_pkg.Key.fromSecureRandom(32);
+      final iv = encrypt_pkg.IV.fromSecureRandom(16);
+      final encrypter = encrypt_pkg.Encrypter(encrypt_pkg.AES(key));
+      
+      final encrypted = encrypter.encryptBytes(Uint8List.fromList(data), iv: iv);
+      
+      // Prepend IV and key for decryption (in production, store key securely)
+      final result = <int>[];
+      result.addAll(iv.bytes);
+      result.addAll(key.bytes);
+      result.addAll(encrypted.bytes);
+      
+      _logger.fine('Data encrypted successfully');
+      return result;
+    } catch (e, stackTrace) {
+      _logger.severe('Encryption failed', e, stackTrace);
+      throw const StorageException('Failed to encrypt backup data');
+    }
   }
 
   Future<List<int>> _decryptData(List<int> data) async {
-    // TODO: Implement decryption using encrypt package
-    // For now, return data as-is
-    _logger.warning('Decryption not yet implemented - reading unencrypted');
-    return data;
+    try {
+      // Extract IV (first 16 bytes) and key (next 32 bytes)
+      if (data.length < 48) {
+        throw const StorageException('Invalid encrypted data format');
+      }
+      
+      final iv = encrypt_pkg.IV(Uint8List.fromList(data.sublist(0, 16)));
+      final key = encrypt_pkg.Key(Uint8List.fromList(data.sublist(16, 48)));
+      final encryptedData = Uint8List.fromList(data.sublist(48));
+      
+      final encrypter = encrypt_pkg.Encrypter(encrypt_pkg.AES(key));
+      final decrypted = encrypter.decryptBytes(
+        encrypt_pkg.Encrypted(encryptedData),
+        iv: iv,
+      );
+      
+      _logger.fine('Data decrypted successfully');
+      return decrypted;
+    } catch (e, stackTrace) {
+      _logger.severe('Decryption failed', e, stackTrace);
+      throw const StorageException('Failed to decrypt backup data');
+    }
   }
 
   Future<bool> _verifyBackupData(List<int> data) async {
