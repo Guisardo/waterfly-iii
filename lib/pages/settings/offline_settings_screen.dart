@@ -838,41 +838,6 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
     }
   }
 
-  /// Run consistency check (old placeholder method - now replaced above).
-  Future<void> _runConsistencyCheckOld(BuildContext context) async {
-    setState(() => _isCheckingConsistency = true);
-
-    try {
-      // TODO: Get ConsistencyService and run check
-      await Future.delayed(const Duration(seconds: 2)); // Placeholder
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Consistency Check Complete'),
-            content: const Text('No issues found.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
-    } catch (e) {
-      _log.severe('Consistency check failed', e);
-      if (mounted) {
-        _showError(context, 'Consistency check failed: ${e.toString()}');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isCheckingConsistency = false);
-      }
-    }
-  }
-
   /// Show help dialog.
   void _showHelp() {
     showDialog(
