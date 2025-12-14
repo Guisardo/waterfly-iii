@@ -73,9 +73,7 @@ class AppDatabase extends _$AppDatabase {
         // Create performance indexes
         await _createIndexes();
         
-        // TODO: Initialize sync metadata with default values
-        // Uncomment after first successful generation
-        /*
+        // Initialize sync metadata with default values
         await into(syncMetadata).insert(
           SyncMetadataCompanion.insert(
             key: 'last_full_sync',
@@ -97,7 +95,6 @@ class AppDatabase extends _$AppDatabase {
             updatedAt: DateTime.now(),
           ),
         );
-        */
       },
       onUpgrade: (Migrator m, int from, int to) async {
         // Implement migration logic here when schema version changes
