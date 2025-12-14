@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
 
 final Logger _log = Logger('SyncStatusIndicator');

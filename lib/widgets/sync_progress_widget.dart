@@ -574,13 +574,9 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
                     listen: false,
                   );
                   
-                  if (syncStatusProvider.syncManager != null) {
-                    _log.info('Cancelling sync via SyncManager');
-                    await syncStatusProvider.syncManager!.cancelSync();
-                    _log.info('Sync cancelled successfully');
-                  } else {
-                    _log.warning('SyncManager not available in provider');
-                  }
+                  _log.info('Cancelling sync via SyncManager');
+                  await syncStatusProvider.syncManager.cancelSync();
+                  _log.info('Sync cancelled successfully');
                 } catch (e, stackTrace) {
                   _log.severe(
                     'Failed to cancel sync',

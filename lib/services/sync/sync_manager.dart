@@ -129,6 +129,27 @@ class SyncManager {
     }
   }
 
+  /// Cancel ongoing sync operation.
+  ///
+  /// Attempts to gracefully stop the current sync operation.
+  /// Note: This may not immediately stop the sync if an operation is in progress.
+  Future<void> cancelSync() async {
+    if (!_isSyncing) {
+      _logger.info('No sync in progress to cancel');
+      return;
+    }
+
+    _logger.info('Cancelling sync operation');
+    _isSyncing = false;
+    
+    _progressTracker.emitEvent(
+      SyncFailedEvent(
+        timestamp: DateTime.now(),
+        error: 'Sync cancelled by user',
+      ),
+    );
+  }
+
   /// Check if sync is currently in progress.
   bool get isSyncing => _isSyncing;
 
@@ -153,7 +174,7 @@ class SyncManager {
   ///
   /// Throws:
   ///   SyncOperationError: If sync fails
-  Future<SyncResult> synchronize() async {
+  Future<SyncResult> synchronize({bool fullSync = false}) async {
     return await _syncLock.synchronized(() async {
       if (_isSyncing) {
         throw SyncOperationError(
@@ -210,7 +231,12 @@ class SyncManager {
 
         // Pull latest changes from server
         _progressTracker.updatePhase(SyncPhase.pulling);
-        await _pullFromServer();
+        if (fullSync) {
+          _logger.info('Performing full sync');
+          await performFullSync();
+        } else {
+          await _pullFromServer();
+        }
 
         // Finalize
         _progressTracker.updatePhase(SyncPhase.finalizing);
