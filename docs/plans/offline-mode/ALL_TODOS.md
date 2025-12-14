@@ -127,9 +127,67 @@ This document catalogs all TODO items across the entire project.
 
 ---
 
-## 🆕 NEW TODOS ADDED DURING IMPLEMENTATION (26 items)
+## 🆕 NEW TODOS ADDED DURING IMPLEMENTATION (31 items)
 
 **Priority**: 🟡 Important - Required for full functionality
+
+### Sync Manager Enhancements
+
+#### `lib/services/sync/sync_manager.dart`
+- [ ] **Line 56**: Use _connectivity to check network status before sync operations
+  - Currently unused field
+  - Should check connectivity before attempting sync
+  - **Required for**: Network-aware sync operations
+
+- [ ] **Line 1226**: Create conflicts table in database schema and store conflict
+  - Store conflict details for user resolution
+  - **Required for**: Conflict error handling persistence
+
+- [ ] **Line 1255**: Add public method to SyncProgressTracker for emitting custom events
+  - Make _emitEvent public or add wrapper methods
+  - **Required for**: UI notification of specific error types
+
+- [ ] **Line 1256**: Add incrementConflicts method to SyncProgressTracker
+  - Track conflicts detected counter
+  - **Required for**: Conflict statistics in progress tracking
+
+- [ ] **Line 1323**: Create error_log table to persist validation errors for analytics
+  - Store validation errors with field and rule details
+  - **Required for**: Validation error persistence
+
+- [ ] **Line 1340**: Add public method to SyncProgressTracker for emitting validation error events
+  - Enable validation error notifications to UI
+  - **Required for**: User feedback on validation failures
+
+- [ ] **Line 1432**: Implement connectivity listener to trigger sync when network returns
+  - Listen to connectivity changes
+  - Trigger sync automatically when network restored
+  - **Required for**: Network error automatic retry
+
+- [ ] **Line 1442**: Add public method to SyncProgressTracker for emitting network error events
+  - Enable network error notifications to UI
+  - **Required for**: User feedback on network issues
+
+- [ ] **Line 1517**: Implement full sync data fetching
+  - Add getAllAccounts, getAllCategories, getAllBudgets, getAllBills, getAllPiggyBanks, getAllTransactions to FireflyApiAdapter
+  - Implement pagination for large datasets
+  - Clear local database and insert all server data
+  - Handle type conversions and schema matching
+  - **Required for**: Full sync functionality
+
+- [ ] **Line 1578**: Implement incremental sync
+  - Add getAccountsSince, getCategoriesSince, getBudgetsSince, getBillsSince, getPiggyBanksSince, getTransactionsSince to FireflyApiAdapter
+  - Fetch only entities updated since last sync
+  - Detect conflicts and merge data
+  - **Required for**: Incremental sync functionality
+
+- [ ] **Line 1610**: Use workmanager to schedule background sync
+  - Implement background sync scheduling
+  - **Required for**: Automatic background synchronization
+
+- [ ] **Line 1624**: Cancel workmanager task
+  - Implement background sync cancellation
+  - **Required for**: Background sync management
 
 ### API Enhancements
 
@@ -598,8 +656,8 @@ This document catalogs all TODO items across the entire project.
 | Phase 3: UI/UX | 13 | 0 | 0% |
 | Phase 4: Enhancements | 11 | 0 | 0% |
 | Phase 5: Polish | 12 | 0 | 0% |
-| **New TODOs** | **26** | **2** | **8%** |
-| **TOTAL** | **104** | **19** | **18%** |
+| **New TODOs** | **31** | **2** | **6%** |
+| **TOTAL** | **109** | **19** | **17%** |
 
 ### Recent Completions (2024-12-14)
 1. ✅ Queue operations (_getPendingOperations)
