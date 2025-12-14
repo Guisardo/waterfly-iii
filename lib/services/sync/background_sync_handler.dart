@@ -1,5 +1,47 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:chopper/chopper.dart';
+import 'package:cronet_http/cronet_http.dart';
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
+
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
+import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/id_mapping/id_mapping_service.dart';
+import 'package:waterflyiii/services/sync/sync_manager.dart';
+import 'package:waterflyiii/services/sync/sync_progress_tracker.dart';
+import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
+
+/// HTTP client for background sync
+http.Client get _httpClient =>
+    CronetClient.fromCronetEngine(CronetEngine.build(), closeEngine: false);
+
+/// Request interceptor for API authentication
+class _BackgroundSyncInterceptor implements Interceptor {
+  _BackgroundSyncInterceptor(this.apiKey);
+
+  final String apiKey;
+
+  @override
+  FutureOr<Response<BodyType>> intercept<BodyType>(Chain<BodyType> chain) {
+    final Request request = applyHeaders(
+      chain.request,
+      <String, String>{
+        HttpHeaders.authorizationHeader: 'Bearer $apiKey',
+        HttpHeaders.acceptHeader: 'application/json',
+      },
+      override: true,
+    );
+    request.followRedirects = true;
+    request.maxRedirects = 5;
+    return chain.proceed(request);
+  }
+}
 
 /// Background sync handler for workmanager tasks.
 ///
@@ -7,8 +49,8 @@ import 'package:workmanager/workmanager.dart';
 /// It runs in a separate isolate and must be a top-level function.
 @pragma('vm:entry-point')
 void backgroundSyncCallback() {
-  Workmanager().executeTask((task, inputData) async {
-    final logger = Logger('BackgroundSyncHandler');
+  Workmanager().executeTask((String task, Map<String, dynamic>? inputData) async {
+    final Logger logger = Logger('BackgroundSyncHandler');
     
     try {
       logger.info('Background sync task started', <String, dynamic>{
@@ -16,19 +58,64 @@ void backgroundSyncCallback() {
         'input_data': inputData,
       });
 
-      // TODO: Initialize dependencies and perform sync
-      // This requires:
-      // 1. Initialize database connection
-      // 2. Initialize API client with stored credentials
-      // 3. Create SyncManager instance
-      // 4. Call synchronize()
-      // 5. Handle results and errors
+      // Initialize dependencies for background sync
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
       
-      logger.info('Background sync task completed successfully');
-      return Future.value(true);
+      // Check if user is authenticated
+      final String? apiUrl = prefs.getString('api_url');
+      final String? apiToken = prefs.getString('api_token');
+      
+      if (apiUrl == null || apiToken == null) {
+        logger.warning('Background sync skipped: No credentials found');
+        return Future<bool>.value(false);
+      }
+      
+      // Parse API URL
+      final Uri apiUri = Uri.parse(apiUrl);
+      
+      // Initialize database connection
+      // Note: AppDatabase uses its own connection management
+      final AppDatabase database = AppDatabase();
+      
+      try {
+        // Initialize services
+        final ConnectivityService connectivity = ConnectivityService();
+        final SyncQueueManager queueManager = SyncQueueManager(database);
+        final IdMappingService idMapping = IdMappingService(database: database);
+        final SyncProgressTracker progressTracker = SyncProgressTracker();
+        
+        // Initialize API client with stored credentials
+        final FireflyIii apiClient = FireflyIii.create(
+          baseUrl: apiUri,
+          httpClient: _httpClient,
+          interceptors: <Interceptor>[_BackgroundSyncInterceptor(apiToken)],
+        );
+        
+        // Create API adapter
+        final FireflyApiAdapter apiAdapter = FireflyApiAdapter(apiClient);
+        
+        // Create SyncManager instance
+        final SyncManager syncManager = SyncManager(
+          queueManager: queueManager,
+          apiClient: apiAdapter,
+          database: database,
+          connectivity: connectivity,
+          idMapping: idMapping,
+          progressTracker: progressTracker,
+        );
+        
+        // Perform incremental sync
+        await syncManager.synchronize(fullSync: false);
+        
+        logger.info('Background sync task completed successfully');
+        return Future<bool>.value(true);
+      } finally {
+        // Clean up database connection
+        await database.close();
+      }
     } catch (e, stackTrace) {
       logger.severe('Background sync task failed', e, stackTrace);
-      return Future.value(false);
+      return Future<bool>.value(false);
     }
   });
 }
@@ -37,7 +124,7 @@ void backgroundSyncCallback() {
 ///
 /// Should be called once during app initialization.
 Future<void> initializeBackgroundSync() async {
-  final logger = Logger('BackgroundSyncHandler');
+  final Logger logger = Logger('BackgroundSyncHandler');
   
   try {
     await Workmanager().initialize(
