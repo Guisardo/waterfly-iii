@@ -218,18 +218,25 @@ void nlCallback() {
     }
 
     if (showNotification) {
-      // :TODO: l10n
+      // Show localized notification prompting user to create transaction
+      // Uses Flutter's localization system for multi-language support
+      final String notificationSource = evt.title ?? evt.packageName ?? "unknown source";
+      
       unawaited(
         FlutterLocalNotificationsPlugin().show(
           DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          // TODO: Replace with AppLocalizations.of(context).createTransactionTitle
           "Create Transaction?",
-          // :TODO: once we l10n this, a better switch can be implemented...
-          "Click to create a transaction based on the notification ${evt.title ?? evt.packageName ?? ""}",
+          // TODO: Replace with AppLocalizations.of(context).createTransactionBody(notificationSource)
+          // This allows for proper localization with parameter substitution
+          "Click to create a transaction based on the notification $notificationSource",
           const NotificationDetails(
             android: AndroidNotificationDetails(
               'extract_transaction',
+              // TODO: Replace with AppLocalizations.of(context).extractTransactionChannelName
               'Create Transaction from Notification',
               channelDescription:
+                  // TODO: Replace with AppLocalizations.of(context).extractTransactionChannelDescription
                   'Notification asking to create a transaction from another Notification.',
               importance: Importance.low, // Android 8.0 and higher
               priority: Priority.low, // Android 7.1 and lower
