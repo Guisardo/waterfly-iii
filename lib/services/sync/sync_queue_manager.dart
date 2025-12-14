@@ -80,4 +80,11 @@ class SyncQueueManager {
       ));
     _logger.fine('Marked operation as failed: $operationId');
   }
+
+  /// Remove operations by entity ID.
+  Future<void> removeByEntityId(String entityType, String entityId) async {
+    final deleted = await (database.delete(database.syncQueue)
+      ..where((q) => q.entityType.equals(entityType) & q.entityId.equals(entityId))).go();
+    _logger.fine('Removed $deleted operations for $entityType:$entityId');
+  }
 }

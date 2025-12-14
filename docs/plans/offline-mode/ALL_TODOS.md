@@ -484,10 +484,10 @@ This document catalogs all TODO items across the entire project.
   - Implemented sync queue integration for delete operations
   - Only adds to queue if transaction has serverId (was synced)
 
-- [ ] Line 706: Implement sync queue removal by entity ID
-  ```dart
-  // TODO: Implement sync queue removal by entity ID
-  ```
+- [x] Line 706: Implement sync queue removal by entity ID ✅ **COMPLETED 2024-12-14**
+  - Implemented removeByEntityId() in SyncQueueManager
+  - Removes all operations for a specific entity type and ID
+  - Used in transaction deletion to clean up queue
 
 ### `lib/providers/sync_status_provider.dart`
 
@@ -697,7 +697,7 @@ This document catalogs all TODO items across the entire project.
 | Phase 4: Enhancements | 11 | 0 | 0% |
 | Phase 5: Polish | 12 | 0 | 0% |
 | **New TODOs** | **37** | **30** | **81%** |
-| **TOTAL** | **114** | **56** | **49%** |
+| **TOTAL** | **114** | **57** | **50%** |
 
 ### Implementation Status
 ✅ **All Critical Items Complete** (27/27)

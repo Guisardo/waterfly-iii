@@ -775,7 +775,10 @@ class TransactionRepository
         await deleteQuery.go();
 
         // Remove from sync queue if present
-        // TODO: Implement sync queue removal by entity ID
+        if (_syncQueueManager != null) {
+          await _syncQueueManager!.removeByEntityId('transaction', id);
+          logger.fine('Removed transaction from sync queue: $id');
+        }
       }
 
       // Step 5: Invalidate cache
