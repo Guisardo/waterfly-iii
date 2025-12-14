@@ -9,6 +9,8 @@ import 'package:waterflyiii/data/local/database/accounts_table.dart';
 import 'package:waterflyiii/data/local/database/bills_table.dart';
 import 'package:waterflyiii/data/local/database/budgets_table.dart';
 import 'package:waterflyiii/data/local/database/categories_table.dart';
+import 'package:waterflyiii/data/local/database/conflicts_table.dart';
+import 'package:waterflyiii/data/local/database/error_log_table.dart';
 import 'package:waterflyiii/data/local/database/id_mapping_table.dart';
 import 'package:waterflyiii/data/local/database/piggy_banks_table.dart';
 import 'package:waterflyiii/data/local/database/sync_metadata_table.dart';
@@ -22,12 +24,14 @@ part 'app_database.g.dart';
 /// This database stores all Firefly III entities locally and manages
 /// synchronization state for offline operations.
 ///
-/// Database version: 1
+/// Database version: 3
 /// Schema includes:
 /// - Transactions, Accounts, Categories, Budgets, Bills, Piggy Banks
 /// - Sync queue for pending operations
 /// - Sync metadata for tracking sync state
 /// - ID mapping for local-to-server ID resolution
+/// - Conflicts for storing sync conflicts
+/// - Error log for tracking sync errors
 @DriftDatabase(tables: <Type>[
   Transactions,
   Accounts,
@@ -38,6 +42,8 @@ part 'app_database.g.dart';
   SyncQueue,
   SyncMetadata,
   IdMapping,
+  Conflicts,
+  ErrorLog,
 ])
 class AppDatabase extends _$AppDatabase {
   /// Creates a new instance of the database.
@@ -58,8 +64,9 @@ class AppDatabase extends _$AppDatabase {
   ///
   /// Increment this when making schema changes and implement migration logic.
   /// Version 2: Added foreign key constraints for referential integrity
+  /// Version 3: Added conflicts and error_log tables
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   /// Database migration logic.
   ///
@@ -110,6 +117,26 @@ class AppDatabase extends _$AppDatabase {
           // This is handled automatically by Drift when customConstraints are defined
           
           await customStatement('PRAGMA foreign_keys = ON');
+        }
+        
+        if (from < 3) {
+          // Version 3: Add conflicts and error_log tables
+          await m.createTable(conflicts);
+          await m.createTable(errorLog);
+          
+          // Create indexes for performance
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_conflicts_status ON conflicts(status)',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_conflicts_entity ON conflicts(entity_type, entity_id)',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_error_log_type ON error_log(error_type)',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_error_log_entity ON error_log(entity_type, entity_id)',
+          );
         }
       },
       beforeOpen: (OpeningDetails details) async {

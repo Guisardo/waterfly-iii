@@ -1837,8 +1837,12 @@ class SyncManager {
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
-        // TODO: Conflict detected - store for resolution
-        _logger.warning('Conflict detected for account $serverId');
+        await _storeConflict(
+          entityType: 'account',
+          entityId: serverId,
+          localData: local,
+          serverData: attrs,
+        );
         _progressTracker.incrementConflicts();
         continue;
       }
@@ -1875,8 +1879,12 @@ class SyncManager {
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
-        // TODO: Conflict detected
-        _logger.warning('Conflict detected for category $serverId');
+        await _storeConflict(
+          entityType: 'category',
+          entityId: serverId,
+          localData: local,
+          serverData: attrs,
+        );
         _progressTracker.incrementConflicts();
         continue;
       }
@@ -1907,8 +1915,12 @@ class SyncManager {
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
-        // TODO: Conflict detected
-        _logger.warning('Conflict detected for budget $serverId');
+        await _storeConflict(
+          entityType: 'budget',
+          entityId: serverId,
+          localData: local,
+          serverData: attrs,
+        );
         _progressTracker.incrementConflicts();
         continue;
       }
@@ -1938,8 +1950,12 @@ class SyncManager {
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
-        // TODO: Conflict detected
-        _logger.warning('Conflict detected for bill $serverId');
+        await _storeConflict(
+          entityType: 'bill',
+          entityId: serverId,
+          localData: local,
+          serverData: attrs,
+        );
         _progressTracker.incrementConflicts();
         continue;
       }
@@ -1975,8 +1991,12 @@ class SyncManager {
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
-        // TODO: Conflict detected
-        _logger.warning('Conflict detected for piggy bank $serverId');
+        await _storeConflict(
+          entityType: 'piggy_bank',
+          entityId: serverId,
+          localData: local,
+          serverData: attrs,
+        );
         _progressTracker.incrementConflicts();
         continue;
       }
@@ -2011,8 +2031,12 @@ class SyncManager {
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
-        // TODO: Conflict detected
-        _logger.warning('Conflict detected for transaction $serverId');
+        await _storeConflict(
+          entityType: 'transaction',
+          entityId: serverId,
+          localData: local,
+          serverData: attrs,
+        );
         _progressTracker.incrementConflicts();
         continue;
       }
@@ -2066,6 +2090,50 @@ class SyncManager {
     _logger.info('Cancelling scheduled sync');
     // TODO: Cancel workmanager task
     // await Workmanager().cancelByUniqueName('sync');
+  }
+
+  /// Store conflict in database for user resolution.
+  Future<void> _storeConflict({
+    required String entityType,
+    required String entityId,
+    required dynamic localData,
+    required Map<String, dynamic> serverData,
+  }) async {
+    try {
+      final conflictId = '${entityType}_${entityId}_${DateTime.now().millisecondsSinceEpoch}';
+      
+      await _database.into(_database.conflicts).insert(
+        ConflictEntityCompanion.insert(
+          id: conflictId,
+          entityType: entityType,
+          entityId: entityId,
+          conflictType: 'update_conflict',
+          localData: _serializeData(localData),
+          serverData: _serializeData(serverData),
+          conflictingFields: '[]', // TODO: Detect specific conflicting fields
+          detectedAt: DateTime.now(),
+        ),
+      );
+      
+      _logger.info(
+        'Stored conflict for resolution',
+        <String, dynamic>{
+          'conflict_id': conflictId,
+          'entity_type': entityType,
+          'entity_id': entityId,
+        },
+      );
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to store conflict', e, stackTrace);
+    }
+  }
+
+  /// Serialize data to JSON string.
+  String _serializeData(dynamic data) {
+    if (data is Map) {
+      return data.toString();
+    }
+    return data.toJson().toString();
   }
 
   /// Dispose resources.

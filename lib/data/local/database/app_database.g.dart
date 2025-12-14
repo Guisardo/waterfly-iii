@@ -6648,6 +6648,1720 @@ class IdMappingEntityCompanion extends UpdateCompanion<IdMappingEntity> {
   }
 }
 
+class $ConflictsTable extends Conflicts
+    with TableInfo<$ConflictsTable, ConflictEntity> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ConflictsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityIdMeta = const VerificationMeta(
+    'entityId',
+  );
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+    'entity_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _conflictTypeMeta = const VerificationMeta(
+    'conflictType',
+  );
+  @override
+  late final GeneratedColumn<String> conflictType = GeneratedColumn<String>(
+    'conflict_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _localDataMeta = const VerificationMeta(
+    'localData',
+  );
+  @override
+  late final GeneratedColumn<String> localData = GeneratedColumn<String>(
+    'local_data',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serverDataMeta = const VerificationMeta(
+    'serverData',
+  );
+  @override
+  late final GeneratedColumn<String> serverData = GeneratedColumn<String>(
+    'server_data',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _conflictingFieldsMeta = const VerificationMeta(
+    'conflictingFields',
+  );
+  @override
+  late final GeneratedColumn<String> conflictingFields =
+      GeneratedColumn<String>(
+        'conflicting_fields',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _resolutionStrategyMeta =
+      const VerificationMeta('resolutionStrategy');
+  @override
+  late final GeneratedColumn<String> resolutionStrategy =
+      GeneratedColumn<String>(
+        'resolution_strategy',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _resolvedDataMeta = const VerificationMeta(
+    'resolvedData',
+  );
+  @override
+  late final GeneratedColumn<String> resolvedData = GeneratedColumn<String>(
+    'resolved_data',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _detectedAtMeta = const VerificationMeta(
+    'detectedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> detectedAt = GeneratedColumn<DateTime>(
+    'detected_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _resolvedAtMeta = const VerificationMeta(
+    'resolvedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> resolvedAt = GeneratedColumn<DateTime>(
+    'resolved_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _resolvedByMeta = const VerificationMeta(
+    'resolvedBy',
+  );
+  @override
+  late final GeneratedColumn<String> resolvedBy = GeneratedColumn<String>(
+    'resolved_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    entityType,
+    entityId,
+    conflictType,
+    localData,
+    serverData,
+    conflictingFields,
+    status,
+    resolutionStrategy,
+    resolvedData,
+    detectedAt,
+    resolvedAt,
+    resolvedBy,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'conflicts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ConflictEntity> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('entity_type')) {
+      context.handle(
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(
+        _entityIdMeta,
+        entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('conflict_type')) {
+      context.handle(
+        _conflictTypeMeta,
+        conflictType.isAcceptableOrUnknown(
+          data['conflict_type']!,
+          _conflictTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_conflictTypeMeta);
+    }
+    if (data.containsKey('local_data')) {
+      context.handle(
+        _localDataMeta,
+        localData.isAcceptableOrUnknown(data['local_data']!, _localDataMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_localDataMeta);
+    }
+    if (data.containsKey('server_data')) {
+      context.handle(
+        _serverDataMeta,
+        serverData.isAcceptableOrUnknown(data['server_data']!, _serverDataMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_serverDataMeta);
+    }
+    if (data.containsKey('conflicting_fields')) {
+      context.handle(
+        _conflictingFieldsMeta,
+        conflictingFields.isAcceptableOrUnknown(
+          data['conflicting_fields']!,
+          _conflictingFieldsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_conflictingFieldsMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('resolution_strategy')) {
+      context.handle(
+        _resolutionStrategyMeta,
+        resolutionStrategy.isAcceptableOrUnknown(
+          data['resolution_strategy']!,
+          _resolutionStrategyMeta,
+        ),
+      );
+    }
+    if (data.containsKey('resolved_data')) {
+      context.handle(
+        _resolvedDataMeta,
+        resolvedData.isAcceptableOrUnknown(
+          data['resolved_data']!,
+          _resolvedDataMeta,
+        ),
+      );
+    }
+    if (data.containsKey('detected_at')) {
+      context.handle(
+        _detectedAtMeta,
+        detectedAt.isAcceptableOrUnknown(data['detected_at']!, _detectedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_detectedAtMeta);
+    }
+    if (data.containsKey('resolved_at')) {
+      context.handle(
+        _resolvedAtMeta,
+        resolvedAt.isAcceptableOrUnknown(data['resolved_at']!, _resolvedAtMeta),
+      );
+    }
+    if (data.containsKey('resolved_by')) {
+      context.handle(
+        _resolvedByMeta,
+        resolvedBy.isAcceptableOrUnknown(data['resolved_by']!, _resolvedByMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ConflictEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ConflictEntity(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      entityType:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}entity_type'],
+          )!,
+      entityId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}entity_id'],
+          )!,
+      conflictType:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}conflict_type'],
+          )!,
+      localData:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}local_data'],
+          )!,
+      serverData:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}server_data'],
+          )!,
+      conflictingFields:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}conflicting_fields'],
+          )!,
+      status:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}status'],
+          )!,
+      resolutionStrategy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}resolution_strategy'],
+      ),
+      resolvedData: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}resolved_data'],
+      ),
+      detectedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}detected_at'],
+          )!,
+      resolvedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}resolved_at'],
+      ),
+      resolvedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}resolved_by'],
+      ),
+    );
+  }
+
+  @override
+  $ConflictsTable createAlias(String alias) {
+    return $ConflictsTable(attachedDatabase, alias);
+  }
+}
+
+class ConflictEntity extends DataClass implements Insertable<ConflictEntity> {
+  /// Unique identifier for the conflict.
+  final String id;
+
+  /// Entity type: 'transaction', 'account', 'category', 'budget', 'bill', 'piggy_bank'.
+  final String entityType;
+
+  /// Entity ID (local or server ID).
+  final String entityId;
+
+  /// Conflict type: 'update_conflict', 'delete_conflict', 'create_conflict'.
+  final String conflictType;
+
+  /// Local version of the entity as JSON.
+  final String localData;
+
+  /// Server version of the entity as JSON.
+  final String serverData;
+
+  /// Conflicting fields as JSON array.
+  final String conflictingFields;
+
+  /// Resolution status: 'pending', 'resolved', 'ignored'.
+  final String status;
+
+  /// Resolution strategy: 'use_local', 'use_server', 'merge', 'manual'.
+  final String? resolutionStrategy;
+
+  /// Resolved data as JSON (after user resolution).
+  final String? resolvedData;
+
+  /// Timestamp when the conflict was detected.
+  final DateTime detectedAt;
+
+  /// Timestamp when the conflict was resolved.
+  final DateTime? resolvedAt;
+
+  /// User who resolved the conflict.
+  final String? resolvedBy;
+  const ConflictEntity({
+    required this.id,
+    required this.entityType,
+    required this.entityId,
+    required this.conflictType,
+    required this.localData,
+    required this.serverData,
+    required this.conflictingFields,
+    required this.status,
+    this.resolutionStrategy,
+    this.resolvedData,
+    required this.detectedAt,
+    this.resolvedAt,
+    this.resolvedBy,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['entity_type'] = Variable<String>(entityType);
+    map['entity_id'] = Variable<String>(entityId);
+    map['conflict_type'] = Variable<String>(conflictType);
+    map['local_data'] = Variable<String>(localData);
+    map['server_data'] = Variable<String>(serverData);
+    map['conflicting_fields'] = Variable<String>(conflictingFields);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || resolutionStrategy != null) {
+      map['resolution_strategy'] = Variable<String>(resolutionStrategy);
+    }
+    if (!nullToAbsent || resolvedData != null) {
+      map['resolved_data'] = Variable<String>(resolvedData);
+    }
+    map['detected_at'] = Variable<DateTime>(detectedAt);
+    if (!nullToAbsent || resolvedAt != null) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt);
+    }
+    if (!nullToAbsent || resolvedBy != null) {
+      map['resolved_by'] = Variable<String>(resolvedBy);
+    }
+    return map;
+  }
+
+  ConflictEntityCompanion toCompanion(bool nullToAbsent) {
+    return ConflictEntityCompanion(
+      id: Value(id),
+      entityType: Value(entityType),
+      entityId: Value(entityId),
+      conflictType: Value(conflictType),
+      localData: Value(localData),
+      serverData: Value(serverData),
+      conflictingFields: Value(conflictingFields),
+      status: Value(status),
+      resolutionStrategy:
+          resolutionStrategy == null && nullToAbsent
+              ? const Value.absent()
+              : Value(resolutionStrategy),
+      resolvedData:
+          resolvedData == null && nullToAbsent
+              ? const Value.absent()
+              : Value(resolvedData),
+      detectedAt: Value(detectedAt),
+      resolvedAt:
+          resolvedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(resolvedAt),
+      resolvedBy:
+          resolvedBy == null && nullToAbsent
+              ? const Value.absent()
+              : Value(resolvedBy),
+    );
+  }
+
+  factory ConflictEntity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ConflictEntity(
+      id: serializer.fromJson<String>(json['id']),
+      entityType: serializer.fromJson<String>(json['entityType']),
+      entityId: serializer.fromJson<String>(json['entityId']),
+      conflictType: serializer.fromJson<String>(json['conflictType']),
+      localData: serializer.fromJson<String>(json['localData']),
+      serverData: serializer.fromJson<String>(json['serverData']),
+      conflictingFields: serializer.fromJson<String>(json['conflictingFields']),
+      status: serializer.fromJson<String>(json['status']),
+      resolutionStrategy: serializer.fromJson<String?>(
+        json['resolutionStrategy'],
+      ),
+      resolvedData: serializer.fromJson<String?>(json['resolvedData']),
+      detectedAt: serializer.fromJson<DateTime>(json['detectedAt']),
+      resolvedAt: serializer.fromJson<DateTime?>(json['resolvedAt']),
+      resolvedBy: serializer.fromJson<String?>(json['resolvedBy']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'entityType': serializer.toJson<String>(entityType),
+      'entityId': serializer.toJson<String>(entityId),
+      'conflictType': serializer.toJson<String>(conflictType),
+      'localData': serializer.toJson<String>(localData),
+      'serverData': serializer.toJson<String>(serverData),
+      'conflictingFields': serializer.toJson<String>(conflictingFields),
+      'status': serializer.toJson<String>(status),
+      'resolutionStrategy': serializer.toJson<String?>(resolutionStrategy),
+      'resolvedData': serializer.toJson<String?>(resolvedData),
+      'detectedAt': serializer.toJson<DateTime>(detectedAt),
+      'resolvedAt': serializer.toJson<DateTime?>(resolvedAt),
+      'resolvedBy': serializer.toJson<String?>(resolvedBy),
+    };
+  }
+
+  ConflictEntity copyWith({
+    String? id,
+    String? entityType,
+    String? entityId,
+    String? conflictType,
+    String? localData,
+    String? serverData,
+    String? conflictingFields,
+    String? status,
+    Value<String?> resolutionStrategy = const Value.absent(),
+    Value<String?> resolvedData = const Value.absent(),
+    DateTime? detectedAt,
+    Value<DateTime?> resolvedAt = const Value.absent(),
+    Value<String?> resolvedBy = const Value.absent(),
+  }) => ConflictEntity(
+    id: id ?? this.id,
+    entityType: entityType ?? this.entityType,
+    entityId: entityId ?? this.entityId,
+    conflictType: conflictType ?? this.conflictType,
+    localData: localData ?? this.localData,
+    serverData: serverData ?? this.serverData,
+    conflictingFields: conflictingFields ?? this.conflictingFields,
+    status: status ?? this.status,
+    resolutionStrategy:
+        resolutionStrategy.present
+            ? resolutionStrategy.value
+            : this.resolutionStrategy,
+    resolvedData: resolvedData.present ? resolvedData.value : this.resolvedData,
+    detectedAt: detectedAt ?? this.detectedAt,
+    resolvedAt: resolvedAt.present ? resolvedAt.value : this.resolvedAt,
+    resolvedBy: resolvedBy.present ? resolvedBy.value : this.resolvedBy,
+  );
+  ConflictEntity copyWithCompanion(ConflictEntityCompanion data) {
+    return ConflictEntity(
+      id: data.id.present ? data.id.value : this.id,
+      entityType:
+          data.entityType.present ? data.entityType.value : this.entityType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      conflictType:
+          data.conflictType.present
+              ? data.conflictType.value
+              : this.conflictType,
+      localData: data.localData.present ? data.localData.value : this.localData,
+      serverData:
+          data.serverData.present ? data.serverData.value : this.serverData,
+      conflictingFields:
+          data.conflictingFields.present
+              ? data.conflictingFields.value
+              : this.conflictingFields,
+      status: data.status.present ? data.status.value : this.status,
+      resolutionStrategy:
+          data.resolutionStrategy.present
+              ? data.resolutionStrategy.value
+              : this.resolutionStrategy,
+      resolvedData:
+          data.resolvedData.present
+              ? data.resolvedData.value
+              : this.resolvedData,
+      detectedAt:
+          data.detectedAt.present ? data.detectedAt.value : this.detectedAt,
+      resolvedAt:
+          data.resolvedAt.present ? data.resolvedAt.value : this.resolvedAt,
+      resolvedBy:
+          data.resolvedBy.present ? data.resolvedBy.value : this.resolvedBy,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ConflictEntity(')
+          ..write('id: $id, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('conflictType: $conflictType, ')
+          ..write('localData: $localData, ')
+          ..write('serverData: $serverData, ')
+          ..write('conflictingFields: $conflictingFields, ')
+          ..write('status: $status, ')
+          ..write('resolutionStrategy: $resolutionStrategy, ')
+          ..write('resolvedData: $resolvedData, ')
+          ..write('detectedAt: $detectedAt, ')
+          ..write('resolvedAt: $resolvedAt, ')
+          ..write('resolvedBy: $resolvedBy')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    entityType,
+    entityId,
+    conflictType,
+    localData,
+    serverData,
+    conflictingFields,
+    status,
+    resolutionStrategy,
+    resolvedData,
+    detectedAt,
+    resolvedAt,
+    resolvedBy,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ConflictEntity &&
+          other.id == this.id &&
+          other.entityType == this.entityType &&
+          other.entityId == this.entityId &&
+          other.conflictType == this.conflictType &&
+          other.localData == this.localData &&
+          other.serverData == this.serverData &&
+          other.conflictingFields == this.conflictingFields &&
+          other.status == this.status &&
+          other.resolutionStrategy == this.resolutionStrategy &&
+          other.resolvedData == this.resolvedData &&
+          other.detectedAt == this.detectedAt &&
+          other.resolvedAt == this.resolvedAt &&
+          other.resolvedBy == this.resolvedBy);
+}
+
+class ConflictEntityCompanion extends UpdateCompanion<ConflictEntity> {
+  final Value<String> id;
+  final Value<String> entityType;
+  final Value<String> entityId;
+  final Value<String> conflictType;
+  final Value<String> localData;
+  final Value<String> serverData;
+  final Value<String> conflictingFields;
+  final Value<String> status;
+  final Value<String?> resolutionStrategy;
+  final Value<String?> resolvedData;
+  final Value<DateTime> detectedAt;
+  final Value<DateTime?> resolvedAt;
+  final Value<String?> resolvedBy;
+  final Value<int> rowid;
+  const ConflictEntityCompanion({
+    this.id = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.conflictType = const Value.absent(),
+    this.localData = const Value.absent(),
+    this.serverData = const Value.absent(),
+    this.conflictingFields = const Value.absent(),
+    this.status = const Value.absent(),
+    this.resolutionStrategy = const Value.absent(),
+    this.resolvedData = const Value.absent(),
+    this.detectedAt = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+    this.resolvedBy = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ConflictEntityCompanion.insert({
+    required String id,
+    required String entityType,
+    required String entityId,
+    required String conflictType,
+    required String localData,
+    required String serverData,
+    required String conflictingFields,
+    this.status = const Value.absent(),
+    this.resolutionStrategy = const Value.absent(),
+    this.resolvedData = const Value.absent(),
+    required DateTime detectedAt,
+    this.resolvedAt = const Value.absent(),
+    this.resolvedBy = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       entityType = Value(entityType),
+       entityId = Value(entityId),
+       conflictType = Value(conflictType),
+       localData = Value(localData),
+       serverData = Value(serverData),
+       conflictingFields = Value(conflictingFields),
+       detectedAt = Value(detectedAt);
+  static Insertable<ConflictEntity> custom({
+    Expression<String>? id,
+    Expression<String>? entityType,
+    Expression<String>? entityId,
+    Expression<String>? conflictType,
+    Expression<String>? localData,
+    Expression<String>? serverData,
+    Expression<String>? conflictingFields,
+    Expression<String>? status,
+    Expression<String>? resolutionStrategy,
+    Expression<String>? resolvedData,
+    Expression<DateTime>? detectedAt,
+    Expression<DateTime>? resolvedAt,
+    Expression<String>? resolvedBy,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (entityType != null) 'entity_type': entityType,
+      if (entityId != null) 'entity_id': entityId,
+      if (conflictType != null) 'conflict_type': conflictType,
+      if (localData != null) 'local_data': localData,
+      if (serverData != null) 'server_data': serverData,
+      if (conflictingFields != null) 'conflicting_fields': conflictingFields,
+      if (status != null) 'status': status,
+      if (resolutionStrategy != null) 'resolution_strategy': resolutionStrategy,
+      if (resolvedData != null) 'resolved_data': resolvedData,
+      if (detectedAt != null) 'detected_at': detectedAt,
+      if (resolvedAt != null) 'resolved_at': resolvedAt,
+      if (resolvedBy != null) 'resolved_by': resolvedBy,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ConflictEntityCompanion copyWith({
+    Value<String>? id,
+    Value<String>? entityType,
+    Value<String>? entityId,
+    Value<String>? conflictType,
+    Value<String>? localData,
+    Value<String>? serverData,
+    Value<String>? conflictingFields,
+    Value<String>? status,
+    Value<String?>? resolutionStrategy,
+    Value<String?>? resolvedData,
+    Value<DateTime>? detectedAt,
+    Value<DateTime?>? resolvedAt,
+    Value<String?>? resolvedBy,
+    Value<int>? rowid,
+  }) {
+    return ConflictEntityCompanion(
+      id: id ?? this.id,
+      entityType: entityType ?? this.entityType,
+      entityId: entityId ?? this.entityId,
+      conflictType: conflictType ?? this.conflictType,
+      localData: localData ?? this.localData,
+      serverData: serverData ?? this.serverData,
+      conflictingFields: conflictingFields ?? this.conflictingFields,
+      status: status ?? this.status,
+      resolutionStrategy: resolutionStrategy ?? this.resolutionStrategy,
+      resolvedData: resolvedData ?? this.resolvedData,
+      detectedAt: detectedAt ?? this.detectedAt,
+      resolvedAt: resolvedAt ?? this.resolvedAt,
+      resolvedBy: resolvedBy ?? this.resolvedBy,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (conflictType.present) {
+      map['conflict_type'] = Variable<String>(conflictType.value);
+    }
+    if (localData.present) {
+      map['local_data'] = Variable<String>(localData.value);
+    }
+    if (serverData.present) {
+      map['server_data'] = Variable<String>(serverData.value);
+    }
+    if (conflictingFields.present) {
+      map['conflicting_fields'] = Variable<String>(conflictingFields.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (resolutionStrategy.present) {
+      map['resolution_strategy'] = Variable<String>(resolutionStrategy.value);
+    }
+    if (resolvedData.present) {
+      map['resolved_data'] = Variable<String>(resolvedData.value);
+    }
+    if (detectedAt.present) {
+      map['detected_at'] = Variable<DateTime>(detectedAt.value);
+    }
+    if (resolvedAt.present) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt.value);
+    }
+    if (resolvedBy.present) {
+      map['resolved_by'] = Variable<String>(resolvedBy.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ConflictEntityCompanion(')
+          ..write('id: $id, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('conflictType: $conflictType, ')
+          ..write('localData: $localData, ')
+          ..write('serverData: $serverData, ')
+          ..write('conflictingFields: $conflictingFields, ')
+          ..write('status: $status, ')
+          ..write('resolutionStrategy: $resolutionStrategy, ')
+          ..write('resolvedData: $resolvedData, ')
+          ..write('detectedAt: $detectedAt, ')
+          ..write('resolvedAt: $resolvedAt, ')
+          ..write('resolvedBy: $resolvedBy, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ErrorLogTable extends ErrorLog
+    with TableInfo<$ErrorLogTable, ErrorLogEntity> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ErrorLogTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _errorTypeMeta = const VerificationMeta(
+    'errorType',
+  );
+  @override
+  late final GeneratedColumn<String> errorType = GeneratedColumn<String>(
+    'error_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _entityIdMeta = const VerificationMeta(
+    'entityId',
+  );
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+    'entity_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _operationTypeMeta = const VerificationMeta(
+    'operationType',
+  );
+  @override
+  late final GeneratedColumn<String> operationType = GeneratedColumn<String>(
+    'operation_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _errorMessageMeta = const VerificationMeta(
+    'errorMessage',
+  );
+  @override
+  late final GeneratedColumn<String> errorMessage = GeneratedColumn<String>(
+    'error_message',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _validationFieldMeta = const VerificationMeta(
+    'validationField',
+  );
+  @override
+  late final GeneratedColumn<String> validationField = GeneratedColumn<String>(
+    'validation_field',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _validationRuleMeta = const VerificationMeta(
+    'validationRule',
+  );
+  @override
+  late final GeneratedColumn<String> validationRule = GeneratedColumn<String>(
+    'validation_rule',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusCodeMeta = const VerificationMeta(
+    'statusCode',
+  );
+  @override
+  late final GeneratedColumn<int> statusCode = GeneratedColumn<int>(
+    'status_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _errorDetailsMeta = const VerificationMeta(
+    'errorDetails',
+  );
+  @override
+  late final GeneratedColumn<String> errorDetails = GeneratedColumn<String>(
+    'error_details',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _stackTraceMeta = const VerificationMeta(
+    'stackTrace',
+  );
+  @override
+  late final GeneratedColumn<String> stackTrace = GeneratedColumn<String>(
+    'stack_trace',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _occurredAtMeta = const VerificationMeta(
+    'occurredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+    'occurred_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _resolvedMeta = const VerificationMeta(
+    'resolved',
+  );
+  @override
+  late final GeneratedColumn<bool> resolved = GeneratedColumn<bool>(
+    'resolved',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("resolved" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _resolvedAtMeta = const VerificationMeta(
+    'resolvedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> resolvedAt = GeneratedColumn<DateTime>(
+    'resolved_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    errorType,
+    entityType,
+    entityId,
+    operationType,
+    errorMessage,
+    validationField,
+    validationRule,
+    statusCode,
+    errorDetails,
+    stackTrace,
+    occurredAt,
+    resolved,
+    resolvedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'error_log';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ErrorLogEntity> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('error_type')) {
+      context.handle(
+        _errorTypeMeta,
+        errorType.isAcceptableOrUnknown(data['error_type']!, _errorTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_errorTypeMeta);
+    }
+    if (data.containsKey('entity_type')) {
+      context.handle(
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
+      );
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(
+        _entityIdMeta,
+        entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta),
+      );
+    }
+    if (data.containsKey('operation_type')) {
+      context.handle(
+        _operationTypeMeta,
+        operationType.isAcceptableOrUnknown(
+          data['operation_type']!,
+          _operationTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('error_message')) {
+      context.handle(
+        _errorMessageMeta,
+        errorMessage.isAcceptableOrUnknown(
+          data['error_message']!,
+          _errorMessageMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_errorMessageMeta);
+    }
+    if (data.containsKey('validation_field')) {
+      context.handle(
+        _validationFieldMeta,
+        validationField.isAcceptableOrUnknown(
+          data['validation_field']!,
+          _validationFieldMeta,
+        ),
+      );
+    }
+    if (data.containsKey('validation_rule')) {
+      context.handle(
+        _validationRuleMeta,
+        validationRule.isAcceptableOrUnknown(
+          data['validation_rule']!,
+          _validationRuleMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status_code')) {
+      context.handle(
+        _statusCodeMeta,
+        statusCode.isAcceptableOrUnknown(data['status_code']!, _statusCodeMeta),
+      );
+    }
+    if (data.containsKey('error_details')) {
+      context.handle(
+        _errorDetailsMeta,
+        errorDetails.isAcceptableOrUnknown(
+          data['error_details']!,
+          _errorDetailsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('stack_trace')) {
+      context.handle(
+        _stackTraceMeta,
+        stackTrace.isAcceptableOrUnknown(data['stack_trace']!, _stackTraceMeta),
+      );
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+        _occurredAtMeta,
+        occurredAt.isAcceptableOrUnknown(data['occurred_at']!, _occurredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_occurredAtMeta);
+    }
+    if (data.containsKey('resolved')) {
+      context.handle(
+        _resolvedMeta,
+        resolved.isAcceptableOrUnknown(data['resolved']!, _resolvedMeta),
+      );
+    }
+    if (data.containsKey('resolved_at')) {
+      context.handle(
+        _resolvedAtMeta,
+        resolvedAt.isAcceptableOrUnknown(data['resolved_at']!, _resolvedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ErrorLogEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ErrorLogEntity(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      errorType:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}error_type'],
+          )!,
+      entityType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_type'],
+      ),
+      entityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_id'],
+      ),
+      operationType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation_type'],
+      ),
+      errorMessage:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}error_message'],
+          )!,
+      validationField: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}validation_field'],
+      ),
+      validationRule: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}validation_rule'],
+      ),
+      statusCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status_code'],
+      ),
+      errorDetails: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}error_details'],
+      ),
+      stackTrace: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stack_trace'],
+      ),
+      occurredAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}occurred_at'],
+          )!,
+      resolved:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}resolved'],
+          )!,
+      resolvedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}resolved_at'],
+      ),
+    );
+  }
+
+  @override
+  $ErrorLogTable createAlias(String alias) {
+    return $ErrorLogTable(attachedDatabase, alias);
+  }
+}
+
+class ErrorLogEntity extends DataClass implements Insertable<ErrorLogEntity> {
+  /// Unique identifier for the error log entry.
+  final String id;
+
+  /// Error type: 'validation', 'network', 'conflict', 'server', 'database'.
+  final String errorType;
+
+  /// Entity type: 'transaction', 'account', 'category', 'budget', 'bill', 'piggy_bank'.
+  final String? entityType;
+
+  /// Entity ID (local or server ID).
+  final String? entityId;
+
+  /// Operation type: 'CREATE', 'UPDATE', 'DELETE'.
+  final String? operationType;
+
+  /// Error message.
+  final String errorMessage;
+
+  /// Validation field that failed (for validation errors).
+  final String? validationField;
+
+  /// Validation rule that failed (for validation errors).
+  final String? validationRule;
+
+  /// HTTP status code (for network/server errors).
+  final int? statusCode;
+
+  /// Full error details as JSON.
+  final String? errorDetails;
+
+  /// Stack trace for debugging.
+  final String? stackTrace;
+
+  /// Timestamp when the error occurred.
+  final DateTime occurredAt;
+
+  /// Whether the error was resolved.
+  final bool resolved;
+
+  /// Timestamp when the error was resolved.
+  final DateTime? resolvedAt;
+  const ErrorLogEntity({
+    required this.id,
+    required this.errorType,
+    this.entityType,
+    this.entityId,
+    this.operationType,
+    required this.errorMessage,
+    this.validationField,
+    this.validationRule,
+    this.statusCode,
+    this.errorDetails,
+    this.stackTrace,
+    required this.occurredAt,
+    required this.resolved,
+    this.resolvedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['error_type'] = Variable<String>(errorType);
+    if (!nullToAbsent || entityType != null) {
+      map['entity_type'] = Variable<String>(entityType);
+    }
+    if (!nullToAbsent || entityId != null) {
+      map['entity_id'] = Variable<String>(entityId);
+    }
+    if (!nullToAbsent || operationType != null) {
+      map['operation_type'] = Variable<String>(operationType);
+    }
+    map['error_message'] = Variable<String>(errorMessage);
+    if (!nullToAbsent || validationField != null) {
+      map['validation_field'] = Variable<String>(validationField);
+    }
+    if (!nullToAbsent || validationRule != null) {
+      map['validation_rule'] = Variable<String>(validationRule);
+    }
+    if (!nullToAbsent || statusCode != null) {
+      map['status_code'] = Variable<int>(statusCode);
+    }
+    if (!nullToAbsent || errorDetails != null) {
+      map['error_details'] = Variable<String>(errorDetails);
+    }
+    if (!nullToAbsent || stackTrace != null) {
+      map['stack_trace'] = Variable<String>(stackTrace);
+    }
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    map['resolved'] = Variable<bool>(resolved);
+    if (!nullToAbsent || resolvedAt != null) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt);
+    }
+    return map;
+  }
+
+  ErrorLogEntityCompanion toCompanion(bool nullToAbsent) {
+    return ErrorLogEntityCompanion(
+      id: Value(id),
+      errorType: Value(errorType),
+      entityType:
+          entityType == null && nullToAbsent
+              ? const Value.absent()
+              : Value(entityType),
+      entityId:
+          entityId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(entityId),
+      operationType:
+          operationType == null && nullToAbsent
+              ? const Value.absent()
+              : Value(operationType),
+      errorMessage: Value(errorMessage),
+      validationField:
+          validationField == null && nullToAbsent
+              ? const Value.absent()
+              : Value(validationField),
+      validationRule:
+          validationRule == null && nullToAbsent
+              ? const Value.absent()
+              : Value(validationRule),
+      statusCode:
+          statusCode == null && nullToAbsent
+              ? const Value.absent()
+              : Value(statusCode),
+      errorDetails:
+          errorDetails == null && nullToAbsent
+              ? const Value.absent()
+              : Value(errorDetails),
+      stackTrace:
+          stackTrace == null && nullToAbsent
+              ? const Value.absent()
+              : Value(stackTrace),
+      occurredAt: Value(occurredAt),
+      resolved: Value(resolved),
+      resolvedAt:
+          resolvedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(resolvedAt),
+    );
+  }
+
+  factory ErrorLogEntity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ErrorLogEntity(
+      id: serializer.fromJson<String>(json['id']),
+      errorType: serializer.fromJson<String>(json['errorType']),
+      entityType: serializer.fromJson<String?>(json['entityType']),
+      entityId: serializer.fromJson<String?>(json['entityId']),
+      operationType: serializer.fromJson<String?>(json['operationType']),
+      errorMessage: serializer.fromJson<String>(json['errorMessage']),
+      validationField: serializer.fromJson<String?>(json['validationField']),
+      validationRule: serializer.fromJson<String?>(json['validationRule']),
+      statusCode: serializer.fromJson<int?>(json['statusCode']),
+      errorDetails: serializer.fromJson<String?>(json['errorDetails']),
+      stackTrace: serializer.fromJson<String?>(json['stackTrace']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      resolved: serializer.fromJson<bool>(json['resolved']),
+      resolvedAt: serializer.fromJson<DateTime?>(json['resolvedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'errorType': serializer.toJson<String>(errorType),
+      'entityType': serializer.toJson<String?>(entityType),
+      'entityId': serializer.toJson<String?>(entityId),
+      'operationType': serializer.toJson<String?>(operationType),
+      'errorMessage': serializer.toJson<String>(errorMessage),
+      'validationField': serializer.toJson<String?>(validationField),
+      'validationRule': serializer.toJson<String?>(validationRule),
+      'statusCode': serializer.toJson<int?>(statusCode),
+      'errorDetails': serializer.toJson<String?>(errorDetails),
+      'stackTrace': serializer.toJson<String?>(stackTrace),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'resolved': serializer.toJson<bool>(resolved),
+      'resolvedAt': serializer.toJson<DateTime?>(resolvedAt),
+    };
+  }
+
+  ErrorLogEntity copyWith({
+    String? id,
+    String? errorType,
+    Value<String?> entityType = const Value.absent(),
+    Value<String?> entityId = const Value.absent(),
+    Value<String?> operationType = const Value.absent(),
+    String? errorMessage,
+    Value<String?> validationField = const Value.absent(),
+    Value<String?> validationRule = const Value.absent(),
+    Value<int?> statusCode = const Value.absent(),
+    Value<String?> errorDetails = const Value.absent(),
+    Value<String?> stackTrace = const Value.absent(),
+    DateTime? occurredAt,
+    bool? resolved,
+    Value<DateTime?> resolvedAt = const Value.absent(),
+  }) => ErrorLogEntity(
+    id: id ?? this.id,
+    errorType: errorType ?? this.errorType,
+    entityType: entityType.present ? entityType.value : this.entityType,
+    entityId: entityId.present ? entityId.value : this.entityId,
+    operationType:
+        operationType.present ? operationType.value : this.operationType,
+    errorMessage: errorMessage ?? this.errorMessage,
+    validationField:
+        validationField.present ? validationField.value : this.validationField,
+    validationRule:
+        validationRule.present ? validationRule.value : this.validationRule,
+    statusCode: statusCode.present ? statusCode.value : this.statusCode,
+    errorDetails: errorDetails.present ? errorDetails.value : this.errorDetails,
+    stackTrace: stackTrace.present ? stackTrace.value : this.stackTrace,
+    occurredAt: occurredAt ?? this.occurredAt,
+    resolved: resolved ?? this.resolved,
+    resolvedAt: resolvedAt.present ? resolvedAt.value : this.resolvedAt,
+  );
+  ErrorLogEntity copyWithCompanion(ErrorLogEntityCompanion data) {
+    return ErrorLogEntity(
+      id: data.id.present ? data.id.value : this.id,
+      errorType: data.errorType.present ? data.errorType.value : this.errorType,
+      entityType:
+          data.entityType.present ? data.entityType.value : this.entityType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      operationType:
+          data.operationType.present
+              ? data.operationType.value
+              : this.operationType,
+      errorMessage:
+          data.errorMessage.present
+              ? data.errorMessage.value
+              : this.errorMessage,
+      validationField:
+          data.validationField.present
+              ? data.validationField.value
+              : this.validationField,
+      validationRule:
+          data.validationRule.present
+              ? data.validationRule.value
+              : this.validationRule,
+      statusCode:
+          data.statusCode.present ? data.statusCode.value : this.statusCode,
+      errorDetails:
+          data.errorDetails.present
+              ? data.errorDetails.value
+              : this.errorDetails,
+      stackTrace:
+          data.stackTrace.present ? data.stackTrace.value : this.stackTrace,
+      occurredAt:
+          data.occurredAt.present ? data.occurredAt.value : this.occurredAt,
+      resolved: data.resolved.present ? data.resolved.value : this.resolved,
+      resolvedAt:
+          data.resolvedAt.present ? data.resolvedAt.value : this.resolvedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ErrorLogEntity(')
+          ..write('id: $id, ')
+          ..write('errorType: $errorType, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('operationType: $operationType, ')
+          ..write('errorMessage: $errorMessage, ')
+          ..write('validationField: $validationField, ')
+          ..write('validationRule: $validationRule, ')
+          ..write('statusCode: $statusCode, ')
+          ..write('errorDetails: $errorDetails, ')
+          ..write('stackTrace: $stackTrace, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('resolved: $resolved, ')
+          ..write('resolvedAt: $resolvedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    errorType,
+    entityType,
+    entityId,
+    operationType,
+    errorMessage,
+    validationField,
+    validationRule,
+    statusCode,
+    errorDetails,
+    stackTrace,
+    occurredAt,
+    resolved,
+    resolvedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ErrorLogEntity &&
+          other.id == this.id &&
+          other.errorType == this.errorType &&
+          other.entityType == this.entityType &&
+          other.entityId == this.entityId &&
+          other.operationType == this.operationType &&
+          other.errorMessage == this.errorMessage &&
+          other.validationField == this.validationField &&
+          other.validationRule == this.validationRule &&
+          other.statusCode == this.statusCode &&
+          other.errorDetails == this.errorDetails &&
+          other.stackTrace == this.stackTrace &&
+          other.occurredAt == this.occurredAt &&
+          other.resolved == this.resolved &&
+          other.resolvedAt == this.resolvedAt);
+}
+
+class ErrorLogEntityCompanion extends UpdateCompanion<ErrorLogEntity> {
+  final Value<String> id;
+  final Value<String> errorType;
+  final Value<String?> entityType;
+  final Value<String?> entityId;
+  final Value<String?> operationType;
+  final Value<String> errorMessage;
+  final Value<String?> validationField;
+  final Value<String?> validationRule;
+  final Value<int?> statusCode;
+  final Value<String?> errorDetails;
+  final Value<String?> stackTrace;
+  final Value<DateTime> occurredAt;
+  final Value<bool> resolved;
+  final Value<DateTime?> resolvedAt;
+  final Value<int> rowid;
+  const ErrorLogEntityCompanion({
+    this.id = const Value.absent(),
+    this.errorType = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.operationType = const Value.absent(),
+    this.errorMessage = const Value.absent(),
+    this.validationField = const Value.absent(),
+    this.validationRule = const Value.absent(),
+    this.statusCode = const Value.absent(),
+    this.errorDetails = const Value.absent(),
+    this.stackTrace = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.resolved = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ErrorLogEntityCompanion.insert({
+    required String id,
+    required String errorType,
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.operationType = const Value.absent(),
+    required String errorMessage,
+    this.validationField = const Value.absent(),
+    this.validationRule = const Value.absent(),
+    this.statusCode = const Value.absent(),
+    this.errorDetails = const Value.absent(),
+    this.stackTrace = const Value.absent(),
+    required DateTime occurredAt,
+    this.resolved = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       errorType = Value(errorType),
+       errorMessage = Value(errorMessage),
+       occurredAt = Value(occurredAt);
+  static Insertable<ErrorLogEntity> custom({
+    Expression<String>? id,
+    Expression<String>? errorType,
+    Expression<String>? entityType,
+    Expression<String>? entityId,
+    Expression<String>? operationType,
+    Expression<String>? errorMessage,
+    Expression<String>? validationField,
+    Expression<String>? validationRule,
+    Expression<int>? statusCode,
+    Expression<String>? errorDetails,
+    Expression<String>? stackTrace,
+    Expression<DateTime>? occurredAt,
+    Expression<bool>? resolved,
+    Expression<DateTime>? resolvedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (errorType != null) 'error_type': errorType,
+      if (entityType != null) 'entity_type': entityType,
+      if (entityId != null) 'entity_id': entityId,
+      if (operationType != null) 'operation_type': operationType,
+      if (errorMessage != null) 'error_message': errorMessage,
+      if (validationField != null) 'validation_field': validationField,
+      if (validationRule != null) 'validation_rule': validationRule,
+      if (statusCode != null) 'status_code': statusCode,
+      if (errorDetails != null) 'error_details': errorDetails,
+      if (stackTrace != null) 'stack_trace': stackTrace,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (resolved != null) 'resolved': resolved,
+      if (resolvedAt != null) 'resolved_at': resolvedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ErrorLogEntityCompanion copyWith({
+    Value<String>? id,
+    Value<String>? errorType,
+    Value<String?>? entityType,
+    Value<String?>? entityId,
+    Value<String?>? operationType,
+    Value<String>? errorMessage,
+    Value<String?>? validationField,
+    Value<String?>? validationRule,
+    Value<int?>? statusCode,
+    Value<String?>? errorDetails,
+    Value<String?>? stackTrace,
+    Value<DateTime>? occurredAt,
+    Value<bool>? resolved,
+    Value<DateTime?>? resolvedAt,
+    Value<int>? rowid,
+  }) {
+    return ErrorLogEntityCompanion(
+      id: id ?? this.id,
+      errorType: errorType ?? this.errorType,
+      entityType: entityType ?? this.entityType,
+      entityId: entityId ?? this.entityId,
+      operationType: operationType ?? this.operationType,
+      errorMessage: errorMessage ?? this.errorMessage,
+      validationField: validationField ?? this.validationField,
+      validationRule: validationRule ?? this.validationRule,
+      statusCode: statusCode ?? this.statusCode,
+      errorDetails: errorDetails ?? this.errorDetails,
+      stackTrace: stackTrace ?? this.stackTrace,
+      occurredAt: occurredAt ?? this.occurredAt,
+      resolved: resolved ?? this.resolved,
+      resolvedAt: resolvedAt ?? this.resolvedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (errorType.present) {
+      map['error_type'] = Variable<String>(errorType.value);
+    }
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (operationType.present) {
+      map['operation_type'] = Variable<String>(operationType.value);
+    }
+    if (errorMessage.present) {
+      map['error_message'] = Variable<String>(errorMessage.value);
+    }
+    if (validationField.present) {
+      map['validation_field'] = Variable<String>(validationField.value);
+    }
+    if (validationRule.present) {
+      map['validation_rule'] = Variable<String>(validationRule.value);
+    }
+    if (statusCode.present) {
+      map['status_code'] = Variable<int>(statusCode.value);
+    }
+    if (errorDetails.present) {
+      map['error_details'] = Variable<String>(errorDetails.value);
+    }
+    if (stackTrace.present) {
+      map['stack_trace'] = Variable<String>(stackTrace.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (resolved.present) {
+      map['resolved'] = Variable<bool>(resolved.value);
+    }
+    if (resolvedAt.present) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ErrorLogEntityCompanion(')
+          ..write('id: $id, ')
+          ..write('errorType: $errorType, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('operationType: $operationType, ')
+          ..write('errorMessage: $errorMessage, ')
+          ..write('validationField: $validationField, ')
+          ..write('validationRule: $validationRule, ')
+          ..write('statusCode: $statusCode, ')
+          ..write('errorDetails: $errorDetails, ')
+          ..write('stackTrace: $stackTrace, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('resolved: $resolved, ')
+          ..write('resolvedAt: $resolvedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   _$AppDatabase.connect(DatabaseConnection c) : super.connect(c);
@@ -6661,6 +8375,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $SyncMetadataTable syncMetadata = $SyncMetadataTable(this);
   late final $IdMappingTable idMapping = $IdMappingTable(this);
+  late final $ConflictsTable conflicts = $ConflictsTable(this);
+  late final $ErrorLogTable errorLog = $ErrorLogTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6675,6 +8391,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     syncQueue,
     syncMetadata,
     idMapping,
+    conflicts,
+    errorLog,
   ];
 }
 
@@ -9748,6 +11466,781 @@ typedef $$IdMappingTableProcessedTableManager =
       IdMappingEntity,
       PrefetchHooks Function()
     >;
+typedef $$ConflictsTableCreateCompanionBuilder =
+    ConflictEntityCompanion Function({
+      required String id,
+      required String entityType,
+      required String entityId,
+      required String conflictType,
+      required String localData,
+      required String serverData,
+      required String conflictingFields,
+      Value<String> status,
+      Value<String?> resolutionStrategy,
+      Value<String?> resolvedData,
+      required DateTime detectedAt,
+      Value<DateTime?> resolvedAt,
+      Value<String?> resolvedBy,
+      Value<int> rowid,
+    });
+typedef $$ConflictsTableUpdateCompanionBuilder =
+    ConflictEntityCompanion Function({
+      Value<String> id,
+      Value<String> entityType,
+      Value<String> entityId,
+      Value<String> conflictType,
+      Value<String> localData,
+      Value<String> serverData,
+      Value<String> conflictingFields,
+      Value<String> status,
+      Value<String?> resolutionStrategy,
+      Value<String?> resolvedData,
+      Value<DateTime> detectedAt,
+      Value<DateTime?> resolvedAt,
+      Value<String?> resolvedBy,
+      Value<int> rowid,
+    });
+
+class $$ConflictsTableFilterComposer
+    extends Composer<_$AppDatabase, $ConflictsTable> {
+  $$ConflictsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get conflictType => $composableBuilder(
+    column: $table.conflictType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localData => $composableBuilder(
+    column: $table.localData,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serverData => $composableBuilder(
+    column: $table.serverData,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get conflictingFields => $composableBuilder(
+    column: $table.conflictingFields,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get resolutionStrategy => $composableBuilder(
+    column: $table.resolutionStrategy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get resolvedData => $composableBuilder(
+    column: $table.resolvedData,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get detectedAt => $composableBuilder(
+    column: $table.detectedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get resolvedAt => $composableBuilder(
+    column: $table.resolvedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get resolvedBy => $composableBuilder(
+    column: $table.resolvedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ConflictsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ConflictsTable> {
+  $$ConflictsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get conflictType => $composableBuilder(
+    column: $table.conflictType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localData => $composableBuilder(
+    column: $table.localData,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serverData => $composableBuilder(
+    column: $table.serverData,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get conflictingFields => $composableBuilder(
+    column: $table.conflictingFields,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get resolutionStrategy => $composableBuilder(
+    column: $table.resolutionStrategy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get resolvedData => $composableBuilder(
+    column: $table.resolvedData,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get detectedAt => $composableBuilder(
+    column: $table.detectedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get resolvedAt => $composableBuilder(
+    column: $table.resolvedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get resolvedBy => $composableBuilder(
+    column: $table.resolvedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ConflictsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ConflictsTable> {
+  $$ConflictsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<String> get conflictType => $composableBuilder(
+    column: $table.conflictType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get localData =>
+      $composableBuilder(column: $table.localData, builder: (column) => column);
+
+  GeneratedColumn<String> get serverData => $composableBuilder(
+    column: $table.serverData,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get conflictingFields => $composableBuilder(
+    column: $table.conflictingFields,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get resolutionStrategy => $composableBuilder(
+    column: $table.resolutionStrategy,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get resolvedData => $composableBuilder(
+    column: $table.resolvedData,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get detectedAt => $composableBuilder(
+    column: $table.detectedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get resolvedAt => $composableBuilder(
+    column: $table.resolvedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get resolvedBy => $composableBuilder(
+    column: $table.resolvedBy,
+    builder: (column) => column,
+  );
+}
+
+class $$ConflictsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ConflictsTable,
+          ConflictEntity,
+          $$ConflictsTableFilterComposer,
+          $$ConflictsTableOrderingComposer,
+          $$ConflictsTableAnnotationComposer,
+          $$ConflictsTableCreateCompanionBuilder,
+          $$ConflictsTableUpdateCompanionBuilder,
+          (
+            ConflictEntity,
+            BaseReferences<_$AppDatabase, $ConflictsTable, ConflictEntity>,
+          ),
+          ConflictEntity,
+          PrefetchHooks Function()
+        > {
+  $$ConflictsTableTableManager(_$AppDatabase db, $ConflictsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$ConflictsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$ConflictsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$ConflictsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> entityType = const Value.absent(),
+                Value<String> entityId = const Value.absent(),
+                Value<String> conflictType = const Value.absent(),
+                Value<String> localData = const Value.absent(),
+                Value<String> serverData = const Value.absent(),
+                Value<String> conflictingFields = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> resolutionStrategy = const Value.absent(),
+                Value<String?> resolvedData = const Value.absent(),
+                Value<DateTime> detectedAt = const Value.absent(),
+                Value<DateTime?> resolvedAt = const Value.absent(),
+                Value<String?> resolvedBy = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ConflictEntityCompanion(
+                id: id,
+                entityType: entityType,
+                entityId: entityId,
+                conflictType: conflictType,
+                localData: localData,
+                serverData: serverData,
+                conflictingFields: conflictingFields,
+                status: status,
+                resolutionStrategy: resolutionStrategy,
+                resolvedData: resolvedData,
+                detectedAt: detectedAt,
+                resolvedAt: resolvedAt,
+                resolvedBy: resolvedBy,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String entityType,
+                required String entityId,
+                required String conflictType,
+                required String localData,
+                required String serverData,
+                required String conflictingFields,
+                Value<String> status = const Value.absent(),
+                Value<String?> resolutionStrategy = const Value.absent(),
+                Value<String?> resolvedData = const Value.absent(),
+                required DateTime detectedAt,
+                Value<DateTime?> resolvedAt = const Value.absent(),
+                Value<String?> resolvedBy = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ConflictEntityCompanion.insert(
+                id: id,
+                entityType: entityType,
+                entityId: entityId,
+                conflictType: conflictType,
+                localData: localData,
+                serverData: serverData,
+                conflictingFields: conflictingFields,
+                status: status,
+                resolutionStrategy: resolutionStrategy,
+                resolvedData: resolvedData,
+                detectedAt: detectedAt,
+                resolvedAt: resolvedAt,
+                resolvedBy: resolvedBy,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ConflictsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ConflictsTable,
+      ConflictEntity,
+      $$ConflictsTableFilterComposer,
+      $$ConflictsTableOrderingComposer,
+      $$ConflictsTableAnnotationComposer,
+      $$ConflictsTableCreateCompanionBuilder,
+      $$ConflictsTableUpdateCompanionBuilder,
+      (
+        ConflictEntity,
+        BaseReferences<_$AppDatabase, $ConflictsTable, ConflictEntity>,
+      ),
+      ConflictEntity,
+      PrefetchHooks Function()
+    >;
+typedef $$ErrorLogTableCreateCompanionBuilder =
+    ErrorLogEntityCompanion Function({
+      required String id,
+      required String errorType,
+      Value<String?> entityType,
+      Value<String?> entityId,
+      Value<String?> operationType,
+      required String errorMessage,
+      Value<String?> validationField,
+      Value<String?> validationRule,
+      Value<int?> statusCode,
+      Value<String?> errorDetails,
+      Value<String?> stackTrace,
+      required DateTime occurredAt,
+      Value<bool> resolved,
+      Value<DateTime?> resolvedAt,
+      Value<int> rowid,
+    });
+typedef $$ErrorLogTableUpdateCompanionBuilder =
+    ErrorLogEntityCompanion Function({
+      Value<String> id,
+      Value<String> errorType,
+      Value<String?> entityType,
+      Value<String?> entityId,
+      Value<String?> operationType,
+      Value<String> errorMessage,
+      Value<String?> validationField,
+      Value<String?> validationRule,
+      Value<int?> statusCode,
+      Value<String?> errorDetails,
+      Value<String?> stackTrace,
+      Value<DateTime> occurredAt,
+      Value<bool> resolved,
+      Value<DateTime?> resolvedAt,
+      Value<int> rowid,
+    });
+
+class $$ErrorLogTableFilterComposer
+    extends Composer<_$AppDatabase, $ErrorLogTable> {
+  $$ErrorLogTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get errorType => $composableBuilder(
+    column: $table.errorType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get operationType => $composableBuilder(
+    column: $table.operationType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get validationField => $composableBuilder(
+    column: $table.validationField,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get validationRule => $composableBuilder(
+    column: $table.validationRule,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get statusCode => $composableBuilder(
+    column: $table.statusCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get errorDetails => $composableBuilder(
+    column: $table.errorDetails,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stackTrace => $composableBuilder(
+    column: $table.stackTrace,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get resolved => $composableBuilder(
+    column: $table.resolved,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get resolvedAt => $composableBuilder(
+    column: $table.resolvedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ErrorLogTableOrderingComposer
+    extends Composer<_$AppDatabase, $ErrorLogTable> {
+  $$ErrorLogTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get errorType => $composableBuilder(
+    column: $table.errorType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get operationType => $composableBuilder(
+    column: $table.operationType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get validationField => $composableBuilder(
+    column: $table.validationField,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get validationRule => $composableBuilder(
+    column: $table.validationRule,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get statusCode => $composableBuilder(
+    column: $table.statusCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get errorDetails => $composableBuilder(
+    column: $table.errorDetails,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stackTrace => $composableBuilder(
+    column: $table.stackTrace,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get resolved => $composableBuilder(
+    column: $table.resolved,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get resolvedAt => $composableBuilder(
+    column: $table.resolvedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ErrorLogTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ErrorLogTable> {
+  $$ErrorLogTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get errorType =>
+      $composableBuilder(column: $table.errorType, builder: (column) => column);
+
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<String> get operationType => $composableBuilder(
+    column: $table.operationType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get validationField => $composableBuilder(
+    column: $table.validationField,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get validationRule => $composableBuilder(
+    column: $table.validationRule,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get statusCode => $composableBuilder(
+    column: $table.statusCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get errorDetails => $composableBuilder(
+    column: $table.errorDetails,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get stackTrace => $composableBuilder(
+    column: $table.stackTrace,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get resolved =>
+      $composableBuilder(column: $table.resolved, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get resolvedAt => $composableBuilder(
+    column: $table.resolvedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$ErrorLogTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ErrorLogTable,
+          ErrorLogEntity,
+          $$ErrorLogTableFilterComposer,
+          $$ErrorLogTableOrderingComposer,
+          $$ErrorLogTableAnnotationComposer,
+          $$ErrorLogTableCreateCompanionBuilder,
+          $$ErrorLogTableUpdateCompanionBuilder,
+          (
+            ErrorLogEntity,
+            BaseReferences<_$AppDatabase, $ErrorLogTable, ErrorLogEntity>,
+          ),
+          ErrorLogEntity,
+          PrefetchHooks Function()
+        > {
+  $$ErrorLogTableTableManager(_$AppDatabase db, $ErrorLogTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$ErrorLogTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$ErrorLogTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$ErrorLogTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> errorType = const Value.absent(),
+                Value<String?> entityType = const Value.absent(),
+                Value<String?> entityId = const Value.absent(),
+                Value<String?> operationType = const Value.absent(),
+                Value<String> errorMessage = const Value.absent(),
+                Value<String?> validationField = const Value.absent(),
+                Value<String?> validationRule = const Value.absent(),
+                Value<int?> statusCode = const Value.absent(),
+                Value<String?> errorDetails = const Value.absent(),
+                Value<String?> stackTrace = const Value.absent(),
+                Value<DateTime> occurredAt = const Value.absent(),
+                Value<bool> resolved = const Value.absent(),
+                Value<DateTime?> resolvedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ErrorLogEntityCompanion(
+                id: id,
+                errorType: errorType,
+                entityType: entityType,
+                entityId: entityId,
+                operationType: operationType,
+                errorMessage: errorMessage,
+                validationField: validationField,
+                validationRule: validationRule,
+                statusCode: statusCode,
+                errorDetails: errorDetails,
+                stackTrace: stackTrace,
+                occurredAt: occurredAt,
+                resolved: resolved,
+                resolvedAt: resolvedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String errorType,
+                Value<String?> entityType = const Value.absent(),
+                Value<String?> entityId = const Value.absent(),
+                Value<String?> operationType = const Value.absent(),
+                required String errorMessage,
+                Value<String?> validationField = const Value.absent(),
+                Value<String?> validationRule = const Value.absent(),
+                Value<int?> statusCode = const Value.absent(),
+                Value<String?> errorDetails = const Value.absent(),
+                Value<String?> stackTrace = const Value.absent(),
+                required DateTime occurredAt,
+                Value<bool> resolved = const Value.absent(),
+                Value<DateTime?> resolvedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ErrorLogEntityCompanion.insert(
+                id: id,
+                errorType: errorType,
+                entityType: entityType,
+                entityId: entityId,
+                operationType: operationType,
+                errorMessage: errorMessage,
+                validationField: validationField,
+                validationRule: validationRule,
+                statusCode: statusCode,
+                errorDetails: errorDetails,
+                stackTrace: stackTrace,
+                occurredAt: occurredAt,
+                resolved: resolved,
+                resolvedAt: resolvedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ErrorLogTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ErrorLogTable,
+      ErrorLogEntity,
+      $$ErrorLogTableFilterComposer,
+      $$ErrorLogTableOrderingComposer,
+      $$ErrorLogTableAnnotationComposer,
+      $$ErrorLogTableCreateCompanionBuilder,
+      $$ErrorLogTableUpdateCompanionBuilder,
+      (
+        ErrorLogEntity,
+        BaseReferences<_$AppDatabase, $ErrorLogTable, ErrorLogEntity>,
+      ),
+      ErrorLogEntity,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9770,4 +12263,8 @@ class $AppDatabaseManager {
       $$SyncMetadataTableTableManager(_db, _db.syncMetadata);
   $$IdMappingTableTableManager get idMapping =>
       $$IdMappingTableTableManager(_db, _db.idMapping);
+  $$ConflictsTableTableManager get conflicts =>
+      $$ConflictsTableTableManager(_db, _db.conflicts);
+  $$ErrorLogTableTableManager get errorLog =>
+      $$ErrorLogTableTableManager(_db, _db.errorLog);
 }
