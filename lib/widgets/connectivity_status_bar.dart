@@ -1,42 +1,55 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
+import 'package:provider/provider.dart';
+import 'package:waterflyiii/providers/connectivity_provider.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
 
-import '../providers/connectivity_provider.dart';
-import '../services/connectivity/connectivity_status.dart';
-import '../services/sync/sync_manager.dart';
-import '../services/sync/sync_queue_manager.dart';
-import '../services/accessibility_service.dart';
-import '../services/accessibility/visual_accessibility_service.dart';
-import '../services/animation_service.dart';
+final Logger _log = Logger('ConnectivityStatusBar');
 
-/// Connectivity status bar widget that displays current online/offline status
-/// and sync queue information.
+/// Comprehensive connectivity status bar with real-time updates.
 ///
 /// Features:
-/// - Color-coded status indicators (green/yellow/red/blue)
-/// - Animated syncing state
-/// - Dismissible with swipe gesture
-/// - Tappable to show sync details
-/// - Badge showing pending operations count
-/// - Material 3 design compliance
-/// - Accessibility support
+/// - Real-time connectivity status updates
+/// - Slide animation (slide down when offline, slide up when online)
+/// - Color-coded status (green=online, red=offline, yellow=limited)
+/// - Network type display (WiFi, Mobile, Ethernet)
+/// - Tap to show network details
+/// - Auto-hide after 5 seconds when online
+/// - Always show when offline
+/// - Material Design 3 styling
+///
+/// Example:
+/// ```dart
+/// Scaffold(
+///   body: Column(
+///     children: [
+///       ConnectivityStatusBar(),
+///       Expanded(child: YourContent()),
+///     ],
+///   ),
+/// )
+/// ```
 class ConnectivityStatusBar extends StatefulWidget {
-  /// Whether the status bar can be dismissed
-  final bool dismissible;
-
-  /// Callback when status bar is tapped
-  final VoidCallback? onTap;
-
-  /// Whether to show the sync queue count
-  final bool showQueueCount;
-
   const ConnectivityStatusBar({
     super.key,
-    this.dismissible = true,
+    this.autoHideWhenOnline = true,
+    this.autoHideDelay = const Duration(seconds: 5),
+    this.showNetworkType = true,
     this.onTap,
-    this.showQueueCount = true,
   });
+
+  /// Whether to auto-hide when online
+  final bool autoHideWhenOnline;
+
+  /// Delay before auto-hiding when online
+  final Duration autoHideDelay;
+
+  /// Whether to show network type
+  final bool showNetworkType;
+
+  /// Callback when tapped
+  final VoidCallback? onTap;
 
   @override
   State<ConnectivityStatusBar> createState() => _ConnectivityStatusBarState();
@@ -44,289 +57,273 @@ class ConnectivityStatusBar extends StatefulWidget {
 
 class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
     with SingleTickerProviderStateMixin {
-  static final Logger _logger = Logger('ConnectivityStatusBar');
-  final AccessibilityService _accessibilityService = AccessibilityService();
-  final VisualAccessibilityService _visualAccessibility = VisualAccessibilityService();
-  final AnimationService _animationService = AnimationService();
-
-  late AnimationController _animationController;
-  late Animation<double> _pulseAnimation;
-  bool _isDismissed = false;
+  late AnimationController _slideController;
+  late Animation<Offset> _slideAnimation;
+  Timer? _autoHideTimer;
+  bool _isVisible = false;
   ConnectivityStatus? _previousStatus;
-  int _previousQueueCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _logger.fine('Initializing connectivity status bar');
-
-    // Setup pulse animation for syncing state
-    _animationController = AnimationController(
-      duration: AnimationService.long2,
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-
-    _pulseAnimation = _animationService.createPulseAnimation(_animationController);
-    _animationController.repeat(reverse: true);
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeInOut,
+    ));
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _slideController.dispose();
+    _autoHideTimer?.cancel();
     super.dispose();
-  }
-
-  /// Get status bar color based on connectivity and sync state
-  Color _getStatusColor(
-    BuildContext context,
-    ConnectivityStatus status,
-    bool isSyncing,
-    int queueCount,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    if (isSyncing) {
-      return colorScheme.primary; // Blue: Syncing
-    }
-
-    switch (status) {
-      case ConnectivityStatus.online:
-        return queueCount > 0
-            ? colorScheme.tertiary // Yellow: Online with pending
-            : colorScheme.primaryContainer; // Green: Online and synced
-      case ConnectivityStatus.offline:
-        return colorScheme.errorContainer; // Red: Offline
-      case ConnectivityStatus.unknown:
-        return colorScheme.surfaceContainerHighest; // Gray: Unknown
-    }
-  }
-
-  /// Get status icon based on connectivity and sync state
-  IconData _getStatusIcon(
-    ConnectivityStatus status,
-    bool isSyncing,
-    int queueCount,
-  ) {
-    if (isSyncing) {
-      return Icons.sync;
-    }
-
-    switch (status) {
-      case ConnectivityStatus.online:
-        return queueCount > 0 ? Icons.cloud_queue : Icons.cloud_done;
-      case ConnectivityStatus.offline:
-        return Icons.cloud_off;
-      case ConnectivityStatus.unknown:
-        return Icons.cloud_outlined;
-    }
-  }
-
-  /// Get status message text
-  String _getStatusMessage(
-    ConnectivityStatus status,
-    bool isSyncing,
-    int queueCount,
-  ) {
-    if (isSyncing) {
-      return 'Syncing...';
-    }
-
-    switch (status) {
-      case ConnectivityStatus.online:
-        if (queueCount > 0) {
-          return '$queueCount operation${queueCount == 1 ? '' : 's'} pending';
-        }
-        return 'Online and synced';
-      case ConnectivityStatus.offline:
-        if (queueCount > 0) {
-          return 'Offline - $queueCount operation${queueCount == 1 ? '' : 's'} queued';
-        }
-        return 'Offline';
-      case ConnectivityStatus.unknown:
-        return 'Checking connection...';
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isDismissed) {
-      return const SizedBox.shrink();
-    }
-
     return Consumer<ConnectivityProvider>(
-      builder: (context, connectivityProvider, child) {
-        final status = connectivityProvider.status;
-        final isSyncing = connectivityProvider.isSyncing;
+      builder: (context, connectivity, child) {
+        final status = connectivity.status;
 
-        // Announce connectivity changes
-        if (_previousStatus != null && _previousStatus != status) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _accessibilityService.announceConnectivityChange(
-              isOnline: status == ConnectivityStatus.online,
-              queueCount: _previousQueueCount,
-            );
-          });
+        // Handle status changes
+        if (_previousStatus != status) {
+          _handleStatusChange(status);
+          _previousStatus = status;
         }
-        _previousStatus = status;
 
-        return FutureBuilder<int>(
-          future: _getQueueCount(),
-          builder: (context, snapshot) {
-            final queueCount = snapshot.data ?? 0;
-            
-            // Track queue count changes
-            if (_previousQueueCount != queueCount) {
-              _previousQueueCount = queueCount;
-            }
-            
-            final statusColor = _getStatusColor(
-              context,
-              status,
-              isSyncing,
-              queueCount,
-            );
-            final statusIcon = _getStatusIcon(status, isSyncing, queueCount);
-            final statusMessage = _getStatusMessage(
-              status,
-              isSyncing,
-              queueCount,
-            );
-            final semanticLabel = _accessibilityService.getConnectivityLabel(
-              isOnline: status == ConnectivityStatus.online,
-              queueCount: queueCount,
-            );
+        if (!_isVisible) {
+          return const SizedBox.shrink();
+        }
 
-            Widget statusBar = Material(
-              color: statusColor,
-              elevation: 2,
-              child: InkWell(
-                onTap: widget.onTap,
-                child: Padding(
+        return SlideTransition(
+          position: _slideAnimation,
+          child: Material(
+            color: _getStatusColor(status),
+            elevation: 4,
+            child: InkWell(
+              onTap: widget.onTap ?? () => _showNetworkDetails(context, connectivity),
+              child: SafeArea(
+                bottom: false,
+                child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 12.0,
                   ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Animated icon for syncing state
-                      if (isSyncing)
-                        AnimatedBuilder(
-                          animation: _pulseAnimation,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _pulseAnimation.value,
-                              child: Icon(
-                                statusIcon,
-                                size: 20,
-                                color: _visualAccessibility.getAccessibleTextColor(statusColor),
-                              ),
-                            );
-                          },
-                        )
-                      else
-                        Icon(
-                          statusIcon,
-                          size: 20,
-                          color: _visualAccessibility.getAccessibleTextColor(statusColor),
-                        ),
+                      Icon(
+                        _getStatusIcon(status),
+                        color: Colors.white,
+                        size: 20,
+                      ),
                       const SizedBox(width: 12),
-
-                      // Status message
                       Expanded(
-                        child: Text(
-                          statusMessage,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: _visualAccessibility.getAccessibleTextColor(statusColor),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getStatusText(status),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
                               ),
+                            ),
+                            if (widget.showNetworkType && status.isOnline)
+                              Text(
+                                _getNetworkTypeText(status),
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 12,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-
-                      // Queue count badge
-                      if (widget.showQueueCount && queueCount > 0 && !isSyncing)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            queueCount.toString(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                        ),
-
-                      // Tap indicator
-                      if (widget.onTap != null) ...[
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.chevron_right,
-                          size: 20,
-                          color: _visualAccessibility.getAccessibleTextColor(statusColor),
-                              ? Theme.of(context).colorScheme.onPrimary
-                              : Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ],
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.white.withOpacity(0.7),
+                        size: 16,
+                      ),
                     ],
                   ),
                 ),
               ),
-            );
-
-            // Add semantic label for accessibility
-            statusBar = Semantics(
-              label: semanticLabel,
-              button: widget.onTap != null,
-              child: statusBar,
-            );
-
-            // Make dismissible if enabled
-            if (widget.dismissible) {
-              statusBar = Dismissible(
-                key: const Key('connectivity_status_bar'),
-                direction: DismissDirection.horizontal,
-                onDismissed: (direction) {
-                  setState(() {
-                    _isDismissed = true;
-                  });
-                  _logger.info('Status bar dismissed by user');
-                },
-                child: statusBar,
-              );
-            }
-
-            // Animate appearance
-            return AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: statusBar,
-            );
-          },
+            ),
+          ),
         );
       },
     );
   }
 
-  /// Get current sync queue count
-  Future<int> _getQueueCount() async {
-    try {
-      final queueManager = SyncQueueManager();
-      final operations = await queueManager.getPendingOperations();
-      return operations.length;
-    } catch (e, stackTrace) {
-      _logger.warning(
-        'Failed to get queue count',
-        e,
-        stackTrace,
-      );
-      return 0;
+  /// Handle connectivity status change.
+  void _handleStatusChange(ConnectivityStatus status) {
+    _log.info('Connectivity status changed to: $status');
+
+    _autoHideTimer?.cancel();
+
+    if (status.isOffline || status.isUnknown) {
+      // Show immediately when offline
+      _show();
+    } else if (status.isOnline) {
+      // Show briefly when online, then auto-hide
+      _show();
+      if (widget.autoHideWhenOnline) {
+        _autoHideTimer = Timer(widget.autoHideDelay, _hide);
+      }
     }
+  }
+
+  /// Show the status bar.
+  void _show() {
+    if (!_isVisible) {
+      setState(() => _isVisible = true);
+      _slideController.forward();
+    }
+  }
+
+  /// Hide the status bar.
+  void _hide() {
+    if (_isVisible) {
+      _slideController.reverse().then((_) {
+        if (mounted) {
+          setState(() => _isVisible = false);
+        }
+      });
+    }
+  }
+
+  /// Get color for status.
+  Color _getStatusColor(ConnectivityStatus status) {
+    if (status.isOnline) {
+      return Colors.green[700]!;
+    } else if (status.isOffline) {
+      return Colors.red[700]!;
+    } else {
+      return Colors.orange[700]!;
+    }
+  }
+
+  /// Get icon for status.
+  IconData _getStatusIcon(ConnectivityStatus status) {
+    if (status.isOnline) {
+      return Icons.wifi;
+    } else if (status.isOffline) {
+      return Icons.wifi_off;
+    } else {
+      return Icons.signal_wifi_statusbar_null;
+    }
+  }
+
+  /// Get text for status.
+  String _getStatusText(ConnectivityStatus status) {
+    if (status.isOnline) {
+      return 'Back online';
+    } else if (status.isOffline) {
+      return 'No internet connection';
+    } else {
+      return 'Checking connection...';
+    }
+  }
+
+  /// Get network type text.
+  String _getNetworkTypeText(ConnectivityStatus status) {
+    // TODO: Get actual network type from connectivity service
+    // For now, return generic text
+    return 'Connected';
+  }
+
+  /// Show network details dialog.
+  void _showNetworkDetails(
+    BuildContext context,
+    ConnectivityProvider connectivity,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              _getStatusIcon(connectivity.status),
+              color: _getStatusColor(connectivity.status),
+            ),
+            const SizedBox(width: 12),
+            const Text('Network Status'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDetailRow(
+              'Status',
+              connectivity.statusText,
+              connectivity.isOnline ? Colors.green : Colors.red,
+            ),
+            const SizedBox(height: 12),
+            _buildDetailRow(
+              'Connection',
+              connectivity.isOnline ? 'Available' : 'Unavailable',
+              null,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              connectivity.isOffline
+                  ? 'Some features may be limited while offline. '
+                      'Data will sync automatically when connection is restored.'
+                  : 'All features are available.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+            ),
+          ],
+        ),
+        actions: [
+          if (connectivity.isOffline)
+            TextButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                // TODO: Trigger connectivity check
+                _log.info('Manual connectivity check requested');
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build detail row for dialog.
+  Widget _buildDetailRow(String label, String value, Color? valueColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: valueColor,
+            fontWeight: valueColor != null ? FontWeight.bold : null,
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -26,7 +26,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
     AccountValidator? validator,
   })  : _database = database,
         _uuidService = uuidService ?? UuidService(),
-        _syncQueueManager = syncQueueManager ?? SyncQueueManager(),
+        _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
         _validator = validator ?? AccountValidator();
 
   final AppDatabase _database;

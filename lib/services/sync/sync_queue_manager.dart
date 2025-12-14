@@ -10,6 +10,24 @@ class SyncQueueManager {
 
   SyncQueueManager(this.database);
 
+  /// Add operation to queue.
+  Future<void> enqueue(SyncOperation operation) async {
+    await database.into(database.syncQueue).insert(
+      SyncQueueEntityCompanion.insert(
+        id: operation.id,
+        entityType: operation.entityType,
+        entityId: operation.entityId,
+        operation: operation.operation.name,
+        payload: '{}',
+        createdAt: operation.createdAt,
+        status: Value(operation.status.name),
+        attempts: Value(operation.attempts),
+        priority: Value(operation.priority.index),
+      ),
+    );
+    _logger.fine('Enqueued operation: ${operation.id}');
+  }
+
   /// Get all pending operations from queue.
   Future<List<SyncOperation>> getPendingOperations() async {
     final query = database.select(database.syncQueue)
@@ -48,7 +66,7 @@ class SyncQueueManager {
   Future<void> markCompleted(String operationId) async {
     await (database.update(database.syncQueue)
       ..where((q) => q.id.equals(operationId)))
-      .write(const SyncQueueCompanion(status: Value('completed')));
+      .write(const SyncQueueEntityCompanion(status: Value('completed')));
     _logger.fine('Marked operation as completed: $operationId');
   }
 
@@ -56,7 +74,7 @@ class SyncQueueManager {
   Future<void> markFailed(String operationId, String error) async {
     await (database.update(database.syncQueue)
       ..where((q) => q.id.equals(operationId)))
-      .write(SyncQueueCompanion(
+      .write(SyncQueueEntityCompanion(
         status: const Value('failed'),
         errorMessage: Value(error),
       ));

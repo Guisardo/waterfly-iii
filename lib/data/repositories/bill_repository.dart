@@ -6,6 +6,7 @@ import 'package:waterflyiii/models/sync_operation.dart';
 import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 import 'package:waterflyiii/validators/bill_validator.dart';
+import 'package:waterflyiii/validators/transaction_validator.dart';
 
 import 'package:waterflyiii/data/repositories/base_repository.dart';
 
@@ -25,7 +26,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
     BillValidator? validator,
   })  : _database = database,
         _uuidService = uuidService ?? UuidService(),
-        _syncQueueManager = syncQueueManager ?? SyncQueueManager(),
+        _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
         _validator = validator ?? BillValidator();
 
   final AppDatabase _database;
@@ -100,11 +101,18 @@ class BillRepository implements BaseRepository<BillEntity, String> {
       logger.info('Creating bill: ${entity.name}');
 
       // Validate bill data
-      final List<String> validationErrors = _validator.validate(entity);
-      if (validationErrors.isNotEmpty) {
-        final String errorMessage = 'Bill validation failed: ${validationErrors.join(', ')}';
+      final ValidationResult validationResult = await _validator.validate({
+        'name': entity.name,
+        'amount_min': entity.amountMin,
+        'amount_max': entity.amountMax,
+        'currency_code': entity.currencyCode,
+        'date': entity.date.toIso8601String(),
+        'repeat_freq': entity.repeatFreq,
+      });
+      if (!validationResult.isValid) {
+        final String errorMessage = 'Bill validation failed: ${validationResult.errors.join(', ')}';
         logger.warning(errorMessage);
-        throw ValidationException(errorMessage, validationErrors);
+        throw ValidationException(errorMessage);
       }
 
       final String id = entity.id.isEmpty ? _uuidService.generateBillId() : entity.id;
@@ -141,7 +149,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
           id: _uuidService.generateOperationId(),
           entityType: 'bill',
           entityId: id,
-          operation: 'create',
+          operation: SyncOperationType.create,
           payload: <String, dynamic>{
             'name': entity.name,
             'amount_min': entity.amountMin,
@@ -155,8 +163,8 @@ class BillRepository implements BaseRepository<BillEntity, String> {
           },
           createdAt: now,
           attempts: 0,
-          status: 'pending',
-          priority: 5,
+          status: SyncOperationStatus.pending,
+          priority: SyncPriority.normal,
         ),
       );
 
@@ -180,11 +188,18 @@ class BillRepository implements BaseRepository<BillEntity, String> {
       }
 
       // Validate bill data
-      final List<String> validationErrors = _validator.validate(entity);
-      if (validationErrors.isNotEmpty) {
-        final String errorMessage = 'Bill validation failed: ${validationErrors.join(', ')}';
+      final ValidationResult validationResult = await _validator.validate({
+        'name': entity.name,
+        'amount_min': entity.amountMin,
+        'amount_max': entity.amountMax,
+        'currency_code': entity.currencyCode,
+        'date': entity.date.toIso8601String(),
+        'repeat_freq': entity.repeatFreq,
+      });
+      if (!validationResult.isValid) {
+        final String errorMessage = 'Bill validation failed: ${validationResult.errors.join(', ')}';
         logger.warning(errorMessage);
-        throw ValidationException(errorMessage, validationErrors);
+        throw ValidationException(errorMessage);
       }
 
       final DateTime now = DateTime.now();
@@ -219,7 +234,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
           id: _uuidService.generateOperationId(),
           entityType: 'bill',
           entityId: id,
-          operation: 'update',
+          operation: SyncOperationType.update,
           payload: <String, dynamic>{
             'name': entity.name,
             'amount_min': entity.amountMin,
@@ -233,8 +248,8 @@ class BillRepository implements BaseRepository<BillEntity, String> {
           },
           createdAt: now,
           attempts: 0,
-          status: 'pending',
-          priority: 5,
+          status: SyncOperationStatus.pending,
+          priority: SyncPriority.normal,
         ),
       );
 
@@ -275,12 +290,12 @@ class BillRepository implements BaseRepository<BillEntity, String> {
             id: _uuidService.generateOperationId(),
             entityType: 'bill',
             entityId: id,
-            operation: 'delete',
+            operation: SyncOperationType.delete,
             payload: <String, dynamic>{'server_id': existing.serverId},
             createdAt: DateTime.now(),
             attempts: 0,
-            status: 'pending',
-            priority: 0, // High priority for deletes
+            status: SyncOperationStatus.pending,
+            priority: SyncPriority.high,
           ),
         );
       } else {

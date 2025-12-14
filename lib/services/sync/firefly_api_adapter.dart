@@ -14,9 +14,10 @@ class FireflyApiAdapter {
   ) async {
     _logger.fine('Creating transaction via API');
     
-    final store = TransactionStore(
-      transactions: [
+    final TransactionStore store = TransactionStore(
+      transactions: <TransactionSplitStore>[
         TransactionSplitStore(
+          type: TransactionTypeProperty.withdrawal,
           amount: data['amount']?.toString() ?? '0',
           description: data['description'] as String? ?? '',
           date: DateTime.parse(data['date'] as String? ?? DateTime.now().toIso8601String()),

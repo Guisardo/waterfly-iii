@@ -36,7 +36,7 @@ import 'base_repository.dart';
 /// final recent = await repository.getRecentTransactions(limit: 50);
 /// ```
 class TransactionRepository
-    implements BaseRepository<TransactionsTableData, String> {
+    implements BaseRepository<TransactionEntity, String> {
   /// Creates a transaction repository.
   TransactionRepository({
     required AppDatabase database,
@@ -395,10 +395,10 @@ class TransactionRepository
   /// Gets transactions for a specific category.
   ///
   /// [categoryId] - The category ID.
-  Future<List<TransactionsTableData>> getByCategory(String categoryId) async {
+  Future<List<TransactionEntity>> getByCategory(String categoryId) async {
     try {
       logger.fine('Fetching transactions for category: $categoryId');
-      final query = _database.select(_database.transactionsTable)
+      final query = _database.select(_database.transactions)
         ..where((t) => t.categoryId.equals(categoryId))
         ..orderBy([(t) => OrderingTerm.desc(t.date)]);
       final transactions = await query.get();
@@ -434,7 +434,7 @@ class TransactionRepository
   ///
   /// Throws [ValidationException] if data is invalid
   /// Throws [DatabaseException] if insert fails
-  Future<TransactionsTableData> createTransactionOffline(
+  Future<TransactionEntity> createTransactionOffline(
     Map<String, dynamic> data,
   ) async {
     logger.info('Creating transaction offline');
@@ -450,7 +450,7 @@ class TransactionRepository
           data,
           (accountId) async {
             final account = await _database
-                .select(_database.accountsTable)
+                .select(_database.accounts)
                 .where((t) => t.id.equals(accountId))
                 .getSingleOrNull();
             return account != null;
@@ -464,7 +464,7 @@ class TransactionRepository
       final now = DateTime.now();
 
       // Step 3 & 4: Insert with sync flags
-      final companion = TransactionsTableCompanion.insert(
+      final companion = TransactionEntityCompanion.insert(
         id: id,
         type: data['type'] as String,
         date: data['date'] is DateTime
@@ -489,7 +489,7 @@ class TransactionRepository
         syncStatus: const Value('pending'),
       );
 
-      await _database.into(_database.transactionsTable).insert(companion);
+      await _database.into(_database.transactions).insert(companion);
 
       logger.info('Transaction inserted into database: $id');
 
@@ -525,7 +525,7 @@ class TransactionRepository
       if (e is ValidationException || e is DatabaseException) rethrow;
       throw DatabaseException(
         'Failed to create transaction offline',
-        originalException: e,
+        {"error": e.toString()},
       );
     }
   }
@@ -542,7 +542,7 @@ class TransactionRepository
   ///
   /// Throws [ValidationException] if data is invalid
   /// Throws [DatabaseException] if transaction not found or update fails
-  Future<TransactionsTableData> updateTransactionOffline(
+  Future<TransactionEntity> updateTransactionOffline(
     String id,
     Map<String, dynamic> data,
   ) async {
@@ -565,7 +565,7 @@ class TransactionRepository
           data,
           (accountId) async {
             final account = await _database
-                .select(_database.accountsTable)
+                .select(_database.accounts)
                 .where((t) => t.id.equals(accountId))
                 .getSingleOrNull();
             return account != null;
@@ -575,7 +575,7 @@ class TransactionRepository
       }
 
       // Step 3 & 4: Update with sync flags
-      final companion = TransactionsTableCompanion(
+      final companion = TransactionEntityCompanion(
         type: Value(data['type'] as String),
         date: Value(data['date'] is DateTime
             ? data['date'] as DateTime
@@ -598,7 +598,7 @@ class TransactionRepository
         syncStatus: const Value('pending'),
       );
 
-      final updateQuery = _database.update(_database.transactionsTable)
+      final updateQuery = _database.update(_database.transactions)
         ..where((t) => t.id.equals(id));
       await updateQuery.write(companion);
 
@@ -636,7 +636,7 @@ class TransactionRepository
       if (e is ValidationException || e is DatabaseException) rethrow;
       throw DatabaseException(
         'Failed to update transaction offline',
-        originalException: e,
+        {"error": e.toString()},
       );
     }
   }
@@ -669,13 +669,13 @@ class TransactionRepository
         // Mark as deleted, will be synced later
         logger.info('Transaction was synced, marking as deleted: $id');
 
-        final companion = TransactionsTableCompanion(
+        final companion = TransactionEntityCompanion(
           syncStatus: const Value('deleted'),
           isSynced: const Value(false),
           updatedAt: Value(DateTime.now()),
         );
 
-        final updateQuery = _database.update(_database.transactionsTable)
+        final updateQuery = _database.update(_database.transactions)
           ..where((t) => t.id.equals(id));
         await updateQuery.write(companion);
 
@@ -698,7 +698,7 @@ class TransactionRepository
         // Step 4: Not synced, remove completely
         logger.info('Transaction not synced, removing from database: $id');
 
-        final deleteQuery = _database.delete(_database.transactionsTable)
+        final deleteQuery = _database.delete(_database.transactions)
           ..where((t) => t.id.equals(id));
         await deleteQuery.go();
 
@@ -714,7 +714,7 @@ class TransactionRepository
       logger.severe('Failed to delete transaction offline: $id', e, stackTrace);
       throw DatabaseException(
         'Failed to delete transaction offline',
-        originalException: e,
+        {"error": e.toString()},
       );
     }
   }
@@ -730,7 +730,7 @@ class TransactionRepository
   /// - Caching
   ///
   /// Returns sorted results (newest first)
-  Future<List<TransactionsTableData>> getTransactionsOffline({
+  Future<List<TransactionEntity>> getTransactionsOffline({
     DateTime? startDate,
     DateTime? endDate,
     String? accountId,
@@ -752,14 +752,14 @@ class TransactionRepository
           '${limit}_$offset';
 
       // Check cache
-      final cached = _queryCache?.get<List<TransactionsTableData>>(cacheKey);
+      final cached = _queryCache?.get<List<TransactionEntity>>(cacheKey);
       if (cached != null) {
         logger.fine('Returning cached transactions');
         return cached;
       }
 
       // Build query
-      var query = _database.select(_database.transactionsTable);
+      var query = _database.select(_database.transactions);
 
       // Apply filters
       if (startDate != null) {
@@ -809,7 +809,7 @@ class TransactionRepository
       logger.severe('Failed to fetch transactions offline', e, stackTrace);
       throw DatabaseException(
         'Failed to fetch transactions offline',
-        originalException: e,
+        {"error": e.toString()},
       );
     }
   }
@@ -817,7 +817,7 @@ class TransactionRepository
   /// Gets recent transactions (last 30 days)
   ///
   /// Convenience method with caching
-  Future<List<TransactionsTableData>> getRecentTransactions({
+  Future<List<TransactionEntity>> getRecentTransactions({
     int limit = 50,
   }) async {
     final endDate = DateTime.now();
@@ -833,7 +833,7 @@ class TransactionRepository
   /// Searches transactions by description or notes
   ///
   /// Case-insensitive search with caching
-  Future<List<TransactionsTableData>> searchTransactions(
+  Future<List<TransactionEntity>> searchTransactions(
     String query, {
     int limit = 50,
   }) async {

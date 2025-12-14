@@ -20,12 +20,13 @@ class IdMappingService {
     try {
       _logger.info('Mapping IDs: $localId -> $serverId ($entityType)');
 
+      final DateTime now = DateTime.now();
       final IdMappingEntityCompanion companion = IdMappingEntityCompanion.insert(
         localId: localId,
         serverId: serverId,
         entityType: entityType,
-        createdAt: DateTime.now(),
-        syncedAt: Value(DateTime.now()),
+        createdAt: now,
+        syncedAt: now,
       );
 
       await _database.into(_database.idMapping).insert(

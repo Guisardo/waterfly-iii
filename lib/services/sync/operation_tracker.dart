@@ -75,7 +75,7 @@ class OperationTracker {
       );
       throw SyncException(
         'Failed to track operation',
-        originalException: e,
+        {"error": e.toString()},
       );
     }
   }
@@ -115,7 +115,7 @@ class OperationTracker {
       );
       throw SyncException(
         'Failed to fetch operation history',
-        originalException: e,
+        {"error": e.toString()},
       );
     }
   }
@@ -223,7 +223,7 @@ class OperationTracker {
       _logger.severe('Failed to calculate operation statistics', e, stackTrace);
       throw SyncException(
         'Failed to calculate operation statistics',
-        originalException: e,
+        {"error": e.toString()},
       );
     }
   }
@@ -265,7 +265,7 @@ class OperationTracker {
       _logger.severe('Failed to clear old history', e, stackTrace);
       throw SyncException(
         'Failed to clear old history',
-        originalException: e,
+        {"error": e.toString()},
       );
     }
   }

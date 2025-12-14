@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
-
-import '../../data/local/database/app_database.dart';
-import '../../exceptions/offline_exceptions.dart';
-import '../../models/sync_operation.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/exceptions/offline_exceptions.dart';
+import 'package:waterflyiii/models/sync_operation.dart';
 
 /// Service for detecting and handling duplicate synchronization operations.
 ///
@@ -49,12 +49,11 @@ class DeduplicationService {
     _logger.fine('Checking for duplicate: ${operation.id}');
 
     try {
-      final cutoffTime = DateTime.now().subtract(deduplicationWindow);
+      final DateTime cutoffTime = DateTime.now().subtract(deduplicationWindow);
 
-      // Query for similar operations
-      final query = _database.select(_database.syncQueueTable)
+      final SimpleSelectStatement<$SyncQueueTable, SyncQueueEntity> query = _database.select(_database.syncQueue)
         ..where(
-          (tbl) =>
+          ($SyncQueueTable tbl) =>
               tbl.entityType.equals(operation.entityType) &
               tbl.entityId.equals(operation.entityId) &
               tbl.operation.equals(operation.operation.name) &
@@ -63,25 +62,23 @@ class DeduplicationService {
                   tbl.status.equals(SyncOperationStatus.processing.name)),
         );
 
-      final results = await query.get();
+      final List<SyncQueueEntity> results = await query.get();
 
       if (results.isEmpty) {
         _logger.fine('No duplicates found for: ${operation.id}');
         return false;
       }
 
-      // For DELETE operations, entity match is enough
       if (operation.operation == SyncOperationType.delete) {
         _logger.info('Duplicate DELETE operation found: ${operation.id}');
         return true;
       }
 
-      // For CREATE/UPDATE, compare payload hashes
-      final operationHash = _hashPayload(operation.payload);
+      final String operationHash = _hashPayload(operation.payload);
 
-      for (final row in results) {
-        final existingPayload = jsonDecode(row.payload) as Map<String, dynamic>;
-        final existingHash = _hashPayload(existingPayload);
+      for (final SyncQueueEntity row in results) {
+        final Map<String, dynamic> existingPayload = jsonDecode(row.payload) as Map<String, dynamic>;
+        final String existingHash = _hashPayload(existingPayload);
 
         if (operationHash == existingHash) {
           _logger.info('Duplicate operation found: ${operation.id} '
@@ -100,7 +97,7 @@ class DeduplicationService {
       );
       throw SyncException(
         'Failed to check for duplicates',
-        originalException: e,
+        {'error': e.toString()},
       );
     }
   }
@@ -172,7 +169,7 @@ class DeduplicationService {
       _logger.severe('Failed to merge duplicates', e, stackTrace);
       throw SyncException(
         'Failed to merge duplicates',
-        originalException: e,
+        {'error': e.toString()},
       );
     }
   }
@@ -187,18 +184,17 @@ class DeduplicationService {
     _logger.info('Removing duplicates from queue');
 
     try {
-      // Get all pending operations
-      final query = _database.select(_database.syncQueueTable)
+      final SimpleSelectStatement<$SyncQueueTable, SyncQueueEntity> query = _database.select(_database.syncQueue)
         ..where(
-          (tbl) =>
+          ($SyncQueueTable tbl) =>
               tbl.status.equals(SyncOperationStatus.pending.name) |
               tbl.status.equals(SyncOperationStatus.processing.name),
         )
         ..orderBy([
-          (tbl) => OrderingTerm(expression: tbl.createdAt, mode: OrderingMode.desc),
+          ($SyncQueueTable tbl) => OrderingTerm(expression: tbl.createdAt, mode: OrderingMode.desc),
         ]);
 
-      final operations = await query.get();
+      final List<SyncQueueEntity> operations = await query.get();
 
       if (operations.length < 2) {
         _logger.fine('No duplicates to remove (queue size: ${operations.length})');
@@ -208,12 +204,11 @@ class DeduplicationService {
       final Set<String> seen = {};
       final List<String> toDelete = [];
 
-      for (final operation in operations) {
-        final key = '${operation.entityType}:${operation.entityId}:'
+      for (final SyncQueueEntity operation in operations) {
+        final String key = '${operation.entityType}:${operation.entityId}:'
             '${operation.operation}';
 
         if (seen.contains(key)) {
-          // Duplicate found - mark for deletion
           toDelete.add(operation.id);
           _logger.fine('Marking duplicate for deletion: ${operation.id}');
         } else {
@@ -221,10 +216,9 @@ class DeduplicationService {
         }
       }
 
-      // Delete duplicates
       if (toDelete.isNotEmpty) {
-        final delete = _database.delete(_database.syncQueueTable)
-          ..where((tbl) => tbl.id.isIn(toDelete));
+        final DeleteStatement<$SyncQueueTable, SyncQueueEntity> delete = _database.delete(_database.syncQueue)
+          ..where(($SyncQueueTable tbl) => tbl.id.isIn(toDelete));
 
         await delete.go();
       }
@@ -235,7 +229,7 @@ class DeduplicationService {
       _logger.severe('Failed to remove duplicates from queue', e, stackTrace);
       throw SyncException(
         'Failed to remove duplicates from queue',
-        originalException: e,
+        {'error': e.toString()},
       );
     }
   }

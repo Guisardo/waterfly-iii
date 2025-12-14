@@ -6,6 +6,7 @@ import 'package:waterflyiii/models/sync_operation.dart';
 import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 import 'package:waterflyiii/validators/piggy_bank_validator.dart';
+import 'package:waterflyiii/validators/transaction_validator.dart';
 
 import 'package:waterflyiii/data/repositories/base_repository.dart';
 
@@ -26,7 +27,7 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
     PiggyBankValidator? validator,
   })  : _database = database,
         _uuidService = uuidService ?? UuidService(),
-        _syncQueueManager = syncQueueManager ?? SyncQueueManager(),
+        _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
         _validator = validator ?? PiggyBankValidator();
 
   final AppDatabase _database;
@@ -100,12 +101,23 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
     try {
       logger.info('Creating piggy bank: ${entity.name}');
 
-      // Validate piggy bank data
-      final List<String> validationErrors = _validator.validate(entity);
-      if (validationErrors.isNotEmpty) {
-        final String errorMessage = 'Piggy bank validation failed: ${validationErrors.join(', ')}';
+      final Map<String, dynamic> entityMap = {
+        'id': entity.id,
+        'serverId': entity.serverId,
+        'name': entity.name,
+        'accountId': entity.accountId,
+        'targetAmount': entity.targetAmount,
+        'currentAmount': entity.currentAmount,
+        'startDate': entity.startDate?.toIso8601String(),
+        'targetDate': entity.targetDate?.toIso8601String(),
+        'notes': entity.notes,
+      };
+
+      final ValidationResult validationResult = await _validator.validate(entityMap);
+      if (!validationResult.isValid) {
+        final String errorMessage = 'Piggy bank validation failed: ${validationResult.errors.join(', ')}';
         logger.warning(errorMessage);
-        throw ValidationException(errorMessage, validationErrors);
+        throw ValidationException(errorMessage, {'errors': validationResult.errors});
       }
 
       final String id = entity.id.isEmpty ? _uuidService.generatePiggyBankId() : entity.id;
@@ -113,14 +125,14 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
 
       final PiggyBankEntityCompanion companion = PiggyBankEntityCompanion.insert(
         id: id,
-        serverId: Value(entity.serverId),
+        serverId: Value.ofNullable(entity.serverId),
         name: entity.name,
         accountId: entity.accountId,
-        targetAmount: entity.targetAmount,
+        targetAmount: Value.ofNullable(entity.targetAmount),
         currentAmount: Value(entity.currentAmount),
-        startDate: Value(entity.startDate),
-        targetDate: Value(entity.targetDate),
-        notes: Value(entity.notes),
+        startDate: Value.ofNullable(entity.startDate),
+        targetDate: Value.ofNullable(entity.targetDate),
+        notes: Value.ofNullable(entity.notes),
         createdAt: now,
         updatedAt: now,
         isSynced: const Value(false),
@@ -140,7 +152,7 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
           id: _uuidService.generateOperationId(),
           entityType: 'piggy_bank',
           entityId: id,
-          operation: 'create',
+          operation: SyncOperationType.create,
           payload: <String, dynamic>{
             'name': entity.name,
             'account_id': entity.accountId,
@@ -152,8 +164,8 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
           },
           createdAt: now,
           attempts: 0,
-          status: 'pending',
-          priority: 5,
+          status: SyncOperationStatus.pending,
+          priority: SyncPriority.normal,
         ),
       );
 
@@ -176,12 +188,23 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
         throw DatabaseException('Piggy bank not found: $id');
       }
 
-      // Validate piggy bank data
-      final List<String> validationErrors = _validator.validate(entity);
-      if (validationErrors.isNotEmpty) {
-        final String errorMessage = 'Piggy bank validation failed: ${validationErrors.join(', ')}';
+      final Map<String, dynamic> entityMap = {
+        'id': entity.id,
+        'serverId': entity.serverId,
+        'name': entity.name,
+        'accountId': entity.accountId,
+        'targetAmount': entity.targetAmount,
+        'currentAmount': entity.currentAmount,
+        'startDate': entity.startDate?.toIso8601String(),
+        'targetDate': entity.targetDate?.toIso8601String(),
+        'notes': entity.notes,
+      };
+
+      final ValidationResult validationResult = await _validator.validate(entityMap);
+      if (!validationResult.isValid) {
+        final String errorMessage = 'Piggy bank validation failed: ${validationResult.errors.join(', ')}';
         logger.warning(errorMessage);
-        throw ValidationException(errorMessage, validationErrors);
+        throw ValidationException(errorMessage, {'errors': validationResult.errors});
       }
 
       final DateTime now = DateTime.now();
@@ -214,7 +237,7 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
           id: _uuidService.generateOperationId(),
           entityType: 'piggy_bank',
           entityId: id,
-          operation: 'update',
+          operation: SyncOperationType.update,
           payload: <String, dynamic>{
             'name': entity.name,
             'account_id': entity.accountId,
@@ -226,8 +249,8 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
           },
           createdAt: now,
           attempts: 0,
-          status: 'pending',
-          priority: 5,
+          status: SyncOperationStatus.pending,
+          priority: SyncPriority.normal,
         ),
       );
 
@@ -268,12 +291,12 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
             id: _uuidService.generateOperationId(),
             entityType: 'piggy_bank',
             entityId: id,
-            operation: 'delete',
+            operation: SyncOperationType.delete,
             payload: <String, dynamic>{'server_id': existing.serverId},
             createdAt: DateTime.now(),
             attempts: 0,
-            status: 'pending',
-            priority: 0, // High priority for deletes
+            status: SyncOperationStatus.pending,
+            priority: SyncPriority.high, // High priority for deletes
           ),
         );
       } else {
@@ -378,7 +401,7 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
       logger.info('Adding $amount to piggy bank: $id');
 
       if (amount <= 0) {
-        throw ValidationException('Amount must be positive', <String>['amount: must be > 0']);
+        throw ValidationException('Amount must be positive', {'amount': 'must be > 0'});
       }
 
       final PiggyBankEntity? existing = await getById(id);
@@ -387,13 +410,13 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
       }
 
       final double newAmount = existing.currentAmount + amount;
+      final double? target = existing.targetAmount;
 
-      // Validate new amount doesn't exceed target
-      if (newAmount > existing.targetAmount) {
+      if (target != null && newAmount > target) {
         logger.warning('Adding $amount would exceed target amount');
         throw ValidationException(
           'Amount would exceed target',
-          <String>['current: ${existing.currentAmount}, adding: $amount, target: ${existing.targetAmount}'],
+          {'current': existing.currentAmount, 'adding': amount, 'target': target},
         );
       }
 
@@ -413,21 +436,20 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
         throw const DatabaseException('Failed to retrieve updated piggy bank');
       }
 
-      // Add to sync queue
       await _syncQueueManager.enqueue(
         SyncOperation(
           id: _uuidService.generateOperationId(),
           entityType: 'piggy_bank',
           entityId: id,
-          operation: 'add_money',
+          operation: SyncOperationType.update,
           payload: <String, dynamic>{
             'amount': amount,
             'new_total': newAmount,
           },
           createdAt: now,
           attempts: 0,
-          status: 'pending',
-          priority: 5,
+          status: SyncOperationStatus.pending,
+          priority: SyncPriority.normal,
         ),
       );
 
@@ -446,7 +468,7 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
       logger.info('Removing $amount from piggy bank: $id');
 
       if (amount <= 0) {
-        throw ValidationException('Amount must be positive', <String>['amount: must be > 0']);
+        throw ValidationException('Amount must be positive', {'amount': 'must be > 0'});
       }
 
       final PiggyBankEntity? existing = await getById(id);
@@ -456,12 +478,11 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
 
       final double newAmount = existing.currentAmount - amount;
 
-      // Validate new amount is not negative
       if (newAmount < 0) {
         logger.warning('Removing $amount would result in negative balance');
         throw ValidationException(
           'Insufficient funds',
-          <String>['current: ${existing.currentAmount}, removing: $amount'],
+          {'current': existing.currentAmount, 'removing': amount},
         );
       }
 
@@ -481,21 +502,20 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
         throw const DatabaseException('Failed to retrieve updated piggy bank');
       }
 
-      // Add to sync queue
       await _syncQueueManager.enqueue(
         SyncOperation(
           id: _uuidService.generateOperationId(),
           entityType: 'piggy_bank',
           entityId: id,
-          operation: 'remove_money',
+          operation: SyncOperationType.update,
           payload: <String, dynamic>{
             'amount': amount,
             'new_total': newAmount,
           },
           createdAt: now,
           attempts: 0,
-          status: 'pending',
-          priority: 5,
+          status: SyncOperationStatus.pending,
+          priority: SyncPriority.normal,
         ),
       );
 
@@ -530,16 +550,19 @@ class PiggyBankRepository implements BaseRepository<PiggyBankEntity, String> {
 
   /// Calculate progress percentage for a piggy bank.
   double calculateProgress(PiggyBankEntity piggyBank) {
-    if (piggyBank.targetAmount <= 0) {
+    final double? target = piggyBank.targetAmount;
+    if (target == null || target <= 0) {
       return 0.0;
     }
-    final double progress = (piggyBank.currentAmount / piggyBank.targetAmount) * 100;
+    final double progress = (piggyBank.currentAmount / target) * 100;
     return progress.clamp(0.0, 100.0);
   }
 
   /// Check if piggy bank has reached its target.
   bool hasReachedTarget(PiggyBankEntity piggyBank) {
-    return piggyBank.currentAmount >= piggyBank.targetAmount;
+    final double? target = piggyBank.targetAmount;
+    if (target == null) return false;
+    return piggyBank.currentAmount >= target;
   }
 
   /// Get piggy banks that have reached their target.

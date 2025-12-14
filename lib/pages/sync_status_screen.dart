@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:waterflyiii/models/sync_progress.dart';
+import 'package:waterflyiii/providers/sync_status_provider.dart';
 
-import '../models/sync_operation.dart';
-import '../models/sync_progress.dart';
-import '../models/conflict.dart';
-import '../services/sync/sync_manager.dart';
-import '../services/sync/sync_queue_manager.dart';
-import '../services/sync/sync_statistics.dart';
-import '../database/conflicts_table.dart';
-
-/// Screen showing detailed sync status and history.
+/// Comprehensive sync status screen with real-time updates.
 ///
 /// Features:
-/// - Current sync status display
-/// - Sync queue with operations
-/// - Sync history (last 10 syncs)
-/// - Sync statistics
-/// - "Sync Now" button
-/// - "Clear Completed" button
-/// - Conflicts requiring resolution
-/// - Filter options (pending, completed, failed)
+/// - Real-time sync status display
+/// - Sync history list (last 20 syncs)
+/// - Entity-specific statistics
+/// - Conflict list
+/// - Error list
+/// - Pull-to-refresh
+/// - Detailed sync result view
+///
+/// Uses Provider for state management and automatically updates during sync.
 class SyncStatusScreen extends StatefulWidget {
   const SyncStatusScreen({super.key});
 
@@ -27,312 +23,600 @@ class SyncStatusScreen extends StatefulWidget {
   State<SyncStatusScreen> createState() => _SyncStatusScreenState();
 }
 
-class _SyncStatusScreenState extends State<SyncStatusScreen> {
-  static final Logger _logger = Logger('SyncStatusScreen');
+class _SyncStatusScreenState extends State<SyncStatusScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
 
-  final SyncManager _syncManager = SyncManager();
-  final SyncQueueManager _queueManager = SyncQueueManager();
-  final SyncStatistics _statistics = SyncStatistics();
-  final ConflictsTable _conflictsTable = ConflictsTable();
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+  }
 
-  String _filter = 'all'; // all, pending, completed, failed
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sync Status'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Overview', icon: Icon(Icons.dashboard, size: 20)),
+            Tab(text: 'History', icon: Icon(Icons.history, size: 20)),
+            Tab(text: 'Conflicts', icon: Icon(Icons.warning_amber, size: 20)),
+            Tab(text: 'Errors', icon: Icon(Icons.error, size: 20)),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.sync),
-            onPressed: _syncNow,
-            tooltip: 'Sync Now',
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.filter_list),
-            onSelected: (value) {
-              setState(() {
-                _filter = value;
-              });
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'all', child: Text('All')),
-              const PopupMenuItem(value: 'pending', child: Text('Pending')),
-              const PopupMenuItem(value: 'completed', child: Text('Completed')),
-              const PopupMenuItem(value: 'failed', child: Text('Failed')),
-            ],
+            icon: const Icon(Icons.refresh),
+            onPressed: () => _refresh(context),
+            tooltip: 'Refresh',
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _buildCurrentStatusCard(),
-            const SizedBox(height: 16),
-            _buildStatisticsCard(),
-            const SizedBox(height: 16),
-            _buildConflictsCard(),
-            const SizedBox(height: 16),
-            _buildQueueCard(),
-            const SizedBox(height: 16),
-            _buildHistoryCard(),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _clearCompleted,
-        icon: const Icon(Icons.clear_all),
-        label: const Text('Clear Completed'),
+      body: Consumer<SyncStatusProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return RefreshIndicator(
+            onRefresh: () => provider.refresh(),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildOverviewTab(context, provider),
+                _buildHistoryTab(context, provider),
+                _buildConflictsTab(context, provider),
+                _buildErrorsTab(context, provider),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildCurrentStatusCard() {
-    return StreamBuilder<SyncProgress>(
-      stream: _syncManager.progressTracker.watchProgress(),
-      builder: (context, snapshot) {
-        final progress = snapshot.data;
-        final isSyncing = progress != null && 
-            progress.completedOperations < progress.totalOperations;
+  /// Build overview tab with current status and statistics.
+  Widget _buildOverviewTab(
+    BuildContext context,
+    SyncStatusProvider provider,
+  ) {
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: [
+        _buildCurrentStatusCard(context, provider),
+        const SizedBox(height: 16),
+        _buildStatisticsCard(context, provider),
+        const SizedBox(height: 16),
+        _buildEntityStatsCard(context, provider),
+      ],
+    );
+  }
 
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  /// Build current status card.
+  Widget _buildCurrentStatusCard(
+    BuildContext context,
+    SyncStatusProvider provider,
+  ) {
+    final progress = provider.currentProgress;
+    final isSyncing = provider.isSyncing;
+    final error = provider.currentError;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      isSyncing ? Icons.sync : Icons.check_circle,
-                      color: isSyncing
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.tertiary,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      isSyncing ? 'Syncing...' : 'Idle',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
+                Icon(
+                  _getSyncStatusIcon(isSyncing, error),
+                  color: _getSyncStatusColor(isSyncing, error),
+                  size: 32,
                 ),
-                if (isSyncing && progress != null) ...[
-                  const SizedBox(height: 12),
-                  LinearProgressIndicator(
-                    value: progress.percentage / 100,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _getSyncStatusText(isSyncing, error),
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      if (progress != null)
+                        Text(
+                          _getProgressText(progress),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
+                ),
+              ],
+            ),
+            if (progress != null) ...[
+              const SizedBox(height: 16),
+              LinearProgressIndicator(
+                value: progress.percentage / 100,
+                backgroundColor: Colors.grey[300],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Text(
-                    '${progress.completedOperations} of ${progress.totalOperations}',
+                    '${progress.completedOperations}/${progress.totalOperations}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  Text(
+                    '${progress.percentage.toStringAsFixed(1)}%',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildStatisticsCard() {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _statistics.getStatistics(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
-
-        final stats = snapshot.data!;
-
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              ),
+              if (progress.estimatedTimeRemaining != null) ...[
+                const SizedBox(height: 8),
                 Text(
-                  'Statistics',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  'ETA: ${_formatDuration(progress.estimatedTimeRemaining!)}',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 12),
-                _buildStatRow('Total Syncs', stats['totalSyncs']?.toString() ?? '0'),
-                _buildStatRow('Success Rate', '${stats['successRate']?.toStringAsFixed(1) ?? '0'}%'),
-                _buildStatRow('Operations Synced', stats['totalOperations']?.toString() ?? '0'),
-                _buildStatRow('Conflicts Detected', stats['conflictsDetected']?.toString() ?? '0'),
-                if (stats['lastSyncTime'] != null)
-                  _buildStatRow('Last Sync', _formatDateTime(stats['lastSyncTime'])),
               ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildConflictsCard() {
-    return FutureBuilder<List<Conflict>>(
-      future: _conflictsTable.getUnresolvedConflicts(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const SizedBox.shrink();
-        }
-
-        final conflicts = snapshot.data!;
-
-        if (conflicts.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return Card(
-          color: Theme.of(context).colorScheme.errorContainer,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              if (progress.currentOperation != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Current: ${progress.currentOperation}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+            if (error != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red[300]!),
+                ),
+                child: Row(
                   children: [
-                    Icon(
-                      Icons.warning,
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Conflicts Requiring Resolution',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onErrorContainer,
-                          ),
+                    Icon(Icons.error, color: Colors.red[700], size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        error,
+                        style: TextStyle(color: Colors.red[700]),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  '${conflicts.length} conflict${conflicts.length == 1 ? '' : 's'} need your attention',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onErrorContainer,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () => _navigateToConflicts(),
-                  child: const Text('Resolve Conflicts'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildQueueCard() {
-    return FutureBuilder<List<SyncOperation>>(
-      future: _getFilteredOperations(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
-
-        final operations = snapshot.data!;
-
-        return Card(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Sync Queue (${operations.length})',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
               ),
-              const Divider(height: 1),
-              if (operations.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Center(
-                    child: Text(
-                      'No operations in queue',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ),
-                )
-              else
-                ...operations.take(10).map((op) => ListTile(
-                      leading: _getOperationIcon(op),
-                      title: Text(op.entityType),
-                      subtitle: Text(
-                        '${op.operationType.toString().split('.').last} • ${_formatDateTime(op.createdAt)}',
-                      ),
-                      trailing: _getOperationStatusChip(op),
-                    )),
-              if (operations.length > 10)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Center(
-                    child: Text(
-                      '... and ${operations.length - 10} more',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                ),
             ],
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildHistoryCard() {
+  /// Build statistics card.
+  Widget _buildStatisticsCard(
+    BuildContext context,
+    SyncStatusProvider provider,
+  ) {
+    final stats = provider.statistics;
+
+    if (stats == null) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text('No statistics available'),
+        ),
+      );
+    }
+
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Recent Sync History',
-              style: Theme.of(context).textTheme.titleMedium,
+              'Statistics',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Coming soon',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+            const SizedBox(height: 16),
+            _buildStatRow(
+              context,
+              'Total syncs',
+              stats.totalSyncs.toString(),
+              Icons.sync,
             ),
+            _buildStatRow(
+              context,
+              'Successful',
+              stats.successfulSyncs.toString(),
+              Icons.check_circle,
+              color: Colors.green,
+            ),
+            _buildStatRow(
+              context,
+              'Failed',
+              stats.failedSyncs.toString(),
+              Icons.error,
+              color: stats.failedSyncs > 0 ? Colors.red : null,
+            ),
+            _buildStatRow(
+              context,
+              'Success rate',
+              '${(stats.successRate * 100).toStringAsFixed(1)}%',
+              Icons.trending_up,
+              color: stats.successRate >= 0.9 ? Colors.green : Colors.orange,
+            ),
+            _buildStatRow(
+              context,
+              'Avg duration',
+              _formatDuration(stats.averageDuration),
+              Icons.timer,
+            ),
+            _buildStatRow(
+              context,
+              'Total operations',
+              stats.totalOperations.toString(),
+              Icons.list,
+            ),
+            _buildStatRow(
+              context,
+              'Conflicts',
+              '${stats.conflictsResolved}/${stats.conflictsDetected}',
+              Icons.warning_amber,
+              color: stats.conflictsDetected > 0 ? Colors.orange : null,
+            ),
+            if (stats.lastSyncTime != null) ...[
+              const Divider(height: 24),
+              Text(
+                'Last sync: ${_formatDateTime(stats.lastSyncTime!)}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+            if (stats.nextScheduledSync != null) ...[
+              Text(
+                'Next sync: ${_formatDateTime(stats.nextScheduledSync!)}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatRow(String label, String value) {
+  /// Build entity statistics card.
+  Widget _buildEntityStatsCard(
+    BuildContext context,
+    SyncStatusProvider provider,
+  ) {
+    final entityStats = provider.entityStats;
+
+    if (entityStats.isEmpty) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text('No entity statistics available'),
+        ),
+      );
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Entity Statistics',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            ...entityStats.entries.map((entry) {
+              final stats = entry.value;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _formatEntityType(stats.entityType),
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Text(
+                          '${stats.successful}/${stats.total}',
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: stats.failed > 0 ? Colors.orange : Colors.green,
+                              ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        _buildEntityStatChip('C: ${stats.creates}', Colors.blue),
+                        const SizedBox(width: 4),
+                        _buildEntityStatChip('U: ${stats.updates}', Colors.orange),
+                        const SizedBox(width: 4),
+                        _buildEntityStatChip('D: ${stats.deletes}', Colors.red),
+                        if (stats.conflicts > 0) ...[
+                          const SizedBox(width: 4),
+                          _buildEntityStatChip(
+                            'Conflicts: ${stats.conflicts}',
+                            Colors.amber,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build history tab with sync history list.
+  Widget _buildHistoryTab(
+    BuildContext context,
+    SyncStatusProvider provider,
+  ) {
+    final history = provider.syncHistory;
+
+    if (history.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.history, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'No sync history',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Sync history will appear here',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[500],
+                  ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: history.length,
+      itemBuilder: (context, index) {
+        final result = history[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12.0),
+          child: ListTile(
+            leading: Icon(
+              result.success ? Icons.check_circle : Icons.error,
+              color: result.success ? Colors.green : Colors.red,
+              size: 32,
+            ),
+            title: Text(
+              result.success ? 'Sync successful' : 'Sync failed',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_formatDateTime(result.startTime)),
+                Text(
+                  '${result.successfulOperations}/${result.totalOperations} operations • '
+                  '${_formatDuration(result.duration)}',
+                ),
+                if (result.conflictsDetected > 0)
+                  Text(
+                    '${result.conflictsDetected} conflicts detected',
+                    style: const TextStyle(color: Colors.orange),
+                  ),
+              ],
+            ),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () => _showSyncResultDetails(context, result),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Build conflicts tab.
+  Widget _buildConflictsTab(
+    BuildContext context,
+    SyncStatusProvider provider,
+  ) {
+    final conflicts = provider.unresolvedConflicts;
+
+    if (conflicts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.check_circle, size: 64, color: Colors.green[400]),
+            const SizedBox(height: 16),
+            Text(
+              'No conflicts',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.green[600],
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'All conflicts have been resolved',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: conflicts.length,
+      itemBuilder: (context, index) {
+        final conflict = conflicts[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12.0),
+          child: ListTile(
+            leading: const Icon(Icons.warning_amber, color: Colors.orange, size: 32),
+            title: Text('Conflict #${index + 1}'),
+            subtitle: Text(conflict.toString()),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () {
+              // TODO: Navigate to conflict resolution screen
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Conflict resolution coming soon'),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  /// Build errors tab.
+  Widget _buildErrorsTab(
+    BuildContext context,
+    SyncStatusProvider provider,
+  ) {
+    final errors = provider.recentErrors;
+
+    if (errors.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.check_circle, size: 64, color: Colors.green[400]),
+            const SizedBox(height: 16),
+            Text(
+              'No errors',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.green[600],
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No sync errors have occurred',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${errors.length} errors',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  provider.clearErrors();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Errors cleared')),
+                  );
+                },
+                icon: const Icon(Icons.clear_all),
+                label: const Text('Clear all'),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: errors.length,
+            itemBuilder: (context, index) {
+              final error = errors[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12.0),
+                child: ListTile(
+                  leading: const Icon(Icons.error, color: Colors.red, size: 32),
+                  title: Text(
+                    error.message,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(_formatDateTime(error.timestamp)),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.info_outline),
+                    onPressed: () => _showErrorDetails(context, error),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build statistics row.
+  Widget _buildStatRow(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon, {
+    Color? color,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
+          Icon(icon, size: 20, color: color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
           Text(
             value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: color,
                 ),
           ),
         ],
@@ -340,105 +624,188 @@ class _SyncStatusScreenState extends State<SyncStatusScreen> {
     );
   }
 
-  Widget _getOperationIcon(SyncOperation operation) {
-    IconData icon;
-    switch (operation.operationType) {
-      case OperationType.create:
-        icon = Icons.add_circle_outline;
-        break;
-      case OperationType.update:
-        icon = Icons.edit_outlined;
-        break;
-      case OperationType.delete:
-        icon = Icons.delete_outline;
-        break;
-    }
-    return Icon(icon, color: Theme.of(context).colorScheme.primary);
-  }
-
-  Widget _getOperationStatusChip(SyncOperation operation) {
-    if (operation.retryCount > 0) {
-      return Chip(
-        label: Text('Retry ${operation.retryCount}'),
-        backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
-      );
-    }
-    return Chip(
-      label: const Text('Pending'),
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+  /// Build entity stat chip.
+  Widget _buildEntityStatChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          color: color.withOpacity(0.9),
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 
+  /// Show sync result details dialog.
+  void _showSyncResultDetails(BuildContext context, SyncResult result) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(result.success ? 'Sync Successful' : 'Sync Failed'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDetailRow('Started', _formatDateTime(result.startTime)),
+              _buildDetailRow('Ended', _formatDateTime(result.endTime)),
+              _buildDetailRow('Duration', _formatDuration(result.duration)),
+              const Divider(),
+              _buildDetailRow('Total operations', result.totalOperations.toString()),
+              _buildDetailRow('Successful', result.successfulOperations.toString()),
+              _buildDetailRow('Failed', result.failedOperations.toString()),
+              _buildDetailRow('Skipped', result.skippedOperations.toString()),
+              const Divider(),
+              _buildDetailRow('Conflicts detected', result.conflictsDetected.toString()),
+              _buildDetailRow('Conflicts resolved', result.conflictsResolved.toString()),
+              const Divider(),
+              _buildDetailRow('Success rate', '${(result.successRate * 100).toStringAsFixed(1)}%'),
+              _buildDetailRow('Throughput', '${result.throughput.toStringAsFixed(2)} ops/s'),
+              if (result.errorMessage != null) ...[
+                const Divider(),
+                const Text('Error:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(result.errorMessage!, style: const TextStyle(color: Colors.red)),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show error details dialog.
+  void _showErrorDetails(BuildContext context, SyncError error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error Details'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDetailRow('Time', _formatDateTime(error.timestamp)),
+              const Divider(),
+              const Text('Message:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(error.message),
+              if (error.exception != null) ...[
+                const SizedBox(height: 12),
+                const Text('Exception:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(error.exception.toString()),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build detail row for dialogs.
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
+  /// Refresh data.
+  Future<void> _refresh(BuildContext context) async {
+    final provider = context.read<SyncStatusProvider>();
+    await provider.refresh();
+  }
+
+  /// Get sync status icon.
+  IconData _getSyncStatusIcon(bool isSyncing, String? error) {
+    if (error != null) return Icons.error;
+    if (isSyncing) return Icons.sync;
+    return Icons.check_circle;
+  }
+
+  /// Get sync status color.
+  Color _getSyncStatusColor(bool isSyncing, String? error) {
+    if (error != null) return Colors.red;
+    if (isSyncing) return Colors.blue;
+    return Colors.green;
+  }
+
+  /// Get sync status text.
+  String _getSyncStatusText(bool isSyncing, String? error) {
+    if (error != null) return 'Sync Failed';
+    if (isSyncing) return 'Syncing...';
+    return 'Synced';
+  }
+
+  /// Get progress text.
+  String _getProgressText(SyncProgress progress) {
+    return '${progress.completedOperations} of ${progress.totalOperations} operations';
+  }
+
+  /// Format duration for display.
+  String _formatDuration(Duration duration) {
+    if (duration.inHours > 0) {
+      return '${duration.inHours}h ${duration.inMinutes.remainder(60)}m';
+    } else if (duration.inMinutes > 0) {
+      return '${duration.inMinutes}m ${duration.inSeconds.remainder(60)}s';
+    } else {
+      return '${duration.inSeconds}s';
+    }
+  }
+
+  /// Format DateTime for display.
   String _formatDateTime(DateTime dateTime) {
     final now = DateTime.now();
-    final diff = now.difference(dateTime);
+    final difference = now.difference(dateTime);
 
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
-    if (diff.inDays < 1) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-  }
-
-  Future<List<SyncOperation>> _getFilteredOperations() async {
-    final operations = await _queueManager.getPendingOperations();
-    
-    switch (_filter) {
-      case 'pending':
-        return operations.where((op) => op.retryCount == 0).toList();
-      case 'failed':
-        return operations.where((op) => op.retryCount > 0).toList();
-      case 'completed':
-        return []; // Would need to track completed operations
-      default:
-        return operations;
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes} minutes ago';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours} hours ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else {
+      return DateFormat('MMM d, y HH:mm').format(dateTime);
     }
   }
 
-  Future<void> _syncNow() async {
-    _logger.info('Manual sync triggered from sync status screen');
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Starting sync...')),
-    );
-
-    try {
-      await _syncManager.synchronize();
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sync completed')),
-        );
-        setState(() {});
-      }
-    } catch (e, stackTrace) {
-      _logger.severe('Sync failed', e, stackTrace);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sync failed: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _clearCompleted() async {
-    _logger.info('Clearing completed operations');
-    
-    // Would need to implement in queue manager
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cleared completed operations')),
-    );
-    
-    setState(() {});
-  }
-
-  Future<void> _refresh() async {
-    setState(() {});
-  }
-
-  void _navigateToConflicts() {
-    // Navigate to conflict resolution screen
-    _logger.info('Navigating to conflict resolution');
+  /// Format entity type for display.
+  String _formatEntityType(String entityType) {
+    return entityType[0].toUpperCase() + entityType.substring(1);
   }
 }

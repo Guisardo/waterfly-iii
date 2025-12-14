@@ -28,7 +28,7 @@ class MetadataService {
   /// Returns null if key doesn't exist.
   Future<String?> get(String key) async {
     try {
-      final result = await (_database.select(_database.syncMetadataTable)
+      final result = await (_database.select(_database.syncMetadata)
             ..where((t) => t.key.equals(key))
             ..limit(1))
           .getSingleOrNull();
@@ -48,9 +48,9 @@ class MetadataService {
   Future<void> set(String key, String value) async {
     try {
       await _database
-          .into(_database.syncMetadataTable)
+          .into(_database.syncMetadata)
           .insertOnConflictUpdate(
-            SyncMetadataTableCompanion.insert(
+            SyncMetadataEntityCompanion.insert(
               key: key,
               value: value,
               updatedAt: DateTime.now(),
@@ -69,7 +69,7 @@ class MetadataService {
   /// No-op if key doesn't exist.
   Future<void> delete(String key) async {
     try {
-      final deleted = await (_database.delete(_database.syncMetadataTable)
+      final deleted = await (_database.delete(_database.syncMetadata)
             ..where((t) => t.key.equals(key)))
           .go();
 
@@ -89,7 +89,7 @@ class MetadataService {
   /// ```
   Future<Map<String, String>> getAll({String? prefix}) async {
     try {
-      final query = _database.select(_database.syncMetadataTable);
+      final query = _database.select(_database.syncMetadata);
 
       if (prefix != null) {
         query.where((t) => t.key.like('$prefix%'));
@@ -117,7 +117,7 @@ class MetadataService {
   /// Useful for clearing operation history or statistics.
   Future<int> deleteAll({String? prefix}) async {
     try {
-      final delete = _database.delete(_database.syncMetadataTable);
+      final delete = _database.delete(_database.syncMetadata);
 
       if (prefix != null) {
         delete.where((t) => t.key.like('$prefix%'));
@@ -146,8 +146,8 @@ class MetadataService {
       await _database.batch((batch) {
         for (final entry in entries.entries) {
           batch.insert(
-            _database.syncMetadataTable,
-            SyncMetadataTableCompanion.insert(
+            _database.syncMetadata,
+            SyncMetadataEntityCompanion.insert(
               key: entry.key,
               value: entry.value,
               updatedAt: DateTime.now(),
@@ -167,7 +167,7 @@ class MetadataService {
   /// Check if metadata key exists.
   Future<bool> exists(String key) async {
     try {
-      final result = await (_database.select(_database.syncMetadataTable)
+      final result = await (_database.select(_database.syncMetadata)
             ..where((t) => t.key.equals(key))
             ..limit(1))
           .getSingleOrNull();
@@ -182,7 +182,7 @@ class MetadataService {
   /// Get metadata entry with timestamp information.
   Future<MetadataEntry?> getEntry(String key) async {
     try {
-      final result = await (_database.select(_database.syncMetadataTable)
+      final result = await (_database.select(_database.syncMetadata)
             ..where((t) => t.key.equals(key))
             ..limit(1))
           .getSingleOrNull();
@@ -203,7 +203,7 @@ class MetadataService {
   /// Get all metadata entries with timestamp information.
   Future<List<MetadataEntry>> getAllEntries({String? prefix}) async {
     try {
-      final query = _database.select(_database.syncMetadataTable);
+      final query = _database.select(_database.syncMetadata);
 
       if (prefix != null) {
         query.where((t) => t.key.like('$prefix%'));
@@ -226,7 +226,7 @@ class MetadataService {
   /// Count metadata entries with optional prefix filter.
   Future<int> count({String? prefix}) async {
     try {
-      final query = _database.select(_database.syncMetadataTable);
+      final query = _database.select(_database.syncMetadata);
 
       if (prefix != null) {
         query.where((t) => t.key.like('$prefix%'));
