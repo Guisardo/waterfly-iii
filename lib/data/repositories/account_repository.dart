@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
+import 'package:waterflyiii/models/sync_operation.dart';
 import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 import 'package:waterflyiii/validators/account_validator.dart';
@@ -30,11 +31,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
 
   final AppDatabase _database;
   final UuidService _uuidService;
-  // TODO: Use _syncQueueManager to add operations to sync queue when offline
-  // ignore: unused_field
   final SyncQueueManager _syncQueueManager;
-  // TODO: Use _validator to validate account data before operations
-  // ignore: unused_field
   final AccountValidator _validator;
 
   @override
@@ -101,6 +98,33 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
     try {
       logger.info('Creating account');
 
+      // Validate account data before creating
+      final validationResult = await _validator.validate({
+        'name': entity.name,
+        'type': entity.type,
+        'currency_code': entity.currencyCode,
+        'current_balance': entity.currentBalance,
+        'account_role': entity.accountRole,
+        'iban': entity.iban,
+        'bic': entity.bic,
+        'account_number': entity.accountNumber,
+        'opening_balance': entity.openingBalance,
+        'opening_balance_date': entity.openingBalanceDate?.toIso8601String(),
+        'notes': entity.notes,
+        'active': entity.active,
+      });
+
+      if (!validationResult.isValid) {
+        logger.warning(
+          'Account validation failed: ${validationResult.errors.join(', ')}',
+        );
+        throw ValidationException(
+          'Account validation failed: ${validationResult.errors.join(', ')}',
+        );
+      }
+
+      logger.fine('Account validation passed');
+
       final String id = entity.id.isEmpty ? _uuidService.generateAccountId() : entity.id;
       final DateTime now = DateTime.now();
 
@@ -132,11 +156,42 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
         throw const DatabaseException('Failed to retrieve created account');
       }
 
-      logger.info('Account created successfully: $id');
+      logger.fine('Account created in database: $id');
+
+      // Add to sync queue for server synchronization
+      final operation = SyncOperation(
+        id: _uuidService.generateOperationId(),
+        entityType: 'account',
+        entityId: id,
+        operation: SyncOperationType.create,
+        payload: {
+          'name': created.name,
+          'type': created.type,
+          'account_role': created.accountRole,
+          'currency_code': created.currencyCode,
+          'current_balance': created.currentBalance,
+          'iban': created.iban,
+          'bic': created.bic,
+          'account_number': created.accountNumber,
+          'opening_balance': created.openingBalance,
+          'opening_balance_date': created.openingBalanceDate?.toIso8601String(),
+          'notes': created.notes,
+          'active': created.active,
+        },
+        status: SyncOperationStatus.pending,
+        attempts: 0,
+        priority: SyncPriority.normal,
+        createdAt: DateTime.now(),
+      );
+
+      await _syncQueueManager.enqueue(operation);
+
+      logger.info('Account created and queued for sync: $id');
       return created;
     } catch (error, stackTrace) {
       logger.severe('Failed to create account', error, stackTrace);
       if (error is DatabaseException) rethrow;
+      if (error is ValidationException) rethrow;
       throw DatabaseException('Failed to create account: $error');
     }
   }
@@ -150,6 +205,33 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
       if (existing == null) {
         throw DatabaseException('Account not found: $id');
       }
+
+      // Validate account data before updating
+      final validationResult = await _validator.validate({
+        'name': entity.name,
+        'type': entity.type,
+        'currency_code': entity.currencyCode,
+        'current_balance': entity.currentBalance,
+        'account_role': entity.accountRole,
+        'iban': entity.iban,
+        'bic': entity.bic,
+        'account_number': entity.accountNumber,
+        'opening_balance': entity.openingBalance,
+        'opening_balance_date': entity.openingBalanceDate?.toIso8601String(),
+        'notes': entity.notes,
+        'active': entity.active,
+      });
+
+      if (!validationResult.isValid) {
+        logger.warning(
+          'Account validation failed: ${validationResult.errors.join(', ')}',
+        );
+        throw ValidationException(
+          'Account validation failed: ${validationResult.errors.join(', ')}',
+        );
+      }
+
+      logger.fine('Account validation passed');
 
       final AccountEntityCompanion companion = AccountEntityCompanion(
         id: Value(id),
@@ -178,11 +260,42 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
         throw const DatabaseException('Failed to retrieve updated account');
       }
 
-      logger.info('Account updated successfully: $id');
+      logger.fine('Account updated in database: $id');
+
+      // Add to sync queue for server synchronization
+      final operation = SyncOperation(
+        id: _uuidService.generateOperationId(),
+        entityType: 'account',
+        entityId: id,
+        operation: SyncOperationType.update,
+        payload: {
+          'name': updated.name,
+          'type': updated.type,
+          'account_role': updated.accountRole,
+          'currency_code': updated.currencyCode,
+          'current_balance': updated.currentBalance,
+          'iban': updated.iban,
+          'bic': updated.bic,
+          'account_number': updated.accountNumber,
+          'opening_balance': updated.openingBalance,
+          'opening_balance_date': updated.openingBalanceDate?.toIso8601String(),
+          'notes': updated.notes,
+          'active': updated.active,
+        },
+        status: SyncOperationStatus.pending,
+        attempts: 0,
+        priority: SyncPriority.normal,
+        createdAt: DateTime.now(),
+      );
+
+      await _syncQueueManager.enqueue(operation);
+
+      logger.info('Account updated and queued for sync: $id');
       return updated;
     } catch (error, stackTrace) {
       logger.severe('Failed to update account $id', error, stackTrace);
       if (error is DatabaseException) rethrow;
+      if (error is ValidationException) rethrow;
       throw DatabaseException('Failed to update account: $error');
     }
   }
@@ -199,7 +312,29 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
 
       await (_database.delete(_database.accounts)..where(($AccountsTable a) => a.id.equals(id))).go();
 
-      logger.info('Account deleted successfully: $id');
+      logger.fine('Account deleted from database: $id');
+
+      // Add to sync queue if account was synced (has serverId)
+      if (existing.serverId != null && existing.serverId!.isNotEmpty) {
+        final operation = SyncOperation(
+          id: _uuidService.generateOperationId(),
+          entityType: 'account',
+          entityId: id,
+          operation: SyncOperationType.delete,
+          payload: {
+            'server_id': existing.serverId,
+          },
+          status: SyncOperationStatus.pending,
+          attempts: 0,
+          priority: SyncPriority.high,
+          createdAt: DateTime.now(),
+        );
+
+        await _syncQueueManager.enqueue(operation);
+        logger.info('Account deleted and queued for sync: $id');
+      } else {
+        logger.info('Account deleted (local only, not synced): $id');
+      }
     } catch (error, stackTrace) {
       logger.severe('Failed to delete account $id', error, stackTrace);
       if (error is DatabaseException) rethrow;
