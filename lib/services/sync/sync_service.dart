@@ -52,12 +52,20 @@ enum SyncMode {
 class SyncService {
   final Logger _logger = Logger('SyncService');
   
+  // TODO: Use _apiAdapter for API calls in sync operations
+  // ignore: unused_field
   final FireflyApiAdapter _apiAdapter;
   final DatabaseAdapter _dbAdapter;
   final AppDatabase _database;
+  // TODO: Use _progressTracker to track sync progress
+  // ignore: unused_field
   final SyncProgressTracker _progressTracker;
   final MetadataService _metadata;
+  // TODO: Use _conflictDetector to detect conflicts during sync
+  // ignore: unused_field
   final ConflictDetector _conflictDetector;
+  // TODO: Use _conflictResolver to resolve detected conflicts
+  // ignore: unused_field
   final ConflictResolver _conflictResolver;
   
   /// Batch size for processing entities

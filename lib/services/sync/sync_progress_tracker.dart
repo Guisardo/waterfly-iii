@@ -280,6 +280,7 @@ class SyncProgressTracker {
     _logger.info('Completing sync progress tracking');
 
     final endTime = DateTime.now();
+    // ignore: unused_local_variable
     final duration = endTime.difference(_startTime!);
 
     final result = SyncResult(
@@ -324,6 +325,7 @@ class SyncProgressTracker {
   }
 
   /// Calculate success rate.
+  // ignore: unused_element
   double _calculateSuccessRate() {
     if (_currentProgress == null) return 0.0;
 

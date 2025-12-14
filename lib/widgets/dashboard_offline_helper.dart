@@ -10,6 +10,8 @@ import 'package:logging/logging.dart';
 /// - "Data as of [timestamp]" label
 /// - Handle missing server data gracefully
 class DashboardOfflineHelper {
+  // Reserved for future logging of dashboard events
+  // ignore: unused_field
   static final Logger _logger = Logger('DashboardOfflineHelper');
 
   /// Build data freshness indicator

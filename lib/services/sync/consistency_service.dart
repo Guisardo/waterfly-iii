@@ -500,7 +500,7 @@ class ConsistencyService {
         }
 
         // Compare with stored balance
-        final double storedBalance = account.currentBalance ?? 0.0;
+        final double storedBalance = account.currentBalance;
         final double difference = (calculatedBalance - storedBalance).abs();
 
         if (difference > 0.01) {

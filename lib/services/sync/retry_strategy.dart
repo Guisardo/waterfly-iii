@@ -235,7 +235,7 @@ class RetryStrategy {
   ///   Duration to wait before retry
   Duration getRetryDelayFromError(Object error, int attemptNumber) {
     if (error is SyncException) {
-      return error.retryDelay ?? getRetryDelay(attemptNumber);
+      return error.retryDelay;
     }
     return getRetryDelay(attemptNumber);
   }

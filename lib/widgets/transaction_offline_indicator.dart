@@ -14,6 +14,8 @@ import '../services/connectivity/connectivity_status.dart';
 /// - Sync status after save
 /// - Material 3 design
 class TransactionOfflineIndicator extends StatelessWidget {
+  // Reserved for future logging of transaction indicator events
+  // ignore: unused_field
   static final Logger _logger = Logger('TransactionOfflineIndicator');
 
   /// Whether this is a new transaction (create) or edit

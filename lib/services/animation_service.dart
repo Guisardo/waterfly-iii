@@ -273,6 +273,8 @@ class AnimationService {
 
 /// Mixin for widgets that need animation controllers
 mixin AnimationMixin<T extends StatefulWidget> on State<T>, TickerProviderStateMixin<T> {
+  // Reserved for future centralized animation management
+  // ignore: unused_field
   final AnimationService _animationService = AnimationService();
   final Map<String, AnimationController> _controllers = {};
 

@@ -27,6 +27,8 @@ import 'metadata_service.dart';
 /// print('Success rate: ${stats.successRate}%');
 /// ```
 class OperationTracker {
+  // TODO: Use _database to persist operation tracking data
+  // ignore: unused_field
   final AppDatabase _database;
   final MetadataService _metadata;
   final Logger _logger = Logger('OperationTracker');

@@ -13,6 +13,8 @@ import '../exceptions/sync_exceptions.dart';
 /// - Appropriate icons and colors
 /// - Specific dialogs for each error type
 class SyncErrorWidgets {
+  // Reserved for future logging of sync error events
+  // ignore: unused_field
   static final Logger _logger = Logger('SyncErrorWidgets');
 
   /// Build error card widget

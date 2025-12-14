@@ -1,6 +1,10 @@
 import 'package:logging/logging.dart';
+import '../../data/local/database/app_database.dart';
 import '../../models/sync_operation.dart';
+import '../connectivity/connectivity_service.dart';
+import '../id_mapping/id_mapping_service.dart';
 import 'sync_manager.dart';
+import 'sync_queue_manager.dart';
 import 'firefly_api_adapter.dart';
 import 'database_adapter.dart';
 
@@ -14,12 +18,22 @@ class SyncManagerWithApi extends SyncManager {
   SyncManagerWithApi({
     required this.apiAdapter,
     required this.databaseAdapter,
+    required SyncQueueManager queueManager,
+    required AppDatabase database,
+    required ConnectivityService connectivity,
+    required IdMappingService idMapping,
     super.progressTracker,
     super.conflictDetector,
     super.conflictResolver,
     super.retryStrategy,
     super.circuitBreaker,
-  });
+  }) : super(
+          queueManager: queueManager,
+          apiClient: apiAdapter,
+          database: database,
+          connectivity: connectivity,
+          idMapping: idMapping,
+        );
   
   /// Sync transaction with real Firefly III API and database
   Future<void> syncTransactionWithApi(SyncOperation operation) async {

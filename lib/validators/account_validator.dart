@@ -1,6 +1,5 @@
 import 'package:logging/logging.dart';
 
-import '../exceptions/offline_exceptions.dart';
 import 'transaction_validator.dart';
 
 /// Validates account data before storage or synchronization.
@@ -232,7 +231,7 @@ class AccountValidator {
       }
 
       // Check for unrealistic balance changes
-      final difference = ((newBalance ?? 0) - (currentBalance ?? 0)).abs();
+      final difference = ((newBalance ?? 0) - currentBalance).abs();
       if (difference > 1000000) {
         _logger.warning('Large balance change detected: $difference');
         // Don't error, just log warning

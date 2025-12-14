@@ -104,4 +104,379 @@ class FireflyApiAdapter {
       'attributes': transaction.attributes.toJson(),
     };
   }
+
+  // ==================== Account Methods ====================
+
+  /// Create an account
+  Future<Map<String, dynamic>> createAccount(Map<String, dynamic> data) async {
+    _logger.fine('Creating account via API');
+    
+    final store = AccountStore(
+      name: data['name'] as String,
+      type: ShortAccountTypeProperty.values.firstWhere(
+        (t) => t.name == data['type'],
+        orElse: () => ShortAccountTypeProperty.asset,
+      ),
+      accountNumber: data['account_number'] as String?,
+      iban: data['iban'] as String?,
+      currencyId: data['currency_id'] as String?,
+      openingBalance: data['opening_balance']?.toString(),
+      openingBalanceDate: data['opening_balance_date'] != null
+          ? DateTime.parse(data['opening_balance_date'] as String)
+          : null,
+      notes: data['notes'] as String?,
+    );
+
+    final response = await apiClient.v1AccountsPost(body: store);
+    
+    if (!response.isSuccessful || response.body == null) {
+      throw Exception('Failed to create account: ${response.error}');
+    }
+
+    final account = response.body!.data;
+    return {
+      'id': account.id,
+      'type': account.type,
+      'attributes': account.attributes.toJson(),
+    };
+  }
+
+  /// Update an account
+  Future<Map<String, dynamic>> updateAccount(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    _logger.fine('Updating account $id via API');
+    
+    final String name = data['name'] as String? ?? '';
+    
+    final AccountUpdate update = AccountUpdate(
+      name: name,
+      accountNumber: data['account_number'] as String?,
+      iban: data['iban'] as String?,
+      currencyId: data['currency_id'] as String?,
+      notes: data['notes'] as String?,
+    );
+
+    final response = await apiClient.v1AccountsIdPut(id: id, body: update);
+    
+    if (!response.isSuccessful || response.body == null) {
+      throw Exception('Failed to update account: ${response.error}');
+    }
+
+    final AccountRead account = response.body!.data;
+    return <String, dynamic>{
+      'id': account.id,
+      'type': account.type,
+      'attributes': account.attributes.toJson(),
+    };
+  }
+
+  /// Delete an account
+  Future<void> deleteAccount(String id) async {
+    _logger.fine('Deleting account $id via API');
+    
+    final response = await apiClient.v1AccountsIdDelete(id: id);
+    
+    if (!response.isSuccessful) {
+      throw Exception('Failed to delete account: ${response.error}');
+    }
+  }
+
+  // ==================== Category Methods ====================
+
+  /// Create a category
+  Future<Map<String, dynamic>> createCategory(Map<String, dynamic> data) async {
+    _logger.fine('Creating category via API');
+    
+    final store = CategoryStore(
+      name: data['name'] as String,
+      notes: data['notes'] as String?,
+    );
+
+    final response = await apiClient.v1CategoriesPost(body: store);
+    
+    if (!response.isSuccessful || response.body == null) {
+      throw Exception('Failed to create category: ${response.error}');
+    }
+
+    final category = response.body!.data;
+    return {
+      'id': category.id,
+      'type': category.type,
+      'attributes': category.attributes.toJson(),
+    };
+  }
+
+  /// Update a category
+  Future<Map<String, dynamic>> updateCategory(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    _logger.fine('Updating category $id via API');
+    
+    final String name = data['name'] as String? ?? '';
+    
+    final CategoryUpdate update = CategoryUpdate(
+      name: name,
+      notes: data['notes'] as String?,
+    );
+
+    final response = await apiClient.v1CategoriesIdPut(id: id, body: update);
+    
+    if (!response.isSuccessful || response.body == null) {
+      throw Exception('Failed to update category: ${response.error}');
+    }
+
+    final CategoryRead category = response.body!.data;
+    return <String, dynamic>{
+      'id': category.id,
+      'type': category.type,
+      'attributes': category.attributes.toJson(),
+    };
+  }
+
+  /// Delete a category
+  Future<void> deleteCategory(String id) async {
+    _logger.fine('Deleting category $id via API');
+    
+    final response = await apiClient.v1CategoriesIdDelete(id: id);
+    
+    if (!response.isSuccessful) {
+      throw Exception('Failed to delete category: ${response.error}');
+    }
+  }
+
+  // ==================== Budget Methods ====================
+
+  /// Create a budget
+  Future<Map<String, dynamic>> createBudget(Map<String, dynamic> data) async {
+    _logger.fine('Creating budget via API');
+    
+    final store = BudgetStore(
+      name: data['name'] as String,
+      notes: data['notes'] as String?,
+    );
+
+    final response = await apiClient.v1BudgetsPost(body: store);
+    
+    if (!response.isSuccessful || response.body == null) {
+      throw Exception('Failed to create budget: ${response.error}');
+    }
+
+    final budget = response.body!.data;
+    return {
+      'id': budget.id,
+      'type': budget.type,
+      'attributes': budget.attributes.toJson(),
+    };
+  }
+
+  /// Update a budget
+  Future<Map<String, dynamic>> updateBudget(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    _logger.fine('Updating budget $id via API');
+    
+    final String name = data['name'] as String? ?? '';
+    
+    final BudgetUpdate update = BudgetUpdate(
+      name: name,
+      notes: data['notes'] as String?,
+    );
+
+    final response = await apiClient.v1BudgetsIdPut(id: id, body: update);
+    
+    if (!response.isSuccessful || response.body == null) {
+      throw Exception('Failed to update budget: ${response.error}');
+    }
+
+    final BudgetRead budget = response.body!.data;
+    return <String, dynamic>{
+      'id': budget.id,
+      'type': budget.type,
+      'attributes': budget.attributes.toJson(),
+    };
+  }
+
+  /// Delete a budget
+  Future<void> deleteBudget(String id) async {
+    _logger.fine('Deleting budget $id via API');
+    
+    final response = await apiClient.v1BudgetsIdDelete(id: id);
+    
+    if (!response.isSuccessful) {
+      throw Exception('Failed to delete budget: ${response.error}');
+    }
+  }
+
+  // ==================== Bill Methods ====================
+
+  /// Create a bill
+  Future<Map<String, dynamic>> createBill(Map<String, dynamic> data) async {
+    _logger.fine('Creating bill via API');
+    
+    final store = BillStore(
+      name: data['name'] as String,
+      amountMin: data['amount_min']?.toString() ?? '0',
+      amountMax: data['amount_max']?.toString() ?? '0',
+      date: DateTime.parse(data['date'] as String? ?? DateTime.now().toIso8601String()),
+      repeatFreq: BillRepeatFrequency.values.firstWhere(
+        (f) => f.name == data['repeat_freq'],
+        orElse: () => BillRepeatFrequency.monthly,
+      ),
+      currencyId: data['currency_id'] as String?,
+      notes: data['notes'] as String?,
+    );
+
+    final response = await apiClient.v1BillsPost(body: store);
+    
+    if (!response.isSuccessful || response.body == null) {
+      throw Exception('Failed to create bill: ${response.error}');
+    }
+
+    final bill = response.body!.data;
+    return {
+      'id': bill.id,
+      'type': bill.type,
+      'attributes': bill.attributes.toJson(),
+    };
+  }
+
+  /// Update a bill
+  Future<Map<String, dynamic>> updateBill(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    _logger.fine('Updating bill $id via API');
+    
+    final String name = data['name'] as String? ?? '';
+    
+    final BillUpdate update = BillUpdate(
+      name: name,
+      amountMin: data['amount_min']?.toString(),
+      amountMax: data['amount_max']?.toString(),
+      date: data['date'] != null ? DateTime.parse(data['date'] as String) : null,
+      repeatFreq: data['repeat_freq'] != null
+          ? BillRepeatFrequency.values.firstWhere(
+              (BillRepeatFrequency f) => f.name == data['repeat_freq'],
+              orElse: () => BillRepeatFrequency.monthly,
+            )
+          : null,
+      currencyId: data['currency_id'] as String?,
+      notes: data['notes'] as String?,
+    );
+
+    final response = await apiClient.v1BillsIdPut(id: id, body: update);
+    
+    if (!response.isSuccessful || response.body == null) {
+      throw Exception('Failed to update bill: ${response.error}');
+    }
+
+    final BillRead bill = response.body!.data;
+    return <String, dynamic>{
+      'id': bill.id,
+      'type': bill.type,
+      'attributes': bill.attributes.toJson(),
+    };
+  }
+
+  /// Delete a bill
+  Future<void> deleteBill(String id) async {
+    _logger.fine('Deleting bill $id via API');
+    
+    final response = await apiClient.v1BillsIdDelete(id: id);
+    
+    if (!response.isSuccessful) {
+      throw Exception('Failed to delete bill: ${response.error}');
+    }
+  }
+
+  // ==================== Piggy Bank Methods ====================
+
+  /// Create a piggy bank
+  Future<Map<String, dynamic>> createPiggyBank(Map<String, dynamic> data) async {
+    _logger.fine('Creating piggy bank via API');
+    
+    final PiggyBankStore store = PiggyBankStore(
+      name: data['name'] as String,
+      accounts: data['account_id'] != null 
+          ? <PiggyBankAccountStore>[
+              PiggyBankAccountStore(id: data['account_id'] as String)
+            ]
+          : null,
+      targetAmount: data['target_amount']?.toString(),
+      currentAmount: data['current_amount']?.toString(),
+      startDate: data['start_date'] != null
+          ? DateTime.parse(data['start_date'] as String)
+          : DateTime.now(),
+      targetDate: data['target_date'] != null
+          ? DateTime.parse(data['target_date'] as String)
+          : null,
+      notes: data['notes'] as String?,
+    );
+
+    final response = await apiClient.v1PiggyBanksPost(body: store);
+    
+    if (!response.isSuccessful || response.body == null) {
+      throw Exception('Failed to create piggy bank: ${response.error}');
+    }
+
+    final PiggyBankRead piggyBank = response.body!.data;
+    return <String, dynamic>{
+      'id': piggyBank.id,
+      'type': piggyBank.type,
+      'attributes': piggyBank.attributes.toJson(),
+    };
+  }
+
+  /// Update a piggy bank
+  Future<Map<String, dynamic>> updatePiggyBank(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    _logger.fine('Updating piggy bank $id via API');
+    
+    final PiggyBankUpdate update = PiggyBankUpdate(
+      name: data['name'] as String?,
+      accounts: data['account_id'] != null 
+          ? <PiggyBankAccountUpdate>[
+              PiggyBankAccountUpdate(accountId: data['account_id'] as String)
+            ]
+          : null,
+      targetAmount: data['target_amount']?.toString(),
+      startDate: data['start_date'] != null
+          ? DateTime.parse(data['start_date'] as String)
+          : null,
+      targetDate: data['target_date'] != null
+          ? DateTime.parse(data['target_date'] as String)
+          : null,
+      notes: data['notes'] as String?,
+    );
+
+    final response = await apiClient.v1PiggyBanksIdPut(id: id, body: update);
+    
+    if (!response.isSuccessful || response.body == null) {
+      throw Exception('Failed to update piggy bank: ${response.error}');
+    }
+
+    final PiggyBankRead piggyBank = response.body!.data;
+    return <String, dynamic>{
+      'id': piggyBank.id,
+      'type': piggyBank.type,
+      'attributes': piggyBank.attributes.toJson(),
+    };
+  }
+
+  /// Delete a piggy bank
+  Future<void> deletePiggyBank(String id) async {
+    _logger.fine('Deleting piggy bank $id via API');
+    
+    final response = await apiClient.v1PiggyBanksIdDelete(id: id);
+    
+    if (!response.isSuccessful) {
+      throw Exception('Failed to delete piggy bank: ${response.error}');
+    }
+  }
 }

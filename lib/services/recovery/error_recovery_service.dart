@@ -3,6 +3,8 @@ import 'package:waterflyiii/data/local/database/app_database.dart';
 
 class ErrorRecoveryService {
   final Logger _logger = Logger('ErrorRecoveryService');
+  // TODO: Use _database to query and fix data inconsistencies
+  // ignore: unused_field
   final AppDatabase _database;
 
   ErrorRecoveryService(this._database);

@@ -9,6 +9,8 @@ import 'package:logging/logging.dart';
 /// - "Create New Account Offline" option
 /// - Warning for offline account creation
 class AccountSelectionOffline {
+  // Reserved for future logging of account selection events
+  // ignore: unused_field
   static final Logger _logger = Logger('AccountSelectionOffline');
 
   /// Build account list tile with sync status
@@ -122,6 +124,8 @@ class AccountSelectionOffline {
 
 /// Helper widget for category selection in offline mode
 class CategorySelectionOffline {
+  // Reserved for future logging of category selection events
+  // ignore: unused_field
   static final Logger _logger = Logger('CategorySelectionOffline');
 
   /// Build category list tile with sync status

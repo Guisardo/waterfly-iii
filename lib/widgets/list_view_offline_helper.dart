@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
-import '../services/sync/sync_manager.dart';
-
 /// Helper for enhancing list views with offline mode features.
 ///
 /// Features:
@@ -253,13 +251,16 @@ class ListViewOfflineHelper {
     _logger.info('Pull-to-refresh triggered');
 
     try {
-      final syncManager = SyncManager();
-      await syncManager.synchronize();
+      // TODO: Get SyncManager from provider/dependency injection
+      // final syncManager = SyncManager(...);
+      // await syncManager.synchronize();
+      
+      _logger.warning('Pull-to-refresh sync not implemented yet');
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Sync completed'),
+            content: Text('Sync not available yet'),
             duration: Duration(seconds: 2),
           ),
         );

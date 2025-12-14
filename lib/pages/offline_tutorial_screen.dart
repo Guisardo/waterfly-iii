@@ -218,6 +218,7 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
   }
 
   /// Check if tutorial should be shown
+  // ignore: unused_element
   static Future<bool> shouldShow() async {
     try {
       final prefs = await SharedPreferences.getInstance();

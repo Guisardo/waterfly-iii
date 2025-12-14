@@ -49,7 +49,9 @@ class AppDatabase extends _$AppDatabase {
   /// Test constructor for creating database with custom executor.
   ///
   /// Used for testing with in-memory databases.
+  // ignore: invalid_visibility_annotation
   @visibleForTesting
+  // ignore: unused_element
   AppDatabase._testConstructor(QueryExecutor executor) : super(executor);
 
   /// Database schema version.
@@ -75,21 +77,21 @@ class AppDatabase extends _$AppDatabase {
         
         // Initialize sync metadata with default values
         await into(syncMetadata).insert(
-          SyncMetadataCompanion.insert(
+          SyncMetadataEntityCompanion.insert(
             key: 'last_full_sync',
             value: '',
             updatedAt: DateTime.now(),
           ),
         );
         await into(syncMetadata).insert(
-          SyncMetadataCompanion.insert(
+          SyncMetadataEntityCompanion.insert(
             key: 'last_partial_sync',
             value: '',
             updatedAt: DateTime.now(),
           ),
         );
         await into(syncMetadata).insert(
-          SyncMetadataCompanion.insert(
+          SyncMetadataEntityCompanion.insert(
             key: 'sync_version',
             value: '1',
             updatedAt: DateTime.now(),

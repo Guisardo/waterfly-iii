@@ -126,4 +126,34 @@ class IdMappingService {
     _localToServerCache.clear();
     _serverToLocalCache.clear();
   }
+
+  /// Remove a specific ID mapping.
+  Future<void> removeMapping(String localId) async {
+    try {
+      _logger.info('Removing ID mapping for: $localId');
+      
+      // Get the mapping first to update cache
+      final IdMappingEntity? mapping = await (_database.select(_database.idMapping)
+            ..where(($IdMappingTable m) => m.localId.equals(localId)))
+          .getSingleOrNull();
+      
+      if (mapping != null) {
+        // Remove from database
+        await (_database.delete(_database.idMapping)
+              ..where(($IdMappingTable m) => m.localId.equals(localId)))
+            .go();
+        
+        // Remove from caches
+        _localToServerCache.remove(localId);
+        _serverToLocalCache.remove(mapping.serverId);
+        
+        _logger.fine('ID mapping removed successfully');
+      } else {
+        _logger.fine('No mapping found for: $localId');
+      }
+    } catch (error, stackTrace) {
+      _logger.severe('Failed to remove ID mapping for: $localId', error, stackTrace);
+      throw DatabaseException('Failed to remove ID mapping: $error');
+    }
+  }
 }

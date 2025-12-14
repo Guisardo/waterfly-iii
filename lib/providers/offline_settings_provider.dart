@@ -148,10 +148,10 @@ class OfflineSettingsProvider extends ChangeNotifier {
       // Update background scheduler if auto-sync is enabled
       if (_autoSyncEnabled && _syncScheduler != null) {
         if (interval == SyncInterval.manual) {
-          await _syncScheduler!.cancelAll();
+          await _syncScheduler.cancelAll();
           _log.info('Cancelled scheduled sync (manual mode)');
         } else if (interval.duration != null) {
-          await _syncScheduler!.schedulePeriodicSync(interval: interval.duration!);
+          await _syncScheduler.schedulePeriodicSync(interval: interval.duration!);
           _log.info('Scheduled periodic sync: ${interval.duration}');
         }
       }
@@ -174,10 +174,10 @@ class OfflineSettingsProvider extends ChangeNotifier {
       // Update background scheduler
       if (_syncScheduler != null) {
         if (enabled && _syncInterval.duration != null) {
-          await _syncScheduler!.schedulePeriodicSync(interval: _syncInterval.duration!);
+          await _syncScheduler.schedulePeriodicSync(interval: _syncInterval.duration!);
           _log.info('Enabled periodic sync: ${_syncInterval.duration}');
         } else {
-          await _syncScheduler!.cancelAll();
+          await _syncScheduler.cancelAll();
           _log.info('Disabled periodic sync');
         }
       }

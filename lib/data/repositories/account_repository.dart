@@ -30,7 +30,11 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
 
   final AppDatabase _database;
   final UuidService _uuidService;
+  // TODO: Use _syncQueueManager to add operations to sync queue when offline
+  // ignore: unused_field
   final SyncQueueManager _syncQueueManager;
+  // TODO: Use _validator to validate account data before operations
+  // ignore: unused_field
   final AccountValidator _validator;
 
   @override
