@@ -718,8 +718,8 @@ class FireflyApiAdapter {
     
     final List<Map<String, dynamic>> categories = <Map<String, dynamic>>[];
     int page = 1;
-    final startDate = since.toIso8601String().split('T')[0];
     
+    // Note: Categories API doesn't support date filtering, fetch all and filter locally
     while (true) {
       final response = await apiClient.v1CategoriesGet(
         page: page,
@@ -789,8 +789,8 @@ class FireflyApiAdapter {
     
     final List<Map<String, dynamic>> bills = <Map<String, dynamic>>[];
     int page = 1;
-    final startDate = since.toIso8601String().split('T')[0];
     
+    // Note: Bills API doesn't support date filtering, fetch all and filter locally
     while (true) {
       final response = await apiClient.v1BillsGet(
         page: page,
