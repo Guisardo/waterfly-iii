@@ -9,6 +9,7 @@ import '../../models/sync_progress.dart';
 import '../../models/conflict.dart';
 import '../../exceptions/sync_exceptions.dart';
 import '../connectivity/connectivity_service.dart';
+import '../connectivity/connectivity_status.dart';
 import '../id_mapping/id_mapping_service.dart';
 import 'sync_progress_tracker.dart';
 import 'sync_queue_manager.dart';
@@ -53,8 +54,6 @@ class SyncManager {
   final SyncQueueManager _queueManager;
   final FireflyApiAdapter _apiClient;
   final AppDatabase _database;
-  // TODO: Use _connectivity to check network status before sync operations
-  // ignore: unused_field
   final ConnectivityService _connectivity;
   final IdMappingService _idMapping;
 
@@ -65,16 +64,21 @@ class SyncManager {
   final RetryStrategy _retryStrategy;
   final CircuitBreaker _circuitBreaker;
 
+  /// Connectivity subscription
+  StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
+
   /// Configuration
   final int batchSize;
   final int maxConcurrentOperations;
   final Duration batchTimeout;
   final bool autoResolveConflicts;
+  final bool autoSyncOnReconnect;
 
   /// State
   bool _isSyncing = false;
   DateTime? _lastSyncTime;
   DateTime? _lastFullSyncTime;
+  bool _wasOffline = false;
 
   SyncManager({
     required SyncQueueManager queueManager,
@@ -91,6 +95,7 @@ class SyncManager {
     this.maxConcurrentOperations = 5,
     this.batchTimeout = const Duration(seconds: 60),
     this.autoResolveConflicts = true,
+    this.autoSyncOnReconnect = true,
   })  : _queueManager = queueManager,
         _apiClient = apiClient,
         _database = database,
@@ -100,7 +105,9 @@ class SyncManager {
         _conflictDetector = conflictDetector ?? ConflictDetector(),
         _conflictResolver = conflictResolver ?? ConflictResolver(),
         _retryStrategy = retryStrategy ?? RetryStrategy(),
-        _circuitBreaker = circuitBreaker ?? CircuitBreaker();
+        _circuitBreaker = circuitBreaker ?? CircuitBreaker() {
+    _initializeConnectivityListener();
+  }
 
   /// Watch sync progress updates.
   Stream<SyncProgress> watchProgress() => _progressTracker.watchProgress();
@@ -148,7 +155,11 @@ class SyncManager {
         _logger.info('Starting synchronization');
 
         // Check connectivity
-        await _checkConnectivity();
+        final isOnline = await _checkConnectivity();
+        if (!isOnline) {
+          _logger.warning('Sync aborted: device is offline');
+          return _createEmptyResult();
+        }
 
         // Get pending operations
         final operations = await _getPendingOperations();
@@ -207,18 +218,6 @@ class SyncManager {
         _isSyncing = false;
       }
     });
-  }
-
-  /// Check connectivity before syncing.
-  Future<void> _checkConnectivity() async {
-    final connectivityService = ConnectivityService();
-    final isConnected = await connectivityService.checkConnectivity();
-    
-    if (!isConnected) {
-      throw NetworkError('No network connectivity');
-    }
-
-    _logger.fine('Connectivity check passed');
   }
 
   /// Get pending operations from queue.
@@ -2136,9 +2135,65 @@ class SyncManager {
     return data.toJson().toString();
   }
 
+  /// Initialize connectivity listener for automatic retry.
+  void _initializeConnectivityListener() {
+    _connectivitySubscription = _connectivity.statusStream.listen(
+      (status) {
+        _handleConnectivityChange(status);
+      },
+      onError: (error, stackTrace) {
+        _logger.severe('Connectivity listener error', error, stackTrace);
+      },
+    );
+    
+    _logger.info('Connectivity listener initialized');
+  }
+
+  /// Handle connectivity status changes.
+  void _handleConnectivityChange(ConnectivityStatus status) {
+    final isOnline = status == ConnectivityStatus.online;
+    
+    _logger.fine(
+      'Connectivity changed',
+      <String, dynamic>{
+        'status': status.name,
+        'was_offline': _wasOffline,
+        'auto_sync_enabled': autoSyncOnReconnect,
+      },
+    );
+
+    if (isOnline && _wasOffline && autoSyncOnReconnect) {
+      _logger.info('Network restored, triggering automatic sync');
+      
+      // Trigger sync asynchronously to avoid blocking the listener
+      Future.microtask(() async {
+        try {
+          await synchronize();
+        } catch (e, stackTrace) {
+          _logger.warning('Auto-sync after reconnect failed', e, stackTrace);
+        }
+      });
+    }
+
+    _wasOffline = !isOnline;
+  }
+
+  /// Check if device is online before sync operations.
+  Future<bool> _checkConnectivity() async {
+    final status = _connectivity.currentStatus;
+    final isOnline = status == ConnectivityStatus.online;
+    
+    if (!isOnline) {
+      _logger.warning('Cannot sync: device is offline');
+    }
+    
+    return isOnline;
+  }
+
   /// Dispose resources.
   void dispose() {
     _logger.fine('Disposing sync manager');
+    _connectivitySubscription?.cancel();
     _progressTracker.dispose();
   }
 }

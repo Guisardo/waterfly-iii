@@ -1,7 +1,7 @@
 # Complete TODO Checklist - Waterfly III
 
 **Created**: 2024-12-14  
-**Total TODOs**: 115
+**Total TODOs**: 114
 
 This document catalogs all TODO items across the entire project.
 
@@ -309,11 +309,16 @@ This document catalogs all TODO items across the entire project.
 ### Connectivity & Retry Logic
 
 #### `lib/services/sync/sync_manager.dart`
-- [ ] **Line 1260**: Implement connectivity listener for automatic retry
-  - Listen to connectivity changes
+- [x] **Line 1260**: Implement connectivity listener for automatic retry ✅ **COMPLETED 2024-12-14**
+  - Listen to connectivity changes via ConnectivityService.statusStream
   - Trigger sync when network is restored
-  - Respect user preferences for auto-sync
+  - Respect user preferences for auto-sync (autoSyncOnReconnect flag)
   - **Required for**: Network error automatic retry
+
+- [x] **Line 56**: Use _connectivity to check network status before sync operations ✅ **COMPLETED 2024-12-14**
+  - Check connectivity before attempting sync
+  - Return early if device is offline
+  - **Required for**: Preventing unnecessary sync attempts when offline
 
 ### Code Quality & Future Implementations
 
@@ -323,10 +328,6 @@ This document catalogs all TODO items across the entire project.
   
 - [ ] **Line 35**: Use _validator to validate account data before operations
   - Currently unused, needs integration with CRUD operations
-
-#### `lib/services/sync/sync_manager.dart`
-- [ ] **Line 56**: Use _connectivity to check network status before sync operations
-  - Currently unused, should check connectivity before attempting sync
 
 #### `lib/services/sync/sync_service.dart`
 - [ ] **Line 55**: Use _apiAdapter for API calls in sync operations
@@ -664,7 +665,7 @@ This document catalogs all TODO items across the entire project.
 
 ## 📊 Progress Tracking
 
-**Last Updated**: 2024-12-14 13:22
+**Last Updated**: 2024-12-14 13:29
 
 **Build Status**: ✅ PASSING (0 errors, 0 warnings)  
 **Test Status**: ✅ ALL TESTS PASSING (40 tests)  
@@ -678,8 +679,8 @@ This document catalogs all TODO items across the entire project.
 | Phase 3: UI/UX | 13 | 0 | 0% |
 | Phase 4: Enhancements | 11 | 0 | 0% |
 | Phase 5: Polish | 12 | 0 | 0% |
-| **New TODOs** | **37** | **24** | **65%** |
-| **TOTAL** | **115** | **43** | **37%** |
+| **New TODOs** | **36** | **26** | **72%** |
+| **TOTAL** | **114** | **45** | **39%** |
 
 ### Recent Completions (2024-12-14)
 1. ✅ Queue operations (_getPendingOperations)
