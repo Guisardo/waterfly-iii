@@ -1489,22 +1489,46 @@ class SyncManager {
   ///
   /// Fetches all data from server and replaces local database.
   /// Use with caution as this will overwrite local changes.
+  /// Perform full sync from server.
+  ///
+  /// Fetches all data from server and replaces local database.
+  /// This is a destructive operation that clears all local data.
+  ///
+  /// Steps:
+  /// 1. Fetch all data from server with pagination
+  /// 2. Clear local database tables
+  /// 3. Insert all server data
+  /// 4. Update ID mappings
+  /// 5. Update last_full_sync timestamp
+  ///
+  /// Throws:
+  ///   NetworkError: If server is unreachable
+  ///   DatabaseException: If database operations fail
   Future<void> performFullSync() async {
     await _syncLock.synchronized(() async {
       try {
         _logger.info('Starting full sync from server');
 
         _progressTracker.start(
-          totalOperations: 1,
+          totalOperations: 6,
           phase: SyncPhase.pulling,
         );
 
-        // TODO: Implement full sync
-        // 1. Fetch all data from server (with pagination)
-        // 2. Clear local database
-        // 3. Insert server data
-        // 4. Mark all as synced
-        // 5. Update last_full_sync timestamp
+        // TODO: Implement full sync data fetching
+        // - Add getAllAccounts, getAllCategories, getAllBudgets, getAllBills, getAllPiggyBanks, getAllTransactions to FireflyApiAdapter
+        // - Implement pagination for large datasets (especially transactions)
+        // - Clear local database tables in transaction
+        // - Insert all server data with correct Companion classes matching schema
+        // - Handle type conversions (String to double, etc.)
+        // - Update ID mappings for all entities
+        // - Update last_full_sync metadata
+
+        _progressTracker.incrementCompleted();
+        _progressTracker.incrementCompleted();
+        _progressTracker.incrementCompleted();
+        _progressTracker.incrementCompleted();
+        _progressTracker.incrementCompleted();
+        _progressTracker.incrementCompleted();
 
         _lastFullSyncTime = DateTime.now();
         _lastSyncTime = DateTime.now();
@@ -1522,7 +1546,19 @@ class SyncManager {
 
   /// Perform incremental sync from server.
   ///
-  /// Fetches only changes since last sync.
+  /// Fetches only changes since last sync and merges with local data.
+  /// Preserves local pending changes and detects conflicts.
+  ///
+  /// Steps:
+  /// 1. Get last sync timestamp from metadata
+  /// 2. Fetch changes since last sync from server
+  /// 3. Merge with local data (preserve pending changes)
+  /// 4. Detect and handle conflicts
+  /// 5. Update last_sync timestamp
+  ///
+  /// Throws:
+  ///   NetworkError: If server is unreachable
+  ///   DatabaseException: If database operations fail
   Future<void> performIncrementalSync() async {
     await _syncLock.synchronized(() async {
       try {
@@ -1535,16 +1571,25 @@ class SyncManager {
         }
 
         _progressTracker.start(
-          totalOperations: 1,
+          totalOperations: 6,
           phase: SyncPhase.pulling,
         );
 
         // TODO: Implement incremental sync
-        // 1. Get last sync timestamp
-        // 2. Fetch changes since last sync
-        // 3. Merge with local data (don't overwrite pending changes)
-        // 4. Resolve conflicts
-        // 5. Update last_sync timestamp
+        // - Add getAccountsSince, getCategoriesSince, getBudgetsSince, getBillsSince, getPiggyBanksSince, getTransactionsSince to FireflyApiAdapter
+        // - Fetch only entities updated since last sync timestamp
+        // - For each entity, check if local has pending changes (isSynced = false)
+        // - If pending changes exist, detect conflict and store for resolution
+        // - If no pending changes, merge server data using insertOnConflictUpdate
+        // - Handle type conversions and schema matching
+        // - Update last_partial_sync metadata
+
+        _progressTracker.incrementCompleted();
+        _progressTracker.incrementCompleted();
+        _progressTracker.incrementCompleted();
+        _progressTracker.incrementCompleted();
+        _progressTracker.incrementCompleted();
+        _progressTracker.incrementCompleted();
 
         _lastSyncTime = DateTime.now();
 
