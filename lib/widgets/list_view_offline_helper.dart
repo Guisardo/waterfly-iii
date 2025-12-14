@@ -252,10 +252,11 @@ class ListViewOfflineHelper {
 
     try {
       // TODO: Get SyncManager from provider/dependency injection
-      // final syncManager = SyncManager(...);
-      // await syncManager.synchronize();
+      // Requires: SyncStatusProvider to be added to app providers with proper DI
+      // Dependencies: SyncManager, SyncStatisticsService, AppDatabase
+      // Implementation: await provider.syncManager.synchronize(fullSync: false);
       
-      _logger.warning('Pull-to-refresh sync not implemented yet');
+      _logger.warning('Pull-to-refresh sync not implemented yet - requires DI setup');
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
