@@ -1252,9 +1252,19 @@ class SyncManager {
       );
 
       // Step 3: Notify user via progress tracker
-      // TODO: Add public method to SyncProgressTracker for emitting custom events
-      // TODO: Add incrementConflicts method to SyncProgressTracker
-      // For now, conflicts are tracked via failed operations
+      _progressTracker.incrementConflicts(conflictId: operation.id);
+      
+      _progressTracker.emitEvent(
+        ConflictDetectedEvent(
+          conflict: <String, dynamic>{
+            'operation_id': operation.id,
+            'entity_type': operation.entityType,
+            'entity_id': operation.entityId,
+            'message': error.message,
+          },
+          timestamp: DateTime.now(),
+        ),
+      );
 
       _logger.info(
         'Conflict handling completed',
@@ -1337,11 +1347,16 @@ class SyncManager {
       // Step 3: Notify user with fix suggestions
       final fixSuggestion = _generateFixSuggestion(error);
       
-      // TODO: Add public method to SyncProgressTracker for emitting validation error events
-      // For now, increment failed counter with error message
       _progressTracker.incrementFailed(
         operationId: operation.id,
         error: 'Validation failed: ${error.message}. $fixSuggestion',
+      );
+
+      _progressTracker.emitEvent(
+        SyncFailedEvent(
+          error: 'Validation failed: ${error.message}. Suggestion: $fixSuggestion',
+          timestamp: DateTime.now(),
+        ),
       );
 
       _logger.info(
@@ -1439,14 +1454,11 @@ class SyncManager {
         },
       );
 
-      // TODO: Add public method to SyncProgressTracker for emitting network error events
-      // For now, just log the network error
-      _logger.warning(
-        'Network error will be retried automatically',
-        <String, dynamic>{
-          'operation_id': operation.id,
-          'error_message': error.message,
-        },
+      _progressTracker.emitEvent(
+        SyncFailedEvent(
+          error: 'Network error: ${error.message}. Will retry when connection is restored.',
+          timestamp: DateTime.now(),
+        ),
       );
 
       _logger.info(
@@ -1488,10 +1500,6 @@ class SyncManager {
   /// Perform full sync from server.
   ///
   /// Fetches all data from server and replaces local database.
-  /// Use with caution as this will overwrite local changes.
-  /// Perform full sync from server.
-  ///
-  /// Fetches all data from server and replaces local database.
   /// This is a destructive operation that clears all local data.
   ///
   /// Steps:
@@ -1514,21 +1522,196 @@ class SyncManager {
           phase: SyncPhase.pulling,
         );
 
-        // TODO: Implement full sync data fetching
-        // - Add getAllAccounts, getAllCategories, getAllBudgets, getAllBills, getAllPiggyBanks, getAllTransactions to FireflyApiAdapter
-        // - Implement pagination for large datasets (especially transactions)
-        // - Clear local database tables in transaction
-        // - Insert all server data with correct Companion classes matching schema
-        // - Handle type conversions (String to double, etc.)
-        // - Update ID mappings for all entities
-        // - Update last_full_sync metadata
+        // Fetch all data from server
+        _logger.fine('Fetching accounts from server');
+        final accounts = await _apiClient.getAllAccounts();
+        _progressTracker.incrementCompleted();
 
+        _logger.fine('Fetching categories from server');
+        final categories = await _apiClient.getAllCategories();
         _progressTracker.incrementCompleted();
+
+        _logger.fine('Fetching budgets from server');
+        final budgets = await _apiClient.getAllBudgets();
         _progressTracker.incrementCompleted();
+
+        _logger.fine('Fetching bills from server');
+        final bills = await _apiClient.getAllBills();
         _progressTracker.incrementCompleted();
+
+        _logger.fine('Fetching piggy banks from server');
+        final piggyBanks = await _apiClient.getAllPiggyBanks();
         _progressTracker.incrementCompleted();
+
+        _logger.fine('Fetching transactions from server');
+        final transactions = await _apiClient.getAllTransactions();
         _progressTracker.incrementCompleted();
-        _progressTracker.incrementCompleted();
+
+        _logger.info(
+          'Fetched all data from server',
+          <String, dynamic>{
+            'accounts': accounts.length,
+            'categories': categories.length,
+            'budgets': budgets.length,
+            'bills': bills.length,
+            'piggy_banks': piggyBanks.length,
+            'transactions': transactions.length,
+          },
+        );
+
+        // Clear and insert data in transaction
+        await _database.transaction(() async {
+          _logger.fine('Clearing local database');
+          
+          // Clear tables in correct order (respecting foreign keys)
+          await _database.delete(_database.transactions).go();
+          await _database.delete(_database.piggyBanks).go();
+          await _database.delete(_database.bills).go();
+          await _database.delete(_database.budgets).go();
+          await _database.delete(_database.categories).go();
+          await _database.delete(_database.accounts).go();
+          await _database.delete(_database.idMapping).go();
+
+          _logger.fine('Inserting accounts');
+          for (final account in accounts) {
+            final attrs = account['attributes'] as Map<String, dynamic>;
+            await _database.into(_database.accounts).insert(
+              AccountEntityCompanion.insert(
+                id: account['id'] as String,
+                serverId: Value(account['id'] as String),
+                name: attrs['name'] as String,
+                type: attrs['type'] as String,
+                accountNumber: Value(attrs['account_number'] as String?),
+                iban: Value(attrs['iban'] as String?),
+                currencyCode: attrs['currency_code'] as String? ?? 'USD',
+                currentBalance: (attrs['current_balance'] as num?)?.toDouble() ?? 0.0,
+                notes: Value(attrs['notes'] as String?),
+                createdAt: DateTime.parse(attrs['created_at'] as String),
+                updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                isSynced: const Value(true),
+                syncStatus: const Value('synced'),
+              ),
+            );
+          }
+
+          _logger.fine('Inserting categories');
+          for (final category in categories) {
+            final attrs = category['attributes'] as Map<String, dynamic>;
+            await _database.into(_database.categories).insert(
+              CategoryEntityCompanion.insert(
+                id: category['id'] as String,
+                serverId: Value(category['id'] as String),
+                name: attrs['name'] as String,
+                notes: Value(attrs['notes'] as String?),
+                createdAt: DateTime.parse(attrs['created_at'] as String),
+                updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                isSynced: const Value(true),
+                syncStatus: const Value('synced'),
+              ),
+            );
+          }
+
+          _logger.fine('Inserting budgets');
+          for (final budget in budgets) {
+            final attrs = budget['attributes'] as Map<String, dynamic>;
+            await _database.into(_database.budgets).insert(
+              BudgetEntityCompanion.insert(
+                id: budget['id'] as String,
+                serverId: Value(budget['id'] as String),
+                name: attrs['name'] as String,
+                createdAt: DateTime.parse(attrs['created_at'] as String),
+                updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                isSynced: const Value(true),
+                syncStatus: const Value('synced'),
+              ),
+            );
+          }
+
+          _logger.fine('Inserting bills');
+          for (final bill in bills) {
+            final attrs = bill['attributes'] as Map<String, dynamic>;
+            await _database.into(_database.bills).insert(
+              BillEntityCompanion.insert(
+                id: bill['id'] as String,
+                serverId: Value(bill['id'] as String),
+                name: attrs['name'] as String,
+                amountMin: (attrs['amount_min'] as num).toDouble(),
+                amountMax: (attrs['amount_max'] as num).toDouble(),
+                date: DateTime.parse(attrs['date'] as String),
+                repeatFreq: attrs['repeat_freq'] as String,
+                currencyCode: attrs['currency_code'] as String? ?? 'USD',
+                notes: Value(attrs['notes'] as String?),
+                createdAt: DateTime.parse(attrs['created_at'] as String),
+                updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                isSynced: const Value(true),
+                syncStatus: const Value('synced'),
+              ),
+            );
+          }
+
+          _logger.fine('Inserting piggy banks');
+          for (final piggyBank in piggyBanks) {
+            final attrs = piggyBank['attributes'] as Map<String, dynamic>;
+            await _database.into(_database.piggyBanks).insert(
+              PiggyBankEntityCompanion.insert(
+                id: piggyBank['id'] as String,
+                serverId: Value(piggyBank['id'] as String),
+                name: attrs['name'] as String,
+                accountId: attrs['account_id'] as String,
+                targetAmount: Value((attrs['target_amount'] as num?)?.toDouble()),
+                currentAmount: Value((attrs['current_amount'] as num?)?.toDouble() ?? 0.0),
+                startDate: Value(attrs['start_date'] != null ? DateTime.parse(attrs['start_date'] as String) : null),
+                targetDate: Value(attrs['target_date'] != null ? DateTime.parse(attrs['target_date'] as String) : null),
+                createdAt: DateTime.parse(attrs['created_at'] as String),
+                updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                isSynced: const Value(true),
+                syncStatus: const Value('synced'),
+              ),
+            );
+          }
+
+          _logger.fine('Inserting transactions');
+          for (final transaction in transactions) {
+            final attrs = transaction['attributes'] as Map<String, dynamic>;
+            final txList = attrs['transactions'] as List<dynamic>;
+            
+            for (final tx in txList) {
+              final txData = tx as Map<String, dynamic>;
+              await _database.into(_database.transactions).insert(
+                TransactionEntityCompanion.insert(
+                  id: transaction['id'] as String,
+                  serverId: Value(transaction['id'] as String),
+                  type: txData['type'] as String,
+                  date: DateTime.parse(txData['date'] as String),
+                  amount: (txData['amount'] as num).toDouble(),
+                  description: txData['description'] as String,
+                  sourceAccountId: txData['source_id'] as String,
+                  destinationAccountId: txData['destination_id'] as String,
+                  categoryId: Value(txData['category_id'] as String?),
+                  budgetId: Value(txData['budget_id'] as String?),
+                  currencyCode: txData['currency_code'] as String? ?? 'USD',
+                  foreignAmount: Value((txData['foreign_amount'] as num?)?.toDouble()),
+                  foreignCurrencyCode: Value(txData['foreign_currency_code'] as String?),
+                  notes: Value(txData['notes'] as String?),
+                  tags: Value(txData['tags']?.toString() ?? '[]'),
+                  createdAt: DateTime.parse(attrs['created_at'] as String),
+                  updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                  isSynced: const Value(true),
+                  syncStatus: const Value('synced'),
+                ),
+              );
+            }
+          }
+        });
+
+        // Update sync metadata
+        await _database.into(_database.syncMetadata).insertOnConflictUpdate(
+          SyncMetadataEntityCompanion.insert(
+            key: 'last_full_sync',
+            value: DateTime.now().toIso8601String(),
+            updatedAt: DateTime.now(),
+          ),
+        );
 
         _lastFullSyncTime = DateTime.now();
         _lastSyncTime = DateTime.now();
@@ -1575,21 +1758,59 @@ class SyncManager {
           phase: SyncPhase.pulling,
         );
 
-        // TODO: Implement incremental sync
-        // - Add getAccountsSince, getCategoriesSince, getBudgetsSince, getBillsSince, getPiggyBanksSince, getTransactionsSince to FireflyApiAdapter
-        // - Fetch only entities updated since last sync timestamp
-        // - For each entity, check if local has pending changes (isSynced = false)
-        // - If pending changes exist, detect conflict and store for resolution
-        // - If no pending changes, merge server data using insertOnConflictUpdate
-        // - Handle type conversions and schema matching
-        // - Update last_partial_sync metadata
+        final since = _lastSyncTime!;
 
+        // Fetch changes from server
+        _logger.fine('Fetching account changes since $since');
+        final accounts = await _apiClient.getAccountsSince(since);
+        await _mergeAccounts(accounts);
         _progressTracker.incrementCompleted();
+
+        _logger.fine('Fetching category changes since $since');
+        final categories = await _apiClient.getCategoriesSince(since);
+        await _mergeCategories(categories);
         _progressTracker.incrementCompleted();
+
+        _logger.fine('Fetching budget changes since $since');
+        final budgets = await _apiClient.getBudgetsSince(since);
+        await _mergeBudgets(budgets);
         _progressTracker.incrementCompleted();
+
+        _logger.fine('Fetching bill changes since $since');
+        final bills = await _apiClient.getBillsSince(since);
+        await _mergeBills(bills);
         _progressTracker.incrementCompleted();
+
+        _logger.fine('Fetching piggy bank changes since $since');
+        final piggyBanks = await _apiClient.getPiggyBanksSince(since);
+        await _mergePiggyBanks(piggyBanks);
         _progressTracker.incrementCompleted();
+
+        _logger.fine('Fetching transaction changes since $since');
+        final transactions = await _apiClient.getTransactionsSince(since);
+        await _mergeTransactions(transactions);
         _progressTracker.incrementCompleted();
+
+        _logger.info(
+          'Fetched changes from server',
+          <String, dynamic>{
+            'accounts': accounts.length,
+            'categories': categories.length,
+            'budgets': budgets.length,
+            'bills': bills.length,
+            'piggy_banks': piggyBanks.length,
+            'transactions': transactions.length,
+          },
+        );
+
+        // Update sync metadata
+        await _database.into(_database.syncMetadata).insertOnConflictUpdate(
+          SyncMetadataEntityCompanion.insert(
+            key: 'last_partial_sync',
+            value: DateTime.now().toIso8601String(),
+            updatedAt: DateTime.now(),
+          ),
+        );
 
         _lastSyncTime = DateTime.now();
 
@@ -1602,6 +1823,228 @@ class SyncManager {
         rethrow;
       }
     });
+  }
+
+  /// Merge accounts from server with local data
+  Future<void> _mergeAccounts(List<Map<String, dynamic>> accounts) async {
+    for (final account in accounts) {
+      final serverId = account['id'] as String;
+      final attrs = account['attributes'] as Map<String, dynamic>;
+      
+      // Check if local has pending changes
+      final local = await (_database.select(_database.accounts)
+            ..where((tbl) => tbl.serverId.equals(serverId)))
+          .getSingleOrNull();
+      
+      if (local != null && !local.isSynced) {
+        // TODO: Conflict detected - store for resolution
+        _logger.warning('Conflict detected for account $serverId');
+        _progressTracker.incrementConflicts();
+        continue;
+      }
+      
+      // Merge server data
+      await _database.into(_database.accounts).insertOnConflictUpdate(
+        AccountEntityCompanion.insert(
+          id: serverId,
+          serverId: Value(serverId),
+          name: attrs['name'] as String,
+          type: attrs['type'] as String,
+          accountNumber: Value(attrs['account_number'] as String?),
+          iban: Value(attrs['iban'] as String?),
+          currencyCode: attrs['currency_code'] as String? ?? 'USD',
+          currentBalance: (attrs['current_balance'] as num?)?.toDouble() ?? 0.0,
+          notes: Value(attrs['notes'] as String?),
+          createdAt: DateTime.parse(attrs['created_at'] as String),
+          updatedAt: DateTime.parse(attrs['updated_at'] as String),
+          isSynced: const Value(true),
+          syncStatus: const Value('synced'),
+        ),
+      );
+    }
+  }
+
+  /// Merge categories from server with local data
+  Future<void> _mergeCategories(List<Map<String, dynamic>> categories) async {
+    for (final category in categories) {
+      final serverId = category['id'] as String;
+      final attrs = category['attributes'] as Map<String, dynamic>;
+      
+      final local = await (_database.select(_database.categories)
+            ..where((tbl) => tbl.serverId.equals(serverId)))
+          .getSingleOrNull();
+      
+      if (local != null && !local.isSynced) {
+        // TODO: Conflict detected
+        _logger.warning('Conflict detected for category $serverId');
+        _progressTracker.incrementConflicts();
+        continue;
+      }
+      
+      await _database.into(_database.categories).insertOnConflictUpdate(
+        CategoryEntityCompanion.insert(
+          id: serverId,
+          serverId: Value(serverId),
+          name: attrs['name'] as String,
+          notes: Value(attrs['notes'] as String?),
+          createdAt: DateTime.parse(attrs['created_at'] as String),
+          updatedAt: DateTime.parse(attrs['updated_at'] as String),
+          isSynced: const Value(true),
+          syncStatus: const Value('synced'),
+        ),
+      );
+    }
+  }
+
+  /// Merge budgets from server with local data
+  Future<void> _mergeBudgets(List<Map<String, dynamic>> budgets) async {
+    for (final budget in budgets) {
+      final serverId = budget['id'] as String;
+      final attrs = budget['attributes'] as Map<String, dynamic>;
+      
+      final local = await (_database.select(_database.budgets)
+            ..where((tbl) => tbl.serverId.equals(serverId)))
+          .getSingleOrNull();
+      
+      if (local != null && !local.isSynced) {
+        // TODO: Conflict detected
+        _logger.warning('Conflict detected for budget $serverId');
+        _progressTracker.incrementConflicts();
+        continue;
+      }
+      
+      await _database.into(_database.budgets).insertOnConflictUpdate(
+        BudgetEntityCompanion.insert(
+          id: serverId,
+          serverId: Value(serverId),
+          name: attrs['name'] as String,
+          createdAt: DateTime.parse(attrs['created_at'] as String),
+          updatedAt: DateTime.parse(attrs['updated_at'] as String),
+          isSynced: const Value(true),
+          syncStatus: const Value('synced'),
+        ),
+      );
+    }
+  }
+
+  /// Merge bills from server with local data
+  Future<void> _mergeBills(List<Map<String, dynamic>> bills) async {
+    for (final bill in bills) {
+      final serverId = bill['id'] as String;
+      final attrs = bill['attributes'] as Map<String, dynamic>;
+      
+      final local = await (_database.select(_database.bills)
+            ..where((tbl) => tbl.serverId.equals(serverId)))
+          .getSingleOrNull();
+      
+      if (local != null && !local.isSynced) {
+        // TODO: Conflict detected
+        _logger.warning('Conflict detected for bill $serverId');
+        _progressTracker.incrementConflicts();
+        continue;
+      }
+      
+      await _database.into(_database.bills).insertOnConflictUpdate(
+        BillEntityCompanion.insert(
+          id: serverId,
+          serverId: Value(serverId),
+          name: attrs['name'] as String,
+          amountMin: (attrs['amount_min'] as num).toDouble(),
+          amountMax: (attrs['amount_max'] as num).toDouble(),
+          date: DateTime.parse(attrs['date'] as String),
+          repeatFreq: attrs['repeat_freq'] as String,
+          currencyCode: attrs['currency_code'] as String? ?? 'USD',
+          notes: Value(attrs['notes'] as String?),
+          createdAt: DateTime.parse(attrs['created_at'] as String),
+          updatedAt: DateTime.parse(attrs['updated_at'] as String),
+          isSynced: const Value(true),
+          syncStatus: const Value('synced'),
+        ),
+      );
+    }
+  }
+
+  /// Merge piggy banks from server with local data
+  Future<void> _mergePiggyBanks(List<Map<String, dynamic>> piggyBanks) async {
+    for (final piggyBank in piggyBanks) {
+      final serverId = piggyBank['id'] as String;
+      final attrs = piggyBank['attributes'] as Map<String, dynamic>;
+      
+      final local = await (_database.select(_database.piggyBanks)
+            ..where((tbl) => tbl.serverId.equals(serverId)))
+          .getSingleOrNull();
+      
+      if (local != null && !local.isSynced) {
+        // TODO: Conflict detected
+        _logger.warning('Conflict detected for piggy bank $serverId');
+        _progressTracker.incrementConflicts();
+        continue;
+      }
+      
+      await _database.into(_database.piggyBanks).insertOnConflictUpdate(
+        PiggyBankEntityCompanion.insert(
+          id: serverId,
+          serverId: Value(serverId),
+          name: attrs['name'] as String,
+          accountId: attrs['account_id'] as String,
+          targetAmount: Value((attrs['target_amount'] as num?)?.toDouble()),
+          currentAmount: Value((attrs['current_amount'] as num?)?.toDouble() ?? 0.0),
+          startDate: Value(attrs['start_date'] != null ? DateTime.parse(attrs['start_date'] as String) : null),
+          targetDate: Value(attrs['target_date'] != null ? DateTime.parse(attrs['target_date'] as String) : null),
+          createdAt: DateTime.parse(attrs['created_at'] as String),
+          updatedAt: DateTime.parse(attrs['updated_at'] as String),
+          isSynced: const Value(true),
+          syncStatus: const Value('synced'),
+        ),
+      );
+    }
+  }
+
+  /// Merge transactions from server with local data
+  Future<void> _mergeTransactions(List<Map<String, dynamic>> transactions) async {
+    for (final transaction in transactions) {
+      final serverId = transaction['id'] as String;
+      final attrs = transaction['attributes'] as Map<String, dynamic>;
+      
+      final local = await (_database.select(_database.transactions)
+            ..where((tbl) => tbl.serverId.equals(serverId)))
+          .getSingleOrNull();
+      
+      if (local != null && !local.isSynced) {
+        // TODO: Conflict detected
+        _logger.warning('Conflict detected for transaction $serverId');
+        _progressTracker.incrementConflicts();
+        continue;
+      }
+      
+      final txList = attrs['transactions'] as List<dynamic>;
+      for (final tx in txList) {
+        final txData = tx as Map<String, dynamic>;
+        await _database.into(_database.transactions).insertOnConflictUpdate(
+          TransactionEntityCompanion.insert(
+            id: serverId,
+            serverId: Value(serverId),
+            type: txData['type'] as String,
+            date: DateTime.parse(txData['date'] as String),
+            amount: (txData['amount'] as num).toDouble(),
+            description: txData['description'] as String,
+            sourceAccountId: txData['source_id'] as String,
+            destinationAccountId: txData['destination_id'] as String,
+            categoryId: Value(txData['category_id'] as String?),
+            budgetId: Value(txData['budget_id'] as String?),
+            currencyCode: txData['currency_code'] as String? ?? 'USD',
+            foreignAmount: Value((txData['foreign_amount'] as num?)?.toDouble()),
+            foreignCurrencyCode: Value(txData['foreign_currency_code'] as String?),
+            notes: Value(txData['notes'] as String?),
+            tags: Value(txData['tags']?.toString() ?? '[]'),
+            createdAt: DateTime.parse(attrs['created_at'] as String),
+            updatedAt: DateTime.parse(attrs['updated_at'] as String),
+            isSynced: const Value(true),
+            syncStatus: const Value('synced'),
+          ),
+        );
+      }
+    }
   }
 
   /// Schedule periodic sync.

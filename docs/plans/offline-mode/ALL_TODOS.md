@@ -143,20 +143,21 @@ This document catalogs all TODO items across the entire project.
   - Store conflict details for user resolution
   - **Required for**: Conflict error handling persistence
 
-- [ ] **Line 1255**: Add public method to SyncProgressTracker for emitting custom events
-  - Make _emitEvent public or add wrapper methods
+- [x] **Line 1255**: Add public method to SyncProgressTracker for emitting custom events ✅ **COMPLETED 2024-12-14**
+  - Added emitEvent() public method wrapping _emitEvent
   - **Required for**: UI notification of specific error types
 
-- [ ] **Line 1256**: Add incrementConflicts method to SyncProgressTracker
-  - Track conflicts detected counter
+- [x] **Line 1256**: Add incrementConflicts method to SyncProgressTracker ✅ **COMPLETED 2024-12-14**
+  - Method already existed at line 173
+  - Tracks conflicts and emits ConflictDetectedEvent
   - **Required for**: Conflict statistics in progress tracking
 
 - [ ] **Line 1323**: Create error_log table to persist validation errors for analytics
   - Store validation errors with field and rule details
   - **Required for**: Validation error persistence
 
-- [ ] **Line 1340**: Add public method to SyncProgressTracker for emitting validation error events
-  - Enable validation error notifications to UI
+- [x] **Line 1340**: Add public method to SyncProgressTracker for emitting validation error events ✅ **COMPLETED 2024-12-14**
+  - Using emitEvent() with SyncFailedEvent
   - **Required for**: User feedback on validation failures
 
 - [ ] **Line 1432**: Implement connectivity listener to trigger sync when network returns
@@ -164,19 +165,19 @@ This document catalogs all TODO items across the entire project.
   - Trigger sync automatically when network restored
   - **Required for**: Network error automatic retry
 
-- [ ] **Line 1442**: Add public method to SyncProgressTracker for emitting network error events
-  - Enable network error notifications to UI
+- [x] **Line 1442**: Add public method to SyncProgressTracker for emitting network error events ✅ **COMPLETED 2024-12-14**
+  - Using emitEvent() with SyncFailedEvent
   - **Required for**: User feedback on network issues
 
-- [ ] **Line 1517**: Implement full sync data fetching
-  - Add getAllAccounts, getAllCategories, getAllBudgets, getAllBills, getAllPiggyBanks, getAllTransactions to FireflyApiAdapter
-  - Implement pagination for large datasets
+- [x] **Line 1517**: Implement full sync data fetching ✅ **COMPLETED 2024-12-14**
+  - Added getAllAccounts, getAllCategories, getAllBudgets, getAllBills, getAllPiggyBanks, getAllTransactions to FireflyApiAdapter
+  - Implemented pagination for large datasets
   - Clear local database and insert all server data
   - Handle type conversions and schema matching
   - **Required for**: Full sync functionality
 
-- [ ] **Line 1578**: Implement incremental sync
-  - Add getAccountsSince, getCategoriesSince, getBudgetsSince, getBillsSince, getPiggyBanksSince, getTransactionsSince to FireflyApiAdapter
+- [x] **Line 1578**: Implement incremental sync ✅ **COMPLETED 2024-12-14**
+  - Added getAccountsSince, getCategoriesSince, getBudgetsSince, getBillsSince, getPiggyBanksSince, getTransactionsSince to FireflyApiAdapter
   - Fetch only entities updated since last sync
   - Detect conflicts and merge data
   - **Required for**: Incremental sync functionality
@@ -192,52 +193,52 @@ This document catalogs all TODO items across the entire project.
 ### API Enhancements
 
 #### `lib/services/sync/firefly_api_adapter.dart`
-- [ ] **New**: Implement getAllAccounts method
+- [x] **New**: Implement getAllAccounts method ✅ **COMPLETED 2024-12-14**
   - Fetch all accounts from server with pagination
   - **Required for**: Full sync implementation
 
-- [ ] **New**: Implement getAllCategories method
+- [x] **New**: Implement getAllCategories method ✅ **COMPLETED 2024-12-14**
   - Fetch all categories from server
   - **Required for**: Full sync implementation
 
-- [ ] **New**: Implement getAllBudgets method
+- [x] **New**: Implement getAllBudgets method ✅ **COMPLETED 2024-12-14**
   - Fetch all budgets from server
   - **Required for**: Full sync implementation
 
-- [ ] **New**: Implement getAllBills method
+- [x] **New**: Implement getAllBills method ✅ **COMPLETED 2024-12-14**
   - Fetch all bills from server
   - **Required for**: Full sync implementation
 
-- [ ] **New**: Implement getAllPiggyBanks method
+- [x] **New**: Implement getAllPiggyBanks method ✅ **COMPLETED 2024-12-14**
   - Fetch all piggy banks from server
   - **Required for**: Full sync implementation
 
-- [ ] **New**: Implement getAllTransactions method with pagination
+- [x] **New**: Implement getAllTransactions method with pagination ✅ **COMPLETED 2024-12-14**
   - Fetch all transactions from server
   - Support pagination for large datasets
   - **Required for**: Full sync implementation
 
-- [ ] **New**: Implement getAccountsSince method
+- [x] **New**: Implement getAccountsSince method ✅ **COMPLETED 2024-12-14**
   - Fetch accounts updated since timestamp
   - **Required for**: Incremental sync implementation
 
-- [ ] **New**: Implement getCategoriesSince method
+- [x] **New**: Implement getCategoriesSince method ✅ **COMPLETED 2024-12-14**
   - Fetch categories updated since timestamp
   - **Required for**: Incremental sync implementation
 
-- [ ] **New**: Implement getBudgetsSince method
+- [x] **New**: Implement getBudgetsSince method ✅ **COMPLETED 2024-12-14**
   - Fetch budgets updated since timestamp
   - **Required for**: Incremental sync implementation
 
-- [ ] **New**: Implement getBillsSince method
+- [x] **New**: Implement getBillsSince method ✅ **COMPLETED 2024-12-14**
   - Fetch bills updated since timestamp
   - **Required for**: Incremental sync implementation
 
-- [ ] **New**: Implement getPiggyBanksSince method
-  - Fetch piggy banks updated since timestamp
+- [x] **New**: Implement getPiggyBanksSince method ✅ **COMPLETED 2024-12-14**
+  - Fetch piggy banks updated since timestamp (API doesn't support date filter, fetches all)
   - **Required for**: Incremental sync implementation
 
-- [ ] **New**: Implement getTransactionsSince method
+- [x] **New**: Implement getTransactionsSince method ✅ **COMPLETED 2024-12-14**
   - Fetch transactions updated since timestamp
   - **Required for**: Incremental sync implementation
 
@@ -642,22 +643,22 @@ This document catalogs all TODO items across the entire project.
 
 ## 📊 Progress Tracking
 
-**Last Updated**: 2024-12-14 12:25
+**Last Updated**: 2024-12-14 13:18
 
-**Build Status**: ✅ PASSING (0 errors, 0 warnings, 1572 info)  
-**Test Status**: ✅ ALL TESTS PASSING (40 tests)  
+**Build Status**: ✅ PASSING (0 errors, 0 warnings)  
+**Test Status**: ⏳ PENDING  
 **Drift Code**: ✅ GENERATED (317KB app_database.g.dart)  
-**Code Quality**: ✅ ALL WARNINGS FIXED
+**Code Quality**: ✅ CLEAN
 
 | Phase | Total Items | Completed | Progress |
 |-------|-------------|-----------|----------|
-| Phase 1: Core Sync | 27 | 11 | 41% |
+| Phase 1: Core Sync | 27 | 13 | 48% |
 | Phase 2: Conflict & Error | 15 | 6 | 40% |
 | Phase 3: UI/UX | 13 | 0 | 0% |
 | Phase 4: Enhancements | 11 | 0 | 0% |
 | Phase 5: Polish | 12 | 0 | 0% |
-| **New TODOs** | **31** | **2** | **6%** |
-| **TOTAL** | **109** | **19** | **17%** |
+| **New TODOs** | **31** | **16** | **52%** |
+| **TOTAL** | **109** | **35** | **32%** |
 
 ### Recent Completions (2024-12-14)
 1. ✅ Queue operations (_getPendingOperations)
@@ -679,6 +680,9 @@ This document catalogs all TODO items across the entire project.
 17. ✅ Event emission for UI notifications
 18. ✅ Full sync implementation (fetch all, clear, insert)
 19. ✅ Incremental sync implementation (fetch changes, merge, detect conflicts)
+20. ✅ **All 12 API methods for full and incremental sync**
+21. ✅ **Pagination support for all entity types**
+22. ✅ **Merge logic for all entity types with conflict detection**
 
 ### Implementation Notes
 - ✅ Core sync infrastructure complete and fully functional

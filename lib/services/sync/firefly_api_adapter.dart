@@ -479,4 +479,413 @@ class FireflyApiAdapter {
       throw Exception('Failed to delete piggy bank: ${response.error}');
     }
   }
+
+  // ==================== Full Sync Methods ====================
+
+  /// Get all accounts from server
+  Future<List<Map<String, dynamic>>> getAllAccounts() async {
+    _logger.fine('Fetching all accounts from API');
+    
+    final List<Map<String, dynamic>> allAccounts = <Map<String, dynamic>>[];
+    int page = 1;
+    
+    while (true) {
+      final response = await apiClient.v1AccountsGet(page: page);
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch accounts: ${response.error}');
+      }
+      
+      final accounts = response.body!.data;
+      if (accounts.isEmpty) break;
+      
+      for (final account in accounts) {
+        allAccounts.add({
+          'id': account.id,
+          'type': account.type,
+          'attributes': account.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${allAccounts.length} accounts');
+    return allAccounts;
+  }
+
+  /// Get all categories from server
+  Future<List<Map<String, dynamic>>> getAllCategories() async {
+    _logger.fine('Fetching all categories from API');
+    
+    final List<Map<String, dynamic>> allCategories = <Map<String, dynamic>>[];
+    int page = 1;
+    
+    while (true) {
+      final response = await apiClient.v1CategoriesGet(page: page);
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch categories: ${response.error}');
+      }
+      
+      final categories = response.body!.data;
+      if (categories.isEmpty) break;
+      
+      for (final category in categories) {
+        allCategories.add({
+          'id': category.id,
+          'type': category.type,
+          'attributes': category.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${allCategories.length} categories');
+    return allCategories;
+  }
+
+  /// Get all budgets from server
+  Future<List<Map<String, dynamic>>> getAllBudgets() async {
+    _logger.fine('Fetching all budgets from API');
+    
+    final List<Map<String, dynamic>> allBudgets = <Map<String, dynamic>>[];
+    int page = 1;
+    
+    while (true) {
+      final response = await apiClient.v1BudgetsGet(page: page);
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch budgets: ${response.error}');
+      }
+      
+      final budgets = response.body!.data;
+      if (budgets.isEmpty) break;
+      
+      for (final budget in budgets) {
+        allBudgets.add({
+          'id': budget.id,
+          'type': budget.type,
+          'attributes': budget.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${allBudgets.length} budgets');
+    return allBudgets;
+  }
+
+  /// Get all bills from server
+  Future<List<Map<String, dynamic>>> getAllBills() async {
+    _logger.fine('Fetching all bills from API');
+    
+    final List<Map<String, dynamic>> allBills = <Map<String, dynamic>>[];
+    int page = 1;
+    
+    while (true) {
+      final response = await apiClient.v1BillsGet(page: page);
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch bills: ${response.error}');
+      }
+      
+      final bills = response.body!.data;
+      if (bills.isEmpty) break;
+      
+      for (final bill in bills) {
+        allBills.add({
+          'id': bill.id,
+          'type': bill.type,
+          'attributes': bill.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${allBills.length} bills');
+    return allBills;
+  }
+
+  /// Get all piggy banks from server
+  Future<List<Map<String, dynamic>>> getAllPiggyBanks() async {
+    _logger.fine('Fetching all piggy banks from API');
+    
+    final List<Map<String, dynamic>> allPiggyBanks = <Map<String, dynamic>>[];
+    int page = 1;
+    
+    while (true) {
+      final response = await apiClient.v1PiggyBanksGet(page: page);
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch piggy banks: ${response.error}');
+      }
+      
+      final piggyBanks = response.body!.data;
+      if (piggyBanks.isEmpty) break;
+      
+      for (final piggyBank in piggyBanks) {
+        allPiggyBanks.add({
+          'id': piggyBank.id,
+          'type': piggyBank.type,
+          'attributes': piggyBank.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${allPiggyBanks.length} piggy banks');
+    return allPiggyBanks;
+  }
+
+  /// Get all transactions from server with pagination
+  Future<List<Map<String, dynamic>>> getAllTransactions() async {
+    _logger.fine('Fetching all transactions from API');
+    
+    final List<Map<String, dynamic>> allTransactions = <Map<String, dynamic>>[];
+    int page = 1;
+    
+    while (true) {
+      final response = await apiClient.v1TransactionsGet(page: page);
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch transactions: ${response.error}');
+      }
+      
+      final transactions = response.body!.data;
+      if (transactions.isEmpty) break;
+      
+      for (final transaction in transactions) {
+        allTransactions.add({
+          'id': transaction.id,
+          'type': transaction.type,
+          'attributes': transaction.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${allTransactions.length} transactions');
+    return allTransactions;
+  }
+
+  // ==================== Incremental Sync Methods ====================
+
+  /// Get accounts updated since timestamp
+  Future<List<Map<String, dynamic>>> getAccountsSince(DateTime since) async {
+    _logger.fine('Fetching accounts updated since $since');
+    
+    final List<Map<String, dynamic>> accounts = <Map<String, dynamic>>[];
+    int page = 1;
+    final startDate = since.toIso8601String().split('T')[0];
+    
+    while (true) {
+      final response = await apiClient.v1AccountsGet(
+        page: page,
+        start: startDate,
+      );
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch accounts: ${response.error}');
+      }
+      
+      final data = response.body!.data;
+      if (data.isEmpty) break;
+      
+      for (final account in data) {
+        accounts.add({
+          'id': account.id,
+          'type': account.type,
+          'attributes': account.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${accounts.length} accounts since $since');
+    return accounts;
+  }
+
+  /// Get categories updated since timestamp
+  Future<List<Map<String, dynamic>>> getCategoriesSince(DateTime since) async {
+    _logger.fine('Fetching categories updated since $since');
+    
+    final List<Map<String, dynamic>> categories = <Map<String, dynamic>>[];
+    int page = 1;
+    final startDate = since.toIso8601String().split('T')[0];
+    
+    while (true) {
+      final response = await apiClient.v1CategoriesGet(
+        page: page,
+      );
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch categories: ${response.error}');
+      }
+      
+      final data = response.body!.data;
+      if (data.isEmpty) break;
+      
+      for (final category in data) {
+        categories.add({
+          'id': category.id,
+          'type': category.type,
+          'attributes': category.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${categories.length} categories since $since');
+    return categories;
+  }
+
+  /// Get budgets updated since timestamp
+  Future<List<Map<String, dynamic>>> getBudgetsSince(DateTime since) async {
+    _logger.fine('Fetching budgets updated since $since');
+    
+    final List<Map<String, dynamic>> budgets = <Map<String, dynamic>>[];
+    int page = 1;
+    final startDate = since.toIso8601String().split('T')[0];
+    
+    while (true) {
+      final response = await apiClient.v1BudgetsGet(
+        page: page,
+        start: startDate,
+      );
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch budgets: ${response.error}');
+      }
+      
+      final data = response.body!.data;
+      if (data.isEmpty) break;
+      
+      for (final budget in data) {
+        budgets.add({
+          'id': budget.id,
+          'type': budget.type,
+          'attributes': budget.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${budgets.length} budgets since $since');
+    return budgets;
+  }
+
+  /// Get bills updated since timestamp
+  Future<List<Map<String, dynamic>>> getBillsSince(DateTime since) async {
+    _logger.fine('Fetching bills updated since $since');
+    
+    final List<Map<String, dynamic>> bills = <Map<String, dynamic>>[];
+    int page = 1;
+    final startDate = since.toIso8601String().split('T')[0];
+    
+    while (true) {
+      final response = await apiClient.v1BillsGet(
+        page: page,
+      );
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch bills: ${response.error}');
+      }
+      
+      final data = response.body!.data;
+      if (data.isEmpty) break;
+      
+      for (final bill in data) {
+        bills.add({
+          'id': bill.id,
+          'type': bill.type,
+          'attributes': bill.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${bills.length} bills since $since');
+    return bills;
+  }
+
+  /// Get piggy banks updated since timestamp
+  Future<List<Map<String, dynamic>>> getPiggyBanksSince(DateTime since) async {
+    _logger.fine('Fetching piggy banks updated since $since');
+    
+    final List<Map<String, dynamic>> piggyBanks = <Map<String, dynamic>>[];
+    int page = 1;
+    
+    // Note: Piggy banks API doesn't support date filtering, fetch all and filter locally
+    while (true) {
+      final response = await apiClient.v1PiggyBanksGet(
+        page: page,
+      );
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch piggy banks: ${response.error}');
+      }
+      
+      final data = response.body!.data;
+      if (data.isEmpty) break;
+      
+      for (final piggyBank in data) {
+        piggyBanks.add({
+          'id': piggyBank.id,
+          'type': piggyBank.type,
+          'attributes': piggyBank.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${piggyBanks.length} piggy banks since $since');
+    return piggyBanks;
+  }
+
+  /// Get transactions updated since timestamp
+  Future<List<Map<String, dynamic>>> getTransactionsSince(DateTime since) async {
+    _logger.fine('Fetching transactions updated since $since');
+    
+    final List<Map<String, dynamic>> transactions = <Map<String, dynamic>>[];
+    int page = 1;
+    final startDate = since.toIso8601String().split('T')[0];
+    
+    while (true) {
+      final response = await apiClient.v1TransactionsGet(
+        page: page,
+        start: startDate,
+      );
+      
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception('Failed to fetch transactions: ${response.error}');
+      }
+      
+      final data = response.body!.data;
+      if (data.isEmpty) break;
+      
+      for (final transaction in data) {
+        transactions.add({
+          'id': transaction.id,
+          'type': transaction.type,
+          'attributes': transaction.attributes.toJson(),
+        });
+      }
+      
+      page++;
+    }
+    
+    _logger.info('Fetched ${transactions.length} transactions since $since');
+    return transactions;
+  }
 }

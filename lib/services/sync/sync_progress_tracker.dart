@@ -353,6 +353,16 @@ class SyncProgressTracker {
     }
   }
 
+  /// Emit a custom sync event.
+  ///
+  /// Public method to allow external components to emit events.
+  ///
+  /// Args:
+  ///   event: The sync event to emit
+  void emitEvent(SyncEvent event) {
+    _emitEvent(event);
+  }
+
   /// Cancel current sync.
   void cancel() {
     if (_currentProgress == null) return;
