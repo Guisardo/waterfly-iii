@@ -12,6 +12,8 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:waterflyiii/app.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
   Logger.root.level = kDebugMode ? Level.ALL : Level.INFO;
   Logger.root.onRecord.listen((LogRecord record) {
     developer.log(

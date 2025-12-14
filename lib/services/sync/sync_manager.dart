@@ -1559,7 +1559,7 @@ class SyncManager {
           },
         );
 
-        // Clear and insert data in transaction
+        // Clear and insert data in transaction using batch operations for performance
         await _database.transaction(() async {
           _logger.fine('Clearing local database');
           
@@ -1572,128 +1572,23 @@ class SyncManager {
           await _database.delete(_database.accounts).go();
           await _database.delete(_database.idMapping).go();
 
-          _logger.fine('Inserting accounts');
-          for (final account in accounts) {
-            final attrs = account['attributes'] as Map<String, dynamic>;
-            await _database.into(_database.accounts).insert(
-              AccountEntityCompanion.insert(
-                id: account['id'] as String,
-                serverId: Value(account['id'] as String),
-                name: attrs['name'] as String,
-                type: attrs['type'] as String,
-                accountNumber: Value(attrs['account_number'] as String?),
-                iban: Value(attrs['iban'] as String?),
-                currencyCode: attrs['currency_code'] as String? ?? 'USD',
-                currentBalance: (attrs['current_balance'] as num?)?.toDouble() ?? 0.0,
-                notes: Value(attrs['notes'] as String?),
-                createdAt: DateTime.parse(attrs['created_at'] as String),
-                updatedAt: DateTime.parse(attrs['updated_at'] as String),
-                isSynced: const Value(true),
-                syncStatus: const Value('synced'),
-              ),
-            );
-          }
-
-          _logger.fine('Inserting categories');
-          for (final category in categories) {
-            final attrs = category['attributes'] as Map<String, dynamic>;
-            await _database.into(_database.categories).insert(
-              CategoryEntityCompanion.insert(
-                id: category['id'] as String,
-                serverId: Value(category['id'] as String),
-                name: attrs['name'] as String,
-                notes: Value(attrs['notes'] as String?),
-                createdAt: DateTime.parse(attrs['created_at'] as String),
-                updatedAt: DateTime.parse(attrs['updated_at'] as String),
-                isSynced: const Value(true),
-                syncStatus: const Value('synced'),
-              ),
-            );
-          }
-
-          _logger.fine('Inserting budgets');
-          for (final budget in budgets) {
-            final attrs = budget['attributes'] as Map<String, dynamic>;
-            await _database.into(_database.budgets).insert(
-              BudgetEntityCompanion.insert(
-                id: budget['id'] as String,
-                serverId: Value(budget['id'] as String),
-                name: attrs['name'] as String,
-                createdAt: DateTime.parse(attrs['created_at'] as String),
-                updatedAt: DateTime.parse(attrs['updated_at'] as String),
-                isSynced: const Value(true),
-                syncStatus: const Value('synced'),
-              ),
-            );
-          }
-
-          _logger.fine('Inserting bills');
-          for (final bill in bills) {
-            final attrs = bill['attributes'] as Map<String, dynamic>;
-            await _database.into(_database.bills).insert(
-              BillEntityCompanion.insert(
-                id: bill['id'] as String,
-                serverId: Value(bill['id'] as String),
-                name: attrs['name'] as String,
-                amountMin: (attrs['amount_min'] as num).toDouble(),
-                amountMax: (attrs['amount_max'] as num).toDouble(),
-                date: DateTime.parse(attrs['date'] as String),
-                repeatFreq: attrs['repeat_freq'] as String,
-                currencyCode: attrs['currency_code'] as String? ?? 'USD',
-                notes: Value(attrs['notes'] as String?),
-                createdAt: DateTime.parse(attrs['created_at'] as String),
-                updatedAt: DateTime.parse(attrs['updated_at'] as String),
-                isSynced: const Value(true),
-                syncStatus: const Value('synced'),
-              ),
-            );
-          }
-
-          _logger.fine('Inserting piggy banks');
-          for (final piggyBank in piggyBanks) {
-            final attrs = piggyBank['attributes'] as Map<String, dynamic>;
-            await _database.into(_database.piggyBanks).insert(
-              PiggyBankEntityCompanion.insert(
-                id: piggyBank['id'] as String,
-                serverId: Value(piggyBank['id'] as String),
-                name: attrs['name'] as String,
-                accountId: attrs['account_id'] as String,
-                targetAmount: Value((attrs['target_amount'] as num?)?.toDouble()),
-                currentAmount: Value((attrs['current_amount'] as num?)?.toDouble() ?? 0.0),
-                startDate: Value(attrs['start_date'] != null ? DateTime.parse(attrs['start_date'] as String) : null),
-                targetDate: Value(attrs['target_date'] != null ? DateTime.parse(attrs['target_date'] as String) : null),
-                createdAt: DateTime.parse(attrs['created_at'] as String),
-                updatedAt: DateTime.parse(attrs['updated_at'] as String),
-                isSynced: const Value(true),
-                syncStatus: const Value('synced'),
-              ),
-            );
-          }
-
-          _logger.fine('Inserting transactions');
-          for (final transaction in transactions) {
-            final attrs = transaction['attributes'] as Map<String, dynamic>;
-            final txList = attrs['transactions'] as List<dynamic>;
-            
-            for (final tx in txList) {
-              final txData = tx as Map<String, dynamic>;
-              await _database.into(_database.transactions).insert(
-                TransactionEntityCompanion.insert(
-                  id: transaction['id'] as String,
-                  serverId: Value(transaction['id'] as String),
-                  type: txData['type'] as String,
-                  date: DateTime.parse(txData['date'] as String),
-                  amount: (txData['amount'] as num).toDouble(),
-                  description: txData['description'] as String,
-                  sourceAccountId: txData['source_id'] as String,
-                  destinationAccountId: txData['destination_id'] as String,
-                  categoryId: Value(txData['category_id'] as String?),
-                  budgetId: Value(txData['budget_id'] as String?),
-                  currencyCode: txData['currency_code'] as String? ?? 'USD',
-                  foreignAmount: Value((txData['foreign_amount'] as num?)?.toDouble()),
-                  foreignCurrencyCode: Value(txData['foreign_currency_code'] as String?),
-                  notes: Value(txData['notes'] as String?),
-                  tags: Value(txData['tags']?.toString() ?? '[]'),
+          // Use batch operations for efficient bulk inserts
+          _logger.fine('Batch inserting accounts (${accounts.length} items)');
+          await _database.batch((batch) {
+            for (final account in accounts) {
+              final attrs = account['attributes'] as Map<String, dynamic>;
+              batch.insert(
+                _database.accounts,
+                AccountEntityCompanion.insert(
+                  id: account['id'] as String,
+                  serverId: Value(account['id'] as String),
+                  name: attrs['name'] as String,
+                  type: attrs['type'] as String,
+                  accountNumber: Value(attrs['account_number'] as String?),
+                  iban: Value(attrs['iban'] as String?),
+                  currencyCode: attrs['currency_code'] as String? ?? 'USD',
+                  currentBalance: (attrs['current_balance'] as num?)?.toDouble() ?? 0.0,
+                  notes: Value(attrs['notes'] as String?),
                   createdAt: DateTime.parse(attrs['created_at'] as String),
                   updatedAt: DateTime.parse(attrs['updated_at'] as String),
                   isSynced: const Value(true),
@@ -1701,7 +1596,142 @@ class SyncManager {
                 ),
               );
             }
+          });
+
+          _logger.fine('Batch inserting categories (${categories.length} items)');
+          await _database.batch((batch) {
+            for (final category in categories) {
+              final attrs = category['attributes'] as Map<String, dynamic>;
+              batch.insert(
+                _database.categories,
+                CategoryEntityCompanion.insert(
+                  id: category['id'] as String,
+                  serverId: Value(category['id'] as String),
+                  name: attrs['name'] as String,
+                  notes: Value(attrs['notes'] as String?),
+                  createdAt: DateTime.parse(attrs['created_at'] as String),
+                  updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                  isSynced: const Value(true),
+                  syncStatus: const Value('synced'),
+                ),
+              );
+            }
+          });
+
+          _logger.fine('Batch inserting budgets (${budgets.length} items)');
+          await _database.batch((batch) {
+            for (final budget in budgets) {
+              final attrs = budget['attributes'] as Map<String, dynamic>;
+              batch.insert(
+                _database.budgets,
+                BudgetEntityCompanion.insert(
+                  id: budget['id'] as String,
+                  serverId: Value(budget['id'] as String),
+                  name: attrs['name'] as String,
+                  createdAt: DateTime.parse(attrs['created_at'] as String),
+                  updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                  isSynced: const Value(true),
+                  syncStatus: const Value('synced'),
+                ),
+              );
+            }
+          });
+
+          _logger.fine('Batch inserting bills (${bills.length} items)');
+          await _database.batch((batch) {
+            for (final bill in bills) {
+              final attrs = bill['attributes'] as Map<String, dynamic>;
+              batch.insert(
+                _database.bills,
+                BillEntityCompanion.insert(
+                  id: bill['id'] as String,
+                  serverId: Value(bill['id'] as String),
+                  name: attrs['name'] as String,
+                  amountMin: (attrs['amount_min'] as num).toDouble(),
+                  amountMax: (attrs['amount_max'] as num).toDouble(),
+                  date: DateTime.parse(attrs['date'] as String),
+                  repeatFreq: attrs['repeat_freq'] as String,
+                  currencyCode: attrs['currency_code'] as String? ?? 'USD',
+                  notes: Value(attrs['notes'] as String?),
+                  createdAt: DateTime.parse(attrs['created_at'] as String),
+                  updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                  isSynced: const Value(true),
+                  syncStatus: const Value('synced'),
+                ),
+              );
+            }
+          });
+
+          _logger.fine('Batch inserting piggy banks (${piggyBanks.length} items)');
+          await _database.batch((batch) {
+            for (final piggyBank in piggyBanks) {
+              final attrs = piggyBank['attributes'] as Map<String, dynamic>;
+              batch.insert(
+                _database.piggyBanks,
+                PiggyBankEntityCompanion.insert(
+                  id: piggyBank['id'] as String,
+                  serverId: Value(piggyBank['id'] as String),
+                  name: attrs['name'] as String,
+                  accountId: attrs['account_id'] as String,
+                  targetAmount: Value((attrs['target_amount'] as num?)?.toDouble()),
+                  currentAmount: Value((attrs['current_amount'] as num?)?.toDouble() ?? 0.0),
+                  startDate: Value(attrs['start_date'] != null ? DateTime.parse(attrs['start_date'] as String) : null),
+                  targetDate: Value(attrs['target_date'] != null ? DateTime.parse(attrs['target_date'] as String) : null),
+                  createdAt: DateTime.parse(attrs['created_at'] as String),
+                  updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                  isSynced: const Value(true),
+                  syncStatus: const Value('synced'),
+                ),
+              );
+            }
+          });
+
+          // Process transactions in batches to avoid memory issues with large datasets
+          _logger.fine('Batch inserting transactions (${transactions.length} items)');
+          const batchSize = 500; // Process 500 transactions at a time
+          for (int i = 0; i < transactions.length; i += batchSize) {
+            final end = (i + batchSize < transactions.length) ? i + batchSize : transactions.length;
+            final batch = transactions.sublist(i, end);
+            
+            _logger.fine('Processing transaction batch ${i ~/ batchSize + 1} (${batch.length} items)');
+            
+            await _database.batch((dbBatch) {
+              for (final transaction in batch) {
+                final attrs = transaction['attributes'] as Map<String, dynamic>;
+                final txList = attrs['transactions'] as List<dynamic>;
+                
+                for (final tx in txList) {
+                  final txData = tx as Map<String, dynamic>;
+                  dbBatch.insert(
+                    _database.transactions,
+                    TransactionEntityCompanion.insert(
+                      id: transaction['id'] as String,
+                      serverId: Value(transaction['id'] as String),
+                      type: txData['type'] as String,
+                      date: DateTime.parse(txData['date'] as String),
+                      amount: (txData['amount'] as num).toDouble(),
+                      description: txData['description'] as String,
+                      sourceAccountId: txData['source_id'] as String,
+                      destinationAccountId: txData['destination_id'] as String,
+                      categoryId: Value(txData['category_id'] as String?),
+                      budgetId: Value(txData['budget_id'] as String?),
+                      currencyCode: txData['currency_code'] as String? ?? 'USD',
+                      foreignAmount: Value((txData['foreign_amount'] as num?)?.toDouble()),
+                      foreignCurrencyCode: Value(txData['foreign_currency_code'] as String?),
+                      notes: Value(txData['notes'] as String?),
+                      tags: Value(txData['tags']?.toString() ?? '[]'),
+                      createdAt: DateTime.parse(attrs['created_at'] as String),
+                      updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                      isSynced: const Value(true),
+                      syncStatus: const Value('synced'),
+                    ),
+                  );
+                }
+              }
+            });
           }
+
+          _logger.info('Full sync data insertion completed successfully');
         });
 
         // Update sync metadata

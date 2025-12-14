@@ -44,6 +44,15 @@ class ConnectivityService {
   final Connectivity _connectivity = Connectivity();
   final InternetConnection _internetChecker = InternetConnection();
 
+  /// Optional API client for server reachability checks
+  dynamic _apiClient;
+
+  /// Set the API client for server reachability checks
+  void setApiClient(dynamic apiClient) {
+    _apiClient = apiClient;
+    _logger.fine('API client configured for server reachability checks');
+  }
+
   /// Subject for broadcasting connectivity status changes.
   final BehaviorSubject<ConnectivityStatus> _statusSubject =
       BehaviorSubject<ConnectivityStatus>.seeded(ConnectivityStatus.unknown);
@@ -192,8 +201,17 @@ class ConnectivityService {
         return false;
       }
 
-      // TODO: Add server reachability check when API client is available
-      // For now, assume online if we have internet
+      // Check server reachability if API client is available
+      if (_apiClient != null) {
+        final bool serverReachable = await checkServerReachability();
+        if (!serverReachable) {
+          _logger.info('Internet available but server unreachable');
+          _updateStatus(ConnectivityStatus.offline);
+          _startPeriodicChecks();
+          return false;
+        }
+      }
+
       _logger.info('Connectivity check passed: online');
       _updateStatus(ConnectivityStatus.online);
       _stopPeriodicChecks();
@@ -217,19 +235,21 @@ class ConnectivityService {
   /// Returns `true` if the server responds within the timeout period.
   ///
   /// [timeout] - Maximum time to wait for server response (default: 5 seconds).
-  ///
-  /// TODO: Implement actual server ping using API client
   Future<bool> checkServerReachability({
     Duration timeout = const Duration(seconds: 5),
   }) async {
     _logger.fine('Checking server reachability');
 
     try {
-      // TODO: Implement server ping using API client
-      // For now, return true if we have internet
-      final bool hasInternet = await _internetChecker.hasInternetAccess;
+      if (_apiClient == null) {
+        _logger.fine('No API client configured, skipping server check');
+        return true;
+      }
+
+      // Ping server using API client's about endpoint
+      final response = await _apiClient.v1AboutGet().timeout(timeout);
       
-      if (hasInternet) {
+      if (response.isSuccessful) {
         _logger.info('Server reachability check passed');
         return true;
       } else {
