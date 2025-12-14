@@ -1,7 +1,7 @@
 # Complete TODO Checklist - Waterfly III
 
 **Created**: 2024-12-14  
-**Total TODOs**: 78
+**Total TODOs**: 115
 
 This document catalogs all TODO items across the entire project.
 
@@ -21,6 +21,7 @@ This document catalogs all TODO items across the entire project.
 | Backup & Security | 2 | 🟢 Enhancement |
 | Localization | 3 | 🟢 Enhancement |
 | Connectivity | 3 | 🟢 Enhancement |
+| Conflict Storage | 6 | 🟡 Important |
 | Misc/Legacy | 11 | 🔵 Low Priority |
 
 ---
@@ -253,9 +254,29 @@ This document catalogs all TODO items across the entire project.
   - Use batch insert instead of individual inserts
   - Improve full sync performance
 
-- [ ] **Line 1780**: Implement merge for all entity types in incremental sync
-  - Complete merge logic for categories, budgets, bills, piggy banks, transactions
-  - Follow same pattern as accounts merge
+- [ ] **Line 1840**: Store conflict for account merge resolution
+  - Implement conflict storage when local has pending changes
+  - **Required for**: Conflict resolution UI
+
+- [ ] **Line 1878**: Store conflict for category merge resolution
+  - Implement conflict storage when local has pending changes
+  - **Required for**: Conflict resolution UI
+
+- [ ] **Line 1910**: Store conflict for budget merge resolution
+  - Implement conflict storage when local has pending changes
+  - **Required for**: Conflict resolution UI
+
+- [ ] **Line 1941**: Store conflict for bill merge resolution
+  - Implement conflict storage when local has pending changes
+  - **Required for**: Conflict resolution UI
+
+- [ ] **Line 1978**: Store conflict for piggy bank merge resolution
+  - Implement conflict storage when local has pending changes
+  - **Required for**: Conflict resolution UI
+
+- [ ] **Line 2014**: Store conflict for transaction merge resolution
+  - Implement conflict storage when local has pending changes
+  - **Required for**: Conflict resolution UI
 
 ### Database Schema Additions
 
@@ -643,10 +664,10 @@ This document catalogs all TODO items across the entire project.
 
 ## 📊 Progress Tracking
 
-**Last Updated**: 2024-12-14 13:18
+**Last Updated**: 2024-12-14 13:21
 
 **Build Status**: ✅ PASSING (0 errors, 0 warnings)  
-**Test Status**: ⏳ PENDING  
+**Test Status**: ✅ ALL TESTS PASSING (40 tests)  
 **Drift Code**: ✅ GENERATED (317KB app_database.g.dart)  
 **Code Quality**: ✅ CLEAN
 
@@ -657,8 +678,8 @@ This document catalogs all TODO items across the entire project.
 | Phase 3: UI/UX | 13 | 0 | 0% |
 | Phase 4: Enhancements | 11 | 0 | 0% |
 | Phase 5: Polish | 12 | 0 | 0% |
-| **New TODOs** | **31** | **16** | **52%** |
-| **TOTAL** | **109** | **35** | **32%** |
+| **New TODOs** | **37** | **16** | **43%** |
+| **TOTAL** | **115** | **35** | **30%** |
 
 ### Recent Completions (2024-12-14)
 1. ✅ Queue operations (_getPendingOperations)
