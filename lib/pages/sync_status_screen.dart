@@ -494,11 +494,10 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
             subtitle: Text(conflict.toString()),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () {
-              // TODO: Navigate to conflict resolution screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Conflict resolution coming soon'),
-                ),
+              // Navigate to conflict resolution screen
+              Navigator.pushNamed(
+                context,
+                '/conflicts',
               );
             },
           ),
