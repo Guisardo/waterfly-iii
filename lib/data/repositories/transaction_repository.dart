@@ -157,7 +157,35 @@ class TransactionRepository
 
       logger.info('Transaction created successfully: $id');
       
-      // TODO: Add to sync queue if in offline mode
+      // Add to sync queue for offline sync
+      if (_syncQueueManager != null) {
+        await _syncQueueManager!.addOperation(
+          SyncOperation(
+            id: _uuidService.generate(),
+            entityType: 'transaction',
+            entityId: id,
+            operationType: OperationType.create,
+            data: <String, dynamic>{
+              'type': entity.type,
+              'date': entity.date.toIso8601String(),
+              'amount': entity.amount,
+              'description': entity.description,
+              'source_account_id': entity.sourceAccountId,
+              'destination_account_id': entity.destinationAccountId,
+              'category_id': entity.categoryId,
+              'budget_id': entity.budgetId,
+              'currency_code': entity.currencyCode,
+              'foreign_amount': entity.foreignAmount,
+              'foreign_currency_code': entity.foreignCurrencyCode,
+              'notes': entity.notes,
+              'tags': entity.tags,
+            },
+            createdAt: DateTime.now(),
+            priority: 5,
+          ),
+        );
+        logger.fine('Added transaction to sync queue: $id');
+      }
       
       return created;
     } catch (error, stackTrace) {
@@ -209,7 +237,35 @@ class TransactionRepository
 
       logger.info('Transaction updated successfully: $id');
       
-      // TODO: Add to sync queue if in offline mode
+      // Add to sync queue for offline sync
+      if (_syncQueueManager != null) {
+        await _syncQueueManager!.addOperation(
+          SyncOperation(
+            id: _uuidService.generate(),
+            entityType: 'transaction',
+            entityId: id,
+            operationType: OperationType.update,
+            data: <String, dynamic>{
+              'type': updated.type,
+              'date': updated.date.toIso8601String(),
+              'amount': updated.amount,
+              'description': updated.description,
+              'source_account_id': updated.sourceAccountId,
+              'destination_account_id': updated.destinationAccountId,
+              'category_id': updated.categoryId,
+              'budget_id': updated.budgetId,
+              'currency_code': updated.currencyCode,
+              'foreign_amount': updated.foreignAmount,
+              'foreign_currency_code': updated.foreignCurrencyCode,
+              'notes': updated.notes,
+              'tags': updated.tags,
+            },
+            createdAt: DateTime.now(),
+            priority: 5,
+          ),
+        );
+        logger.fine('Added transaction update to sync queue: $id');
+      }
       
       return updated;
     } catch (error, stackTrace) {
@@ -236,7 +292,23 @@ class TransactionRepository
 
       logger.info('Transaction deleted successfully: $id');
       
-      // TODO: Add to sync queue if transaction was synced
+      // Add to sync queue if transaction was synced (has serverId)
+      if (_syncQueueManager != null && existing.serverId != null) {
+        await _syncQueueManager!.addOperation(
+          SyncOperation(
+            id: _uuidService.generate(),
+            entityType: 'transaction',
+            entityId: id,
+            operationType: OperationType.delete,
+            data: <String, dynamic>{
+              'server_id': existing.serverId,
+            },
+            createdAt: DateTime.now(),
+            priority: 5,
+          ),
+        );
+        logger.fine('Added transaction deletion to sync queue: $id');
+      }
     } catch (error, stackTrace) {
       logger.severe('Failed to delete transaction $id', error, stackTrace);
       throw DatabaseException('Failed to delete transaction: $error');

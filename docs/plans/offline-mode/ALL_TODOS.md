@@ -472,20 +472,17 @@ This document catalogs all TODO items across the entire project.
 
 ### `lib/data/repositories/transaction_repository.dart`
 
-- [ ] Line 160: Add to sync queue if in offline mode
-  ```dart
-  // TODO: Add to sync queue if in offline mode
-  ```
+- [x] Line 160: Add to sync queue if in offline mode ✅ **COMPLETED 2024-12-14**
+  - Implemented sync queue integration for create operations
+  - Adds SyncOperation with all transaction data
 
-- [ ] Line 212: Add to sync queue if in offline mode
-  ```dart
-  // TODO: Add to sync queue if in offline mode
-  ```
+- [x] Line 212: Add to sync queue if in offline mode ✅ **COMPLETED 2024-12-14**
+  - Implemented sync queue integration for update operations
+  - Adds SyncOperation with updated transaction data
 
-- [ ] Line 239: Add to sync queue if transaction was synced
-  ```dart
-  // TODO: Add to sync queue if transaction was synced
-  ```
+- [x] Line 239: Add to sync queue if transaction was synced ✅ **COMPLETED 2024-12-14**
+  - Implemented sync queue integration for delete operations
+  - Only adds to queue if transaction has serverId (was synced)
 
 - [ ] Line 706: Implement sync queue removal by entity ID
   ```dart
@@ -681,11 +678,10 @@ This document catalogs all TODO items across the entire project.
 
 ## 📊 Progress Tracking
 
-**Last Updated**: 2024-12-14 13:34
+**Last Updated**: 2024-12-14 13:42
 
 **Build Status**: ✅ PASSING (0 errors, 0 warnings)  
 **Test Status**: ✅ ALL TESTS PASSING (40 tests)  
-**Drift Code**: ✅ GENERATED (app_database.g.dart)  
 **Code Quality**: ✅ CLEAN
 
 | Phase | Total Items | Completed | Progress |
@@ -696,7 +692,7 @@ This document catalogs all TODO items across the entire project.
 | Phase 4: Enhancements | 11 | 0 | 0% |
 | Phase 5: Polish | 12 | 0 | 0% |
 | **New TODOs** | **37** | **30** | **81%** |
-| **TOTAL** | **115** | **51** | **44%** |
+| **TOTAL** | **115** | **54** | **47%** |
 
 ### Recent Completions (2024-12-14)
 1. ✅ Queue operations (_getPendingOperations)
