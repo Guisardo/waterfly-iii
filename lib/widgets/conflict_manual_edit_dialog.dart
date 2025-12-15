@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:provider/provider.dart';
 
+import '../data/local/database/app_database.dart';
 import '../models/conflict.dart';
+import '../services/id_mapping/id_mapping_service.dart';
 import '../services/sync/conflict_resolver.dart';
+import '../services/sync/firefly_api_adapter.dart';
+import '../services/sync/sync_queue_manager.dart';
 
 /// Dialog for manually editing conflict resolution.
 ///
@@ -30,9 +35,24 @@ class ConflictManualEditDialog extends StatefulWidget {
 class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
   static final Logger _logger = Logger('ConflictManualEditDialog');
 
-  final ConflictResolver _resolver = ConflictResolver();
+  ConflictResolver? _resolver;
   final _formKey = GlobalKey<FormState>();
   final Map<String, TextEditingController> _controllers = {};
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_resolver == null) {
+      final database = Provider.of<AppDatabase>(context, listen: false);
+      final apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
+      _resolver = ConflictResolver(
+        apiAdapter: apiAdapter,
+        database: database,
+        queueManager: SyncQueueManager(database),
+        idMapping: IdMappingService(database: database),
+      );
+    }
+  }
   final Map<String, bool> _fieldChanged = {};
   bool _isSaving = false;
 
@@ -358,7 +378,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
 
       _logger.info('Saving manual conflict resolution with custom data');
 
-      await _resolver.resolveWithCustomData(
+      await _resolver!.resolveWithCustomData(
         widget.conflict.id,
         customData,
       );

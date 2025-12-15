@@ -284,9 +284,55 @@ class FireflyService with ChangeNotifier {
       await signIn(apiHost, apiKey);
       return true;
     } catch (e) {
+      // Try offline mode if network error
+      if (e is SocketException || e is TimeoutException || e is http.ClientException) {
+        log.info("Network error during sign in, attempting offline mode");
+        return await _signInOffline(apiHost, apiKey);
+      }
       _storageSignInException = e;
       log.finest(() => "notify FireflyService->signInFromStorage");
       notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> _signInOffline(String host, String apiKey) async {
+    log.config("FireflyService->_signInOffline($host)");
+    
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    
+    // Check if we have cached data
+    final String? cachedCurrency = prefs.getString('cached_default_currency');
+    final String? cachedApiVersion = prefs.getString('cached_api_version');
+    final String? cachedTimezone = prefs.getString('cached_timezone');
+    
+    if (cachedCurrency == null || cachedApiVersion == null || cachedTimezone == null) {
+      log.warning("Missing cached data for offline mode");
+      return false;
+    }
+    
+    try {
+      host = host.strip().rightStrip('/');
+      apiKey = apiKey.strip();
+      
+      final Uri uri = Uri.parse(host);
+      _currentUser = AuthUser._create(uri, apiKey);
+      
+      // Restore cached data
+      defaultCurrency = CurrencyRead.fromJson(json.decode(cachedCurrency));
+      _apiVersion = Version.parse(cachedApiVersion);
+      tzHandler = TimeZoneHandler(cachedTimezone);
+      
+      _signedIn = true;
+      _transStock = TransStock(api);
+      
+      log.info("Signed in offline mode with cached data");
+      log.finest(() => "notify FireflyService->_signInOffline");
+      notifyListeners();
+      
+      return true;
+    } catch (e, stackTrace) {
+      log.warning("Failed to sign in offline", e, stackTrace);
       return false;
     }
   }
@@ -360,6 +406,12 @@ class FireflyService with ChangeNotifier {
 
     await storage.write(key: 'api_host', value: host);
     await storage.write(key: 'api_key', value: apiKey);
+    
+    // Cache data for offline mode
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('cached_default_currency', json.encode(defaultCurrency.toJson()));
+    await prefs.setString('cached_api_version', _apiVersion.toString());
+    await prefs.setString('cached_timezone', tzHandler.sLocation.name);
 
     return true;
   }

@@ -53,10 +53,9 @@ void backgroundSyncCallback() {
     final Logger logger = Logger('BackgroundSyncHandler');
     
     try {
-      logger.info('Background sync task started', <String, dynamic>{
-        'task': task,
-        'input_data': inputData,
-      });
+      logger.info('=== Background sync task started ===');
+      logger.info('Task: $task');
+      logger.info('Input data: $inputData');
 
       // Initialize dependencies for background sync
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -70,6 +69,8 @@ void backgroundSyncCallback() {
         return Future<bool>.value(false);
       }
       
+      logger.info('API URL: $apiUrl');
+      
       // Parse API URL
       final Uri apiUri = Uri.parse(apiUrl);
       
@@ -79,12 +80,18 @@ void backgroundSyncCallback() {
       
       try {
         // Initialize services
+        logger.info('Initializing services...');
         final ConnectivityService connectivity = ConnectivityService();
         final SyncQueueManager queueManager = SyncQueueManager(database);
         final IdMappingService idMapping = IdMappingService(database: database);
         final SyncProgressTracker progressTracker = SyncProgressTracker();
         
+        // Check pending operations
+        final pendingOps = await queueManager.getPendingOperations();
+        logger.info('Pending operations in queue: ${pendingOps.length}');
+        
         // Initialize API client with stored credentials
+        logger.info('Creating API client...');
         final FireflyIii apiClient = FireflyIii.create(
           baseUrl: apiUri,
           httpClient: _httpClient,
@@ -95,6 +102,7 @@ void backgroundSyncCallback() {
         final FireflyApiAdapter apiAdapter = FireflyApiAdapter(apiClient);
         
         // Create SyncManager instance
+        logger.info('Creating SyncManager...');
         final SyncManager syncManager = SyncManager(
           queueManager: queueManager,
           apiClient: apiAdapter,
@@ -105,16 +113,26 @@ void backgroundSyncCallback() {
         );
         
         // Perform incremental sync
-        await syncManager.synchronize(fullSync: false);
+        logger.info('Starting synchronization...');
+        final result = await syncManager.synchronize(fullSync: false);
         
-        logger.info('Background sync task completed successfully');
+        logger.info('=== Background sync completed ===');
+        logger.info('Success: ${result.success}');
+        logger.info('Total operations: ${result.totalOperations}');
+        logger.info('Successful: ${result.successfulOperations}');
+        logger.info('Failed: ${result.failedOperations}');
+        logger.info('Conflicts detected: ${result.conflictsDetected}');
+        logger.info('Conflicts resolved: ${result.conflictsResolved}');
+        logger.info('Errors: ${result.errors.length}');
+        
         return Future<bool>.value(true);
       } finally {
         // Clean up database connection
+        logger.info('Closing database connection...');
         await database.close();
       }
     } catch (e, stackTrace) {
-      logger.severe('Background sync task failed', e, stackTrace);
+      logger.severe('=== Background sync task failed ===', e, stackTrace);
       return Future<bool>.value(false);
     }
   });

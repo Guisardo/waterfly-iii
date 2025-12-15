@@ -92,9 +92,11 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
       builder: (context, connectivity, child) {
         final status = connectivity.status;
 
-        // Handle status changes
+        // Handle status changes after build completes
         if (_previousStatus != status) {
-          _handleStatusChange(status);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _handleStatusChange(status);
+          });
           _previousStatus = status;
         }
 

@@ -18,6 +18,7 @@ import 'package:waterflyiii/pages/login.dart';
 import 'package:waterflyiii/pages/navigation.dart';
 import 'package:waterflyiii/pages/splash.dart';
 import 'package:waterflyiii/pages/transaction.dart';
+import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/widgets/logo.dart';
 
@@ -215,6 +216,9 @@ class _WaterflyAppState extends State<WaterflyApp> {
             ),
             ChangeNotifierProvider<SettingsProvider>(
               create: (_) => SettingsProvider(),
+            ),
+            ChangeNotifierProvider<ConnectivityProvider>(
+              create: (_) => ConnectivityProvider(),
             ),
           ],
           builder: (BuildContext context, _) {

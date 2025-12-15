@@ -3,9 +3,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/models/conflict.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
+import 'package:waterflyiii/services/id_mapping/id_mapping_service.dart';
 import 'package:waterflyiii/services/sync/conflict_resolver.dart';
+import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 
 final Logger _log = Logger('ConflictListScreen');
 
@@ -767,8 +771,17 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
       // Convert ConflictEntity to Conflict model
       final conflict = _convertToConflictModel(conflictEntity);
       
+      // Get dependencies from context
+      final database = Provider.of<AppDatabase>(context, listen: false);
+      final apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
+      
       // Create resolver and resolve conflict
-      final resolver = ConflictResolver();
+      final resolver = ConflictResolver(
+        apiAdapter: apiAdapter,
+        database: database,
+        queueManager: SyncQueueManager(database),
+        idMapping: IdMappingService(database: database),
+      );
       final resolution = await resolver.resolveConflict(conflict, strategy);
       
       // Close loading indicator
@@ -853,8 +866,17 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         return _selectedConflicts.contains(conflictId);
       }).toList();
       
+      // Get dependencies from context
+      final database = Provider.of<AppDatabase>(context, listen: false);
+      final apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
+      
       // Resolve each conflict
-      final resolver = ConflictResolver();
+      final resolver = ConflictResolver(
+        apiAdapter: apiAdapter,
+        database: database,
+        queueManager: SyncQueueManager(database),
+        idMapping: IdMappingService(database: database),
+      );
       int successCount = 0;
       int failureCount = 0;
       final List<String> errors = [];

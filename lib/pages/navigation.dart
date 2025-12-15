@@ -9,6 +9,7 @@ import 'package:waterflyiii/pages/bills.dart';
 import 'package:waterflyiii/pages/categories.dart';
 import 'package:waterflyiii/pages/home.dart';
 import 'package:waterflyiii/pages/settings.dart';
+import 'package:waterflyiii/widgets/connectivity_status_bar.dart';
 
 final Logger log = Logger("Pages.Navigation");
 
@@ -232,16 +233,23 @@ class NavPageState extends State<NavPage> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            body: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 100),
-              switchInCurve: animCurveStandard,
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return FadeTransition(
-                  opacity: Tween<double>(begin: 0, end: 1).animate(animation),
-                  child: child,
-                );
-              },
-              child: currentPage.pageHandler,
+            body: Column(
+              children: [
+                const ConnectivityStatusBar(),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 100),
+                    switchInCurve: animCurveStandard,
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return FadeTransition(
+                        opacity: Tween<double>(begin: 0, end: 1).animate(animation),
+                        child: child,
+                      );
+                    },
+                    child: currentPage.pageHandler,
+                  ),
+                ),
+              ],
             ),
             floatingActionButton: context.select((NavPageElements n) => n.fab),
           ),

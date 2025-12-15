@@ -2174,7 +2174,6 @@ class SyncManager {
         constraints: Constraints(
           networkType: NetworkType.connected,
         ),
-        existingWorkPolicy: ExistingWorkPolicy.replace,
       );
       
       _logger.info('Background sync scheduled successfully');

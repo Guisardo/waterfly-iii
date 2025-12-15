@@ -159,13 +159,13 @@ class TransactionRepository
       
       // Add to sync queue for offline sync
       if (_syncQueueManager != null) {
-        await _syncQueueManager!.addOperation(
+        await _syncQueueManager!.enqueue(
           SyncOperation(
-            id: _uuidService.generate(),
+            id: _uuidService.generateOperationId(),
             entityType: 'transaction',
             entityId: id,
-            operationType: OperationType.create,
-            data: <String, dynamic>{
+            operation: SyncOperationType.create,
+            payload: <String, dynamic>{
               'type': entity.type,
               'date': entity.date.toIso8601String(),
               'amount': entity.amount,
@@ -181,7 +181,9 @@ class TransactionRepository
               'tags': entity.tags,
             },
             createdAt: DateTime.now(),
-            priority: 5,
+            priority: SyncPriority.high,
+            status: SyncOperationStatus.pending,
+            attempts: 0,
           ),
         );
         logger.fine('Added transaction to sync queue: $id');
@@ -239,13 +241,13 @@ class TransactionRepository
       
       // Add to sync queue for offline sync
       if (_syncQueueManager != null) {
-        await _syncQueueManager!.addOperation(
+        await _syncQueueManager!.enqueue(
           SyncOperation(
-            id: _uuidService.generate(),
+            id: _uuidService.generateOperationId(),
             entityType: 'transaction',
             entityId: id,
-            operationType: OperationType.update,
-            data: <String, dynamic>{
+            operation: SyncOperationType.update,
+            payload: <String, dynamic>{
               'type': updated.type,
               'date': updated.date.toIso8601String(),
               'amount': updated.amount,
@@ -261,7 +263,9 @@ class TransactionRepository
               'tags': updated.tags,
             },
             createdAt: DateTime.now(),
-            priority: 5,
+            priority: SyncPriority.high,
+            status: SyncOperationStatus.pending,
+            attempts: 0,
           ),
         );
         logger.fine('Added transaction update to sync queue: $id');
@@ -294,17 +298,19 @@ class TransactionRepository
       
       // Add to sync queue if transaction was synced (has serverId)
       if (_syncQueueManager != null && existing.serverId != null) {
-        await _syncQueueManager!.addOperation(
+        await _syncQueueManager!.enqueue(
           SyncOperation(
-            id: _uuidService.generate(),
+            id: _uuidService.generateOperationId(),
             entityType: 'transaction',
             entityId: id,
-            operationType: OperationType.delete,
-            data: <String, dynamic>{
+            operation: SyncOperationType.delete,
+            payload: <String, dynamic>{
               'server_id': existing.serverId,
             },
             createdAt: DateTime.now(),
-            priority: 5,
+            priority: SyncPriority.high,
+            status: SyncOperationStatus.pending,
+            attempts: 0,
           ),
         );
         logger.fine('Added transaction deletion to sync queue: $id');
@@ -521,11 +527,10 @@ class TransactionRepository
         final accountValidation = await _validator.validateAccountReferences(
           data,
           (accountId) async {
-            final account = await _database
+            final results = await (_database
                 .select(_database.accounts)
-                .where((t) => t.id.equals(accountId))
-                .getSingleOrNull();
-            return account != null;
+                ..where((t) => t.id.equals(accountId))).get();
+            return results.isNotEmpty;
           },
         );
         accountValidation.throwIfInvalid();
@@ -546,15 +551,15 @@ class TransactionRepository
             ? data['amount']
             : double.parse(data['amount'].toString())) as double,
         description: data['description'] as String,
-        sourceAccountId: Value(data['source_id'] as String?),
-        destinationAccountId: Value(data['destination_id'] as String?),
+        sourceAccountId: data['source_id'] as String? ?? '',
+        destinationAccountId: data['destination_id'] as String? ?? '',
         categoryId: Value(data['category_id'] as String?),
         budgetId: Value(data['budget_id'] as String?),
         currencyCode: data['currency_code'] as String? ?? 'USD',
         foreignAmount: Value(data['foreign_amount'] as double?),
         foreignCurrencyCode: Value(data['foreign_currency_code'] as String?),
         notes: Value(data['notes'] as String?),
-        tags: Value(data['tags'] as String?),
+        tags: Value(data['tags'] as String? ?? ''),
         createdAt: now,
         updatedAt: now,
         isSynced: const Value(false),
@@ -636,11 +641,10 @@ class TransactionRepository
         final accountValidation = await _validator.validateAccountReferences(
           data,
           (accountId) async {
-            final account = await _database
+            final results = await (_database
                 .select(_database.accounts)
-                .where((t) => t.id.equals(accountId))
-                .getSingleOrNull();
-            return account != null;
+                ..where((t) => t.id.equals(accountId))).get();
+            return results.isNotEmpty;
           },
         );
         accountValidation.throwIfInvalid();
@@ -656,15 +660,15 @@ class TransactionRepository
             ? data['amount']
             : double.parse(data['amount'].toString())) as double),
         description: Value(data['description'] as String),
-        sourceAccountId: Value(data['source_id'] as String?),
-        destinationAccountId: Value(data['destination_id'] as String?),
+        sourceAccountId: Value(data['source_id'] as String? ?? ''),
+        destinationAccountId: Value(data['destination_id'] as String? ?? ''),
         categoryId: Value(data['category_id'] as String?),
         budgetId: Value(data['budget_id'] as String?),
         currencyCode: Value(data['currency_code'] as String? ?? 'USD'),
         foreignAmount: Value(data['foreign_amount'] as double?),
         foreignCurrencyCode: Value(data['foreign_currency_code'] as String?),
         notes: Value(data['notes'] as String?),
-        tags: Value(data['tags'] as String?),
+        tags: Value(data['tags'] as String? ?? ''),
         updatedAt: Value(DateTime.now()),
         isSynced: const Value(false),
         syncStatus: const Value('pending'),

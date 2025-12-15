@@ -4,12 +4,14 @@ import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
 import 'package:waterflyiii/exceptions/sync_exceptions.dart' as sync_ex;
 import 'package:waterflyiii/models/sync_progress.dart';
+import 'package:waterflyiii/services/id_mapping/id_mapping_service.dart';
 import 'package:waterflyiii/services/sync/conflict_detector.dart';
 import 'package:waterflyiii/services/sync/conflict_resolver.dart';
 import 'package:waterflyiii/services/sync/database_adapter.dart';
 import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
 import 'package:waterflyiii/services/sync/metadata_service.dart';
 import 'package:waterflyiii/services/sync/sync_progress_tracker.dart';
+import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 
 /// Synchronization mode
 enum SyncMode {
@@ -98,7 +100,12 @@ class SyncService {
         _progressTracker = progressTracker,
         _metadata = metadata,
         _conflictDetector = conflictDetector ?? ConflictDetector(),
-        _conflictResolver = conflictResolver ?? ConflictResolver();
+        _conflictResolver = conflictResolver ?? ConflictResolver(
+          apiAdapter: apiAdapter,
+          database: database,
+          queueManager: SyncQueueManager(database),
+          idMapping: IdMappingService(database: database),
+        );
 
   /// Perform synchronization with specified mode.
   ///
