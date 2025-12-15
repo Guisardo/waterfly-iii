@@ -449,59 +449,6 @@ This document catalogs all TODO items across the entire project.
 
 ---
 
-## 🔴 CRITICAL - Sync Service (6 items)
-
-### `lib/services/sync/sync_service.dart`
-
-- [ ] Line 332: Resolve conflict using ConflictResolver
-  ```dart
-  // TODO: Resolve conflict using ConflictResolver
-  ```
-
-- [ ] Line 375: Implement actual API calls for each entity type
-  ```dart
-  // TODO: Implement actual API calls for each entity type
-  ```
-
-- [ ] Line 406: Implement actual API calls using FireflyApiAdapter
-  ```dart
-  // TODO: Implement actual API calls using FireflyApiAdapter
-  ```
-
-- [ ] Line 427: Implement proper conflict detection
-  ```dart
-  // TODO: Implement proper conflict detection
-  ```
-
-- [ ] Line 437: Implement using DatabaseAdapter
-  ```dart
-  // TODO: Implement using DatabaseAdapter
-  ```
-
-- [ ] Line 447: Implement for other entity types
-  ```dart
-  // TODO: Implement for other entity types
-  ```
-
----
-
-## 🟡 IMPORTANT - Conflict Resolution (10 items)
-
-### `lib/services/sync/conflict_resolver.dart`
-
-- [ ] Line 154: Push to server via API
-- [ ] Line 185: Update local database
-- [ ] Line 192: Remove from sync queue
-- [ ] Line 286: Push merged version to server
-- [ ] Line 410: Fetch conflict from database
-- [ ] Line 461: Fetch conflict from database
-- [ ] Line 599: Update conflict in database
-- [ ] Line 607: Update entity in database
-- [ ] Line 614: Update or remove from sync queue
-- [ ] Line 652: Query database for statistics
-
----
-
 ## 🟡 IMPORTANT - UI/Widgets (8 items)
 
 ### `lib/widgets/sync_progress_widget.dart`
@@ -976,7 +923,9 @@ This document catalogs all TODO items across the entire project.
 
 ## 📊 Progress Tracking
 
-**Last Updated**: 2024-12-14 20:59
+**Last Updated**: 2024-12-14 21:07
+
+**Note**: Removed duplicate old sections (Sync Service, Conflict Resolution) - all items already tracked in newer sections below.
 
 **Build Status**: ✅ PASSING (0 errors, only style warnings)  
 **Test Status**: ✅ ALL 40 TESTS PASSING (100% pass rate)  
