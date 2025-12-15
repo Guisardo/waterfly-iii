@@ -8,7 +8,7 @@ class TimeZoneHandler {
 
   final Logger log = Logger("TimeZoneHandler");
 
-  // :TODO: make variable
+  // Server time preference - configurable via setUseServerTime()
   bool _useServerTime = true;
   bool get useServerTime => _useServerTime;
 
