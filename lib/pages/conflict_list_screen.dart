@@ -780,7 +780,6 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         apiAdapter: apiAdapter,
         database: database,
         queueManager: SyncQueueManager(database),
-        idMapping: IdMappingService(database: database),
       );
       final resolution = await resolver.resolveConflict(conflict, strategy);
       
@@ -875,7 +874,6 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         apiAdapter: apiAdapter,
         database: database,
         queueManager: SyncQueueManager(database),
-        idMapping: IdMappingService(database: database),
       );
       int successCount = 0;
       int failureCount = 0;

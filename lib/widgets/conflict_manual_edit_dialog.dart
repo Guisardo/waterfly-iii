@@ -49,7 +49,6 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
         apiAdapter: apiAdapter,
         database: database,
         queueManager: SyncQueueManager(database),
-        idMapping: IdMappingService(database: database),
       );
     }
   }

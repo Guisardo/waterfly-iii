@@ -112,7 +112,6 @@ class SyncManager {
           apiAdapter: apiClient,
           database: database,
           queueManager: SyncQueueManager(database),
-          idMapping: idMapping,
         ),
         _retryStrategy = retryStrategy ?? RetryStrategy(),
         _circuitBreaker = circuitBreaker ?? CircuitBreaker(),

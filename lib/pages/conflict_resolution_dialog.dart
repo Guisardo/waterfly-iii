@@ -47,7 +47,6 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
         apiAdapter: apiAdapter,
         database: database,
         queueManager: SyncQueueManager(database),
-        idMapping: IdMappingService(database: database),
       );
     }
   }

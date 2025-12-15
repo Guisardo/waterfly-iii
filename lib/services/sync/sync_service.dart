@@ -104,7 +104,6 @@ class SyncService {
           apiAdapter: apiAdapter,
           database: database,
           queueManager: SyncQueueManager(database),
-          idMapping: IdMappingService(database: database),
         );
 
   /// Perform synchronization with specified mode.
