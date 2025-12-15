@@ -1606,7 +1606,8 @@ class _TransactionPageState extends State<TransactionPage>
   }
 
   void checkAccountCurrency(AutocompleteAccount option, bool isSource) {
-    // :TODO: ONLY ASSET ACCOUNTS HAVE A CURRENCY!
+    // Currency handling for asset and debt accounts
+    // Asset and debt accounts have currencies, other account types don't
 
     // Update currency when:
     // 1. set account is source & assetAccount
