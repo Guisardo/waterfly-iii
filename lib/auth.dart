@@ -18,8 +18,16 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:version/version.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/providers/sync_provider.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
+import 'package:waterflyiii/services/id_mapping/id_mapping_service.dart';
+import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/sync/sync_manager.dart';
+import 'package:waterflyiii/services/sync/sync_progress_tracker.dart';
+import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 import 'package:waterflyiii/stock.dart';
 import 'package:waterflyiii/timezonehandler.dart';
 
@@ -412,8 +420,61 @@ class FireflyService with ChangeNotifier {
     await prefs.setString('cached_default_currency', json.encode(defaultCurrency.toJson()));
     await prefs.setString('cached_api_version', _apiVersion.toString());
     await prefs.setString('cached_timezone', tzHandler.sLocation.name);
+    
+    // Trigger initial sync to populate local database for offline use
+    _triggerInitialSync();
 
     return true;
+  }
+  
+  /// Triggers initial full sync in background to populate local database
+  void _triggerInitialSync() {
+    // Delay sync to not interfere with initial app loading
+    Future.delayed(const Duration(seconds: 5), () async {
+      try {
+        log.info('Triggering initial sync to populate local database...');
+        
+        final prefs = await SharedPreferences.getInstance();
+        final lastSyncTime = prefs.getInt('last_full_sync_time') ?? 0;
+        final now = DateTime.now().millisecondsSinceEpoch;
+        
+        // Only sync if last sync was more than 1 hour ago
+        if (now - lastSyncTime > 3600000) {
+          // Import sync dependencies
+          final database = AppDatabase();
+          final connectivity = ConnectivityService();
+          final queueManager = SyncQueueManager(database);
+          final idMapping = IdMappingService(database: database);
+          final progressTracker = SyncProgressTracker();
+          final apiAdapter = FireflyApiAdapter(api);
+          
+          final syncManager = SyncManager(
+            queueManager: queueManager,
+            apiClient: apiAdapter,
+            database: database,
+            connectivity: connectivity,
+            idMapping: idMapping,
+            progressTracker: progressTracker,
+          );
+          
+          // Notify sync started
+          notifyGlobalSyncState(true);
+          
+          await syncManager.performFullSync();
+          await prefs.setInt('last_full_sync_time', now);
+          
+          // Notify sync completed
+          notifyGlobalSyncState(false);
+          
+          log.info('Initial sync completed successfully');
+        } else {
+          log.info('Skipping initial sync - recent sync exists');
+        }
+      } catch (e, stackTrace) {
+        notifyGlobalSyncState(false);
+        log.warning('Initial sync failed (non-critical)', e, stackTrace);
+      }
+    });
   }
 }
 

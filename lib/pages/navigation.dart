@@ -10,6 +10,7 @@ import 'package:waterflyiii/pages/categories.dart';
 import 'package:waterflyiii/pages/home.dart';
 import 'package:waterflyiii/pages/settings.dart';
 import 'package:waterflyiii/widgets/connectivity_status_bar.dart';
+import 'package:waterflyiii/widgets/sync_indicator.dart';
 
 final Logger log = Logger("Pages.Navigation");
 
@@ -152,7 +153,10 @@ class NavPageState extends State<NavPage> with TickerProviderStateMixin {
           (BuildContext context, _) => Scaffold(
             appBar: AppBar(
               title: context.select((NavPageElements n) => n.appBarTitle),
-              actions: context.select((NavPageElements n) => n.appBarActions),
+              actions: [
+                const SyncIndicator(),
+                ...?context.select((NavPageElements n) => n.appBarActions),
+              ],
               bottom: context.select((NavPageElements n) => n.appBarBottom),
             ),
             drawer: NavigationDrawer(

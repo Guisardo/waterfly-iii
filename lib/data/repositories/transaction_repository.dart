@@ -159,7 +159,7 @@ class TransactionRepository
       
       // Add to sync queue for offline sync
       if (_syncQueueManager != null) {
-        await _syncQueueManager!.enqueue(
+        await _syncQueueManager.enqueue(
           SyncOperation(
             id: _uuidService.generateOperationId(),
             entityType: 'transaction',
@@ -241,7 +241,7 @@ class TransactionRepository
       
       // Add to sync queue for offline sync
       if (_syncQueueManager != null) {
-        await _syncQueueManager!.enqueue(
+        await _syncQueueManager.enqueue(
           SyncOperation(
             id: _uuidService.generateOperationId(),
             entityType: 'transaction',
@@ -298,7 +298,7 @@ class TransactionRepository
       
       // Add to sync queue if transaction was synced (has serverId)
       if (_syncQueueManager != null && existing.serverId != null) {
-        await _syncQueueManager!.enqueue(
+        await _syncQueueManager.enqueue(
           SyncOperation(
             id: _uuidService.generateOperationId(),
             entityType: 'transaction',
@@ -582,7 +582,7 @@ class TransactionRepository
           createdAt: now,
         );
 
-        await _syncQueueManager!.enqueue(operation);
+        await _syncQueueManager.enqueue(operation);
         logger.info('Transaction added to sync queue: $id');
       }
 
@@ -692,7 +692,7 @@ class TransactionRepository
           createdAt: DateTime.now(),
         );
 
-        await _syncQueueManager!.enqueue(operation);
+        await _syncQueueManager.enqueue(operation);
         logger.info('Transaction update added to sync queue: $id');
       }
 
@@ -767,7 +767,7 @@ class TransactionRepository
             createdAt: DateTime.now(),
           );
 
-          await _syncQueueManager!.enqueue(operation);
+          await _syncQueueManager.enqueue(operation);
           logger.info('Transaction delete added to sync queue: $id');
         }
       } else {
@@ -780,7 +780,7 @@ class TransactionRepository
 
         // Remove from sync queue if present
         if (_syncQueueManager != null) {
-          await _syncQueueManager!.removeByEntityId('transaction', id);
+          await _syncQueueManager.removeByEntityId('transaction', id);
           logger.fine('Removed transaction from sync queue: $id');
         }
       }

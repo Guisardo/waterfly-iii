@@ -106,10 +106,11 @@ class ConnectivityService {
       return;
     }
 
-    _logger.info('Initializing ConnectivityService');
+    _logger.info('=== Initializing ConnectivityService ===');
 
     try {
       // Set up connectivity monitoring
+      _logger.info('Setting up connectivity monitoring...');
       _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
         _onConnectivityChanged,
         onError: (error, stackTrace) {
@@ -122,6 +123,7 @@ class ConnectivityService {
       );
 
       // Set up internet connection monitoring
+      _logger.info('Setting up internet connection monitoring...');
       _internetSubscription = _internetChecker.onStatusChange.listen(
         _onInternetStatusChanged,
         onError: (error, stackTrace) {
@@ -134,13 +136,14 @@ class ConnectivityService {
       );
 
       // Perform initial connectivity check
+      _logger.info('Performing initial connectivity check...');
       await checkConnectivity();
 
       _isInitialized = true;
-      _logger.info('ConnectivityService initialized successfully');
+      _logger.info('=== ConnectivityService initialized successfully ===');
     } catch (error, stackTrace) {
       _logger.severe(
-        'Failed to initialize ConnectivityService',
+        '=== Failed to initialize ConnectivityService ===',
         error,
         stackTrace,
       );
@@ -150,15 +153,18 @@ class ConnectivityService {
 
   /// Handles connectivity changes from the connectivity_plus package.
   void _onConnectivityChanged(List<ConnectivityResult> results) {
-    _logger.info('Connectivity changed: $results');
+    _logger.info('=== Connectivity changed event ===');
+    _logger.info('New connectivity results: $results');
 
     // Update current network types
     _currentNetworkTypes = results;
 
     if (results.contains(ConnectivityResult.none)) {
+      _logger.info('No network detected, setting offline');
       _updateStatus(ConnectivityStatus.offline);
       _startPeriodicChecks();
     } else {
+      _logger.info('Network detected, verifying internet access...');
       // Has network connection, but need to verify internet access
       checkConnectivity();
     }
@@ -166,13 +172,16 @@ class ConnectivityService {
 
   /// Handles internet status changes from internet_connection_checker_plus.
   void _onInternetStatusChanged(InternetStatus status) {
-    _logger.info('Internet status changed: $status');
+    _logger.info('=== Internet status changed event ===');
+    _logger.info('New internet status: $status');
 
     switch (status) {
       case InternetStatus.connected:
+        _logger.info('Internet connected, verifying server reachability...');
         checkConnectivity(); // Verify server reachability
         break;
       case InternetStatus.disconnected:
+        _logger.info('Internet disconnected, setting offline');
         _updateStatus(ConnectivityStatus.offline);
         _startPeriodicChecks();
         break;
@@ -194,51 +203,65 @@ class ConnectivityService {
     }
 
     _isCheckingConnectivity = true;
+    _logger.info('=== Starting connectivity check ===');
 
     try {
-      _logger.fine('Checking connectivity');
+      _logger.info('Step 1: Checking network connectivity...');
 
       // Check network connectivity
       final List<ConnectivityResult> connectivityResults = await _connectivity.checkConnectivity();
+      
+      _logger.info('Network connectivity results: $connectivityResults');
       
       // Update current network types
       _currentNetworkTypes = connectivityResults;
       
       if (connectivityResults.contains(ConnectivityResult.none)) {
-        _logger.info('No network connectivity');
+        _logger.info('Result: No network connectivity detected');
         _updateStatus(ConnectivityStatus.offline);
         _startPeriodicChecks();
         return false;
       }
 
+      _logger.info('Step 2: Checking internet access...');
+      
       // Check internet access
       final bool hasInternet = await _internetChecker.hasInternetAccess;
       
+      _logger.info('Internet access check result: $hasInternet');
+      
       if (!hasInternet) {
-        _logger.info('Network connected but no internet access');
+        _logger.info('Result: Network connected but no internet access');
         _updateStatus(ConnectivityStatus.offline);
         _startPeriodicChecks();
         return false;
       }
 
+      _logger.info('Step 3: Checking server reachability...');
+      
       // Check server reachability if API client is available
       if (_apiClient != null) {
+        _logger.info('API client is configured, checking server...');
         final bool serverReachable = await checkServerReachability();
+        _logger.info('Server reachability result: $serverReachable');
+        
         if (!serverReachable) {
-          _logger.info('Internet available but server unreachable');
+          _logger.info('Result: Internet available but server unreachable');
           _updateStatus(ConnectivityStatus.offline);
           _startPeriodicChecks();
           return false;
         }
+      } else {
+        _logger.info('No API client configured, skipping server check');
       }
 
-      _logger.info('Connectivity check passed: online');
+      _logger.info('=== Connectivity check PASSED: Device is ONLINE ===');
       _updateStatus(ConnectivityStatus.online);
       _stopPeriodicChecks();
       return true;
     } catch (error, stackTrace) {
       _logger.severe(
-        'Error checking connectivity',
+        '=== Connectivity check FAILED with error ===',
         error,
         stackTrace,
       );
@@ -246,6 +269,7 @@ class ConnectivityService {
       return false;
     } finally {
       _isCheckingConnectivity = false;
+      _logger.info('=== Connectivity check completed ===');
     }
   }
 

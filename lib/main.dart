@@ -17,6 +17,9 @@ void main() async {
   
   Logger.root.level = kDebugMode ? Level.ALL : Level.INFO;
   Logger.root.onRecord.listen((LogRecord record) {
+    // Print to console for logcat visibility
+    print('[${record.loggerName}] ${record.level.name}: ${record.message}');
+    
     developer.log(
       record.message,
       time: record.time,

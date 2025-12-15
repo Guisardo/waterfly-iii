@@ -14,7 +14,6 @@ import '../../validators/bill_validator.dart';
 import '../../validators/piggy_bank_validator.dart';
 import 'firefly_api_adapter.dart';
 import 'sync_queue_manager.dart';
-import '../id_mapping/id_mapping_service.dart';
 
 /// Service for resolving conflicts detected during synchronization.
 ///
@@ -53,9 +52,6 @@ class ConflictResolver {
   
   /// Sync queue manager for operation tracking
   final SyncQueueManager _queueManager;
-  
-  /// ID mapping service for local-to-server ID translation
-  final IdMappingService _idMapping;
 
   /// Auto-resolution configuration
   final bool autoResolveEnabled;
@@ -65,13 +61,11 @@ class ConflictResolver {
     required FireflyApiAdapter apiAdapter,
     required AppDatabase database,
     required SyncQueueManager queueManager,
-    required IdMappingService idMapping,
     this.autoResolveEnabled = true,
     this.autoResolveTimeWindow = const Duration(hours: 24),
   })  : _apiAdapter = apiAdapter,
         _database = database,
-        _queueManager = queueManager,
-        _idMapping = idMapping {
+        _queueManager = queueManager {
     _logger.info(
       'ConflictResolver initialized with auto-resolve: $autoResolveEnabled, '
       'time window: ${autoResolveTimeWindow.inHours}h',
@@ -900,30 +894,6 @@ class ConflictResolver {
         stackTrace,
       );
       rethrow;
-    }
-  }
-
-  /// Calculate severity from conflicting fields JSON.
-  String _calculateSeverityFromFields(String conflictingFieldsJson) {
-    try {
-      final fields = (jsonDecode(conflictingFieldsJson) as List<dynamic>)
-          .cast<String>();
-      
-      // High severity: critical fields
-      if (fields.any((f) => ['amount', 'type', 'date'].contains(f))) {
-        return 'high';
-      }
-      
-      // Medium severity: important fields
-      if (fields.any((f) => ['description', 'category', 'account'].contains(f))) {
-        return 'medium';
-      }
-      
-      // Low severity: other fields
-      return 'low';
-    } catch (e) {
-      _logger.warning('Failed to parse conflicting fields: $e');
-      return 'medium'; // Default to medium if parsing fails
     }
   }
 
