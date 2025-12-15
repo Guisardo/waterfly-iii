@@ -12,6 +12,7 @@ import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/transaction.dart';
+import 'package:waterflyiii/services/localization_helper.dart';
 import 'package:waterflyiii/settings.dart';
 
 final Logger log = Logger("NotificationListener");
@@ -220,27 +221,24 @@ void nlCallback() {
 
     if (showNotification) {
       // Show localized notification prompting user to create transaction
-      // Uses Flutter's localization system for multi-language support
       final String notificationSource = evt.title ?? evt.packageName ?? "unknown source";
+      
+      // Load localized strings without context
+      final l10n = await LocalizationHelper.getLocalizations();
       
       unawaited(
         FlutterLocalNotificationsPlugin().show(
           DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          // Localization strings defined in app_en.arb: notificationCreateTransactionTitle
-          // TODO: Use S.of(context) when context is available in background service
-          "Create Transaction?",
-          // Localization string: notificationCreateTransactionBody
-          "Click to create a transaction based on the notification from $notificationSource",
-          const NotificationDetails(
+          l10n.notificationCreateTransactionTitle,
+          l10n.notificationCreateTransactionBody(notificationSource),
+          NotificationDetails(
             android: AndroidNotificationDetails(
               'extract_transaction',
-              // Localization string: notificationExtractTransactionChannelName
-              'Create Transaction from Notification',
+              l10n.notificationExtractTransactionChannelName,
               channelDescription:
-                  // Localization string: notificationExtractTransactionChannelDescription
-                  'Notification asking to create a transaction from another notification.',
-              importance: Importance.low, // Android 8.0 and higher
-              priority: Priority.low, // Android 7.1 and lower
+                  l10n.notificationExtractTransactionChannelDescription,
+              importance: Importance.low,
+              priority: Priority.low,
             ),
           ),
           payload: jsonEncode(
