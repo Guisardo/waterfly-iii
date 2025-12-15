@@ -108,7 +108,12 @@ class SyncManager {
         _idMapping = idMapping,
         _progressTracker = progressTracker ?? SyncProgressTracker(),
         _conflictDetector = conflictDetector ?? ConflictDetector(),
-        _conflictResolver = conflictResolver ?? ConflictResolver(),
+        _conflictResolver = conflictResolver ?? ConflictResolver(
+          apiAdapter: apiClient,
+          database: database,
+          queueManager: SyncQueueManager(database),
+          idMapping: idMapping,
+        ),
         _retryStrategy = retryStrategy ?? RetryStrategy(),
         _circuitBreaker = circuitBreaker ?? CircuitBreaker(),
         _operationTracker = operationTracker ?? OperationTracker(database) {
