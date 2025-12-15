@@ -871,7 +871,12 @@ This document catalogs all TODO items across the entire project.
   ```dart
   // :TODO: make versatile and combine with bill.dart
   ```
-  **Note**: Optional refactoring - both dialogs work correctly. Combination would reduce code duplication but requires careful testing. Not critical for offline mode functionality.
+  **Note**: Optional refactoring - both dialogs work correctly. Combination would reduce code duplication (~120 lines each) but requires:
+  - Creating generic EntitySelectionDialog
+  - Updating all usages in transaction.dart
+  - Comprehensive testing of dialog behavior
+  - Not critical for offline mode functionality
+  - Recommended as future code quality improvement
 
 ### `lib/pages/transaction.dart`
 - [x] Line 1609: Only asset accounts have a currency ✅ **COMPLETED 2024-12-14**
