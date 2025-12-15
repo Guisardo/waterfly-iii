@@ -949,4 +949,20 @@ class SRu extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Вывод средств';
+
+  @override
+  String get notificationCreateTransactionTitle => 'Create Transaction?';
+
+  @override
+  String notificationCreateTransactionBody(String source) {
+    return 'Click to create a transaction based on the notification from $source';
+  }
+
+  @override
+  String get notificationExtractTransactionChannelName =>
+      'Create Transaction from Notification';
+
+  @override
+  String get notificationExtractTransactionChannelDescription =>
+      'Notification asking to create a transaction from another notification.';
 }

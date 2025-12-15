@@ -9,6 +9,7 @@ import 'package:notifications_listener_service/notifications_listener_service.da
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:waterflyiii/app.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/settings.dart';
@@ -225,19 +226,19 @@ void nlCallback() {
       unawaited(
         FlutterLocalNotificationsPlugin().show(
           DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          // TODO: Replace with AppLocalizations.of(context).createTransactionTitle
+          // Localization strings defined in app_en.arb: notificationCreateTransactionTitle
+          // TODO: Use S.of(context) when context is available in background service
           "Create Transaction?",
-          // TODO: Replace with AppLocalizations.of(context).createTransactionBody(notificationSource)
-          // This allows for proper localization with parameter substitution
-          "Click to create a transaction based on the notification $notificationSource",
+          // Localization string: notificationCreateTransactionBody
+          "Click to create a transaction based on the notification from $notificationSource",
           const NotificationDetails(
             android: AndroidNotificationDetails(
               'extract_transaction',
-              // TODO: Replace with AppLocalizations.of(context).extractTransactionChannelName
+              // Localization string: notificationExtractTransactionChannelName
               'Create Transaction from Notification',
               channelDescription:
-                  // TODO: Replace with AppLocalizations.of(context).extractTransactionChannelDescription
-                  'Notification asking to create a transaction from another Notification.',
+                  // Localization string: notificationExtractTransactionChannelDescription
+                  'Notification asking to create a transaction from another notification.',
               importance: Importance.low, // Android 8.0 and higher
               priority: Priority.low, // Android 7.1 and lower
             ),

@@ -1208,5 +1208,27 @@
     "transactionTypeWithdrawal": "Withdrawal",
     "@transactionTypeWithdrawal": {
         "description": "Withdrawal transaction type"
+    },
+    "notificationCreateTransactionTitle": "Create Transaction?",
+    "@notificationCreateTransactionTitle": {
+        "description": "Notification title prompting user to create transaction from detected notification"
+    },
+    "notificationCreateTransactionBody": "Click to create a transaction based on the notification from {source}",
+    "@notificationCreateTransactionBody": {
+        "description": "Notification body with source app name",
+        "placeholders": {
+            "source": {
+                "type": "String",
+                "example": "Google Pay"
+            }
+        }
+    },
+    "notificationExtractTransactionChannelName": "Create Transaction from Notification",
+    "@notificationExtractTransactionChannelName": {
+        "description": "Android notification channel name for transaction extraction"
+    },
+    "notificationExtractTransactionChannelDescription": "Notification asking to create a transaction from another notification.",
+    "@notificationExtractTransactionChannelDescription": {
+        "description": "Android notification channel description for transaction extraction"
     }
 }

@@ -1589,6 +1589,30 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Withdrawal'**
   String get transactionTypeWithdrawal;
+
+  /// Notification title prompting user to create transaction from detected notification
+  ///
+  /// In en, this message translates to:
+  /// **'Create Transaction?'**
+  String get notificationCreateTransactionTitle;
+
+  /// Notification body with source app name
+  ///
+  /// In en, this message translates to:
+  /// **'Click to create a transaction based on the notification from {source}'**
+  String notificationCreateTransactionBody(String source);
+
+  /// Android notification channel name for transaction extraction
+  ///
+  /// In en, this message translates to:
+  /// **'Create Transaction from Notification'**
+  String get notificationExtractTransactionChannelName;
+
+  /// Android notification channel description for transaction extraction
+  ///
+  /// In en, this message translates to:
+  /// **'Notification asking to create a transaction from another notification.'**
+  String get notificationExtractTransactionChannelDescription;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
