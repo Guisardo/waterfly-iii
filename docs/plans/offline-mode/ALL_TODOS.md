@@ -441,17 +441,11 @@ This document catalogs all TODO items across the entire project.
 
 ### `lib/widgets/list_view_offline_helper.dart`
 
-- [ ] **Line 256**: Get SyncManager from provider/dependency injection
-  ```dart
-  // TODO: Get SyncManager from provider/dependency injection
-  // Requires: SyncStatusProvider to be added to app providers with proper DI
-  // Dependencies: SyncManager, SyncStatisticsService, AppDatabase
-  // Implementation: await provider.syncManager.synchronize(fullSync: false);
-  ```
-  **Reason**: SyncStatusProvider requires complex dependencies (SyncManager, SyncStatisticsService, AppDatabase). Need comprehensive DI setup.
-  **Impact**: Pull-to-refresh sync not functional until DI is set up
-  **Alternative**: Users can trigger sync from Settings screen (already implemented)
-  **Priority**: 🟢 Enhancement - Nice to have but not critical
+- [x] **Line 256**: Get SyncManager from provider/dependency injection ✅ **COMPLETED 2024-12-14**
+  - Implemented using Provider.of<SyncStatusProvider>
+  - Calls syncManager.synchronize(fullSync: false) for incremental sync
+  - Simple implementation following existing pattern from offline_settings_screen
+  - **Status**: Pull-to-refresh fully functional
 
 ---
 
@@ -996,13 +990,13 @@ This document catalogs all TODO items across the entire project.
 | Phase 2: Conflict & Error | 15 | 15 | 100% ✅ |
 | Phase 3: UI/UX | 13 | 13 | 100% ✅ |
 | Phase 4: Enhancements | 11 | 11 | 100% ✅ |
-| Phase 5: Polish | 12 | 4 | 33% |
-| **New TODOs** | **39** | **36** | **92%** |
-| **Newly Added TODOs** | **37** | **11** | **30%** |
+| Phase 5: Polish | 12 | 5 | 42% |
+| **New TODOs** | **39** | **37** | **95%** |
+| **Newly Added TODOs** | **37** | **12** | **32%** |
 | **Conflict Resolver** | **14** | **14** | **100% ✅** |
 | **Repository Integration** | **2** | **2** | **100% ✅** |
 | **Service Integration** | **5** | **5** | **100% ✅** |
-| **TOTAL** | **157** | **139** | **89%** |
+| **TOTAL** | **157** | **140** | **89%** |
 
 ### Implementation Status
 ✅ **All Critical Items Complete** (27/27)

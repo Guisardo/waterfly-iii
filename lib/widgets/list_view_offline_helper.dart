@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:provider/provider.dart';
+import 'package:waterflyiii/providers/sync_status_provider.dart';
 
 /// Helper for enhancing list views with offline mode features.
 ///
@@ -251,21 +253,14 @@ class ListViewOfflineHelper {
     _logger.info('Pull-to-refresh triggered');
 
     try {
-      // TODO: Get SyncManager from provider/dependency injection
-      // Requires: SyncStatusProvider to be added to app providers with proper DI
-      // Dependencies: SyncManager, SyncStatisticsService, AppDatabase
-      // Implementation: await provider.syncManager.synchronize(fullSync: false);
+      final syncStatusProvider = Provider.of<SyncStatusProvider>(
+        context,
+        listen: false,
+      );
       
-      _logger.warning('Pull-to-refresh sync not implemented yet - requires DI setup');
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Sync not available yet'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
+      await syncStatusProvider.syncManager.synchronize(fullSync: false);
+      
+      _logger.info('Pull-to-refresh sync completed');
     } catch (e, stackTrace) {
       _logger.severe('Pull-to-refresh sync failed', e, stackTrace);
 
