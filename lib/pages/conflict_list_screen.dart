@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/models/conflict.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
-import 'package:waterflyiii/services/id_mapping/id_mapping_service.dart';
 import 'package:waterflyiii/services/sync/conflict_resolver.dart';
 import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
 import 'package:waterflyiii/services/sync/sync_queue_manager.dart';

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../data/local/database/app_database.dart';
 import '../models/conflict.dart';
-import '../services/id_mapping/id_mapping_service.dart';
 import '../services/sync/conflict_resolver.dart';
 import '../services/sync/firefly_api_adapter.dart';
 import '../services/sync/sync_queue_manager.dart';

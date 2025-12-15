@@ -4,7 +4,6 @@ import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
 import 'package:waterflyiii/exceptions/sync_exceptions.dart' as sync_ex;
 import 'package:waterflyiii/models/sync_progress.dart';
-import 'package:waterflyiii/services/id_mapping/id_mapping_service.dart';
 import 'package:waterflyiii/services/sync/conflict_detector.dart';
 import 'package:waterflyiii/services/sync/conflict_resolver.dart';
 import 'package:waterflyiii/services/sync/database_adapter.dart';
