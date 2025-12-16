@@ -12,12 +12,14 @@ import 'package:waterflyiii/data/local/database/budgets_table.dart';
 import 'package:waterflyiii/data/local/database/cache_metadata_table.dart';
 import 'package:waterflyiii/data/local/database/categories_table.dart';
 import 'package:waterflyiii/data/local/database/conflicts_table.dart';
+import 'package:waterflyiii/data/local/database/currencies_table.dart';
 import 'package:waterflyiii/data/local/database/error_log_table.dart';
 import 'package:waterflyiii/data/local/database/id_mapping_table.dart';
 import 'package:waterflyiii/data/local/database/piggy_banks_table.dart';
 import 'package:waterflyiii/data/local/database/sync_metadata_table.dart';
 import 'package:waterflyiii/data/local/database/sync_queue_table.dart';
 import 'package:waterflyiii/data/local/database/sync_statistics_table.dart';
+import 'package:waterflyiii/data/local/database/tags_table.dart';
 import 'package:waterflyiii/data/local/database/transactions_table.dart';
 
 part 'app_database.g.dart';
@@ -44,6 +46,8 @@ part 'app_database.g.dart';
   Budgets,
   Bills,
   PiggyBanks,
+  Currencies,
+  Tags,
   SyncQueue,
   SyncMetadata,
   IdMapping,
@@ -79,8 +83,9 @@ class AppDatabase extends _$AppDatabase {
   /// Version 5: Added cache_metadata table for cache-first architecture
   /// Version 6: Incremental sync support - added server_updated_at columns
   ///            and enhanced sync_statistics table schema
+  /// Version 7: Added currencies and tags tables for cache-first architecture
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   /// Database migration logic.
   ///
@@ -195,6 +200,11 @@ class AppDatabase extends _$AppDatabase {
         if (from < 6) {
           // Version 6: Incremental sync support
           await _migrateToVersion6(m);
+        }
+
+        if (from < 7) {
+          // Version 7: Add currencies and tags tables for cache-first architecture
+          await _migrateToVersion7(m);
         }
       },
       beforeOpen: (OpeningDetails details) async {
@@ -541,6 +551,83 @@ class AppDatabase extends _$AppDatabase {
     }
 
     log.info('Migration validation passed: all checks successful');
+  }
+
+  /// Migrate database from version 6 to version 7.
+  ///
+  /// Changes in v7:
+  /// - Add currencies table for local currency caching
+  /// - Add tags table for local tag caching
+  /// - Create indexes for performance
+  Future<void> _migrateToVersion7(Migrator m) async {
+    final Logger log = Logger('AppDatabase.Migration');
+    log.info('Starting migration to version 7 (currencies and tags tables)');
+
+    try {
+      // Step 1: Create currencies table
+      log.fine('Creating currencies table');
+      await m.createTable(currencies);
+
+      // Step 2: Create tags table
+      log.fine('Creating tags table');
+      await m.createTable(tags);
+
+      // Step 3: Create indexes for performance
+      log.fine('Creating indexes for currencies and tags');
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_currencies_code ON currencies(code)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_currencies_enabled ON currencies(enabled)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_currencies_default ON currencies(is_default)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_currencies_sync_status ON currencies(is_synced, sync_status)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(tag)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_tags_sync_status ON tags(is_synced, sync_status)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_currencies_server_updated_at '
+        'ON currencies(server_updated_at)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_tags_server_updated_at '
+        'ON tags(server_updated_at)',
+      );
+
+      // Step 4: Add sync statistics entries for new entity types
+      log.fine('Adding sync statistics for currencies and tags');
+      final DateTime now = DateTime.now();
+      await into(syncStatistics).insert(
+        SyncStatisticsEntityCompanion.insert(
+          entityType: 'currency',
+          lastIncrementalSync: now,
+          lastFullSync: Value<DateTime?>(now),
+          syncWindowDays: const Value<int>(30),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+      await into(syncStatistics).insert(
+        SyncStatisticsEntityCompanion.insert(
+          entityType: 'tag',
+          lastIncrementalSync: now,
+          lastFullSync: Value<DateTime?>(now),
+          syncWindowDays: const Value<int>(30),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+
+      log.info('Migration to version 7 completed successfully');
+    } catch (e, stackTrace) {
+      log.severe('Migration to version 7 failed', e, stackTrace);
+      rethrow;
+    }
   }
 }
 

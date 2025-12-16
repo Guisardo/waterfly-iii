@@ -9,6 +9,7 @@ import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/services/data/insights_service.dart';
 import 'package:waterflyiii/widgets/charts.dart';
 
 class NetEarningsChart extends StatelessWidget {
@@ -104,8 +105,7 @@ class _NetEarningsChartPopupState extends State<NetEarningsChartPopup> {
   int monthOffset = 0;
 
   Future<Map<String, double>> _fetchData(BuildContext context) async {
-    final FireflyIii api = context.read<FireflyService>().api;
-
+    final InsightsService? insightsService = context.read<InsightsService?>();
     final Map<String, double> chartData = <String, double>{};
 
     DateTime now = DateTime.now().toLocal().setTimeOfDay(
@@ -115,32 +115,44 @@ class _NetEarningsChartPopupState extends State<NetEarningsChartPopup> {
       now = now.copyWith(month: now.month - monthOffset);
     }
 
-    final Response<InsightGroup> respCatIncomeData = await api
-        .v1InsightIncomeCategoryGet(
-          start: DateFormat('yyyy-MM-dd', 'en_US').format(now.copyWith(day: 1)),
-          end: DateFormat(
-            'yyyy-MM-dd',
-            'en_US',
-          ).format(now.copyWith(day: 0, month: now.month + 1)),
-        );
-    final Response<InsightGroup> respCatExpenseData = await api
-        .v1InsightExpenseCategoryGet(
-          start: DateFormat('yyyy-MM-dd', 'en_US').format(now.copyWith(day: 1)),
-          end: DateFormat(
-            'yyyy-MM-dd',
-            'en_US',
-          ).format(now.copyWith(day: 0, month: now.month + 1)),
-        );
+    final DateTime start = now.copyWith(day: 1);
+    final DateTime end = now.copyWith(day: 0, month: now.month + 1);
 
-    apiThrowErrorIfEmpty(respCatExpenseData, mounted ? context : null);
+    List<InsightGroupEntry> incomeData;
+    List<InsightGroupEntry> expenseData;
 
-    for (InsightGroupEntry cat in respCatIncomeData.body!) {
+    // Use InsightsService with cache-first strategy
+    if (insightsService != null) {
+      (incomeData, expenseData) = await (
+        insightsService.getIncomeByCategory(start: start, end: end),
+        insightsService.getExpenseByCategory(start: start, end: end),
+      ).wait;
+    } else {
+      // Fallback to direct API call if service not available
+      final FireflyIii api = context.read<FireflyService>().api;
+      final Response<InsightGroup> respCatIncomeData = await api
+          .v1InsightIncomeCategoryGet(
+            start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
+            end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
+          );
+      final Response<InsightGroup> respCatExpenseData = await api
+          .v1InsightExpenseCategoryGet(
+            start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
+            end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
+          );
+
+      apiThrowErrorIfEmpty(respCatExpenseData, mounted ? context : null);
+      incomeData = respCatIncomeData.body?.toList() ?? <InsightGroupEntry>[];
+      expenseData = respCatExpenseData.body?.toList() ?? <InsightGroupEntry>[];
+    }
+
+    for (InsightGroupEntry cat in incomeData) {
       if ((cat.name?.isEmpty ?? true) || cat.differenceFloat == 0) {
         continue;
       }
       chartData[cat.name!] = cat.differenceFloat!;
     }
-    for (InsightGroupEntry cat in respCatExpenseData.body!) {
+    for (InsightGroupEntry cat in expenseData) {
       if ((cat.name?.isEmpty ?? true) || cat.differenceFloat == 0) {
         continue;
       }

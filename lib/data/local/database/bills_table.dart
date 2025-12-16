@@ -12,14 +12,23 @@ class Bills extends Table {
   /// Bill name.
   TextColumn get name => text()();
 
-  /// Minimum amount for the bill.
-  RealColumn get amountMin => real()();
+  /// Minimum amount for the bill (stored as 'amount_min' in API).
+  RealColumn get minAmount => real()();
 
-  /// Maximum amount for the bill.
-  RealColumn get amountMax => real()();
+  /// Maximum amount for the bill (stored as 'amount_max' in API).
+  RealColumn get maxAmount => real()();
 
   /// Currency code for the bill.
   TextColumn get currencyCode => text()();
+
+  /// Currency symbol (e.g., '$', '€'), nullable.
+  TextColumn get currencySymbol => text().nullable()();
+
+  /// Currency decimal places.
+  IntColumn get currencyDecimalPlaces => integer().nullable()();
+
+  /// Currency ID from Firefly III.
+  TextColumn get currencyId => text().nullable()();
 
   /// Bill date.
   DateTimeColumn get date => dateTime()();
@@ -35,6 +44,18 @@ class Bills extends Table {
 
   /// Additional notes for the bill, nullable.
   TextColumn get notes => text().nullable()();
+
+  /// Next expected match date from API.
+  DateTimeColumn get nextExpectedMatch => dateTime().nullable()();
+
+  /// Order for sorting.
+  IntColumn get order => integer().nullable()();
+
+  /// Object group order for grouping.
+  IntColumn get objectGroupOrder => integer().nullable()();
+
+  /// Object group title for grouping (e.g., 'Utilities').
+  TextColumn get objectGroupTitle => text().nullable()();
 
   /// Timestamp when the bill was created locally.
   DateTimeColumn get createdAt => dateTime()();

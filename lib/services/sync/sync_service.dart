@@ -3,6 +3,8 @@ import 'package:logging/logging.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
 import 'package:waterflyiii/exceptions/sync_exceptions.dart' as sync_ex;
+import 'package:waterflyiii/models/conflict.dart';
+import 'package:waterflyiii/models/sync_operation.dart';
 import 'package:waterflyiii/models/sync_progress.dart';
 import 'package:waterflyiii/services/sync/conflict_detector.dart';
 import 'package:waterflyiii/services/sync/conflict_resolver.dart';
@@ -53,20 +55,12 @@ enum SyncMode {
 class SyncService {
   final Logger _logger = Logger('SyncService');
   
-  // TODO: Use _apiAdapter for API calls in sync operations
-  // ignore: unused_field
   final FireflyApiAdapter _apiAdapter;
   final DatabaseAdapter _dbAdapter;
   final AppDatabase _database;
-  // TODO: Use _progressTracker to track sync progress
-  // ignore: unused_field
   final SyncProgressTracker _progressTracker;
   final MetadataService _metadata;
-  // TODO: Use _conflictDetector to detect conflicts during sync
-  // ignore: unused_field
   final ConflictDetector _conflictDetector;
-  // TODO: Use _conflictResolver to resolve detected conflicts
-  // ignore: unused_field
   final ConflictResolver _conflictResolver;
   
   /// Batch size for processing entities
@@ -105,6 +99,12 @@ class SyncService {
           queueManager: SyncQueueManager(database),
         );
 
+  /// Watch sync progress updates.
+  Stream<SyncProgress> watchProgress() => _progressTracker.watchProgress();
+
+  /// Watch sync events.
+  Stream<SyncEvent> watchEvents() => _progressTracker.watchEvents();
+
   /// Perform synchronization with specified mode.
   ///
   /// Returns [SyncResult] with detailed statistics about the sync operation.
@@ -127,9 +127,11 @@ class SyncService {
       return result;
     } on TimeoutException catch (e, stackTrace) {
       _logger.severe('Sync timeout after ${timeout.inMinutes} minutes', e, stackTrace);
+      _progressTracker.cancel();
       throw sync_ex.NetworkError('Sync timeout after ${timeout.inMinutes} minutes');
     } catch (e, stackTrace) {
       _logger.severe('Sync failed', e, stackTrace);
+      _progressTracker.cancel();
       rethrow;
     }
   }
@@ -180,15 +182,27 @@ class SyncService {
     final List<String> errors = <String>[];
 
     try {
+      // Start progress tracking
+      _progressTracker.start(
+        totalOperations: types.length * 100, // Estimate, will be updated
+        phase: SyncPhase.preparing,
+      );
+
       // Clear local data if requested
       if (clearLocalDataOnFullSync) {
         _logger.info('Clearing local data');
+        _progressTracker.updatePhase(SyncPhase.preparing);
+        _progressTracker.updateCurrentOperation('Clearing local data');
         await _clearLocalData();
       }
+
+      // Update phase to syncing
+      _progressTracker.updatePhase(SyncPhase.syncing);
 
       // Sync each entity type
       for (final String entityType in types) {
         _logger.info('Syncing $entityType');
+        _progressTracker.updateCurrentOperation('Syncing $entityType');
         
         try {
           final EntitySyncStats stats = await _syncEntityType(
@@ -200,15 +214,27 @@ class SyncService {
           totalOperations += stats.total;
           successfulOperations += stats.successful;
           failedOperations += stats.failed;
+          
+          _progressTracker.addCompleted(stats.successful);
+          for (int i = 0; i < stats.failed; i++) {
+            _progressTracker.incrementFailed(error: 'Failed to sync $entityType entity');
+          }
         } catch (e, stackTrace) {
           _logger.severe('Failed to sync $entityType', e, stackTrace);
           errors.add('$entityType: ${e.toString()}');
           failedOperations++;
+          _progressTracker.incrementFailed(error: '$entityType: ${e.toString()}');
         }
       }
 
       // Update metadata
       await _metadata.set('last_full_sync', DateTime.now().toIso8601String());
+      
+      // Complete progress tracking
+      _progressTracker.complete(
+        success: failedOperations == 0,
+        entityStats: statsByEntity,
+      );
       
       return SyncResult(
         success: failedOperations == 0,
@@ -225,6 +251,7 @@ class SyncService {
       );
     } catch (e, stackTrace) {
       _logger.severe('Full sync failed', e, stackTrace);
+      _progressTracker.cancel();
       throw sync_ex.ServerError('Full sync failed: ${e.toString()}');
     }
   }
@@ -250,22 +277,33 @@ class SyncService {
     int successfulOperations = 0;
     int failedOperations = 0;
     int conflictsDetected = 0;
-    final int conflictsResolved = 0;
+    int conflictsResolved = 0;
     final List<String> errors = <String>[];
 
     try {
+      // Start progress tracking
+      _progressTracker.start(
+        totalOperations: types.length * 50, // Estimate for incremental
+        phase: SyncPhase.preparing,
+      );
+
       // Get last sync timestamp
       final String? lastSyncStr = await _metadata.get('last_incremental_sync');
       final DateTime? lastSync = lastSyncStr != null ? DateTime.tryParse(lastSyncStr) : null;
       
       if (lastSync == null) {
         _logger.warning('No last sync timestamp, performing full sync instead');
+        _progressTracker.cancel();
         return await _performFullSync(entityTypes: entityTypes, startTime: startTime);
       }
+
+      // Update phase to pulling (fetching from server)
+      _progressTracker.updatePhase(SyncPhase.pulling);
 
       // Sync each entity type
       for (final String entityType in types) {
         _logger.info('Syncing $entityType (incremental)');
+        _progressTracker.updateCurrentOperation('Syncing $entityType');
         
         try {
           final EntitySyncStats stats = await _syncEntityType(
@@ -279,15 +317,27 @@ class SyncService {
           successfulOperations += stats.successful;
           failedOperations += stats.failed;
           conflictsDetected += stats.conflicts;
+          
+          _progressTracker.addCompleted(stats.successful);
+          for (int i = 0; i < stats.conflicts; i++) {
+            _progressTracker.incrementConflicts(conflictId: '$entityType-conflict-$i');
+          }
         } catch (e, stackTrace) {
           _logger.severe('Failed to sync $entityType', e, stackTrace);
           errors.add('$entityType: ${e.toString()}');
           failedOperations++;
+          _progressTracker.incrementFailed(error: '$entityType: ${e.toString()}');
         }
       }
 
       // Update metadata
       await _metadata.set('last_incremental_sync', DateTime.now().toIso8601String());
+      
+      // Complete progress tracking
+      _progressTracker.complete(
+        success: failedOperations == 0,
+        entityStats: statsByEntity,
+      );
       
       return SyncResult(
         success: failedOperations == 0,
@@ -304,6 +354,7 @@ class SyncService {
       );
     } catch (e, stackTrace) {
       _logger.severe('Incremental sync failed', e, stackTrace);
+      _progressTracker.cancel();
       throw sync_ex.ServerError('Incremental sync failed: ${e.toString()}');
     }
   }
@@ -329,6 +380,9 @@ class SyncService {
       total = entities.length;
       _logger.info('Fetched $total $entityType from server');
 
+      // Update progress tracker phase to syncing (processing entities)
+      _progressTracker.updatePhase(SyncPhase.syncing);
+
       // Process in batches
       for (int i = 0; i < entities.length; i += batchSize) {
         final int end = (i + batchSize < entities.length) ? i + batchSize : entities.length;
@@ -342,8 +396,13 @@ class SyncService {
               if (hasConflict) {
                 conflicts++;
                 _logger.warning('Conflict detected for $entityType ${entity['id']}');
-                // TODO: Resolve conflict using ConflictResolver
-                continue;
+                
+                // Attempt to resolve conflict
+                final bool resolved = await _resolveConflict(entityType, entity);
+                if (!resolved) {
+                  _logger.warning('Conflict not resolved for $entityType ${entity['id']}');
+                  continue;
+                }
               }
             }
 
@@ -372,72 +431,109 @@ class SyncService {
     }
   }
 
-  /// Fetch entities from API with pagination.
+  /// Fetch entities from API with pagination using FireflyApiAdapter.
   Future<List<Map<String, dynamic>>> _fetchEntitiesFromAPI({
     required String entityType,
     DateTime? since,
   }) async {
-    final List<Map<String, dynamic>> allEntities = <Map<String, dynamic>>[];
-    int page = 1;
-    bool hasMore = true;
-
-    while (hasMore) {
-      try {
-        _logger.fine('Fetching $entityType page $page');
-        
-        // TODO: Implement actual API calls for each entity type
-        // For now, return empty list
-        final List<Map<String, dynamic>> pageEntities = await _fetchEntityPage(
-          entityType: entityType,
-          page: page,
-          pageSize: pageSize,
-          since: since,
-        );
-        
-        if (pageEntities.isEmpty) {
-          hasMore = false;
-        } else {
-          allEntities.addAll(pageEntities);
-          page++;
-        }
-      } catch (e, stackTrace) {
-        _logger.severe('Failed to fetch $entityType page $page', e, stackTrace);
-        rethrow;
+    _logger.fine('Fetching $entityType from API (since: $since)');
+    
+    try {
+      // Use incremental methods if since is provided, otherwise full fetch
+      if (since != null) {
+        return await _fetchEntitiesSince(entityType, since);
+      } else {
+        return await _fetchAllEntities(entityType);
       }
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to fetch $entityType from API', e, stackTrace);
+      rethrow;
     }
-
-    return allEntities;
   }
 
-  /// Fetch a single page of entities from API.
-  Future<List<Map<String, dynamic>>> _fetchEntityPage({
-    required String entityType,
-    required int page,
-    required int pageSize,
-    DateTime? since,
-  }) async {
-    // TODO: Implement actual API calls using FireflyApiAdapter
-    // This is a placeholder that returns empty list
-    _logger.fine('Fetching $entityType page $page (size: $pageSize)');
-    return <Map<String, dynamic>>[];
+  /// Fetch all entities of a type using FireflyApiAdapter.
+  Future<List<Map<String, dynamic>>> _fetchAllEntities(String entityType) async {
+    switch (entityType) {
+      case 'transactions':
+        return await _apiAdapter.getAllTransactions();
+      case 'accounts':
+        return await _apiAdapter.getAllAccounts();
+      case 'categories':
+        return await _apiAdapter.getAllCategories();
+      case 'budgets':
+        return await _apiAdapter.getAllBudgets();
+      case 'bills':
+        return await _apiAdapter.getAllBills();
+      case 'piggy_banks':
+        return await _apiAdapter.getAllPiggyBanks();
+      default:
+        _logger.warning('Unknown entity type: $entityType');
+        return <Map<String, dynamic>>[];
+    }
   }
 
-  /// Check if entity has conflicts with local version.
+  /// Fetch entities updated since a timestamp using FireflyApiAdapter.
+  Future<List<Map<String, dynamic>>> _fetchEntitiesSince(
+    String entityType,
+    DateTime since,
+  ) async {
+    switch (entityType) {
+      case 'transactions':
+        return await _apiAdapter.getTransactionsSince(since);
+      case 'accounts':
+        return await _apiAdapter.getAccountsSince(since);
+      case 'categories':
+        return await _apiAdapter.getCategoriesSince(since);
+      case 'budgets':
+        return await _apiAdapter.getBudgetsSince(since);
+      case 'bills':
+        return await _apiAdapter.getBillsSince(since);
+      case 'piggy_banks':
+        return await _apiAdapter.getPiggyBanksSince(since);
+      default:
+        _logger.warning('Unknown entity type: $entityType');
+        return <Map<String, dynamic>>[];
+    }
+  }
+
+  /// Check if entity has conflicts with local version using ConflictDetector.
   Future<bool> _checkForConflict(String entityType, Map<String, dynamic> remoteEntity) async {
     try {
       final String? entityId = remoteEntity['id'] as String?;
       if (entityId == null) return false;
 
-      // Get local entity
+      // Get local entity from database
       final Map<String, dynamic>? localEntity = await _getLocalEntity(entityType, entityId);
       if (localEntity == null) return false;
 
-      // Check if local entity has pending changes
-      final bool isPending = localEntity['is_synced'] == false;
+      // Check if local entity has pending changes (not yet synced)
+      final bool isPending = localEntity['is_synced'] == false || 
+                            localEntity['sync_status'] == 'pending';
       if (!isPending) return false;
 
-      // Use ConflictDetector to check for conflicts
-      // TODO: Implement proper conflict detection
+      // Create a sync operation to use with ConflictDetector
+      final SyncOperation operation = SyncOperation(
+        id: 'check-$entityId',
+        entityType: entityType,
+        entityId: entityId,
+        operation: SyncOperationType.update,
+        payload: localEntity,
+        createdAt: DateTime.now(),
+        priority: SyncPriority.normal,
+      );
+
+      // Use ConflictDetector to detect conflicts
+      final Conflict? conflict = await _conflictDetector.detectConflict(
+        operation,
+        remoteEntity,
+      );
+
+      if (conflict != null) {
+        _logger.info('Conflict detected: ${conflict.id} (${conflict.conflictType})');
+        _progressTracker.incrementConflicts(conflictId: conflict.id);
+        return true;
+      }
+
       return false;
     } catch (e, stackTrace) {
       _logger.severe('Failed to check for conflict', e, stackTrace);
@@ -445,22 +541,166 @@ class SyncService {
     }
   }
 
-  /// Get local entity from database.
-  Future<Map<String, dynamic>?> _getLocalEntity(String entityType, String entityId) async {
-    // TODO: Implement using DatabaseAdapter
-    return null;
+  /// Resolve a detected conflict using ConflictResolver.
+  Future<bool> _resolveConflict(String entityType, Map<String, dynamic> remoteEntity) async {
+    try {
+      final String? entityId = remoteEntity['id'] as String?;
+      if (entityId == null) return false;
+
+      // Get local entity
+      final Map<String, dynamic>? localEntity = await _getLocalEntity(entityType, entityId);
+      if (localEntity == null) {
+        // No local entity means we can just use remote
+        return true;
+      }
+
+      // Create a sync operation for the conflict
+      final SyncOperation operation = SyncOperation(
+        id: 'resolve-$entityId',
+        entityType: entityType,
+        entityId: entityId,
+        operation: SyncOperationType.update,
+        payload: localEntity,
+        createdAt: DateTime.now(),
+        priority: SyncPriority.normal,
+      );
+
+      // Detect the conflict
+      final Conflict? conflict = await _conflictDetector.detectConflict(
+        operation,
+        remoteEntity,
+      );
+
+      if (conflict == null) {
+        // No conflict to resolve
+        return true;
+      }
+
+      // Use ConflictResolver to resolve the conflict
+      // Default strategy: server wins for incremental sync
+      final Resolution result = await _conflictResolver.resolveConflict(
+        conflict,
+        ResolutionStrategy.remoteWins,
+      );
+
+      _logger.info('Conflict resolved: ${conflict.id} with strategy remoteWins, result: ${result.success}');
+      return result.success;
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to resolve conflict', e, stackTrace);
+      return false;
+    }
   }
 
-  /// Upsert entity to database.
+  /// Get local entity from database using DatabaseAdapter.
+  Future<Map<String, dynamic>?> _getLocalEntity(String entityType, String entityId) async {
+    try {
+      switch (entityType) {
+        case 'transactions':
+          return await _dbAdapter.getTransaction(entityId);
+        case 'accounts':
+          return await _dbAdapter.getAccount(entityId);
+        case 'categories':
+          return await _dbAdapter.getCategory(entityId);
+        case 'budgets':
+          return await _dbAdapter.getBudget(entityId);
+        case 'bills':
+          return await _dbAdapter.getBill(entityId);
+        case 'piggy_banks':
+          return await _dbAdapter.getPiggyBank(entityId);
+        default:
+          _logger.fine('Unknown entity type for local fetch: $entityType');
+          return null;
+      }
+    } catch (e, stackTrace) {
+      _logger.warning('Failed to get local entity $entityType/$entityId', e, stackTrace);
+      return null;
+    }
+  }
+
+  /// Upsert entity to database using DatabaseAdapter.
   Future<void> _upsertEntity(String entityType, Map<String, dynamic> entity) async {
+    // Transform API data to database format
+    final Map<String, dynamic> dbEntity = _transformApiToDb(entityType, entity);
+    
     switch (entityType) {
       case 'transactions':
-        await _dbAdapter.upsertTransaction(entity);
+        await _dbAdapter.upsertTransaction(dbEntity);
         break;
-      // TODO: Implement for other entity types
+      case 'accounts':
+        await _dbAdapter.upsertAccount(dbEntity);
+        break;
+      case 'categories':
+        await _dbAdapter.upsertCategory(dbEntity);
+        break;
+      case 'budgets':
+        await _dbAdapter.upsertBudget(dbEntity);
+        break;
+      case 'bills':
+        await _dbAdapter.upsertBill(dbEntity);
+        break;
+      case 'piggy_banks':
+        await _dbAdapter.upsertPiggyBank(dbEntity);
+        break;
       default:
         _logger.warning('Upsert not implemented for $entityType');
     }
+  }
+
+  /// Transform API response data to database format.
+  Map<String, dynamic> _transformApiToDb(String entityType, Map<String, dynamic> apiData) {
+    // Extract attributes if present (API returns { id, type, attributes })
+    final Map<String, dynamic> attributes = apiData['attributes'] is Map
+        ? Map<String, dynamic>.from(apiData['attributes'] as Map)
+        : <String, dynamic>{};
+    
+    // Merge id into attributes and set server_id
+    final Map<String, dynamic> result = <String, dynamic>{
+      'id': apiData['id'],
+      'server_id': apiData['id'],
+      ...attributes,
+    };
+    
+    // Entity-specific transformations
+    switch (entityType) {
+      case 'transactions':
+        // Handle nested transaction splits
+        if (attributes['transactions'] is List) {
+          final List transactions = attributes['transactions'] as List;
+          if (transactions.isNotEmpty) {
+            final Map<String, dynamic> firstSplit = 
+                Map<String, dynamic>.from(transactions.first as Map);
+            result.addAll(<String, dynamic>{
+              'type': firstSplit['type'] ?? 'withdrawal',
+              'date': firstSplit['date'],
+              'amount': firstSplit['amount'],
+              'description': firstSplit['description'],
+              'source_account_id': firstSplit['source_id'],
+              'destination_account_id': firstSplit['destination_id'],
+              'category_id': firstSplit['category_id'],
+              'budget_id': firstSplit['budget_id'],
+              'currency_code': firstSplit['currency_code'],
+              'notes': firstSplit['notes'],
+            });
+          }
+        }
+        break;
+      case 'accounts':
+        result['current_balance'] = attributes['current_balance'];
+        result['account_role'] = attributes['account_role'];
+        break;
+      case 'bills':
+        result['amount_min'] = attributes['amount_min'];
+        result['amount_max'] = attributes['amount_max'];
+        result['repeat_freq'] = attributes['repeat_freq'];
+        break;
+      case 'piggy_banks':
+        result['account_id'] = attributes['account_id'];
+        result['target_amount'] = attributes['target_amount'];
+        result['current_amount'] = attributes['current_amount'];
+        break;
+    }
+    
+    return result;
   }
 
   /// Clear local database.

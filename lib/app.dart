@@ -14,8 +14,12 @@ import 'package:quick_actions/quick_actions.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/bill_repository.dart';
 import 'package:waterflyiii/data/repositories/budget_repository.dart';
 import 'package:waterflyiii/data/repositories/category_repository.dart';
+import 'package:waterflyiii/data/repositories/currency_repository.dart';
+import 'package:waterflyiii/data/repositories/piggy_bank_repository.dart';
+import 'package:waterflyiii/data/repositories/tag_repository.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/notificationlistener.dart';
@@ -27,6 +31,8 @@ import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/providers/sync_provider.dart';
 import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/services/cache/cache_warming_service.dart';
+import 'package:waterflyiii/services/data/chart_data_service.dart';
+import 'package:waterflyiii/services/data/insights_service.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/widgets/logo.dart';
 
@@ -244,39 +250,91 @@ class _WaterflyAppState extends State<WaterflyApp> {
               ),
               dispose: (_, CacheService cache) => cache.dispose(),
             ),
-            // Cache Warming Service (Phase 3: Background Refresh)
-            Provider<CacheWarmingService>(
-              create: (BuildContext context) {
-                final AppDatabase database = context.read<AppDatabase>();
-                final CacheService cacheService = context.read<CacheService>();
 
-                // Create repositories with cache service
-                final TransactionRepository transactionRepository =
-                    TransactionRepository(
-                  database: database,
-                  cacheService: cacheService,
-                );
-                final AccountRepository accountRepository = AccountRepository(
-                  database: database,
-                  cacheService: cacheService,
-                );
-                final BudgetRepository budgetRepository = BudgetRepository(
-                  database: database,
-                  cacheService: cacheService,
-                );
-                final CategoryRepository categoryRepository = CategoryRepository(
-                  database: database,
-                  cacheService: cacheService,
-                );
+            // Repositories (Phase 2-3: Cache-First Architecture)
+            // These repositories provide data access with cache-first strategy.
+            // Pages should use these instead of direct API calls.
+            Provider<TransactionRepository>(
+              create: (BuildContext context) => TransactionRepository(
+                database: context.read<AppDatabase>(),
+                cacheService: context.read<CacheService>(),
+              ),
+            ),
+            Provider<AccountRepository>(
+              create: (BuildContext context) => AccountRepository(
+                database: context.read<AppDatabase>(),
+                cacheService: context.read<CacheService>(),
+              ),
+            ),
+            Provider<CategoryRepository>(
+              create: (BuildContext context) => CategoryRepository(
+                database: context.read<AppDatabase>(),
+                cacheService: context.read<CacheService>(),
+              ),
+            ),
+            Provider<BudgetRepository>(
+              create: (BuildContext context) => BudgetRepository(
+                database: context.read<AppDatabase>(),
+                cacheService: context.read<CacheService>(),
+              ),
+            ),
+            Provider<BillRepository>(
+              create: (BuildContext context) => BillRepository(
+                database: context.read<AppDatabase>(),
+                cacheService: context.read<CacheService>(),
+              ),
+            ),
+            Provider<PiggyBankRepository>(
+              create: (BuildContext context) => PiggyBankRepository(
+                database: context.read<AppDatabase>(),
+                cacheService: context.read<CacheService>(),
+              ),
+            ),
+            Provider<CurrencyRepository>(
+              create: (BuildContext context) => CurrencyRepository(
+                database: context.read<AppDatabase>(),
+                cacheService: context.read<CacheService>(),
+              ),
+            ),
+            Provider<TagRepository>(
+              create: (BuildContext context) => TagRepository(
+                database: context.read<AppDatabase>(),
+                cacheService: context.read<CacheService>(),
+              ),
+            ),
 
-                return CacheWarmingService(
-                  cacheService: cacheService,
-                  transactionRepository: transactionRepository,
-                  accountRepository: accountRepository,
-                  budgetRepository: budgetRepository,
-                  categoryRepository: categoryRepository,
+            // Data Services (Phase 2: Cached API Access)
+            // These services provide cached access to computed/aggregate data.
+            ProxyProvider2<FireflyService, CacheService, InsightsService?>(
+              update: (_, FireflyService firefly, CacheService cache, __) {
+                // Only create service when signed in
+                if (!firefly.signedIn) return null;
+                return InsightsService(
+                  fireflyService: firefly,
+                  cacheService: cache,
                 );
               },
+            ),
+            ProxyProvider2<FireflyService, CacheService, ChartDataService?>(
+              update: (_, FireflyService firefly, CacheService cache, __) {
+                // Only create service when signed in
+                if (!firefly.signedIn) return null;
+                return ChartDataService(
+                  fireflyService: firefly,
+                  cacheService: cache,
+                );
+              },
+            ),
+
+            // Cache Warming Service (Phase 3: Background Refresh)
+            Provider<CacheWarmingService>(
+              create: (BuildContext context) => CacheWarmingService(
+                cacheService: context.read<CacheService>(),
+                transactionRepository: context.read<TransactionRepository>(),
+                accountRepository: context.read<AccountRepository>(),
+                budgetRepository: context.read<BudgetRepository>(),
+                categoryRepository: context.read<CategoryRepository>(),
+              ),
             ),
           ],
           builder: (BuildContext context, _) {

@@ -1,11 +1,11 @@
 import 'package:animations/animations.dart';
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/animations.dart';
-import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/home/accounts/row.dart';
@@ -138,30 +138,103 @@ class _AccountDetailsState extends State<AccountDetails>
 
   final Logger log = Logger("Pages.Accounts.Details");
 
+  /// Maps AccountTypeFilter to account type string for database queries.
+  String _getAccountTypeString(AccountTypeFilter type) {
+    switch (type) {
+      case AccountTypeFilter.asset:
+        return 'asset';
+      case AccountTypeFilter.expense:
+        return 'expense';
+      case AccountTypeFilter.revenue:
+        return 'revenue';
+      case AccountTypeFilter.liabilities:
+        return 'liability';
+      default:
+        return type.value ?? 'asset';
+    }
+  }
+
+  /// Converts AccountEntity to AccountRead for UI compatibility.
+  AccountRead _entityToAccountRead(AccountEntity entity) {
+    // Parse type and role from string values
+    ShortAccountTypeProperty? accountType;
+    try {
+      accountType = ShortAccountTypeProperty.values.firstWhere(
+        (ShortAccountTypeProperty e) => e.value == entity.type,
+        orElse: () => ShortAccountTypeProperty.asset,
+      );
+    } catch (_) {
+      accountType = ShortAccountTypeProperty.asset;
+    }
+
+    AccountRoleProperty? accountRole;
+    if (entity.accountRole != null) {
+      try {
+        accountRole = AccountRoleProperty.values.firstWhere(
+          (AccountRoleProperty e) => e.value == entity.accountRole,
+          orElse: () => AccountRoleProperty.defaultasset,
+        );
+      } catch (_) {
+        accountRole = null;
+      }
+    }
+
+    return AccountRead(
+      id: entity.id,
+      type: 'accounts',
+      attributes: AccountProperties(
+        name: entity.name,
+        type: accountType,
+        accountRole: accountRole,
+        currencyCode: entity.currencyCode,
+        currentBalance: entity.currentBalance.toString(),
+        iban: entity.iban,
+        bic: entity.bic,
+        accountNumber: entity.accountNumber,
+        openingBalance: entity.openingBalance?.toString(),
+        openingBalanceDate: entity.openingBalanceDate,
+        notes: entity.notes,
+        active: entity.active,
+      ),
+    );
+  }
+
   Future<void> _fetchPage() async {
     if (_pagingState.isLoading) return;
 
     try {
-      final FireflyIii api = context.read<FireflyService>().api;
+      final AccountRepository accountRepository = context.read<AccountRepository>();
 
       final int pageKey = (_pagingState.keys?.last ?? 0) + 1;
       log.finest(
         "Getting page $pageKey (${_pagingState.pages?.length} pages loaded)",
       );
 
-      final Response<AccountArray> respAccounts = await api.v1AccountsGet(
-        type: widget.accountType,
-        page: pageKey,
-      );
-      apiThrowErrorIfEmpty(respAccounts, mounted ? context : null);
+      // Use AccountRepository with cache-first strategy
+      final String accountType = _getAccountTypeString(widget.accountType);
+      final List<AccountEntity> accountEntities =
+          await accountRepository.getByType(accountType);
 
-      final List<AccountRead> accountList = respAccounts.body!.data;
-      final bool isLastPage = accountList.length < _numberOfItemsPerRequest;
+      // Convert to AccountRead for UI compatibility
+      final List<AccountRead> accountList =
+          accountEntities.map(_entityToAccountRead).toList();
+
+      // Implement simple pagination over local data
+      final int startIndex = (pageKey - 1) * _numberOfItemsPerRequest;
+      final int endIndex = startIndex + _numberOfItemsPerRequest;
+      final List<AccountRead> pageItems = accountList.length > startIndex
+          ? accountList.sublist(
+              startIndex,
+              endIndex > accountList.length ? accountList.length : endIndex,
+            )
+          : <AccountRead>[];
+
+      final bool isLastPage = endIndex >= accountList.length;
 
       if (mounted) {
         setState(() {
           _pagingState = _pagingState.copyWith(
-            pages: <List<AccountRead>>[...?_pagingState.pages, accountList],
+            pages: <List<AccountRead>>[...?_pagingState.pages, pageItems],
             keys: <int>[...?_pagingState.keys, pageKey],
             hasNextPage: !isLastPage,
             isLoading: false,

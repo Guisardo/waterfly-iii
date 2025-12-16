@@ -286,6 +286,22 @@ class DatabaseAdapter {
     }
   }
 
+  /// Get a category by ID.
+  Future<Map<String, dynamic>?> getCategory(String id) async {
+    try {
+      final CategoryEntity? result = await (database.select(database.categories)
+            ..where(($CategoriesTable c) => c.id.equals(id)))
+          .getSingleOrNull();
+      
+      if (result == null) return null;
+
+      return _categoryToMap(result);
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to get category $id', e, stackTrace);
+      rethrow;
+    }
+  }
+
   // ==================== BUDGET OPERATIONS ====================
 
   /// Insert or update a budget with validation.
@@ -320,6 +336,22 @@ class DatabaseAdapter {
     }
   }
 
+  /// Get a budget by ID.
+  Future<Map<String, dynamic>?> getBudget(String id) async {
+    try {
+      final BudgetEntity? result = await (database.select(database.budgets)
+            ..where(($BudgetsTable b) => b.id.equals(id)))
+          .getSingleOrNull();
+      
+      if (result == null) return null;
+
+      return _budgetToMap(result);
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to get budget $id', e, stackTrace);
+      rethrow;
+    }
+  }
+
   // ==================== BILL OPERATIONS ====================
 
   /// Insert or update a bill with validation.
@@ -339,14 +371,21 @@ class DatabaseAdapter {
         id: Value(id),
         serverId: Value(data['server_id'] as String?),
         name: Value(data['name'] as String),
-        amountMin: Value(_parseDouble(data['amount_min'])),
-        amountMax: Value(_parseDouble(data['amount_max'])),
+        minAmount: Value(_parseDouble(data['amount_min'])),
+        maxAmount: Value(_parseDouble(data['amount_max'])),
         currencyCode: Value(data['currency_code'] as String? ?? 'USD'),
+        currencySymbol: Value(data['currency_symbol'] as String?),
+        currencyDecimalPlaces: Value(data['currency_decimal_places'] as int?),
+        currencyId: Value(data['currency_id'] as String?),
         date: Value(_parseDateTime(data['date']) ?? DateTime.now()),
         repeatFreq: Value(data['repeat_freq'] as String? ?? 'monthly'),
         skip: Value(data['skip'] as int? ?? 0),
         active: Value(data['active'] as bool? ?? true),
         notes: Value(data['notes'] as String?),
+        nextExpectedMatch: Value(_parseDateTime(data['next_expected_match'])),
+        order: Value(data['order'] as int?),
+        objectGroupOrder: Value(data['object_group_order'] as int?),
+        objectGroupTitle: Value(data['object_group_title'] as String?),
         createdAt: Value(_parseDateTime(data['created_at']) ?? DateTime.now()),
         updatedAt: Value(_parseDateTime(data['updated_at']) ?? DateTime.now()),
         isSynced: const Value(true),
@@ -357,6 +396,22 @@ class DatabaseAdapter {
       _logger.fine('Upserted bill: $id');
     } catch (e, stackTrace) {
       _logger.severe('Failed to upsert bill', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Get a bill by ID.
+  Future<Map<String, dynamic>?> getBill(String id) async {
+    try {
+      final BillEntity? result = await (database.select(database.bills)
+            ..where(($BillsTable b) => b.id.equals(id)))
+          .getSingleOrNull();
+      
+      if (result == null) return null;
+
+      return _billToMap(result);
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to get bill $id', e, stackTrace);
       rethrow;
     }
   }
@@ -396,6 +451,22 @@ class DatabaseAdapter {
       _logger.fine('Upserted piggy bank: $id');
     } catch (e, stackTrace) {
       _logger.severe('Failed to upsert piggy bank', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Get a piggy bank by ID.
+  Future<Map<String, dynamic>?> getPiggyBank(String id) async {
+    try {
+      final PiggyBankEntity? result = await (database.select(database.piggyBanks)
+            ..where(($PiggyBanksTable p) => p.id.equals(id)))
+          .getSingleOrNull();
+      
+      if (result == null) return null;
+
+      return _piggyBankToMap(result);
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to get piggy bank $id', e, stackTrace);
       rethrow;
     }
   }
@@ -493,6 +564,81 @@ class DatabaseAdapter {
       'sync_status': a.syncStatus,
       'created_at': a.createdAt.toIso8601String(),
       'updated_at': a.updatedAt.toIso8601String(),
+    };
+  }
+
+  /// Convert category entity to map.
+  Map<String, dynamic> _categoryToMap(CategoryEntity c) {
+    return <String, dynamic>{
+      'id': c.id,
+      'server_id': c.serverId,
+      'name': c.name,
+      'notes': c.notes,
+      'is_synced': c.isSynced,
+      'sync_status': c.syncStatus,
+      'created_at': c.createdAt.toIso8601String(),
+      'updated_at': c.updatedAt.toIso8601String(),
+    };
+  }
+
+  /// Convert budget entity to map.
+  Map<String, dynamic> _budgetToMap(BudgetEntity b) {
+    return <String, dynamic>{
+      'id': b.id,
+      'server_id': b.serverId,
+      'name': b.name,
+      'active': b.active,
+      'is_synced': b.isSynced,
+      'sync_status': b.syncStatus,
+      'created_at': b.createdAt.toIso8601String(),
+      'updated_at': b.updatedAt.toIso8601String(),
+    };
+  }
+
+  /// Convert bill entity to map.
+  Map<String, dynamic> _billToMap(BillEntity b) {
+    return <String, dynamic>{
+      'id': b.id,
+      'server_id': b.serverId,
+      'name': b.name,
+      'amount_min': b.minAmount,
+      'amount_max': b.maxAmount,
+      'currency_code': b.currencyCode,
+      'currency_symbol': b.currencySymbol,
+      'currency_decimal_places': b.currencyDecimalPlaces,
+      'currency_id': b.currencyId,
+      'date': b.date.toIso8601String(),
+      'repeat_freq': b.repeatFreq,
+      'skip': b.skip,
+      'active': b.active,
+      'notes': b.notes,
+      'next_expected_match': b.nextExpectedMatch?.toIso8601String(),
+      'order': b.order,
+      'object_group_order': b.objectGroupOrder,
+      'object_group_title': b.objectGroupTitle,
+      'is_synced': b.isSynced,
+      'sync_status': b.syncStatus,
+      'created_at': b.createdAt.toIso8601String(),
+      'updated_at': b.updatedAt.toIso8601String(),
+    };
+  }
+
+  /// Convert piggy bank entity to map.
+  Map<String, dynamic> _piggyBankToMap(PiggyBankEntity p) {
+    return <String, dynamic>{
+      'id': p.id,
+      'server_id': p.serverId,
+      'name': p.name,
+      'account_id': p.accountId,
+      'target_amount': p.targetAmount,
+      'current_amount': p.currentAmount,
+      'start_date': p.startDate?.toIso8601String(),
+      'target_date': p.targetDate?.toIso8601String(),
+      'notes': p.notes,
+      'is_synced': p.isSynced,
+      'sync_status': p.syncStatus,
+      'created_at': p.createdAt.toIso8601String(),
+      'updated_at': p.updatedAt.toIso8601String(),
     };
   }
 }

@@ -1,6 +1,12 @@
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/services/sync/database_adapter.dart';
+import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/sync/metadata_service.dart';
+import 'package:waterflyiii/services/sync/sync_progress_tracker.dart';
+import 'package:waterflyiii/services/sync/sync_service.dart';
 
 /// Background sync scheduler using WorkManager for periodic and one-time sync tasks.
 ///
@@ -169,10 +175,45 @@ class BackgroundSyncScheduler {
   }
 }
 
+/// Context holder for background sync initialization.
+///
+/// This class holds the API client needed for background sync operations.
+/// It must be initialized before background sync tasks can execute.
+class BackgroundSyncContext {
+  /// Singleton instance
+  static BackgroundSyncContext? _instance;
+
+  /// The Firefly III API client
+  final dynamic apiClient;
+
+  BackgroundSyncContext._({required this.apiClient});
+
+  /// Initialize the background sync context.
+  ///
+  /// Must be called during app initialization before scheduling background tasks.
+  static void initialize({required dynamic apiClient}) {
+    _instance = BackgroundSyncContext._(apiClient: apiClient);
+  }
+
+  /// Get the current instance.
+  static BackgroundSyncContext? get instance => _instance;
+
+  /// Check if context is initialized.
+  static bool get isInitialized => _instance != null;
+}
+
 /// Background sync callback handler.
 ///
 /// This function is called by WorkManager when a background task executes.
 /// It must be a top-level function or static method.
+///
+/// The handler initializes all required services and performs incremental sync:
+/// 1. Opens/creates the database
+/// 2. Creates API adapter with stored credentials
+/// 3. Creates database adapter
+/// 4. Creates sync service with all dependencies
+/// 5. Executes incremental sync
+/// 6. Records success/failure for interval adjustment
 @pragma('vm:entry-point')
 void backgroundSyncCallback() {
   Workmanager().executeTask((String task, Map<String, dynamic>? inputData) async {
@@ -180,12 +221,71 @@ void backgroundSyncCallback() {
     logger.info('Background sync task started: $task');
 
     try {
-      // TODO: Initialize services and execute sync
-      // This will be implemented when integrating with SyncManager
-      logger.info('Background sync task completed successfully');
-      return Future.value(true);
+      // Initialize services for background sync
+      final AppDatabase database = AppDatabase();
+      
+      // Check if API client context is available
+      if (!BackgroundSyncContext.isInitialized) {
+        logger.warning('BackgroundSyncContext not initialized, skipping sync');
+        return Future.value(false);
+      }
+
+      final dynamic apiClient = BackgroundSyncContext.instance!.apiClient;
+      
+      // Create adapters and services
+      final FireflyApiAdapter apiAdapter = FireflyApiAdapter(apiClient);
+      final DatabaseAdapter dbAdapter = DatabaseAdapter(database: database);
+      final SyncProgressTracker progressTracker = SyncProgressTracker();
+      final MetadataService metadata = MetadataService(database);
+      
+      // Create sync service
+      final SyncService syncService = SyncService(
+        apiAdapter: apiAdapter,
+        dbAdapter: dbAdapter,
+        database: database,
+        progressTracker: progressTracker,
+        metadata: metadata,
+      );
+
+      // Perform incremental sync
+      logger.info('Starting incremental sync from background task');
+      final result = await syncService.sync(mode: SyncMode.incremental);
+      
+      // Record result for interval adjustment
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final BackgroundSyncScheduler scheduler = BackgroundSyncScheduler(prefs);
+      
+      if (result.success) {
+        await scheduler.recordSuccess();
+        logger.info(
+          'Background sync completed successfully: '
+          '${result.successfulOperations}/${result.totalOperations} operations',
+        );
+      } else {
+        await scheduler.recordFailure();
+        logger.warning(
+          'Background sync completed with errors: '
+          '${result.failedOperations} failed operations',
+        );
+      }
+
+      // Cleanup
+      progressTracker.dispose();
+      await database.close();
+
+      return Future.value(result.success);
     } catch (e, stackTrace) {
       logger.severe('Background sync task failed', e, stackTrace);
+      
+      // Record failure
+      try {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        final BackgroundSyncScheduler scheduler = BackgroundSyncScheduler(prefs);
+        await scheduler.recordFailure();
+      } catch (_) {
+        // Ignore errors during failure recording
+      }
+      
       return Future.value(false);
     }
   });

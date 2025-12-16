@@ -6,6 +6,8 @@ import 'package:logging/logging.dart';
 import 'package:notifications_listener_service/notifications_listener_service.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/notificationlistener.dart';
@@ -206,6 +208,47 @@ class NotificationApps extends StatelessWidget {
   const NotificationApps({super.key});
 
   Future<AccountArray> _getAccounts(BuildContext context) async {
+    // Try to use AccountRepository (cache-first) if available
+    final AccountRepository? accountRepository =
+        context.read<AccountRepository?>();
+
+    if (accountRepository != null) {
+      // Use local database with cache-first strategy
+      final List<AccountEntity> accountEntities =
+          await accountRepository.getByType('asset');
+      
+      // Convert to AccountArray format for compatibility
+      final List<AccountRead> accounts = accountEntities.map((AccountEntity e) {
+        ShortAccountTypeProperty? accountType;
+        try {
+          accountType = ShortAccountTypeProperty.values.firstWhere(
+            (ShortAccountTypeProperty t) => t.value == e.type,
+            orElse: () => ShortAccountTypeProperty.asset,
+          );
+        } catch (_) {
+          accountType = ShortAccountTypeProperty.asset;
+        }
+
+        return AccountRead(
+          id: e.id,
+          type: 'accounts',
+          attributes: AccountProperties(
+            name: e.name,
+            type: accountType,
+            currencyCode: e.currencyCode,
+            currentBalance: e.currentBalance.toString(),
+            active: e.active,
+          ),
+        );
+      }).toList();
+
+      return AccountArray(
+        data: accounts,
+        meta: Meta(),
+      );
+    }
+
+    // Fallback to direct API call if repository not available
     final FireflyIii api = context.read<FireflyService>().api;
 
     // Accounts

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 
 import 'package:waterflyiii/data/local/database/app_database.dart';
@@ -11,6 +12,9 @@ import 'package:waterflyiii/services/sync/metadata_service.dart';
 ///
 /// This service maintains a history of operation state changes and
 /// provides analytics on sync performance, success rates, and timing.
+///
+/// Uses both the metadata service for history storage and direct database
+/// access for efficient querying of sync queue statistics.
 ///
 /// Example:
 /// ```dart
@@ -27,8 +31,6 @@ import 'package:waterflyiii/services/sync/metadata_service.dart';
 /// print('Success rate: ${stats.successRate}%');
 /// ```
 class OperationTracker {
-  // TODO: Use _database to persist operation tracking data
-  // ignore: unused_field
   final AppDatabase _database;
   final MetadataService _metadata;
   final Logger _logger = Logger('OperationTracker');
@@ -42,6 +44,9 @@ class OperationTracker {
   ///
   /// Records the operation ID, new status, and timestamp in the metadata table.
   /// Maintains a history of all status changes for each operation.
+  ///
+  /// Also updates the sync queue status in the database for operations
+  /// that correspond to sync queue entries.
   ///
   /// Throws [SyncException] if tracking fails
   Future<void> trackOperation(String operationId, String status) async {
@@ -65,8 +70,11 @@ class OperationTracker {
         'timestamp': timestamp.toIso8601String(),
       });
 
-      // Store updated history
+      // Store updated history in metadata
       await _metadata.set(historyKey, jsonEncode(history));
+
+      // Also update the sync queue status if this operation exists there
+      await _updateSyncQueueStatus(operationId, status, timestamp);
 
       _logger.fine('Operation tracked: $operationId -> $status');
     } catch (e, stackTrace) {
@@ -79,6 +87,49 @@ class OperationTracker {
         'Failed to track operation',
         <String, dynamic>{"error": e.toString()},
       );
+    }
+  }
+
+  /// Updates the sync queue status for an operation.
+  Future<void> _updateSyncQueueStatus(
+    String operationId,
+    String status,
+    DateTime timestamp,
+  ) async {
+    try {
+      // Map tracker status to sync queue status
+      final String? queueStatus = _mapToQueueStatus(status);
+      if (queueStatus == null) return;
+
+      // Update sync queue entry if exists
+      await (_database.update(_database.syncQueue)
+            ..where(($SyncQueueTable t) => t.id.equals(operationId)))
+          .write(SyncQueueEntityCompanion(
+        status: Value(queueStatus),
+        lastAttemptAt: Value(timestamp),
+      ));
+
+      _logger.fine('Updated sync queue status for $operationId: $queueStatus');
+    } catch (e) {
+      // Non-critical - operation may not be in sync queue
+      _logger.fine('Could not update sync queue for $operationId: $e');
+    }
+  }
+
+  /// Maps tracker status to sync queue status.
+  String? _mapToQueueStatus(String trackerStatus) {
+    switch (trackerStatus) {
+      case 'created':
+      case 'queued':
+        return 'pending';
+      case 'processing':
+        return 'processing';
+      case 'completed':
+        return 'completed';
+      case 'failed':
+        return 'failed';
+      default:
+        return null;
     }
   }
 
@@ -124,31 +175,28 @@ class OperationTracker {
 
   /// Gets comprehensive statistics about sync operations
   ///
-  /// Calculates:
-  /// - Total operations processed
-  /// - Success rate (percentage)
-  /// - Average processing time
-  /// - Failure rate
-  /// - Retry rate
+  /// Calculates statistics from both:
+  /// 1. Operation history stored in metadata (for detailed timing)
+  /// 2. Sync queue table (for current state counts)
   ///
   /// Returns [OperationStatistics] with all metrics
   Future<OperationStatistics> getOperationStatistics() async {
     _logger.fine('Calculating operation statistics');
 
     try {
-      // Get all operation histories
+      // Get counts directly from sync queue for current state
+      final SyncQueueStatistics queueStats = await _getSyncQueueStatistics();
+
+      // Get all operation histories for timing analysis
       final Map<String, String> allMetadata = await _metadata.getAll(
         prefix: MetadataKeys.operationHistoryPrefix,
       );
       final List<MapEntry<String, String>> historyEntries = allMetadata.entries.toList();
 
-      if (historyEntries.isEmpty) {
-        return OperationStatistics.empty();
-      }
-
-      int totalOperations = 0;
-      int successfulOperations = 0;
-      int failedOperations = 0;
+      // Calculate timing statistics from history
+      int totalFromHistory = 0;
+      int successfulFromHistory = 0;
+      int failedFromHistory = 0;
       int retriedOperations = 0;
       final List<Duration> processingTimes = <Duration>[];
 
@@ -159,14 +207,14 @@ class OperationTracker {
 
         if (history.isEmpty) continue;
 
-        totalOperations++;
+        totalFromHistory++;
 
         // Check final status
         final String lastStatus = history.last['status'] as String;
         if (lastStatus == 'completed') {
-          successfulOperations++;
+          successfulFromHistory++;
         } else if (lastStatus == 'failed') {
-          failedOperations++;
+          failedFromHistory++;
         }
 
         // Check for retries
@@ -191,7 +239,18 @@ class OperationTracker {
         processingTimes.add(endTime.difference(startTime));
       }
 
-      // Calculate averages
+      // Use queue stats if available, otherwise use history stats
+      final int totalOperations = queueStats.total > 0 
+          ? queueStats.total 
+          : totalFromHistory;
+      final int successfulOperations = queueStats.completed > 0 
+          ? queueStats.completed 
+          : successfulFromHistory;
+      final int failedOperations = queueStats.failed > 0 
+          ? queueStats.failed 
+          : failedFromHistory;
+
+      // Calculate rates
       final double successRate = totalOperations > 0
           ? (successfulOperations / totalOperations * 100)
           : 0.0;
@@ -200,8 +259,8 @@ class OperationTracker {
           ? (failedOperations / totalOperations * 100)
           : 0.0;
 
-      final double retryRate = totalOperations > 0
-          ? (retriedOperations / totalOperations * 100)
+      final double retryRate = totalFromHistory > 0
+          ? (retriedOperations / totalFromHistory * 100)
           : 0.0;
 
       final Duration avgProcessingTime = processingTimes.isNotEmpty
@@ -213,6 +272,8 @@ class OperationTracker {
         successfulOperations: successfulOperations,
         failedOperations: failedOperations,
         retriedOperations: retriedOperations,
+        pendingOperations: queueStats.pending,
+        processingOperations: queueStats.processing,
         successRate: successRate,
         failureRate: failureRate,
         retryRate: retryRate,
@@ -225,6 +286,121 @@ class OperationTracker {
       _logger.severe('Failed to calculate operation statistics', e, stackTrace);
       throw SyncException(
         'Failed to calculate operation statistics',
+        <String, dynamic>{"error": e.toString()},
+      );
+    }
+  }
+
+  /// Gets statistics directly from the sync queue table.
+  Future<SyncQueueStatistics> _getSyncQueueStatistics() async {
+    try {
+      // Count by status
+      final Expression<int> countAll = _database.syncQueue.id.count();
+      
+      // Get total count
+      final int total = await (_database.selectOnly(_database.syncQueue)
+            ..addColumns(<Expression<Object>>[countAll]))
+          .map((TypedResult row) => row.read(countAll) ?? 0)
+          .getSingle();
+
+      // Get pending count
+      final int pending = await (_database.selectOnly(_database.syncQueue)
+            ..addColumns(<Expression<Object>>[countAll])
+            ..where(_database.syncQueue.status.equals('pending')))
+          .map((TypedResult row) => row.read(countAll) ?? 0)
+          .getSingle();
+
+      // Get processing count
+      final int processing = await (_database.selectOnly(_database.syncQueue)
+            ..addColumns(<Expression<Object>>[countAll])
+            ..where(_database.syncQueue.status.equals('processing')))
+          .map((TypedResult row) => row.read(countAll) ?? 0)
+          .getSingle();
+
+      // Get completed count
+      final int completed = await (_database.selectOnly(_database.syncQueue)
+            ..addColumns(<Expression<Object>>[countAll])
+            ..where(_database.syncQueue.status.equals('completed')))
+          .map((TypedResult row) => row.read(countAll) ?? 0)
+          .getSingle();
+
+      // Get failed count
+      final int failed = await (_database.selectOnly(_database.syncQueue)
+            ..addColumns(<Expression<Object>>[countAll])
+            ..where(_database.syncQueue.status.equals('failed')))
+          .map((TypedResult row) => row.read(countAll) ?? 0)
+          .getSingle();
+
+      return SyncQueueStatistics(
+        total: total,
+        pending: pending,
+        processing: processing,
+        completed: completed,
+        failed: failed,
+      );
+    } catch (e, stackTrace) {
+      _logger.warning('Failed to get sync queue statistics', e, stackTrace);
+      return SyncQueueStatistics.empty();
+    }
+  }
+
+  /// Gets pending operations from the sync queue.
+  ///
+  /// Returns a list of operation IDs that are pending sync.
+  Future<List<String>> getPendingOperations() async {
+    try {
+      final List<SyncQueueEntity> entries = await (_database.select(_database.syncQueue)
+            ..where(($SyncQueueTable t) => t.status.equals('pending'))
+            ..orderBy(<OrderClauseGenerator<$SyncQueueTable>>[
+              ($SyncQueueTable t) => OrderingTerm(expression: t.priority, mode: OrderingMode.asc),
+              ($SyncQueueTable t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.asc),
+            ]))
+          .get();
+
+      return entries.map((SyncQueueEntity e) => e.id).toList();
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to get pending operations', e, stackTrace);
+      return <String>[];
+    }
+  }
+
+  /// Gets failed operations from the sync queue.
+  ///
+  /// Returns a list of operation IDs that failed sync.
+  Future<List<String>> getFailedOperations() async {
+    try {
+      final List<SyncQueueEntity> entries = await (_database.select(_database.syncQueue)
+            ..where(($SyncQueueTable t) => t.status.equals('failed')))
+          .get();
+
+      return entries.map((SyncQueueEntity e) => e.id).toList();
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to get failed operations', e, stackTrace);
+      return <String>[];
+    }
+  }
+
+  /// Requeues a failed operation for retry.
+  Future<void> requeueOperation(String operationId) async {
+    _logger.info('Requeuing operation: $operationId');
+
+    try {
+      await (_database.update(_database.syncQueue)
+            ..where(($SyncQueueTable t) => t.id.equals(operationId)))
+          .write(SyncQueueEntityCompanion(
+        status: const Value('pending'),
+        attempts: const Value(0),
+        lastAttemptAt: Value(DateTime.now()),
+      ));
+
+      // Track the requeue
+      await trackOperation(operationId, 'queued');
+      
+      _logger.info('Operation requeued: $operationId');
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to requeue operation: $operationId', e, stackTrace);
+      throw SyncException(
+        'Failed to requeue operation',
         <String, dynamic>{"error": e.toString()},
       );
     }
@@ -262,7 +438,10 @@ class OperationTracker {
         }
       }
 
-      _logger.info('Cleared $clearedCount old operation histories');
+      // Also clear old completed/failed entries from sync queue
+      final int queueCleared = await _clearOldQueueEntries(cutoffDate);
+
+      _logger.info('Cleared $clearedCount old operation histories and $queueCleared queue entries');
     } catch (e, stackTrace) {
       _logger.severe('Failed to clear old history', e, stackTrace);
       throw SyncException(
@@ -272,6 +451,20 @@ class OperationTracker {
     }
   }
 
+  /// Clears old completed/failed entries from the sync queue.
+  Future<int> _clearOldQueueEntries(DateTime cutoffDate) async {
+    try {
+      final int deleted = await (_database.delete(_database.syncQueue)
+            ..where(($SyncQueueTable t) => t.status.isIn(<String>['completed', 'failed']))
+            ..where(($SyncQueueTable t) => t.createdAt.isSmallerThanValue(cutoffDate)))
+          .go();
+
+      return deleted;
+    } catch (e) {
+      _logger.warning('Failed to clear old queue entries: $e');
+      return 0;
+    }
+  }
 }
 
 /// Represents a single entry in an operation's history
@@ -288,12 +481,41 @@ class OperationHistoryEntry {
   String toString() => '$status at ${timestamp.toIso8601String()}';
 }
 
+/// Statistics from the sync queue table.
+class SyncQueueStatistics {
+  final int total;
+  final int pending;
+  final int processing;
+  final int completed;
+  final int failed;
+
+  const SyncQueueStatistics({
+    required this.total,
+    required this.pending,
+    required this.processing,
+    required this.completed,
+    required this.failed,
+  });
+
+  factory SyncQueueStatistics.empty() {
+    return const SyncQueueStatistics(
+      total: 0,
+      pending: 0,
+      processing: 0,
+      completed: 0,
+      failed: 0,
+    );
+  }
+}
+
 /// Statistics about synchronization operations
 class OperationStatistics {
   final int totalOperations;
   final int successfulOperations;
   final int failedOperations;
   final int retriedOperations;
+  final int pendingOperations;
+  final int processingOperations;
   final double successRate;
   final double failureRate;
   final double retryRate;
@@ -304,6 +526,8 @@ class OperationStatistics {
     required this.successfulOperations,
     required this.failedOperations,
     required this.retriedOperations,
+    this.pendingOperations = 0,
+    this.processingOperations = 0,
     required this.successRate,
     required this.failureRate,
     required this.retryRate,
@@ -316,6 +540,8 @@ class OperationStatistics {
       successfulOperations: 0,
       failedOperations: 0,
       retriedOperations: 0,
+      pendingOperations: 0,
+      processingOperations: 0,
       successRate: 0.0,
       failureRate: 0.0,
       retryRate: 0.0,
@@ -329,6 +555,7 @@ class OperationStatistics {
         'total: $totalOperations, '
         'successful: $successfulOperations, '
         'failed: $failedOperations, '
+        'pending: $pendingOperations, '
         'successRate: ${successRate.toStringAsFixed(1)}%, '
         'avgTime: ${averageProcessingTime.inSeconds}s)';
   }

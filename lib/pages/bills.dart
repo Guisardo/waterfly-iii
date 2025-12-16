@@ -1,11 +1,11 @@
 import 'package:animations/animations.dart';
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart' show SortingOrder;
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/bill_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -577,28 +577,54 @@ class _BillsPageState extends State<BillsPage>
     Navigator.pop(context);
   }
 
-  Future<Map<String, List<BillRead>>> _fetchBills() async {
-    final FireflyIii api = context.read<FireflyService>().api;
-    // Start date set to first day of this month (period)
-    final DateTime start = DateTime.now().copyWith(day: 1);
-    // End date set to first day of upcoming month (period)
-    final DateTime end = start.copyWith(month: start.month + 1);
-    final List<BillRead> bills = <BillRead>[];
-    late Response<BillArray> response;
-    int pageNumber = 0;
-
-    do {
-      pageNumber += 1;
-      response = await api.v1BillsGet(
-        page: pageNumber,
-        start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
-        end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
+  /// Converts BillEntity to BillRead for UI compatibility.
+  BillRead _entityToBillRead(BillEntity entity) {
+    // Parse repeat frequency from string to enum
+    BillRepeatFrequency? repeatFreq;
+    try {
+      repeatFreq = BillRepeatFrequency.values.firstWhere(
+        (BillRepeatFrequency e) =>
+            e.value == entity.repeatFreq || e.name == entity.repeatFreq,
+        orElse: () => BillRepeatFrequency.monthly,
       );
-      apiThrowErrorIfEmpty(response, mounted ? context : null);
+    } catch (_) {
+      repeatFreq = BillRepeatFrequency.monthly;
+    }
 
-      bills.addAll(response.body!.data);
-    } while ((response.body!.meta.pagination?.currentPage ?? 1) <
-        (response.body!.meta.pagination?.totalPages ?? 1));
+    return BillRead(
+      id: entity.id,
+      type: 'bills',
+      attributes: BillProperties(
+        name: entity.name,
+        amountMin: entity.minAmount.toString(),
+        amountMax: entity.maxAmount.toString(),
+        date: entity.date,
+        repeatFreq: repeatFreq,
+        skip: entity.skip,
+        active: entity.active,
+        currencyCode: entity.currencyCode,
+        currencySymbol: entity.currencySymbol,
+        currencyDecimalPlaces: entity.currencyDecimalPlaces,
+        currencyId: entity.currencyId,
+        nextExpectedMatch: entity.nextExpectedMatch,
+        objectGroupOrder: entity.objectGroupOrder,
+        objectGroupTitle: entity.objectGroupTitle,
+        order: entity.order,
+        // Note: paidDates not available in local entity, default to empty
+        paidDates: const <BillProperties$PaidDates$Item>[],
+      ),
+    );
+  }
+
+  Future<Map<String, List<BillRead>>> _fetchBills() async {
+    final BillRepository billRepository = context.read<BillRepository>();
+
+    // Use BillRepository with cache-first strategy
+    final List<BillEntity> billEntities = await billRepository.getAll();
+
+    // Convert to BillRead for UI compatibility
+    final List<BillRead> bills =
+        billEntities.map(_entityToBillRead).toList();
 
     bills.sort(
       (BillRead a, BillRead b) => (a.attributes.objectGroupOrder ?? 0)
@@ -615,7 +641,7 @@ class _BillsPageState extends State<BillsPage>
 
       if (_showOnlyExpectedBills &&
           bill.attributes.nextExpectedMatch == null &&
-          bill.attributes.paidDates!.isEmpty) {
+          (bill.attributes.paidDates?.isEmpty ?? true)) {
         // Do not show the bill if it is not expected this cycle and the user
         // elected to hide all those bills that are not expected
         continue;

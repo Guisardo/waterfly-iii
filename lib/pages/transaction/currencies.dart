@@ -2,6 +2,8 @@ import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/currency_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 
@@ -10,7 +12,47 @@ class CurrencyDialog extends StatelessWidget {
 
   final CurrencyRead currentCurrency;
 
+  /// Converts CurrencyEntity to CurrencyRead for UI compatibility.
+  CurrencyRead _entityToCurrencyRead(CurrencyEntity entity) {
+    return CurrencyRead(
+      id: entity.id,
+      type: 'currencies',
+      attributes: CurrencyProperties(
+        code: entity.code,
+        name: entity.name,
+        symbol: entity.symbol,
+        decimalPlaces: entity.decimalPlaces,
+        enabled: entity.enabled,
+      ),
+    );
+  }
+
   Future<List<CurrencyRead>>? _getCurrencies(BuildContext context) async {
+    // Try to use CurrencyRepository (cache-first) if available
+    final CurrencyRepository? currencyRepository =
+        context.read<CurrencyRepository?>();
+
+    if (currencyRepository != null) {
+      // Use local database with cache-first strategy
+      final List<CurrencyEntity> currencyEntities =
+          await currencyRepository.getAll();
+      final List<CurrencyRead> currencies =
+          currencyEntities.map(_entityToCurrencyRead).toList();
+      currencies.sort((CurrencyRead a, CurrencyRead b) {
+        if (a.id == context.read<FireflyService>().defaultCurrency.id) {
+          return -1;
+        } else if (b.id == context.read<FireflyService>().defaultCurrency.id) {
+          return 1;
+        } else {
+          return a.attributes.code.toLowerCase().compareTo(
+                b.attributes.code.toLowerCase(),
+              );
+        }
+      });
+      return currencies;
+    }
+
+    // Fallback to direct API call if repository not available
     final FireflyIii api = context.read<FireflyService>().api;
     final Response<CurrencyArray> response = await api.v1CurrenciesGet();
     apiThrowErrorIfEmpty(response, context.mounted ? context : null);

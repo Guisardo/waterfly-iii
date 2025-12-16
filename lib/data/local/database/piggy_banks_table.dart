@@ -30,6 +30,39 @@ class PiggyBanks extends Table {
   /// Additional notes for the piggy bank, nullable.
   TextColumn get notes => text().nullable()();
 
+  /// Currency ID for the piggy bank.
+  TextColumn get currencyId => text().nullable()();
+
+  /// Currency code (e.g., 'USD', 'EUR').
+  TextColumn get currencyCode => text().nullable()();
+
+  /// Currency symbol (e.g., '$', '€').
+  TextColumn get currencySymbol => text().nullable()();
+
+  /// Currency decimal places.
+  IntColumn get currencyDecimalPlaces => integer().nullable()();
+
+  /// Percentage of target amount saved.
+  RealColumn get percentage => real().nullable()();
+
+  /// Amount left to save to reach target.
+  RealColumn get leftToSave => real().nullable()();
+
+  /// Whether the piggy bank is active.
+  BoolColumn get active => boolean().withDefault(const Constant(true))();
+
+  /// Object group ID for grouping.
+  TextColumn get objectGroupId => text().nullable()();
+
+  /// Object group order for sorting.
+  IntColumn get objectGroupOrder => integer().nullable()();
+
+  /// Object group title for display.
+  TextColumn get objectGroupTitle => text().nullable()();
+
+  /// Order for sorting piggy banks.
+  IntColumn get order => integer().nullable()();
+
   /// Timestamp when the piggy bank was created locally.
   DateTimeColumn get createdAt => dateTime()();
 

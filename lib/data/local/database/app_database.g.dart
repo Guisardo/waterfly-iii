@@ -3913,23 +3913,23 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _amountMinMeta = const VerificationMeta(
-    'amountMin',
+  static const VerificationMeta _minAmountMeta = const VerificationMeta(
+    'minAmount',
   );
   @override
-  late final GeneratedColumn<double> amountMin = GeneratedColumn<double>(
-    'amount_min',
+  late final GeneratedColumn<double> minAmount = GeneratedColumn<double>(
+    'min_amount',
     aliasedName,
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _amountMaxMeta = const VerificationMeta(
-    'amountMax',
+  static const VerificationMeta _maxAmountMeta = const VerificationMeta(
+    'maxAmount',
   );
   @override
-  late final GeneratedColumn<double> amountMax = GeneratedColumn<double>(
-    'amount_max',
+  late final GeneratedColumn<double> maxAmount = GeneratedColumn<double>(
+    'max_amount',
     aliasedName,
     false,
     type: DriftSqlType.double,
@@ -3945,6 +3945,38 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencySymbolMeta = const VerificationMeta(
+    'currencySymbol',
+  );
+  @override
+  late final GeneratedColumn<String> currencySymbol = GeneratedColumn<String>(
+    'currency_symbol',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currencyDecimalPlacesMeta =
+      const VerificationMeta('currencyDecimalPlaces');
+  @override
+  late final GeneratedColumn<int> currencyDecimalPlaces = GeneratedColumn<int>(
+    'currency_decimal_places',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currencyIdMeta = const VerificationMeta(
+    'currencyId',
+  );
+  @override
+  late final GeneratedColumn<String> currencyId = GeneratedColumn<String>(
+    'currency_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
@@ -3993,6 +4025,49 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
     'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nextExpectedMatchMeta = const VerificationMeta(
+    'nextExpectedMatch',
+  );
+  @override
+  late final GeneratedColumn<DateTime> nextExpectedMatch =
+      GeneratedColumn<DateTime>(
+        'next_expected_match',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _orderMeta = const VerificationMeta('order');
+  @override
+  late final GeneratedColumn<int> order = GeneratedColumn<int>(
+    'order',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _objectGroupOrderMeta = const VerificationMeta(
+    'objectGroupOrder',
+  );
+  @override
+  late final GeneratedColumn<int> objectGroupOrder = GeneratedColumn<int>(
+    'object_group_order',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _objectGroupTitleMeta = const VerificationMeta(
+    'objectGroupTitle',
+  );
+  @override
+  late final GeneratedColumn<String> objectGroupTitle = GeneratedColumn<String>(
+    'object_group_title',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -4064,14 +4139,21 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
     id,
     serverId,
     name,
-    amountMin,
-    amountMax,
+    minAmount,
+    maxAmount,
     currencyCode,
+    currencySymbol,
+    currencyDecimalPlaces,
+    currencyId,
     date,
     repeatFreq,
     skip,
     active,
     notes,
+    nextExpectedMatch,
+    order,
+    objectGroupOrder,
+    objectGroupTitle,
     createdAt,
     updatedAt,
     serverUpdatedAt,
@@ -4109,21 +4191,21 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (data.containsKey('amount_min')) {
+    if (data.containsKey('min_amount')) {
       context.handle(
-        _amountMinMeta,
-        amountMin.isAcceptableOrUnknown(data['amount_min']!, _amountMinMeta),
+        _minAmountMeta,
+        minAmount.isAcceptableOrUnknown(data['min_amount']!, _minAmountMeta),
       );
     } else if (isInserting) {
-      context.missing(_amountMinMeta);
+      context.missing(_minAmountMeta);
     }
-    if (data.containsKey('amount_max')) {
+    if (data.containsKey('max_amount')) {
       context.handle(
-        _amountMaxMeta,
-        amountMax.isAcceptableOrUnknown(data['amount_max']!, _amountMaxMeta),
+        _maxAmountMeta,
+        maxAmount.isAcceptableOrUnknown(data['max_amount']!, _maxAmountMeta),
       );
     } else if (isInserting) {
-      context.missing(_amountMaxMeta);
+      context.missing(_maxAmountMeta);
     }
     if (data.containsKey('currency_code')) {
       context.handle(
@@ -4135,6 +4217,30 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
       );
     } else if (isInserting) {
       context.missing(_currencyCodeMeta);
+    }
+    if (data.containsKey('currency_symbol')) {
+      context.handle(
+        _currencySymbolMeta,
+        currencySymbol.isAcceptableOrUnknown(
+          data['currency_symbol']!,
+          _currencySymbolMeta,
+        ),
+      );
+    }
+    if (data.containsKey('currency_decimal_places')) {
+      context.handle(
+        _currencyDecimalPlacesMeta,
+        currencyDecimalPlaces.isAcceptableOrUnknown(
+          data['currency_decimal_places']!,
+          _currencyDecimalPlacesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('currency_id')) {
+      context.handle(
+        _currencyIdMeta,
+        currencyId.isAcceptableOrUnknown(data['currency_id']!, _currencyIdMeta),
+      );
     }
     if (data.containsKey('date')) {
       context.handle(
@@ -4168,6 +4274,39 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
       context.handle(
         _notesMeta,
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('next_expected_match')) {
+      context.handle(
+        _nextExpectedMatchMeta,
+        nextExpectedMatch.isAcceptableOrUnknown(
+          data['next_expected_match']!,
+          _nextExpectedMatchMeta,
+        ),
+      );
+    }
+    if (data.containsKey('order')) {
+      context.handle(
+        _orderMeta,
+        order.isAcceptableOrUnknown(data['order']!, _orderMeta),
+      );
+    }
+    if (data.containsKey('object_group_order')) {
+      context.handle(
+        _objectGroupOrderMeta,
+        objectGroupOrder.isAcceptableOrUnknown(
+          data['object_group_order']!,
+          _objectGroupOrderMeta,
+        ),
+      );
+    }
+    if (data.containsKey('object_group_title')) {
+      context.handle(
+        _objectGroupTitleMeta,
+        objectGroupTitle.isAcceptableOrUnknown(
+          data['object_group_title']!,
+          _objectGroupTitleMeta,
+        ),
       );
     }
     if (data.containsKey('created_at')) {
@@ -4234,21 +4373,33 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
             DriftSqlType.string,
             data['${effectivePrefix}name'],
           )!,
-      amountMin:
+      minAmount:
           attachedDatabase.typeMapping.read(
             DriftSqlType.double,
-            data['${effectivePrefix}amount_min'],
+            data['${effectivePrefix}min_amount'],
           )!,
-      amountMax:
+      maxAmount:
           attachedDatabase.typeMapping.read(
             DriftSqlType.double,
-            data['${effectivePrefix}amount_max'],
+            data['${effectivePrefix}max_amount'],
           )!,
       currencyCode:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
             data['${effectivePrefix}currency_code'],
           )!,
+      currencySymbol: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_symbol'],
+      ),
+      currencyDecimalPlaces: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}currency_decimal_places'],
+      ),
+      currencyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_id'],
+      ),
       date:
           attachedDatabase.typeMapping.read(
             DriftSqlType.dateTime,
@@ -4272,6 +4423,22 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
+      ),
+      nextExpectedMatch: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}next_expected_match'],
+      ),
+      order: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}order'],
+      ),
+      objectGroupOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}object_group_order'],
+      ),
+      objectGroupTitle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}object_group_title'],
       ),
       createdAt:
           attachedDatabase.typeMapping.read(
@@ -4316,14 +4483,23 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
   /// Bill name.
   final String name;
 
-  /// Minimum amount for the bill.
-  final double amountMin;
+  /// Minimum amount for the bill (stored as 'amount_min' in API).
+  final double minAmount;
 
-  /// Maximum amount for the bill.
-  final double amountMax;
+  /// Maximum amount for the bill (stored as 'amount_max' in API).
+  final double maxAmount;
 
   /// Currency code for the bill.
   final String currencyCode;
+
+  /// Currency symbol (e.g., '$', '€'), nullable.
+  final String? currencySymbol;
+
+  /// Currency decimal places.
+  final int? currencyDecimalPlaces;
+
+  /// Currency ID from Firefly III.
+  final String? currencyId;
 
   /// Bill date.
   final DateTime date;
@@ -4339,6 +4515,18 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
 
   /// Additional notes for the bill, nullable.
   final String? notes;
+
+  /// Next expected match date from API.
+  final DateTime? nextExpectedMatch;
+
+  /// Order for sorting.
+  final int? order;
+
+  /// Object group order for grouping.
+  final int? objectGroupOrder;
+
+  /// Object group title for grouping (e.g., 'Utilities').
+  final String? objectGroupTitle;
 
   /// Timestamp when the bill was created locally.
   final DateTime createdAt;
@@ -4369,14 +4557,21 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
     required this.id,
     this.serverId,
     required this.name,
-    required this.amountMin,
-    required this.amountMax,
+    required this.minAmount,
+    required this.maxAmount,
     required this.currencyCode,
+    this.currencySymbol,
+    this.currencyDecimalPlaces,
+    this.currencyId,
     required this.date,
     required this.repeatFreq,
     required this.skip,
     required this.active,
     this.notes,
+    this.nextExpectedMatch,
+    this.order,
+    this.objectGroupOrder,
+    this.objectGroupTitle,
     required this.createdAt,
     required this.updatedAt,
     this.serverUpdatedAt,
@@ -4391,15 +4586,36 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
       map['server_id'] = Variable<String>(serverId);
     }
     map['name'] = Variable<String>(name);
-    map['amount_min'] = Variable<double>(amountMin);
-    map['amount_max'] = Variable<double>(amountMax);
+    map['min_amount'] = Variable<double>(minAmount);
+    map['max_amount'] = Variable<double>(maxAmount);
     map['currency_code'] = Variable<String>(currencyCode);
+    if (!nullToAbsent || currencySymbol != null) {
+      map['currency_symbol'] = Variable<String>(currencySymbol);
+    }
+    if (!nullToAbsent || currencyDecimalPlaces != null) {
+      map['currency_decimal_places'] = Variable<int>(currencyDecimalPlaces);
+    }
+    if (!nullToAbsent || currencyId != null) {
+      map['currency_id'] = Variable<String>(currencyId);
+    }
     map['date'] = Variable<DateTime>(date);
     map['repeat_freq'] = Variable<String>(repeatFreq);
     map['skip'] = Variable<int>(skip);
     map['active'] = Variable<bool>(active);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || nextExpectedMatch != null) {
+      map['next_expected_match'] = Variable<DateTime>(nextExpectedMatch);
+    }
+    if (!nullToAbsent || order != null) {
+      map['order'] = Variable<int>(order);
+    }
+    if (!nullToAbsent || objectGroupOrder != null) {
+      map['object_group_order'] = Variable<int>(objectGroupOrder);
+    }
+    if (!nullToAbsent || objectGroupTitle != null) {
+      map['object_group_title'] = Variable<String>(objectGroupTitle);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -4419,15 +4635,41 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
               ? const Value.absent()
               : Value(serverId),
       name: Value(name),
-      amountMin: Value(amountMin),
-      amountMax: Value(amountMax),
+      minAmount: Value(minAmount),
+      maxAmount: Value(maxAmount),
       currencyCode: Value(currencyCode),
+      currencySymbol:
+          currencySymbol == null && nullToAbsent
+              ? const Value.absent()
+              : Value(currencySymbol),
+      currencyDecimalPlaces:
+          currencyDecimalPlaces == null && nullToAbsent
+              ? const Value.absent()
+              : Value(currencyDecimalPlaces),
+      currencyId:
+          currencyId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(currencyId),
       date: Value(date),
       repeatFreq: Value(repeatFreq),
       skip: Value(skip),
       active: Value(active),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      nextExpectedMatch:
+          nextExpectedMatch == null && nullToAbsent
+              ? const Value.absent()
+              : Value(nextExpectedMatch),
+      order:
+          order == null && nullToAbsent ? const Value.absent() : Value(order),
+      objectGroupOrder:
+          objectGroupOrder == null && nullToAbsent
+              ? const Value.absent()
+              : Value(objectGroupOrder),
+      objectGroupTitle:
+          objectGroupTitle == null && nullToAbsent
+              ? const Value.absent()
+              : Value(objectGroupTitle),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       serverUpdatedAt:
@@ -4448,14 +4690,25 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
       id: serializer.fromJson<String>(json['id']),
       serverId: serializer.fromJson<String?>(json['serverId']),
       name: serializer.fromJson<String>(json['name']),
-      amountMin: serializer.fromJson<double>(json['amountMin']),
-      amountMax: serializer.fromJson<double>(json['amountMax']),
+      minAmount: serializer.fromJson<double>(json['minAmount']),
+      maxAmount: serializer.fromJson<double>(json['maxAmount']),
       currencyCode: serializer.fromJson<String>(json['currencyCode']),
+      currencySymbol: serializer.fromJson<String?>(json['currencySymbol']),
+      currencyDecimalPlaces: serializer.fromJson<int?>(
+        json['currencyDecimalPlaces'],
+      ),
+      currencyId: serializer.fromJson<String?>(json['currencyId']),
       date: serializer.fromJson<DateTime>(json['date']),
       repeatFreq: serializer.fromJson<String>(json['repeatFreq']),
       skip: serializer.fromJson<int>(json['skip']),
       active: serializer.fromJson<bool>(json['active']),
       notes: serializer.fromJson<String?>(json['notes']),
+      nextExpectedMatch: serializer.fromJson<DateTime?>(
+        json['nextExpectedMatch'],
+      ),
+      order: serializer.fromJson<int?>(json['order']),
+      objectGroupOrder: serializer.fromJson<int?>(json['objectGroupOrder']),
+      objectGroupTitle: serializer.fromJson<String?>(json['objectGroupTitle']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
@@ -4470,14 +4723,21 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
       'id': serializer.toJson<String>(id),
       'serverId': serializer.toJson<String?>(serverId),
       'name': serializer.toJson<String>(name),
-      'amountMin': serializer.toJson<double>(amountMin),
-      'amountMax': serializer.toJson<double>(amountMax),
+      'minAmount': serializer.toJson<double>(minAmount),
+      'maxAmount': serializer.toJson<double>(maxAmount),
       'currencyCode': serializer.toJson<String>(currencyCode),
+      'currencySymbol': serializer.toJson<String?>(currencySymbol),
+      'currencyDecimalPlaces': serializer.toJson<int?>(currencyDecimalPlaces),
+      'currencyId': serializer.toJson<String?>(currencyId),
       'date': serializer.toJson<DateTime>(date),
       'repeatFreq': serializer.toJson<String>(repeatFreq),
       'skip': serializer.toJson<int>(skip),
       'active': serializer.toJson<bool>(active),
       'notes': serializer.toJson<String?>(notes),
+      'nextExpectedMatch': serializer.toJson<DateTime?>(nextExpectedMatch),
+      'order': serializer.toJson<int?>(order),
+      'objectGroupOrder': serializer.toJson<int?>(objectGroupOrder),
+      'objectGroupTitle': serializer.toJson<String?>(objectGroupTitle),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
@@ -4490,14 +4750,21 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
     String? id,
     Value<String?> serverId = const Value.absent(),
     String? name,
-    double? amountMin,
-    double? amountMax,
+    double? minAmount,
+    double? maxAmount,
     String? currencyCode,
+    Value<String?> currencySymbol = const Value.absent(),
+    Value<int?> currencyDecimalPlaces = const Value.absent(),
+    Value<String?> currencyId = const Value.absent(),
     DateTime? date,
     String? repeatFreq,
     int? skip,
     bool? active,
     Value<String?> notes = const Value.absent(),
+    Value<DateTime?> nextExpectedMatch = const Value.absent(),
+    Value<int?> order = const Value.absent(),
+    Value<int?> objectGroupOrder = const Value.absent(),
+    Value<String?> objectGroupTitle = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -4507,14 +4774,34 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
     id: id ?? this.id,
     serverId: serverId.present ? serverId.value : this.serverId,
     name: name ?? this.name,
-    amountMin: amountMin ?? this.amountMin,
-    amountMax: amountMax ?? this.amountMax,
+    minAmount: minAmount ?? this.minAmount,
+    maxAmount: maxAmount ?? this.maxAmount,
     currencyCode: currencyCode ?? this.currencyCode,
+    currencySymbol:
+        currencySymbol.present ? currencySymbol.value : this.currencySymbol,
+    currencyDecimalPlaces:
+        currencyDecimalPlaces.present
+            ? currencyDecimalPlaces.value
+            : this.currencyDecimalPlaces,
+    currencyId: currencyId.present ? currencyId.value : this.currencyId,
     date: date ?? this.date,
     repeatFreq: repeatFreq ?? this.repeatFreq,
     skip: skip ?? this.skip,
     active: active ?? this.active,
     notes: notes.present ? notes.value : this.notes,
+    nextExpectedMatch:
+        nextExpectedMatch.present
+            ? nextExpectedMatch.value
+            : this.nextExpectedMatch,
+    order: order.present ? order.value : this.order,
+    objectGroupOrder:
+        objectGroupOrder.present
+            ? objectGroupOrder.value
+            : this.objectGroupOrder,
+    objectGroupTitle:
+        objectGroupTitle.present
+            ? objectGroupTitle.value
+            : this.objectGroupTitle,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     serverUpdatedAt:
@@ -4527,18 +4814,41 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
       id: data.id.present ? data.id.value : this.id,
       serverId: data.serverId.present ? data.serverId.value : this.serverId,
       name: data.name.present ? data.name.value : this.name,
-      amountMin: data.amountMin.present ? data.amountMin.value : this.amountMin,
-      amountMax: data.amountMax.present ? data.amountMax.value : this.amountMax,
+      minAmount: data.minAmount.present ? data.minAmount.value : this.minAmount,
+      maxAmount: data.maxAmount.present ? data.maxAmount.value : this.maxAmount,
       currencyCode:
           data.currencyCode.present
               ? data.currencyCode.value
               : this.currencyCode,
+      currencySymbol:
+          data.currencySymbol.present
+              ? data.currencySymbol.value
+              : this.currencySymbol,
+      currencyDecimalPlaces:
+          data.currencyDecimalPlaces.present
+              ? data.currencyDecimalPlaces.value
+              : this.currencyDecimalPlaces,
+      currencyId:
+          data.currencyId.present ? data.currencyId.value : this.currencyId,
       date: data.date.present ? data.date.value : this.date,
       repeatFreq:
           data.repeatFreq.present ? data.repeatFreq.value : this.repeatFreq,
       skip: data.skip.present ? data.skip.value : this.skip,
       active: data.active.present ? data.active.value : this.active,
       notes: data.notes.present ? data.notes.value : this.notes,
+      nextExpectedMatch:
+          data.nextExpectedMatch.present
+              ? data.nextExpectedMatch.value
+              : this.nextExpectedMatch,
+      order: data.order.present ? data.order.value : this.order,
+      objectGroupOrder:
+          data.objectGroupOrder.present
+              ? data.objectGroupOrder.value
+              : this.objectGroupOrder,
+      objectGroupTitle:
+          data.objectGroupTitle.present
+              ? data.objectGroupTitle.value
+              : this.objectGroupTitle,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       serverUpdatedAt:
@@ -4557,14 +4867,21 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
           ..write('id: $id, ')
           ..write('serverId: $serverId, ')
           ..write('name: $name, ')
-          ..write('amountMin: $amountMin, ')
-          ..write('amountMax: $amountMax, ')
+          ..write('minAmount: $minAmount, ')
+          ..write('maxAmount: $maxAmount, ')
           ..write('currencyCode: $currencyCode, ')
+          ..write('currencySymbol: $currencySymbol, ')
+          ..write('currencyDecimalPlaces: $currencyDecimalPlaces, ')
+          ..write('currencyId: $currencyId, ')
           ..write('date: $date, ')
           ..write('repeatFreq: $repeatFreq, ')
           ..write('skip: $skip, ')
           ..write('active: $active, ')
           ..write('notes: $notes, ')
+          ..write('nextExpectedMatch: $nextExpectedMatch, ')
+          ..write('order: $order, ')
+          ..write('objectGroupOrder: $objectGroupOrder, ')
+          ..write('objectGroupTitle: $objectGroupTitle, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('serverUpdatedAt: $serverUpdatedAt, ')
@@ -4575,24 +4892,31 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     serverId,
     name,
-    amountMin,
-    amountMax,
+    minAmount,
+    maxAmount,
     currencyCode,
+    currencySymbol,
+    currencyDecimalPlaces,
+    currencyId,
     date,
     repeatFreq,
     skip,
     active,
     notes,
+    nextExpectedMatch,
+    order,
+    objectGroupOrder,
+    objectGroupTitle,
     createdAt,
     updatedAt,
     serverUpdatedAt,
     isSynced,
     syncStatus,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4600,14 +4924,21 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
           other.id == this.id &&
           other.serverId == this.serverId &&
           other.name == this.name &&
-          other.amountMin == this.amountMin &&
-          other.amountMax == this.amountMax &&
+          other.minAmount == this.minAmount &&
+          other.maxAmount == this.maxAmount &&
           other.currencyCode == this.currencyCode &&
+          other.currencySymbol == this.currencySymbol &&
+          other.currencyDecimalPlaces == this.currencyDecimalPlaces &&
+          other.currencyId == this.currencyId &&
           other.date == this.date &&
           other.repeatFreq == this.repeatFreq &&
           other.skip == this.skip &&
           other.active == this.active &&
           other.notes == this.notes &&
+          other.nextExpectedMatch == this.nextExpectedMatch &&
+          other.order == this.order &&
+          other.objectGroupOrder == this.objectGroupOrder &&
+          other.objectGroupTitle == this.objectGroupTitle &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.serverUpdatedAt == this.serverUpdatedAt &&
@@ -4619,14 +4950,21 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
   final Value<String> id;
   final Value<String?> serverId;
   final Value<String> name;
-  final Value<double> amountMin;
-  final Value<double> amountMax;
+  final Value<double> minAmount;
+  final Value<double> maxAmount;
   final Value<String> currencyCode;
+  final Value<String?> currencySymbol;
+  final Value<int?> currencyDecimalPlaces;
+  final Value<String?> currencyId;
   final Value<DateTime> date;
   final Value<String> repeatFreq;
   final Value<int> skip;
   final Value<bool> active;
   final Value<String?> notes;
+  final Value<DateTime?> nextExpectedMatch;
+  final Value<int?> order;
+  final Value<int?> objectGroupOrder;
+  final Value<String?> objectGroupTitle;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> serverUpdatedAt;
@@ -4637,14 +4975,21 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     this.id = const Value.absent(),
     this.serverId = const Value.absent(),
     this.name = const Value.absent(),
-    this.amountMin = const Value.absent(),
-    this.amountMax = const Value.absent(),
+    this.minAmount = const Value.absent(),
+    this.maxAmount = const Value.absent(),
     this.currencyCode = const Value.absent(),
+    this.currencySymbol = const Value.absent(),
+    this.currencyDecimalPlaces = const Value.absent(),
+    this.currencyId = const Value.absent(),
     this.date = const Value.absent(),
     this.repeatFreq = const Value.absent(),
     this.skip = const Value.absent(),
     this.active = const Value.absent(),
     this.notes = const Value.absent(),
+    this.nextExpectedMatch = const Value.absent(),
+    this.order = const Value.absent(),
+    this.objectGroupOrder = const Value.absent(),
+    this.objectGroupTitle = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.serverUpdatedAt = const Value.absent(),
@@ -4656,14 +5001,21 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     required String id,
     this.serverId = const Value.absent(),
     required String name,
-    required double amountMin,
-    required double amountMax,
+    required double minAmount,
+    required double maxAmount,
     required String currencyCode,
+    this.currencySymbol = const Value.absent(),
+    this.currencyDecimalPlaces = const Value.absent(),
+    this.currencyId = const Value.absent(),
     required DateTime date,
     required String repeatFreq,
     this.skip = const Value.absent(),
     this.active = const Value.absent(),
     this.notes = const Value.absent(),
+    this.nextExpectedMatch = const Value.absent(),
+    this.order = const Value.absent(),
+    this.objectGroupOrder = const Value.absent(),
+    this.objectGroupTitle = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.serverUpdatedAt = const Value.absent(),
@@ -4672,8 +5024,8 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
-       amountMin = Value(amountMin),
-       amountMax = Value(amountMax),
+       minAmount = Value(minAmount),
+       maxAmount = Value(maxAmount),
        currencyCode = Value(currencyCode),
        date = Value(date),
        repeatFreq = Value(repeatFreq),
@@ -4683,14 +5035,21 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     Expression<String>? id,
     Expression<String>? serverId,
     Expression<String>? name,
-    Expression<double>? amountMin,
-    Expression<double>? amountMax,
+    Expression<double>? minAmount,
+    Expression<double>? maxAmount,
     Expression<String>? currencyCode,
+    Expression<String>? currencySymbol,
+    Expression<int>? currencyDecimalPlaces,
+    Expression<String>? currencyId,
     Expression<DateTime>? date,
     Expression<String>? repeatFreq,
     Expression<int>? skip,
     Expression<bool>? active,
     Expression<String>? notes,
+    Expression<DateTime>? nextExpectedMatch,
+    Expression<int>? order,
+    Expression<int>? objectGroupOrder,
+    Expression<String>? objectGroupTitle,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? serverUpdatedAt,
@@ -4702,14 +5061,22 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
       if (id != null) 'id': id,
       if (serverId != null) 'server_id': serverId,
       if (name != null) 'name': name,
-      if (amountMin != null) 'amount_min': amountMin,
-      if (amountMax != null) 'amount_max': amountMax,
+      if (minAmount != null) 'min_amount': minAmount,
+      if (maxAmount != null) 'max_amount': maxAmount,
       if (currencyCode != null) 'currency_code': currencyCode,
+      if (currencySymbol != null) 'currency_symbol': currencySymbol,
+      if (currencyDecimalPlaces != null)
+        'currency_decimal_places': currencyDecimalPlaces,
+      if (currencyId != null) 'currency_id': currencyId,
       if (date != null) 'date': date,
       if (repeatFreq != null) 'repeat_freq': repeatFreq,
       if (skip != null) 'skip': skip,
       if (active != null) 'active': active,
       if (notes != null) 'notes': notes,
+      if (nextExpectedMatch != null) 'next_expected_match': nextExpectedMatch,
+      if (order != null) 'order': order,
+      if (objectGroupOrder != null) 'object_group_order': objectGroupOrder,
+      if (objectGroupTitle != null) 'object_group_title': objectGroupTitle,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
@@ -4723,14 +5090,21 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     Value<String>? id,
     Value<String?>? serverId,
     Value<String>? name,
-    Value<double>? amountMin,
-    Value<double>? amountMax,
+    Value<double>? minAmount,
+    Value<double>? maxAmount,
     Value<String>? currencyCode,
+    Value<String?>? currencySymbol,
+    Value<int?>? currencyDecimalPlaces,
+    Value<String?>? currencyId,
     Value<DateTime>? date,
     Value<String>? repeatFreq,
     Value<int>? skip,
     Value<bool>? active,
     Value<String?>? notes,
+    Value<DateTime?>? nextExpectedMatch,
+    Value<int?>? order,
+    Value<int?>? objectGroupOrder,
+    Value<String?>? objectGroupTitle,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? serverUpdatedAt,
@@ -4742,14 +5116,22 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
       id: id ?? this.id,
       serverId: serverId ?? this.serverId,
       name: name ?? this.name,
-      amountMin: amountMin ?? this.amountMin,
-      amountMax: amountMax ?? this.amountMax,
+      minAmount: minAmount ?? this.minAmount,
+      maxAmount: maxAmount ?? this.maxAmount,
       currencyCode: currencyCode ?? this.currencyCode,
+      currencySymbol: currencySymbol ?? this.currencySymbol,
+      currencyDecimalPlaces:
+          currencyDecimalPlaces ?? this.currencyDecimalPlaces,
+      currencyId: currencyId ?? this.currencyId,
       date: date ?? this.date,
       repeatFreq: repeatFreq ?? this.repeatFreq,
       skip: skip ?? this.skip,
       active: active ?? this.active,
       notes: notes ?? this.notes,
+      nextExpectedMatch: nextExpectedMatch ?? this.nextExpectedMatch,
+      order: order ?? this.order,
+      objectGroupOrder: objectGroupOrder ?? this.objectGroupOrder,
+      objectGroupTitle: objectGroupTitle ?? this.objectGroupTitle,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
@@ -4771,14 +5153,25 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (amountMin.present) {
-      map['amount_min'] = Variable<double>(amountMin.value);
+    if (minAmount.present) {
+      map['min_amount'] = Variable<double>(minAmount.value);
     }
-    if (amountMax.present) {
-      map['amount_max'] = Variable<double>(amountMax.value);
+    if (maxAmount.present) {
+      map['max_amount'] = Variable<double>(maxAmount.value);
     }
     if (currencyCode.present) {
       map['currency_code'] = Variable<String>(currencyCode.value);
+    }
+    if (currencySymbol.present) {
+      map['currency_symbol'] = Variable<String>(currencySymbol.value);
+    }
+    if (currencyDecimalPlaces.present) {
+      map['currency_decimal_places'] = Variable<int>(
+        currencyDecimalPlaces.value,
+      );
+    }
+    if (currencyId.present) {
+      map['currency_id'] = Variable<String>(currencyId.value);
     }
     if (date.present) {
       map['date'] = Variable<DateTime>(date.value);
@@ -4794,6 +5187,18 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
+    }
+    if (nextExpectedMatch.present) {
+      map['next_expected_match'] = Variable<DateTime>(nextExpectedMatch.value);
+    }
+    if (order.present) {
+      map['order'] = Variable<int>(order.value);
+    }
+    if (objectGroupOrder.present) {
+      map['object_group_order'] = Variable<int>(objectGroupOrder.value);
+    }
+    if (objectGroupTitle.present) {
+      map['object_group_title'] = Variable<String>(objectGroupTitle.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -4822,14 +5227,21 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
           ..write('id: $id, ')
           ..write('serverId: $serverId, ')
           ..write('name: $name, ')
-          ..write('amountMin: $amountMin, ')
-          ..write('amountMax: $amountMax, ')
+          ..write('minAmount: $minAmount, ')
+          ..write('maxAmount: $maxAmount, ')
           ..write('currencyCode: $currencyCode, ')
+          ..write('currencySymbol: $currencySymbol, ')
+          ..write('currencyDecimalPlaces: $currencyDecimalPlaces, ')
+          ..write('currencyId: $currencyId, ')
           ..write('date: $date, ')
           ..write('repeatFreq: $repeatFreq, ')
           ..write('skip: $skip, ')
           ..write('active: $active, ')
           ..write('notes: $notes, ')
+          ..write('nextExpectedMatch: $nextExpectedMatch, ')
+          ..write('order: $order, ')
+          ..write('objectGroupOrder: $objectGroupOrder, ')
+          ..write('objectGroupTitle: $objectGroupTitle, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('serverUpdatedAt: $serverUpdatedAt, ')
@@ -4941,6 +5353,126 @@ class $PiggyBanksTable extends PiggyBanks
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _currencyIdMeta = const VerificationMeta(
+    'currencyId',
+  );
+  @override
+  late final GeneratedColumn<String> currencyId = GeneratedColumn<String>(
+    'currency_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currencyCodeMeta = const VerificationMeta(
+    'currencyCode',
+  );
+  @override
+  late final GeneratedColumn<String> currencyCode = GeneratedColumn<String>(
+    'currency_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currencySymbolMeta = const VerificationMeta(
+    'currencySymbol',
+  );
+  @override
+  late final GeneratedColumn<String> currencySymbol = GeneratedColumn<String>(
+    'currency_symbol',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currencyDecimalPlacesMeta =
+      const VerificationMeta('currencyDecimalPlaces');
+  @override
+  late final GeneratedColumn<int> currencyDecimalPlaces = GeneratedColumn<int>(
+    'currency_decimal_places',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _percentageMeta = const VerificationMeta(
+    'percentage',
+  );
+  @override
+  late final GeneratedColumn<double> percentage = GeneratedColumn<double>(
+    'percentage',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _leftToSaveMeta = const VerificationMeta(
+    'leftToSave',
+  );
+  @override
+  late final GeneratedColumn<double> leftToSave = GeneratedColumn<double>(
+    'left_to_save',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _activeMeta = const VerificationMeta('active');
+  @override
+  late final GeneratedColumn<bool> active = GeneratedColumn<bool>(
+    'active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _objectGroupIdMeta = const VerificationMeta(
+    'objectGroupId',
+  );
+  @override
+  late final GeneratedColumn<String> objectGroupId = GeneratedColumn<String>(
+    'object_group_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _objectGroupOrderMeta = const VerificationMeta(
+    'objectGroupOrder',
+  );
+  @override
+  late final GeneratedColumn<int> objectGroupOrder = GeneratedColumn<int>(
+    'object_group_order',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _objectGroupTitleMeta = const VerificationMeta(
+    'objectGroupTitle',
+  );
+  @override
+  late final GeneratedColumn<String> objectGroupTitle = GeneratedColumn<String>(
+    'object_group_title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _orderMeta = const VerificationMeta('order');
+  @override
+  late final GeneratedColumn<int> order = GeneratedColumn<int>(
+    'order',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -5013,6 +5545,17 @@ class $PiggyBanksTable extends PiggyBanks
     startDate,
     targetDate,
     notes,
+    currencyId,
+    currencyCode,
+    currencySymbol,
+    currencyDecimalPlaces,
+    percentage,
+    leftToSave,
+    active,
+    objectGroupId,
+    objectGroupOrder,
+    objectGroupTitle,
+    order,
     createdAt,
     updatedAt,
     serverUpdatedAt,
@@ -5092,6 +5635,93 @@ class $PiggyBanksTable extends PiggyBanks
       context.handle(
         _notesMeta,
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('currency_id')) {
+      context.handle(
+        _currencyIdMeta,
+        currencyId.isAcceptableOrUnknown(data['currency_id']!, _currencyIdMeta),
+      );
+    }
+    if (data.containsKey('currency_code')) {
+      context.handle(
+        _currencyCodeMeta,
+        currencyCode.isAcceptableOrUnknown(
+          data['currency_code']!,
+          _currencyCodeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('currency_symbol')) {
+      context.handle(
+        _currencySymbolMeta,
+        currencySymbol.isAcceptableOrUnknown(
+          data['currency_symbol']!,
+          _currencySymbolMeta,
+        ),
+      );
+    }
+    if (data.containsKey('currency_decimal_places')) {
+      context.handle(
+        _currencyDecimalPlacesMeta,
+        currencyDecimalPlaces.isAcceptableOrUnknown(
+          data['currency_decimal_places']!,
+          _currencyDecimalPlacesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('percentage')) {
+      context.handle(
+        _percentageMeta,
+        percentage.isAcceptableOrUnknown(data['percentage']!, _percentageMeta),
+      );
+    }
+    if (data.containsKey('left_to_save')) {
+      context.handle(
+        _leftToSaveMeta,
+        leftToSave.isAcceptableOrUnknown(
+          data['left_to_save']!,
+          _leftToSaveMeta,
+        ),
+      );
+    }
+    if (data.containsKey('active')) {
+      context.handle(
+        _activeMeta,
+        active.isAcceptableOrUnknown(data['active']!, _activeMeta),
+      );
+    }
+    if (data.containsKey('object_group_id')) {
+      context.handle(
+        _objectGroupIdMeta,
+        objectGroupId.isAcceptableOrUnknown(
+          data['object_group_id']!,
+          _objectGroupIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('object_group_order')) {
+      context.handle(
+        _objectGroupOrderMeta,
+        objectGroupOrder.isAcceptableOrUnknown(
+          data['object_group_order']!,
+          _objectGroupOrderMeta,
+        ),
+      );
+    }
+    if (data.containsKey('object_group_title')) {
+      context.handle(
+        _objectGroupTitleMeta,
+        objectGroupTitle.isAcceptableOrUnknown(
+          data['object_group_title']!,
+          _objectGroupTitleMeta,
+        ),
+      );
+    }
+    if (data.containsKey('order')) {
+      context.handle(
+        _orderMeta,
+        order.isAcceptableOrUnknown(data['order']!, _orderMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -5184,6 +5814,51 @@ class $PiggyBanksTable extends PiggyBanks
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      currencyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_id'],
+      ),
+      currencyCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_code'],
+      ),
+      currencySymbol: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency_symbol'],
+      ),
+      currencyDecimalPlaces: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}currency_decimal_places'],
+      ),
+      percentage: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}percentage'],
+      ),
+      leftToSave: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}left_to_save'],
+      ),
+      active:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}active'],
+          )!,
+      objectGroupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}object_group_id'],
+      ),
+      objectGroupOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}object_group_order'],
+      ),
+      objectGroupTitle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}object_group_title'],
+      ),
+      order: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}order'],
+      ),
       createdAt:
           attachedDatabase.typeMapping.read(
             DriftSqlType.dateTime,
@@ -5245,6 +5920,39 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
   /// Additional notes for the piggy bank, nullable.
   final String? notes;
 
+  /// Currency ID for the piggy bank.
+  final String? currencyId;
+
+  /// Currency code (e.g., 'USD', 'EUR').
+  final String? currencyCode;
+
+  /// Currency symbol (e.g., '$', '€').
+  final String? currencySymbol;
+
+  /// Currency decimal places.
+  final int? currencyDecimalPlaces;
+
+  /// Percentage of target amount saved.
+  final double? percentage;
+
+  /// Amount left to save to reach target.
+  final double? leftToSave;
+
+  /// Whether the piggy bank is active.
+  final bool active;
+
+  /// Object group ID for grouping.
+  final String? objectGroupId;
+
+  /// Object group order for sorting.
+  final int? objectGroupOrder;
+
+  /// Object group title for display.
+  final String? objectGroupTitle;
+
+  /// Order for sorting piggy banks.
+  final int? order;
+
   /// Timestamp when the piggy bank was created locally.
   final DateTime createdAt;
 
@@ -5280,6 +5988,17 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
     this.startDate,
     this.targetDate,
     this.notes,
+    this.currencyId,
+    this.currencyCode,
+    this.currencySymbol,
+    this.currencyDecimalPlaces,
+    this.percentage,
+    this.leftToSave,
+    required this.active,
+    this.objectGroupId,
+    this.objectGroupOrder,
+    this.objectGroupTitle,
+    this.order,
     required this.createdAt,
     required this.updatedAt,
     this.serverUpdatedAt,
@@ -5307,6 +6026,37 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || currencyId != null) {
+      map['currency_id'] = Variable<String>(currencyId);
+    }
+    if (!nullToAbsent || currencyCode != null) {
+      map['currency_code'] = Variable<String>(currencyCode);
+    }
+    if (!nullToAbsent || currencySymbol != null) {
+      map['currency_symbol'] = Variable<String>(currencySymbol);
+    }
+    if (!nullToAbsent || currencyDecimalPlaces != null) {
+      map['currency_decimal_places'] = Variable<int>(currencyDecimalPlaces);
+    }
+    if (!nullToAbsent || percentage != null) {
+      map['percentage'] = Variable<double>(percentage);
+    }
+    if (!nullToAbsent || leftToSave != null) {
+      map['left_to_save'] = Variable<double>(leftToSave);
+    }
+    map['active'] = Variable<bool>(active);
+    if (!nullToAbsent || objectGroupId != null) {
+      map['object_group_id'] = Variable<String>(objectGroupId);
+    }
+    if (!nullToAbsent || objectGroupOrder != null) {
+      map['object_group_order'] = Variable<int>(objectGroupOrder);
+    }
+    if (!nullToAbsent || objectGroupTitle != null) {
+      map['object_group_title'] = Variable<String>(objectGroupTitle);
+    }
+    if (!nullToAbsent || order != null) {
+      map['order'] = Variable<int>(order);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -5342,6 +6092,45 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
               : Value(targetDate),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      currencyId:
+          currencyId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(currencyId),
+      currencyCode:
+          currencyCode == null && nullToAbsent
+              ? const Value.absent()
+              : Value(currencyCode),
+      currencySymbol:
+          currencySymbol == null && nullToAbsent
+              ? const Value.absent()
+              : Value(currencySymbol),
+      currencyDecimalPlaces:
+          currencyDecimalPlaces == null && nullToAbsent
+              ? const Value.absent()
+              : Value(currencyDecimalPlaces),
+      percentage:
+          percentage == null && nullToAbsent
+              ? const Value.absent()
+              : Value(percentage),
+      leftToSave:
+          leftToSave == null && nullToAbsent
+              ? const Value.absent()
+              : Value(leftToSave),
+      active: Value(active),
+      objectGroupId:
+          objectGroupId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(objectGroupId),
+      objectGroupOrder:
+          objectGroupOrder == null && nullToAbsent
+              ? const Value.absent()
+              : Value(objectGroupOrder),
+      objectGroupTitle:
+          objectGroupTitle == null && nullToAbsent
+              ? const Value.absent()
+              : Value(objectGroupTitle),
+      order:
+          order == null && nullToAbsent ? const Value.absent() : Value(order),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       serverUpdatedAt:
@@ -5368,6 +6157,19 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
       startDate: serializer.fromJson<DateTime?>(json['startDate']),
       targetDate: serializer.fromJson<DateTime?>(json['targetDate']),
       notes: serializer.fromJson<String?>(json['notes']),
+      currencyId: serializer.fromJson<String?>(json['currencyId']),
+      currencyCode: serializer.fromJson<String?>(json['currencyCode']),
+      currencySymbol: serializer.fromJson<String?>(json['currencySymbol']),
+      currencyDecimalPlaces: serializer.fromJson<int?>(
+        json['currencyDecimalPlaces'],
+      ),
+      percentage: serializer.fromJson<double?>(json['percentage']),
+      leftToSave: serializer.fromJson<double?>(json['leftToSave']),
+      active: serializer.fromJson<bool>(json['active']),
+      objectGroupId: serializer.fromJson<String?>(json['objectGroupId']),
+      objectGroupOrder: serializer.fromJson<int?>(json['objectGroupOrder']),
+      objectGroupTitle: serializer.fromJson<String?>(json['objectGroupTitle']),
+      order: serializer.fromJson<int?>(json['order']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
@@ -5388,6 +6190,17 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
       'startDate': serializer.toJson<DateTime?>(startDate),
       'targetDate': serializer.toJson<DateTime?>(targetDate),
       'notes': serializer.toJson<String?>(notes),
+      'currencyId': serializer.toJson<String?>(currencyId),
+      'currencyCode': serializer.toJson<String?>(currencyCode),
+      'currencySymbol': serializer.toJson<String?>(currencySymbol),
+      'currencyDecimalPlaces': serializer.toJson<int?>(currencyDecimalPlaces),
+      'percentage': serializer.toJson<double?>(percentage),
+      'leftToSave': serializer.toJson<double?>(leftToSave),
+      'active': serializer.toJson<bool>(active),
+      'objectGroupId': serializer.toJson<String?>(objectGroupId),
+      'objectGroupOrder': serializer.toJson<int?>(objectGroupOrder),
+      'objectGroupTitle': serializer.toJson<String?>(objectGroupTitle),
+      'order': serializer.toJson<int?>(order),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
@@ -5406,6 +6219,17 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
     Value<DateTime?> startDate = const Value.absent(),
     Value<DateTime?> targetDate = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    Value<String?> currencyId = const Value.absent(),
+    Value<String?> currencyCode = const Value.absent(),
+    Value<String?> currencySymbol = const Value.absent(),
+    Value<int?> currencyDecimalPlaces = const Value.absent(),
+    Value<double?> percentage = const Value.absent(),
+    Value<double?> leftToSave = const Value.absent(),
+    bool? active,
+    Value<String?> objectGroupId = const Value.absent(),
+    Value<int?> objectGroupOrder = const Value.absent(),
+    Value<String?> objectGroupTitle = const Value.absent(),
+    Value<int?> order = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -5421,6 +6245,28 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
     startDate: startDate.present ? startDate.value : this.startDate,
     targetDate: targetDate.present ? targetDate.value : this.targetDate,
     notes: notes.present ? notes.value : this.notes,
+    currencyId: currencyId.present ? currencyId.value : this.currencyId,
+    currencyCode: currencyCode.present ? currencyCode.value : this.currencyCode,
+    currencySymbol:
+        currencySymbol.present ? currencySymbol.value : this.currencySymbol,
+    currencyDecimalPlaces:
+        currencyDecimalPlaces.present
+            ? currencyDecimalPlaces.value
+            : this.currencyDecimalPlaces,
+    percentage: percentage.present ? percentage.value : this.percentage,
+    leftToSave: leftToSave.present ? leftToSave.value : this.leftToSave,
+    active: active ?? this.active,
+    objectGroupId:
+        objectGroupId.present ? objectGroupId.value : this.objectGroupId,
+    objectGroupOrder:
+        objectGroupOrder.present
+            ? objectGroupOrder.value
+            : this.objectGroupOrder,
+    objectGroupTitle:
+        objectGroupTitle.present
+            ? objectGroupTitle.value
+            : this.objectGroupTitle,
+    order: order.present ? order.value : this.order,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     serverUpdatedAt:
@@ -5446,6 +6292,38 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
       targetDate:
           data.targetDate.present ? data.targetDate.value : this.targetDate,
       notes: data.notes.present ? data.notes.value : this.notes,
+      currencyId:
+          data.currencyId.present ? data.currencyId.value : this.currencyId,
+      currencyCode:
+          data.currencyCode.present
+              ? data.currencyCode.value
+              : this.currencyCode,
+      currencySymbol:
+          data.currencySymbol.present
+              ? data.currencySymbol.value
+              : this.currencySymbol,
+      currencyDecimalPlaces:
+          data.currencyDecimalPlaces.present
+              ? data.currencyDecimalPlaces.value
+              : this.currencyDecimalPlaces,
+      percentage:
+          data.percentage.present ? data.percentage.value : this.percentage,
+      leftToSave:
+          data.leftToSave.present ? data.leftToSave.value : this.leftToSave,
+      active: data.active.present ? data.active.value : this.active,
+      objectGroupId:
+          data.objectGroupId.present
+              ? data.objectGroupId.value
+              : this.objectGroupId,
+      objectGroupOrder:
+          data.objectGroupOrder.present
+              ? data.objectGroupOrder.value
+              : this.objectGroupOrder,
+      objectGroupTitle:
+          data.objectGroupTitle.present
+              ? data.objectGroupTitle.value
+              : this.objectGroupTitle,
+      order: data.order.present ? data.order.value : this.order,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       serverUpdatedAt:
@@ -5470,6 +6348,17 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
           ..write('startDate: $startDate, ')
           ..write('targetDate: $targetDate, ')
           ..write('notes: $notes, ')
+          ..write('currencyId: $currencyId, ')
+          ..write('currencyCode: $currencyCode, ')
+          ..write('currencySymbol: $currencySymbol, ')
+          ..write('currencyDecimalPlaces: $currencyDecimalPlaces, ')
+          ..write('percentage: $percentage, ')
+          ..write('leftToSave: $leftToSave, ')
+          ..write('active: $active, ')
+          ..write('objectGroupId: $objectGroupId, ')
+          ..write('objectGroupOrder: $objectGroupOrder, ')
+          ..write('objectGroupTitle: $objectGroupTitle, ')
+          ..write('order: $order, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('serverUpdatedAt: $serverUpdatedAt, ')
@@ -5480,7 +6369,7 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     serverId,
     name,
@@ -5490,12 +6379,23 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
     startDate,
     targetDate,
     notes,
+    currencyId,
+    currencyCode,
+    currencySymbol,
+    currencyDecimalPlaces,
+    percentage,
+    leftToSave,
+    active,
+    objectGroupId,
+    objectGroupOrder,
+    objectGroupTitle,
+    order,
     createdAt,
     updatedAt,
     serverUpdatedAt,
     isSynced,
     syncStatus,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5509,6 +6409,17 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
           other.startDate == this.startDate &&
           other.targetDate == this.targetDate &&
           other.notes == this.notes &&
+          other.currencyId == this.currencyId &&
+          other.currencyCode == this.currencyCode &&
+          other.currencySymbol == this.currencySymbol &&
+          other.currencyDecimalPlaces == this.currencyDecimalPlaces &&
+          other.percentage == this.percentage &&
+          other.leftToSave == this.leftToSave &&
+          other.active == this.active &&
+          other.objectGroupId == this.objectGroupId &&
+          other.objectGroupOrder == this.objectGroupOrder &&
+          other.objectGroupTitle == this.objectGroupTitle &&
+          other.order == this.order &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.serverUpdatedAt == this.serverUpdatedAt &&
@@ -5526,6 +6437,17 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
   final Value<DateTime?> startDate;
   final Value<DateTime?> targetDate;
   final Value<String?> notes;
+  final Value<String?> currencyId;
+  final Value<String?> currencyCode;
+  final Value<String?> currencySymbol;
+  final Value<int?> currencyDecimalPlaces;
+  final Value<double?> percentage;
+  final Value<double?> leftToSave;
+  final Value<bool> active;
+  final Value<String?> objectGroupId;
+  final Value<int?> objectGroupOrder;
+  final Value<String?> objectGroupTitle;
+  final Value<int?> order;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> serverUpdatedAt;
@@ -5542,6 +6464,17 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
     this.startDate = const Value.absent(),
     this.targetDate = const Value.absent(),
     this.notes = const Value.absent(),
+    this.currencyId = const Value.absent(),
+    this.currencyCode = const Value.absent(),
+    this.currencySymbol = const Value.absent(),
+    this.currencyDecimalPlaces = const Value.absent(),
+    this.percentage = const Value.absent(),
+    this.leftToSave = const Value.absent(),
+    this.active = const Value.absent(),
+    this.objectGroupId = const Value.absent(),
+    this.objectGroupOrder = const Value.absent(),
+    this.objectGroupTitle = const Value.absent(),
+    this.order = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.serverUpdatedAt = const Value.absent(),
@@ -5559,6 +6492,17 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
     this.startDate = const Value.absent(),
     this.targetDate = const Value.absent(),
     this.notes = const Value.absent(),
+    this.currencyId = const Value.absent(),
+    this.currencyCode = const Value.absent(),
+    this.currencySymbol = const Value.absent(),
+    this.currencyDecimalPlaces = const Value.absent(),
+    this.percentage = const Value.absent(),
+    this.leftToSave = const Value.absent(),
+    this.active = const Value.absent(),
+    this.objectGroupId = const Value.absent(),
+    this.objectGroupOrder = const Value.absent(),
+    this.objectGroupTitle = const Value.absent(),
+    this.order = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.serverUpdatedAt = const Value.absent(),
@@ -5580,6 +6524,17 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
     Expression<DateTime>? startDate,
     Expression<DateTime>? targetDate,
     Expression<String>? notes,
+    Expression<String>? currencyId,
+    Expression<String>? currencyCode,
+    Expression<String>? currencySymbol,
+    Expression<int>? currencyDecimalPlaces,
+    Expression<double>? percentage,
+    Expression<double>? leftToSave,
+    Expression<bool>? active,
+    Expression<String>? objectGroupId,
+    Expression<int>? objectGroupOrder,
+    Expression<String>? objectGroupTitle,
+    Expression<int>? order,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? serverUpdatedAt,
@@ -5597,6 +6552,18 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
       if (startDate != null) 'start_date': startDate,
       if (targetDate != null) 'target_date': targetDate,
       if (notes != null) 'notes': notes,
+      if (currencyId != null) 'currency_id': currencyId,
+      if (currencyCode != null) 'currency_code': currencyCode,
+      if (currencySymbol != null) 'currency_symbol': currencySymbol,
+      if (currencyDecimalPlaces != null)
+        'currency_decimal_places': currencyDecimalPlaces,
+      if (percentage != null) 'percentage': percentage,
+      if (leftToSave != null) 'left_to_save': leftToSave,
+      if (active != null) 'active': active,
+      if (objectGroupId != null) 'object_group_id': objectGroupId,
+      if (objectGroupOrder != null) 'object_group_order': objectGroupOrder,
+      if (objectGroupTitle != null) 'object_group_title': objectGroupTitle,
+      if (order != null) 'order': order,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
@@ -5616,6 +6583,17 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
     Value<DateTime?>? startDate,
     Value<DateTime?>? targetDate,
     Value<String?>? notes,
+    Value<String?>? currencyId,
+    Value<String?>? currencyCode,
+    Value<String?>? currencySymbol,
+    Value<int?>? currencyDecimalPlaces,
+    Value<double?>? percentage,
+    Value<double?>? leftToSave,
+    Value<bool>? active,
+    Value<String?>? objectGroupId,
+    Value<int?>? objectGroupOrder,
+    Value<String?>? objectGroupTitle,
+    Value<int?>? order,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? serverUpdatedAt,
@@ -5633,6 +6611,18 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
       startDate: startDate ?? this.startDate,
       targetDate: targetDate ?? this.targetDate,
       notes: notes ?? this.notes,
+      currencyId: currencyId ?? this.currencyId,
+      currencyCode: currencyCode ?? this.currencyCode,
+      currencySymbol: currencySymbol ?? this.currencySymbol,
+      currencyDecimalPlaces:
+          currencyDecimalPlaces ?? this.currencyDecimalPlaces,
+      percentage: percentage ?? this.percentage,
+      leftToSave: leftToSave ?? this.leftToSave,
+      active: active ?? this.active,
+      objectGroupId: objectGroupId ?? this.objectGroupId,
+      objectGroupOrder: objectGroupOrder ?? this.objectGroupOrder,
+      objectGroupTitle: objectGroupTitle ?? this.objectGroupTitle,
+      order: order ?? this.order,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
@@ -5672,6 +6662,41 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (currencyId.present) {
+      map['currency_id'] = Variable<String>(currencyId.value);
+    }
+    if (currencyCode.present) {
+      map['currency_code'] = Variable<String>(currencyCode.value);
+    }
+    if (currencySymbol.present) {
+      map['currency_symbol'] = Variable<String>(currencySymbol.value);
+    }
+    if (currencyDecimalPlaces.present) {
+      map['currency_decimal_places'] = Variable<int>(
+        currencyDecimalPlaces.value,
+      );
+    }
+    if (percentage.present) {
+      map['percentage'] = Variable<double>(percentage.value);
+    }
+    if (leftToSave.present) {
+      map['left_to_save'] = Variable<double>(leftToSave.value);
+    }
+    if (active.present) {
+      map['active'] = Variable<bool>(active.value);
+    }
+    if (objectGroupId.present) {
+      map['object_group_id'] = Variable<String>(objectGroupId.value);
+    }
+    if (objectGroupOrder.present) {
+      map['object_group_order'] = Variable<int>(objectGroupOrder.value);
+    }
+    if (objectGroupTitle.present) {
+      map['object_group_title'] = Variable<String>(objectGroupTitle.value);
+    }
+    if (order.present) {
+      map['order'] = Variable<int>(order.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -5705,6 +6730,1656 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
           ..write('startDate: $startDate, ')
           ..write('targetDate: $targetDate, ')
           ..write('notes: $notes, ')
+          ..write('currencyId: $currencyId, ')
+          ..write('currencyCode: $currencyCode, ')
+          ..write('currencySymbol: $currencySymbol, ')
+          ..write('currencyDecimalPlaces: $currencyDecimalPlaces, ')
+          ..write('percentage: $percentage, ')
+          ..write('leftToSave: $leftToSave, ')
+          ..write('active: $active, ')
+          ..write('objectGroupId: $objectGroupId, ')
+          ..write('objectGroupOrder: $objectGroupOrder, ')
+          ..write('objectGroupTitle: $objectGroupTitle, ')
+          ..write('order: $order, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CurrenciesTable extends Currencies
+    with TableInfo<$CurrenciesTable, CurrencyEntity> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CurrenciesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serverIdMeta = const VerificationMeta(
+    'serverId',
+  );
+  @override
+  late final GeneratedColumn<String> serverId = GeneratedColumn<String>(
+    'server_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+    'code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _symbolMeta = const VerificationMeta('symbol');
+  @override
+  late final GeneratedColumn<String> symbol = GeneratedColumn<String>(
+    'symbol',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _decimalPlacesMeta = const VerificationMeta(
+    'decimalPlaces',
+  );
+  @override
+  late final GeneratedColumn<int> decimalPlaces = GeneratedColumn<int>(
+    'decimal_places',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2),
+  );
+  static const VerificationMeta _enabledMeta = const VerificationMeta(
+    'enabled',
+  );
+  @override
+  late final GeneratedColumn<bool> enabled = GeneratedColumn<bool>(
+    'enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
+    'isDefault',
+  );
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+    'is_default',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_default" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    serverId,
+    code,
+    name,
+    symbol,
+    decimalPlaces,
+    enabled,
+    isDefault,
+    createdAt,
+    updatedAt,
+    serverUpdatedAt,
+    isSynced,
+    syncStatus,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'currencies';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CurrencyEntity> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('server_id')) {
+      context.handle(
+        _serverIdMeta,
+        serverId.isAcceptableOrUnknown(data['server_id']!, _serverIdMeta),
+      );
+    }
+    if (data.containsKey('code')) {
+      context.handle(
+        _codeMeta,
+        code.isAcceptableOrUnknown(data['code']!, _codeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('symbol')) {
+      context.handle(
+        _symbolMeta,
+        symbol.isAcceptableOrUnknown(data['symbol']!, _symbolMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_symbolMeta);
+    }
+    if (data.containsKey('decimal_places')) {
+      context.handle(
+        _decimalPlacesMeta,
+        decimalPlaces.isAcceptableOrUnknown(
+          data['decimal_places']!,
+          _decimalPlacesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('enabled')) {
+      context.handle(
+        _enabledMeta,
+        enabled.isAcceptableOrUnknown(data['enabled']!, _enabledMeta),
+      );
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(
+        _isDefaultMeta,
+        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {code},
+    {serverId},
+  ];
+  @override
+  CurrencyEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CurrencyEntity(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      serverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}server_id'],
+      ),
+      code:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}code'],
+          )!,
+      name:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}name'],
+          )!,
+      symbol:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}symbol'],
+          )!,
+      decimalPlaces:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}decimal_places'],
+          )!,
+      enabled:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}enabled'],
+          )!,
+      isDefault:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_default'],
+          )!,
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
+          )!,
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      isSynced:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_synced'],
+          )!,
+      syncStatus:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}sync_status'],
+          )!,
+    );
+  }
+
+  @override
+  $CurrenciesTable createAlias(String alias) {
+    return $CurrenciesTable(attachedDatabase, alias);
+  }
+}
+
+class CurrencyEntity extends DataClass implements Insertable<CurrencyEntity> {
+  /// Unique identifier (UUID) for the currency.
+  ///
+  /// Uses server ID directly since currencies are read-only and
+  /// cannot be created offline.
+  final String id;
+
+  /// Server-side ID from Firefly III API.
+  ///
+  /// For currencies, this is typically the same as the local ID
+  /// since currencies cannot be created offline.
+  final String? serverId;
+
+  /// ISO 4217 currency code (e.g., 'USD', 'EUR', 'GBP').
+  ///
+  /// This is the primary identifier used by Firefly III for
+  /// currency references in transactions and accounts.
+  final String code;
+
+  /// Human-readable currency name (e.g., 'US Dollar', 'Euro').
+  final String name;
+
+  /// Currency symbol (e.g., '$', '€', '£').
+  ///
+  /// Used for display formatting in the UI.
+  final String symbol;
+
+  /// Number of decimal places for this currency.
+  ///
+  /// Most currencies use 2 (e.g., USD, EUR), but some use 0 (e.g., JPY)
+  /// or 3 (e.g., KWD). Defaults to 2 if not specified.
+  final int decimalPlaces;
+
+  /// Whether this currency is enabled in the Firefly III instance.
+  ///
+  /// Disabled currencies are typically hidden from dropdowns but
+  /// may still appear in historical transactions.
+  final bool enabled;
+
+  /// Whether this is the default currency for the Firefly III instance.
+  ///
+  /// The default currency is used for new transactions and accounts
+  /// when no specific currency is selected.
+  final bool isDefault;
+
+  /// Timestamp when the currency was created locally.
+  final DateTime createdAt;
+
+  /// Timestamp when the currency was last updated locally.
+  final DateTime updatedAt;
+
+  /// Server's last updated timestamp for incremental sync change detection.
+  ///
+  /// Used during incremental sync to determine if the local entity
+  /// needs to be updated by comparing with the server's timestamp.
+  final DateTime? serverUpdatedAt;
+
+  /// Whether the currency has been synced with the server.
+  final bool isSynced;
+
+  /// Sync status: 'pending', 'syncing', 'synced', 'error'.
+  final String syncStatus;
+  const CurrencyEntity({
+    required this.id,
+    this.serverId,
+    required this.code,
+    required this.name,
+    required this.symbol,
+    required this.decimalPlaces,
+    required this.enabled,
+    required this.isDefault,
+    required this.createdAt,
+    required this.updatedAt,
+    this.serverUpdatedAt,
+    required this.isSynced,
+    required this.syncStatus,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || serverId != null) {
+      map['server_id'] = Variable<String>(serverId);
+    }
+    map['code'] = Variable<String>(code);
+    map['name'] = Variable<String>(name);
+    map['symbol'] = Variable<String>(symbol);
+    map['decimal_places'] = Variable<int>(decimalPlaces);
+    map['enabled'] = Variable<bool>(enabled);
+    map['is_default'] = Variable<bool>(isDefault);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['is_synced'] = Variable<bool>(isSynced);
+    map['sync_status'] = Variable<String>(syncStatus);
+    return map;
+  }
+
+  CurrencyEntityCompanion toCompanion(bool nullToAbsent) {
+    return CurrencyEntityCompanion(
+      id: Value(id),
+      serverId:
+          serverId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverId),
+      code: Value(code),
+      name: Value(name),
+      symbol: Value(symbol),
+      decimalPlaces: Value(decimalPlaces),
+      enabled: Value(enabled),
+      isDefault: Value(isDefault),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
+      isSynced: Value(isSynced),
+      syncStatus: Value(syncStatus),
+    );
+  }
+
+  factory CurrencyEntity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CurrencyEntity(
+      id: serializer.fromJson<String>(json['id']),
+      serverId: serializer.fromJson<String?>(json['serverId']),
+      code: serializer.fromJson<String>(json['code']),
+      name: serializer.fromJson<String>(json['name']),
+      symbol: serializer.fromJson<String>(json['symbol']),
+      decimalPlaces: serializer.fromJson<int>(json['decimalPlaces']),
+      enabled: serializer.fromJson<bool>(json['enabled']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'serverId': serializer.toJson<String?>(serverId),
+      'code': serializer.toJson<String>(code),
+      'name': serializer.toJson<String>(name),
+      'symbol': serializer.toJson<String>(symbol),
+      'decimalPlaces': serializer.toJson<int>(decimalPlaces),
+      'enabled': serializer.toJson<bool>(enabled),
+      'isDefault': serializer.toJson<bool>(isDefault),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'isSynced': serializer.toJson<bool>(isSynced),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+    };
+  }
+
+  CurrencyEntity copyWith({
+    String? id,
+    Value<String?> serverId = const Value.absent(),
+    String? code,
+    String? name,
+    String? symbol,
+    int? decimalPlaces,
+    bool? enabled,
+    bool? isDefault,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    bool? isSynced,
+    String? syncStatus,
+  }) => CurrencyEntity(
+    id: id ?? this.id,
+    serverId: serverId.present ? serverId.value : this.serverId,
+    code: code ?? this.code,
+    name: name ?? this.name,
+    symbol: symbol ?? this.symbol,
+    decimalPlaces: decimalPlaces ?? this.decimalPlaces,
+    enabled: enabled ?? this.enabled,
+    isDefault: isDefault ?? this.isDefault,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
+    isSynced: isSynced ?? this.isSynced,
+    syncStatus: syncStatus ?? this.syncStatus,
+  );
+  CurrencyEntity copyWithCompanion(CurrencyEntityCompanion data) {
+    return CurrencyEntity(
+      id: data.id.present ? data.id.value : this.id,
+      serverId: data.serverId.present ? data.serverId.value : this.serverId,
+      code: data.code.present ? data.code.value : this.code,
+      name: data.name.present ? data.name.value : this.name,
+      symbol: data.symbol.present ? data.symbol.value : this.symbol,
+      decimalPlaces:
+          data.decimalPlaces.present
+              ? data.decimalPlaces.value
+              : this.decimalPlaces,
+      enabled: data.enabled.present ? data.enabled.value : this.enabled,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CurrencyEntity(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('symbol: $symbol, ')
+          ..write('decimalPlaces: $decimalPlaces, ')
+          ..write('enabled: $enabled, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('syncStatus: $syncStatus')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    serverId,
+    code,
+    name,
+    symbol,
+    decimalPlaces,
+    enabled,
+    isDefault,
+    createdAt,
+    updatedAt,
+    serverUpdatedAt,
+    isSynced,
+    syncStatus,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CurrencyEntity &&
+          other.id == this.id &&
+          other.serverId == this.serverId &&
+          other.code == this.code &&
+          other.name == this.name &&
+          other.symbol == this.symbol &&
+          other.decimalPlaces == this.decimalPlaces &&
+          other.enabled == this.enabled &&
+          other.isDefault == this.isDefault &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.isSynced == this.isSynced &&
+          other.syncStatus == this.syncStatus);
+}
+
+class CurrencyEntityCompanion extends UpdateCompanion<CurrencyEntity> {
+  final Value<String> id;
+  final Value<String?> serverId;
+  final Value<String> code;
+  final Value<String> name;
+  final Value<String> symbol;
+  final Value<int> decimalPlaces;
+  final Value<bool> enabled;
+  final Value<bool> isDefault;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<bool> isSynced;
+  final Value<String> syncStatus;
+  final Value<int> rowid;
+  const CurrencyEntityCompanion({
+    this.id = const Value.absent(),
+    this.serverId = const Value.absent(),
+    this.code = const Value.absent(),
+    this.name = const Value.absent(),
+    this.symbol = const Value.absent(),
+    this.decimalPlaces = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CurrencyEntityCompanion.insert({
+    required String id,
+    this.serverId = const Value.absent(),
+    required String code,
+    required String name,
+    required String symbol,
+    this.decimalPlaces = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.serverUpdatedAt = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       code = Value(code),
+       name = Value(name),
+       symbol = Value(symbol),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<CurrencyEntity> custom({
+    Expression<String>? id,
+    Expression<String>? serverId,
+    Expression<String>? code,
+    Expression<String>? name,
+    Expression<String>? symbol,
+    Expression<int>? decimalPlaces,
+    Expression<bool>? enabled,
+    Expression<bool>? isDefault,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<bool>? isSynced,
+    Expression<String>? syncStatus,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (serverId != null) 'server_id': serverId,
+      if (code != null) 'code': code,
+      if (name != null) 'name': name,
+      if (symbol != null) 'symbol': symbol,
+      if (decimalPlaces != null) 'decimal_places': decimalPlaces,
+      if (enabled != null) 'enabled': enabled,
+      if (isDefault != null) 'is_default': isDefault,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (isSynced != null) 'is_synced': isSynced,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CurrencyEntityCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? serverId,
+    Value<String>? code,
+    Value<String>? name,
+    Value<String>? symbol,
+    Value<int>? decimalPlaces,
+    Value<bool>? enabled,
+    Value<bool>? isDefault,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<bool>? isSynced,
+    Value<String>? syncStatus,
+    Value<int>? rowid,
+  }) {
+    return CurrencyEntityCompanion(
+      id: id ?? this.id,
+      serverId: serverId ?? this.serverId,
+      code: code ?? this.code,
+      name: name ?? this.name,
+      symbol: symbol ?? this.symbol,
+      decimalPlaces: decimalPlaces ?? this.decimalPlaces,
+      enabled: enabled ?? this.enabled,
+      isDefault: isDefault ?? this.isDefault,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      isSynced: isSynced ?? this.isSynced,
+      syncStatus: syncStatus ?? this.syncStatus,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (serverId.present) {
+      map['server_id'] = Variable<String>(serverId.value);
+    }
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (symbol.present) {
+      map['symbol'] = Variable<String>(symbol.value);
+    }
+    if (decimalPlaces.present) {
+      map['decimal_places'] = Variable<int>(decimalPlaces.value);
+    }
+    if (enabled.present) {
+      map['enabled'] = Variable<bool>(enabled.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CurrencyEntityCompanion(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('symbol: $symbol, ')
+          ..write('decimalPlaces: $decimalPlaces, ')
+          ..write('enabled: $enabled, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TagsTable extends Tags with TableInfo<$TagsTable, TagEntity> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serverIdMeta = const VerificationMeta(
+    'serverId',
+  );
+  @override
+  late final GeneratedColumn<String> serverId = GeneratedColumn<String>(
+    'server_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tagMeta = const VerificationMeta('tag');
+  @override
+  late final GeneratedColumn<String> tag = GeneratedColumn<String>(
+    'tag',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _zoomLevelMeta = const VerificationMeta(
+    'zoomLevel',
+  );
+  @override
+  late final GeneratedColumn<int> zoomLevel = GeneratedColumn<int>(
+    'zoom_level',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    serverId,
+    tag,
+    description,
+    date,
+    latitude,
+    longitude,
+    zoomLevel,
+    createdAt,
+    updatedAt,
+    serverUpdatedAt,
+    isSynced,
+    syncStatus,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TagEntity> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('server_id')) {
+      context.handle(
+        _serverIdMeta,
+        serverId.isAcceptableOrUnknown(data['server_id']!, _serverIdMeta),
+      );
+    }
+    if (data.containsKey('tag')) {
+      context.handle(
+        _tagMeta,
+        tag.isAcceptableOrUnknown(data['tag']!, _tagMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tagMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    }
+    if (data.containsKey('zoom_level')) {
+      context.handle(
+        _zoomLevelMeta,
+        zoomLevel.isAcceptableOrUnknown(data['zoom_level']!, _zoomLevelMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {tag},
+    {serverId},
+  ];
+  @override
+  TagEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TagEntity(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      serverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}server_id'],
+      ),
+      tag:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}tag'],
+          )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      ),
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      ),
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      ),
+      zoomLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}zoom_level'],
+      ),
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
+          )!,
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      isSynced:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_synced'],
+          )!,
+      syncStatus:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}sync_status'],
+          )!,
+    );
+  }
+
+  @override
+  $TagsTable createAlias(String alias) {
+    return $TagsTable(attachedDatabase, alias);
+  }
+}
+
+class TagEntity extends DataClass implements Insertable<TagEntity> {
+  /// Unique identifier (UUID) for the tag.
+  final String id;
+
+  /// Server-side ID from Firefly III API, nullable for offline-created tags.
+  final String? serverId;
+
+  /// Tag name/label (e.g., 'vacation', 'groceries', 'work-expense').
+  ///
+  /// Tag names are case-sensitive and must be unique within the instance.
+  final String tag;
+
+  /// Optional description or notes for the tag.
+  final String? description;
+
+  /// Optional date when this tag was first used or created.
+  final DateTime? date;
+
+  /// Latitude for location-based tags, nullable.
+  final double? latitude;
+
+  /// Longitude for location-based tags, nullable.
+  final double? longitude;
+
+  /// Zoom level for map display of location tags, nullable.
+  final int? zoomLevel;
+
+  /// Timestamp when the tag was created locally.
+  final DateTime createdAt;
+
+  /// Timestamp when the tag was last updated locally.
+  final DateTime updatedAt;
+
+  /// Server's last updated timestamp for incremental sync change detection.
+  ///
+  /// Used during incremental sync to determine if the local entity
+  /// needs to be updated by comparing with the server's timestamp.
+  final DateTime? serverUpdatedAt;
+
+  /// Whether the tag has been synced with the server.
+  final bool isSynced;
+
+  /// Sync status: 'pending', 'syncing', 'synced', 'error'.
+  final String syncStatus;
+  const TagEntity({
+    required this.id,
+    this.serverId,
+    required this.tag,
+    this.description,
+    this.date,
+    this.latitude,
+    this.longitude,
+    this.zoomLevel,
+    required this.createdAt,
+    required this.updatedAt,
+    this.serverUpdatedAt,
+    required this.isSynced,
+    required this.syncStatus,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || serverId != null) {
+      map['server_id'] = Variable<String>(serverId);
+    }
+    map['tag'] = Variable<String>(tag);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || date != null) {
+      map['date'] = Variable<DateTime>(date);
+    }
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
+    }
+    if (!nullToAbsent || zoomLevel != null) {
+      map['zoom_level'] = Variable<int>(zoomLevel);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['is_synced'] = Variable<bool>(isSynced);
+    map['sync_status'] = Variable<String>(syncStatus);
+    return map;
+  }
+
+  TagEntityCompanion toCompanion(bool nullToAbsent) {
+    return TagEntityCompanion(
+      id: Value(id),
+      serverId:
+          serverId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverId),
+      tag: Value(tag),
+      description:
+          description == null && nullToAbsent
+              ? const Value.absent()
+              : Value(description),
+      date: date == null && nullToAbsent ? const Value.absent() : Value(date),
+      latitude:
+          latitude == null && nullToAbsent
+              ? const Value.absent()
+              : Value(latitude),
+      longitude:
+          longitude == null && nullToAbsent
+              ? const Value.absent()
+              : Value(longitude),
+      zoomLevel:
+          zoomLevel == null && nullToAbsent
+              ? const Value.absent()
+              : Value(zoomLevel),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
+      isSynced: Value(isSynced),
+      syncStatus: Value(syncStatus),
+    );
+  }
+
+  factory TagEntity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TagEntity(
+      id: serializer.fromJson<String>(json['id']),
+      serverId: serializer.fromJson<String?>(json['serverId']),
+      tag: serializer.fromJson<String>(json['tag']),
+      description: serializer.fromJson<String?>(json['description']),
+      date: serializer.fromJson<DateTime?>(json['date']),
+      latitude: serializer.fromJson<double?>(json['latitude']),
+      longitude: serializer.fromJson<double?>(json['longitude']),
+      zoomLevel: serializer.fromJson<int?>(json['zoomLevel']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'serverId': serializer.toJson<String?>(serverId),
+      'tag': serializer.toJson<String>(tag),
+      'description': serializer.toJson<String?>(description),
+      'date': serializer.toJson<DateTime?>(date),
+      'latitude': serializer.toJson<double?>(latitude),
+      'longitude': serializer.toJson<double?>(longitude),
+      'zoomLevel': serializer.toJson<int?>(zoomLevel),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'isSynced': serializer.toJson<bool>(isSynced),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+    };
+  }
+
+  TagEntity copyWith({
+    String? id,
+    Value<String?> serverId = const Value.absent(),
+    String? tag,
+    Value<String?> description = const Value.absent(),
+    Value<DateTime?> date = const Value.absent(),
+    Value<double?> latitude = const Value.absent(),
+    Value<double?> longitude = const Value.absent(),
+    Value<int?> zoomLevel = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    bool? isSynced,
+    String? syncStatus,
+  }) => TagEntity(
+    id: id ?? this.id,
+    serverId: serverId.present ? serverId.value : this.serverId,
+    tag: tag ?? this.tag,
+    description: description.present ? description.value : this.description,
+    date: date.present ? date.value : this.date,
+    latitude: latitude.present ? latitude.value : this.latitude,
+    longitude: longitude.present ? longitude.value : this.longitude,
+    zoomLevel: zoomLevel.present ? zoomLevel.value : this.zoomLevel,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
+    isSynced: isSynced ?? this.isSynced,
+    syncStatus: syncStatus ?? this.syncStatus,
+  );
+  TagEntity copyWithCompanion(TagEntityCompanion data) {
+    return TagEntity(
+      id: data.id.present ? data.id.value : this.id,
+      serverId: data.serverId.present ? data.serverId.value : this.serverId,
+      tag: data.tag.present ? data.tag.value : this.tag,
+      description:
+          data.description.present ? data.description.value : this.description,
+      date: data.date.present ? data.date.value : this.date,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      zoomLevel: data.zoomLevel.present ? data.zoomLevel.value : this.zoomLevel,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TagEntity(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('tag: $tag, ')
+          ..write('description: $description, ')
+          ..write('date: $date, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('zoomLevel: $zoomLevel, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('syncStatus: $syncStatus')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    serverId,
+    tag,
+    description,
+    date,
+    latitude,
+    longitude,
+    zoomLevel,
+    createdAt,
+    updatedAt,
+    serverUpdatedAt,
+    isSynced,
+    syncStatus,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TagEntity &&
+          other.id == this.id &&
+          other.serverId == this.serverId &&
+          other.tag == this.tag &&
+          other.description == this.description &&
+          other.date == this.date &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.zoomLevel == this.zoomLevel &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.isSynced == this.isSynced &&
+          other.syncStatus == this.syncStatus);
+}
+
+class TagEntityCompanion extends UpdateCompanion<TagEntity> {
+  final Value<String> id;
+  final Value<String?> serverId;
+  final Value<String> tag;
+  final Value<String?> description;
+  final Value<DateTime?> date;
+  final Value<double?> latitude;
+  final Value<double?> longitude;
+  final Value<int?> zoomLevel;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<bool> isSynced;
+  final Value<String> syncStatus;
+  final Value<int> rowid;
+  const TagEntityCompanion({
+    this.id = const Value.absent(),
+    this.serverId = const Value.absent(),
+    this.tag = const Value.absent(),
+    this.description = const Value.absent(),
+    this.date = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.zoomLevel = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TagEntityCompanion.insert({
+    required String id,
+    this.serverId = const Value.absent(),
+    required String tag,
+    this.description = const Value.absent(),
+    this.date = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.zoomLevel = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.serverUpdatedAt = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       tag = Value(tag),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<TagEntity> custom({
+    Expression<String>? id,
+    Expression<String>? serverId,
+    Expression<String>? tag,
+    Expression<String>? description,
+    Expression<DateTime>? date,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<int>? zoomLevel,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<bool>? isSynced,
+    Expression<String>? syncStatus,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (serverId != null) 'server_id': serverId,
+      if (tag != null) 'tag': tag,
+      if (description != null) 'description': description,
+      if (date != null) 'date': date,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (zoomLevel != null) 'zoom_level': zoomLevel,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (isSynced != null) 'is_synced': isSynced,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TagEntityCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? serverId,
+    Value<String>? tag,
+    Value<String?>? description,
+    Value<DateTime?>? date,
+    Value<double?>? latitude,
+    Value<double?>? longitude,
+    Value<int?>? zoomLevel,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<bool>? isSynced,
+    Value<String>? syncStatus,
+    Value<int>? rowid,
+  }) {
+    return TagEntityCompanion(
+      id: id ?? this.id,
+      serverId: serverId ?? this.serverId,
+      tag: tag ?? this.tag,
+      description: description ?? this.description,
+      date: date ?? this.date,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      zoomLevel: zoomLevel ?? this.zoomLevel,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      isSynced: isSynced ?? this.isSynced,
+      syncStatus: syncStatus ?? this.syncStatus,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (serverId.present) {
+      map['server_id'] = Variable<String>(serverId.value);
+    }
+    if (tag.present) {
+      map['tag'] = Variable<String>(tag.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (zoomLevel.present) {
+      map['zoom_level'] = Variable<int>(zoomLevel.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TagEntityCompanion(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('tag: $tag, ')
+          ..write('description: $description, ')
+          ..write('date: $date, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('zoomLevel: $zoomLevel, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('serverUpdatedAt: $serverUpdatedAt, ')
@@ -10269,6 +12944,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $BudgetsTable budgets = $BudgetsTable(this);
   late final $BillsTable bills = $BillsTable(this);
   late final $PiggyBanksTable piggyBanks = $PiggyBanksTable(this);
+  late final $CurrenciesTable currencies = $CurrenciesTable(this);
+  late final $TagsTable tags = $TagsTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $SyncMetadataTable syncMetadata = $SyncMetadataTable(this);
   late final $IdMappingTable idMapping = $IdMappingTable(this);
@@ -10288,6 +12965,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     budgets,
     bills,
     piggyBanks,
+    currencies,
+    tags,
     syncQueue,
     syncMetadata,
     idMapping,
@@ -11984,14 +14663,21 @@ typedef $$BillsTableCreateCompanionBuilder =
       required String id,
       Value<String?> serverId,
       required String name,
-      required double amountMin,
-      required double amountMax,
+      required double minAmount,
+      required double maxAmount,
       required String currencyCode,
+      Value<String?> currencySymbol,
+      Value<int?> currencyDecimalPlaces,
+      Value<String?> currencyId,
       required DateTime date,
       required String repeatFreq,
       Value<int> skip,
       Value<bool> active,
       Value<String?> notes,
+      Value<DateTime?> nextExpectedMatch,
+      Value<int?> order,
+      Value<int?> objectGroupOrder,
+      Value<String?> objectGroupTitle,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<DateTime?> serverUpdatedAt,
@@ -12004,14 +14690,21 @@ typedef $$BillsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String?> serverId,
       Value<String> name,
-      Value<double> amountMin,
-      Value<double> amountMax,
+      Value<double> minAmount,
+      Value<double> maxAmount,
       Value<String> currencyCode,
+      Value<String?> currencySymbol,
+      Value<int?> currencyDecimalPlaces,
+      Value<String?> currencyId,
       Value<DateTime> date,
       Value<String> repeatFreq,
       Value<int> skip,
       Value<bool> active,
       Value<String?> notes,
+      Value<DateTime?> nextExpectedMatch,
+      Value<int?> order,
+      Value<int?> objectGroupOrder,
+      Value<String?> objectGroupTitle,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> serverUpdatedAt,
@@ -12043,18 +14736,33 @@ class $$BillsTableFilterComposer extends Composer<_$AppDatabase, $BillsTable> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get amountMin => $composableBuilder(
-    column: $table.amountMin,
+  ColumnFilters<double> get minAmount => $composableBuilder(
+    column: $table.minAmount,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get amountMax => $composableBuilder(
-    column: $table.amountMax,
+  ColumnFilters<double> get maxAmount => $composableBuilder(
+    column: $table.maxAmount,
     builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get currencyCode => $composableBuilder(
     column: $table.currencyCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currencySymbol => $composableBuilder(
+    column: $table.currencySymbol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currencyDecimalPlaces => $composableBuilder(
+    column: $table.currencyDecimalPlaces,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12080,6 +14788,26 @@ class $$BillsTableFilterComposer extends Composer<_$AppDatabase, $BillsTable> {
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get nextExpectedMatch => $composableBuilder(
+    column: $table.nextExpectedMatch,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get order => $composableBuilder(
+    column: $table.order,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get objectGroupOrder => $composableBuilder(
+    column: $table.objectGroupOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get objectGroupTitle => $composableBuilder(
+    column: $table.objectGroupTitle,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12133,18 +14861,33 @@ class $$BillsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get amountMin => $composableBuilder(
-    column: $table.amountMin,
+  ColumnOrderings<double> get minAmount => $composableBuilder(
+    column: $table.minAmount,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get amountMax => $composableBuilder(
-    column: $table.amountMax,
+  ColumnOrderings<double> get maxAmount => $composableBuilder(
+    column: $table.maxAmount,
     builder: (column) => ColumnOrderings(column),
   );
 
   ColumnOrderings<String> get currencyCode => $composableBuilder(
     column: $table.currencyCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currencySymbol => $composableBuilder(
+    column: $table.currencySymbol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currencyDecimalPlaces => $composableBuilder(
+    column: $table.currencyDecimalPlaces,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -12170,6 +14913,26 @@ class $$BillsTableOrderingComposer
 
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get nextExpectedMatch => $composableBuilder(
+    column: $table.nextExpectedMatch,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get order => $composableBuilder(
+    column: $table.order,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get objectGroupOrder => $composableBuilder(
+    column: $table.objectGroupOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get objectGroupTitle => $composableBuilder(
+    column: $table.objectGroupTitle,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -12217,14 +14980,29 @@ class $$BillsTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<double> get amountMin =>
-      $composableBuilder(column: $table.amountMin, builder: (column) => column);
+  GeneratedColumn<double> get minAmount =>
+      $composableBuilder(column: $table.minAmount, builder: (column) => column);
 
-  GeneratedColumn<double> get amountMax =>
-      $composableBuilder(column: $table.amountMax, builder: (column) => column);
+  GeneratedColumn<double> get maxAmount =>
+      $composableBuilder(column: $table.maxAmount, builder: (column) => column);
 
   GeneratedColumn<String> get currencyCode => $composableBuilder(
     column: $table.currencyCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currencySymbol => $composableBuilder(
+    column: $table.currencySymbol,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get currencyDecimalPlaces => $composableBuilder(
+    column: $table.currencyDecimalPlaces,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
     builder: (column) => column,
   );
 
@@ -12244,6 +15022,24 @@ class $$BillsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get nextExpectedMatch => $composableBuilder(
+    column: $table.nextExpectedMatch,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get order =>
+      $composableBuilder(column: $table.order, builder: (column) => column);
+
+  GeneratedColumn<int> get objectGroupOrder => $composableBuilder(
+    column: $table.objectGroupOrder,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get objectGroupTitle => $composableBuilder(
+    column: $table.objectGroupTitle,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -12296,14 +15092,21 @@ class $$BillsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String?> serverId = const Value.absent(),
                 Value<String> name = const Value.absent(),
-                Value<double> amountMin = const Value.absent(),
-                Value<double> amountMax = const Value.absent(),
+                Value<double> minAmount = const Value.absent(),
+                Value<double> maxAmount = const Value.absent(),
                 Value<String> currencyCode = const Value.absent(),
+                Value<String?> currencySymbol = const Value.absent(),
+                Value<int?> currencyDecimalPlaces = const Value.absent(),
+                Value<String?> currencyId = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<String> repeatFreq = const Value.absent(),
                 Value<int> skip = const Value.absent(),
                 Value<bool> active = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<DateTime?> nextExpectedMatch = const Value.absent(),
+                Value<int?> order = const Value.absent(),
+                Value<int?> objectGroupOrder = const Value.absent(),
+                Value<String?> objectGroupTitle = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -12314,14 +15117,21 @@ class $$BillsTableTableManager
                 id: id,
                 serverId: serverId,
                 name: name,
-                amountMin: amountMin,
-                amountMax: amountMax,
+                minAmount: minAmount,
+                maxAmount: maxAmount,
                 currencyCode: currencyCode,
+                currencySymbol: currencySymbol,
+                currencyDecimalPlaces: currencyDecimalPlaces,
+                currencyId: currencyId,
                 date: date,
                 repeatFreq: repeatFreq,
                 skip: skip,
                 active: active,
                 notes: notes,
+                nextExpectedMatch: nextExpectedMatch,
+                order: order,
+                objectGroupOrder: objectGroupOrder,
+                objectGroupTitle: objectGroupTitle,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 serverUpdatedAt: serverUpdatedAt,
@@ -12334,14 +15144,21 @@ class $$BillsTableTableManager
                 required String id,
                 Value<String?> serverId = const Value.absent(),
                 required String name,
-                required double amountMin,
-                required double amountMax,
+                required double minAmount,
+                required double maxAmount,
                 required String currencyCode,
+                Value<String?> currencySymbol = const Value.absent(),
+                Value<int?> currencyDecimalPlaces = const Value.absent(),
+                Value<String?> currencyId = const Value.absent(),
                 required DateTime date,
                 required String repeatFreq,
                 Value<int> skip = const Value.absent(),
                 Value<bool> active = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<DateTime?> nextExpectedMatch = const Value.absent(),
+                Value<int?> order = const Value.absent(),
+                Value<int?> objectGroupOrder = const Value.absent(),
+                Value<String?> objectGroupTitle = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -12352,14 +15169,21 @@ class $$BillsTableTableManager
                 id: id,
                 serverId: serverId,
                 name: name,
-                amountMin: amountMin,
-                amountMax: amountMax,
+                minAmount: minAmount,
+                maxAmount: maxAmount,
                 currencyCode: currencyCode,
+                currencySymbol: currencySymbol,
+                currencyDecimalPlaces: currencyDecimalPlaces,
+                currencyId: currencyId,
                 date: date,
                 repeatFreq: repeatFreq,
                 skip: skip,
                 active: active,
                 notes: notes,
+                nextExpectedMatch: nextExpectedMatch,
+                order: order,
+                objectGroupOrder: objectGroupOrder,
+                objectGroupTitle: objectGroupTitle,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 serverUpdatedAt: serverUpdatedAt,
@@ -12407,6 +15231,17 @@ typedef $$PiggyBanksTableCreateCompanionBuilder =
       Value<DateTime?> startDate,
       Value<DateTime?> targetDate,
       Value<String?> notes,
+      Value<String?> currencyId,
+      Value<String?> currencyCode,
+      Value<String?> currencySymbol,
+      Value<int?> currencyDecimalPlaces,
+      Value<double?> percentage,
+      Value<double?> leftToSave,
+      Value<bool> active,
+      Value<String?> objectGroupId,
+      Value<int?> objectGroupOrder,
+      Value<String?> objectGroupTitle,
+      Value<int?> order,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<DateTime?> serverUpdatedAt,
@@ -12425,6 +15260,17 @@ typedef $$PiggyBanksTableUpdateCompanionBuilder =
       Value<DateTime?> startDate,
       Value<DateTime?> targetDate,
       Value<String?> notes,
+      Value<String?> currencyId,
+      Value<String?> currencyCode,
+      Value<String?> currencySymbol,
+      Value<int?> currencyDecimalPlaces,
+      Value<double?> percentage,
+      Value<double?> leftToSave,
+      Value<bool> active,
+      Value<String?> objectGroupId,
+      Value<int?> objectGroupOrder,
+      Value<String?> objectGroupTitle,
+      Value<int?> order,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<DateTime?> serverUpdatedAt,
@@ -12484,6 +15330,61 @@ class $$PiggyBanksTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currencyCode => $composableBuilder(
+    column: $table.currencyCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currencySymbol => $composableBuilder(
+    column: $table.currencySymbol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currencyDecimalPlaces => $composableBuilder(
+    column: $table.currencyDecimalPlaces,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get percentage => $composableBuilder(
+    column: $table.percentage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get leftToSave => $composableBuilder(
+    column: $table.leftToSave,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get active => $composableBuilder(
+    column: $table.active,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get objectGroupId => $composableBuilder(
+    column: $table.objectGroupId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get objectGroupOrder => $composableBuilder(
+    column: $table.objectGroupOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get objectGroupTitle => $composableBuilder(
+    column: $table.objectGroupTitle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get order => $composableBuilder(
+    column: $table.order,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12567,6 +15468,61 @@ class $$PiggyBanksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currencyCode => $composableBuilder(
+    column: $table.currencyCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currencySymbol => $composableBuilder(
+    column: $table.currencySymbol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currencyDecimalPlaces => $composableBuilder(
+    column: $table.currencyDecimalPlaces,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get percentage => $composableBuilder(
+    column: $table.percentage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get leftToSave => $composableBuilder(
+    column: $table.leftToSave,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get active => $composableBuilder(
+    column: $table.active,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get objectGroupId => $composableBuilder(
+    column: $table.objectGroupId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get objectGroupOrder => $composableBuilder(
+    column: $table.objectGroupOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get objectGroupTitle => $composableBuilder(
+    column: $table.objectGroupTitle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get order => $composableBuilder(
+    column: $table.order,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -12635,6 +15591,57 @@ class $$PiggyBanksTableAnnotationComposer
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
+  GeneratedColumn<String> get currencyId => $composableBuilder(
+    column: $table.currencyId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currencyCode => $composableBuilder(
+    column: $table.currencyCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currencySymbol => $composableBuilder(
+    column: $table.currencySymbol,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get currencyDecimalPlaces => $composableBuilder(
+    column: $table.currencyDecimalPlaces,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get percentage => $composableBuilder(
+    column: $table.percentage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get leftToSave => $composableBuilder(
+    column: $table.leftToSave,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get active =>
+      $composableBuilder(column: $table.active, builder: (column) => column);
+
+  GeneratedColumn<String> get objectGroupId => $composableBuilder(
+    column: $table.objectGroupId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get objectGroupOrder => $composableBuilder(
+    column: $table.objectGroupOrder,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get objectGroupTitle => $composableBuilder(
+    column: $table.objectGroupTitle,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get order =>
+      $composableBuilder(column: $table.order, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -12695,6 +15702,17 @@ class $$PiggyBanksTableTableManager
                 Value<DateTime?> startDate = const Value.absent(),
                 Value<DateTime?> targetDate = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> currencyId = const Value.absent(),
+                Value<String?> currencyCode = const Value.absent(),
+                Value<String?> currencySymbol = const Value.absent(),
+                Value<int?> currencyDecimalPlaces = const Value.absent(),
+                Value<double?> percentage = const Value.absent(),
+                Value<double?> leftToSave = const Value.absent(),
+                Value<bool> active = const Value.absent(),
+                Value<String?> objectGroupId = const Value.absent(),
+                Value<int?> objectGroupOrder = const Value.absent(),
+                Value<String?> objectGroupTitle = const Value.absent(),
+                Value<int?> order = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -12711,6 +15729,17 @@ class $$PiggyBanksTableTableManager
                 startDate: startDate,
                 targetDate: targetDate,
                 notes: notes,
+                currencyId: currencyId,
+                currencyCode: currencyCode,
+                currencySymbol: currencySymbol,
+                currencyDecimalPlaces: currencyDecimalPlaces,
+                percentage: percentage,
+                leftToSave: leftToSave,
+                active: active,
+                objectGroupId: objectGroupId,
+                objectGroupOrder: objectGroupOrder,
+                objectGroupTitle: objectGroupTitle,
+                order: order,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 serverUpdatedAt: serverUpdatedAt,
@@ -12729,6 +15758,17 @@ class $$PiggyBanksTableTableManager
                 Value<DateTime?> startDate = const Value.absent(),
                 Value<DateTime?> targetDate = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> currencyId = const Value.absent(),
+                Value<String?> currencyCode = const Value.absent(),
+                Value<String?> currencySymbol = const Value.absent(),
+                Value<int?> currencyDecimalPlaces = const Value.absent(),
+                Value<double?> percentage = const Value.absent(),
+                Value<double?> leftToSave = const Value.absent(),
+                Value<bool> active = const Value.absent(),
+                Value<String?> objectGroupId = const Value.absent(),
+                Value<int?> objectGroupOrder = const Value.absent(),
+                Value<String?> objectGroupTitle = const Value.absent(),
+                Value<int?> order = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> serverUpdatedAt = const Value.absent(),
@@ -12745,6 +15785,17 @@ class $$PiggyBanksTableTableManager
                 startDate: startDate,
                 targetDate: targetDate,
                 notes: notes,
+                currencyId: currencyId,
+                currencyCode: currencyCode,
+                currencySymbol: currencySymbol,
+                currencyDecimalPlaces: currencyDecimalPlaces,
+                percentage: percentage,
+                leftToSave: leftToSave,
+                active: active,
+                objectGroupId: objectGroupId,
+                objectGroupOrder: objectGroupOrder,
+                objectGroupTitle: objectGroupTitle,
+                order: order,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 serverUpdatedAt: serverUpdatedAt,
@@ -12782,6 +15833,728 @@ typedef $$PiggyBanksTableProcessedTableManager =
         BaseReferences<_$AppDatabase, $PiggyBanksTable, PiggyBankEntity>,
       ),
       PiggyBankEntity,
+      PrefetchHooks Function()
+    >;
+typedef $$CurrenciesTableCreateCompanionBuilder =
+    CurrencyEntityCompanion Function({
+      required String id,
+      Value<String?> serverId,
+      required String code,
+      required String name,
+      required String symbol,
+      Value<int> decimalPlaces,
+      Value<bool> enabled,
+      Value<bool> isDefault,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<bool> isSynced,
+      Value<String> syncStatus,
+      Value<int> rowid,
+    });
+typedef $$CurrenciesTableUpdateCompanionBuilder =
+    CurrencyEntityCompanion Function({
+      Value<String> id,
+      Value<String?> serverId,
+      Value<String> code,
+      Value<String> name,
+      Value<String> symbol,
+      Value<int> decimalPlaces,
+      Value<bool> enabled,
+      Value<bool> isDefault,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<bool> isSynced,
+      Value<String> syncStatus,
+      Value<int> rowid,
+    });
+
+class $$CurrenciesTableFilterComposer
+    extends Composer<_$AppDatabase, $CurrenciesTable> {
+  $$CurrenciesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get symbol => $composableBuilder(
+    column: $table.symbol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get decimalPlaces => $composableBuilder(
+    column: $table.decimalPlaces,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CurrenciesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CurrenciesTable> {
+  $$CurrenciesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get symbol => $composableBuilder(
+    column: $table.symbol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get decimalPlaces => $composableBuilder(
+    column: $table.decimalPlaces,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CurrenciesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CurrenciesTable> {
+  $$CurrenciesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get serverId =>
+      $composableBuilder(column: $table.serverId, builder: (column) => column);
+
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get symbol =>
+      $composableBuilder(column: $table.symbol, builder: (column) => column);
+
+  GeneratedColumn<int> get decimalPlaces => $composableBuilder(
+    column: $table.decimalPlaces,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get enabled =>
+      $composableBuilder(column: $table.enabled, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+}
+
+class $$CurrenciesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CurrenciesTable,
+          CurrencyEntity,
+          $$CurrenciesTableFilterComposer,
+          $$CurrenciesTableOrderingComposer,
+          $$CurrenciesTableAnnotationComposer,
+          $$CurrenciesTableCreateCompanionBuilder,
+          $$CurrenciesTableUpdateCompanionBuilder,
+          (
+            CurrencyEntity,
+            BaseReferences<_$AppDatabase, $CurrenciesTable, CurrencyEntity>,
+          ),
+          CurrencyEntity,
+          PrefetchHooks Function()
+        > {
+  $$CurrenciesTableTableManager(_$AppDatabase db, $CurrenciesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$CurrenciesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$CurrenciesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$CurrenciesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> serverId = const Value.absent(),
+                Value<String> code = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> symbol = const Value.absent(),
+                Value<int> decimalPlaces = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CurrencyEntityCompanion(
+                id: id,
+                serverId: serverId,
+                code: code,
+                name: name,
+                symbol: symbol,
+                decimalPlaces: decimalPlaces,
+                enabled: enabled,
+                isDefault: isDefault,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                isSynced: isSynced,
+                syncStatus: syncStatus,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> serverId = const Value.absent(),
+                required String code,
+                required String name,
+                required String symbol,
+                Value<int> decimalPlaces = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CurrencyEntityCompanion.insert(
+                id: id,
+                serverId: serverId,
+                code: code,
+                name: name,
+                symbol: symbol,
+                decimalPlaces: decimalPlaces,
+                enabled: enabled,
+                isDefault: isDefault,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                isSynced: isSynced,
+                syncStatus: syncStatus,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CurrenciesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CurrenciesTable,
+      CurrencyEntity,
+      $$CurrenciesTableFilterComposer,
+      $$CurrenciesTableOrderingComposer,
+      $$CurrenciesTableAnnotationComposer,
+      $$CurrenciesTableCreateCompanionBuilder,
+      $$CurrenciesTableUpdateCompanionBuilder,
+      (
+        CurrencyEntity,
+        BaseReferences<_$AppDatabase, $CurrenciesTable, CurrencyEntity>,
+      ),
+      CurrencyEntity,
+      PrefetchHooks Function()
+    >;
+typedef $$TagsTableCreateCompanionBuilder =
+    TagEntityCompanion Function({
+      required String id,
+      Value<String?> serverId,
+      required String tag,
+      Value<String?> description,
+      Value<DateTime?> date,
+      Value<double?> latitude,
+      Value<double?> longitude,
+      Value<int?> zoomLevel,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<bool> isSynced,
+      Value<String> syncStatus,
+      Value<int> rowid,
+    });
+typedef $$TagsTableUpdateCompanionBuilder =
+    TagEntityCompanion Function({
+      Value<String> id,
+      Value<String?> serverId,
+      Value<String> tag,
+      Value<String?> description,
+      Value<DateTime?> date,
+      Value<double?> latitude,
+      Value<double?> longitude,
+      Value<int?> zoomLevel,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<bool> isSynced,
+      Value<String> syncStatus,
+      Value<int> rowid,
+    });
+
+class $$TagsTableFilterComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tag => $composableBuilder(
+    column: $table.tag,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get zoomLevel => $composableBuilder(
+    column: $table.zoomLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TagsTableOrderingComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tag => $composableBuilder(
+    column: $table.tag,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get zoomLevel => $composableBuilder(
+    column: $table.zoomLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get serverId =>
+      $composableBuilder(column: $table.serverId, builder: (column) => column);
+
+  GeneratedColumn<String> get tag =>
+      $composableBuilder(column: $table.tag, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<int> get zoomLevel =>
+      $composableBuilder(column: $table.zoomLevel, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+}
+
+class $$TagsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TagsTable,
+          TagEntity,
+          $$TagsTableFilterComposer,
+          $$TagsTableOrderingComposer,
+          $$TagsTableAnnotationComposer,
+          $$TagsTableCreateCompanionBuilder,
+          $$TagsTableUpdateCompanionBuilder,
+          (TagEntity, BaseReferences<_$AppDatabase, $TagsTable, TagEntity>),
+          TagEntity,
+          PrefetchHooks Function()
+        > {
+  $$TagsTableTableManager(_$AppDatabase db, $TagsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$TagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$TagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$TagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> serverId = const Value.absent(),
+                Value<String> tag = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<DateTime?> date = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                Value<int?> zoomLevel = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TagEntityCompanion(
+                id: id,
+                serverId: serverId,
+                tag: tag,
+                description: description,
+                date: date,
+                latitude: latitude,
+                longitude: longitude,
+                zoomLevel: zoomLevel,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                isSynced: isSynced,
+                syncStatus: syncStatus,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> serverId = const Value.absent(),
+                required String tag,
+                Value<String?> description = const Value.absent(),
+                Value<DateTime?> date = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                Value<int?> zoomLevel = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TagEntityCompanion.insert(
+                id: id,
+                serverId: serverId,
+                tag: tag,
+                description: description,
+                date: date,
+                latitude: latitude,
+                longitude: longitude,
+                zoomLevel: zoomLevel,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                isSynced: isSynced,
+                syncStatus: syncStatus,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TagsTable,
+      TagEntity,
+      $$TagsTableFilterComposer,
+      $$TagsTableOrderingComposer,
+      $$TagsTableAnnotationComposer,
+      $$TagsTableCreateCompanionBuilder,
+      $$TagsTableUpdateCompanionBuilder,
+      (TagEntity, BaseReferences<_$AppDatabase, $TagsTable, TagEntity>),
+      TagEntity,
       PrefetchHooks Function()
     >;
 typedef $$SyncQueueTableCreateCompanionBuilder =
@@ -14933,6 +18706,9 @@ class $AppDatabaseManager {
       $$BillsTableTableManager(_db, _db.bills);
   $$PiggyBanksTableTableManager get piggyBanks =>
       $$PiggyBanksTableTableManager(_db, _db.piggyBanks);
+  $$CurrenciesTableTableManager get currencies =>
+      $$CurrenciesTableTableManager(_db, _db.currencies);
+  $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
   $$SyncQueueTableTableManager get syncQueue =>
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
   $$SyncMetadataTableTableManager get syncMetadata =>

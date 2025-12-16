@@ -11,6 +11,8 @@ import 'package:provider/provider.dart';
 import 'package:timezone/timezone.dart';
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/budget_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -21,6 +23,8 @@ import 'package:waterflyiii/pages/home/main/charts/netearnings.dart';
 import 'package:waterflyiii/pages/home/main/charts/networth.dart';
 import 'package:waterflyiii/pages/home/main/charts/summary.dart';
 import 'package:waterflyiii/pages/home/main/dashboard.dart';
+import 'package:waterflyiii/services/data/chart_data_service.dart';
+import 'package:waterflyiii/services/data/insights_service.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/stock.dart';
 import 'package:waterflyiii/timezonehandler.dart';
@@ -92,7 +96,7 @@ class _HomeMainState extends State<HomeMain>
       return true;
     }
 
-    final FireflyIii api = context.read<FireflyService>().api;
+    final ChartDataService? chartService = context.read<ChartDataService?>();
     final TimeZoneHandler tzHandler = context.read<FireflyService>().tzHandler;
 
     // Use noon due to daylight saving time
@@ -100,18 +104,28 @@ class _HomeMainState extends State<HomeMain>
       const TimeOfDay(hour: 12, minute: 0),
     );
 
-    final Response<List<ChartDataSet>> respBalanceData = await api
-        .v1ChartBalanceBalanceGet(
-          start: DateFormat(
-            'yyyy-MM-dd',
-            'en_US',
-          ).format(now.copyWith(day: now.day - 6)),
-          end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
-          period: V1ChartBalanceBalanceGetPeriod.value_1d,
-        );
-    apiThrowErrorIfEmpty(respBalanceData, mounted ? context : null);
+    // Use ChartDataService with cache-first strategy
+    final List<ChartDataSet> balanceData;
+    if (chartService != null) {
+      balanceData = await chartService.getDailyBalance(
+        start: now.copyWith(day: now.day - 6),
+        end: now,
+        period: V1ChartBalanceBalanceGetPeriod.value_1d,
+      );
+    } else {
+      // Fallback to direct API call if service not available
+      final FireflyIii api = context.read<FireflyService>().api;
+      final Response<List<ChartDataSet>> respBalanceData = await api
+          .v1ChartBalanceBalanceGet(
+            start: DateFormat('yyyy-MM-dd', 'en_US').format(now.copyWith(day: now.day - 6)),
+            end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
+            period: V1ChartBalanceBalanceGetPeriod.value_1d,
+          );
+      apiThrowErrorIfEmpty(respBalanceData, mounted ? context : null);
+      balanceData = respBalanceData.body ?? <ChartDataSet>[];
+    }
 
-    for (ChartDataSet e in respBalanceData.body!) {
+    for (ChartDataSet e in balanceData) {
       final Map<String, dynamic> entries = e.entries as Map<String, dynamic>;
       entries.forEach((String dateStr, dynamic valueStr) {
         final DateTime date = tzHandler
@@ -136,22 +150,28 @@ class _HomeMainState extends State<HomeMain>
       return true;
     }
 
-    final FireflyIii api = context.read<FireflyService>().api;
+    final ChartDataService? chartService = context.read<ChartDataService?>();
     final TimeZoneHandler tzHandler = context.read<FireflyService>().tzHandler;
 
     final DateTime now = tzHandler.sNow().clearTime();
 
-    final Response<ChartLine> respChartData = await api
-        .v1ChartAccountOverviewGet(
-          start: DateFormat(
-            'yyyy-MM-dd',
-            'en_US',
-          ).format(now.copyWith(month: now.month - 3)),
-          end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
-        );
-    apiThrowErrorIfEmpty(respChartData, mounted ? context : null);
-
-    overviewChartData = respChartData.body!;
+    // Use ChartDataService with cache-first strategy
+    if (chartService != null) {
+      overviewChartData = await chartService.getAccountOverview(
+        start: now.copyWith(month: now.month - 3),
+        end: now,
+      );
+    } else {
+      // Fallback to direct API call if service not available
+      final FireflyIii api = context.read<FireflyService>().api;
+      final Response<ChartLine> respChartData = await api
+          .v1ChartAccountOverviewGet(
+            start: DateFormat('yyyy-MM-dd', 'en_US').format(now.copyWith(month: now.month - 3)),
+            end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
+          );
+      apiThrowErrorIfEmpty(respChartData, mounted ? context : null);
+      overviewChartData = respChartData.body!;
+    }
 
     return true;
   }
@@ -161,7 +181,7 @@ class _HomeMainState extends State<HomeMain>
       return true;
     }
 
-    final FireflyIii api = context.read<FireflyService>().api;
+    final InsightsService? insightsService = context.read<InsightsService?>();
     final TimeZoneHandler tzHandler = context.read<FireflyService>().tzHandler;
 
     final DateTime now = tzHandler.sNow().clearTime();
@@ -180,29 +200,48 @@ class _HomeMainState extends State<HomeMain>
         start = e;
         end = e.copyWith(month: e.month + 1, day: 0);
       }
-      final (
-        Response<InsightTotal> respInsightExpense,
-        Response<InsightTotal> respInsightIncome,
-      ) = await (
-            api.v1InsightExpenseTotalGet(
-              start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            ),
-            api.v1InsightIncomeTotalGet(
-              start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            ),
-          ).wait;
-      apiThrowErrorIfEmpty(respInsightExpense, mounted ? context : null);
-      apiThrowErrorIfEmpty(respInsightIncome, mounted ? context : null);
+
+      // Use InsightsService with cache-first strategy
+      List<InsightTotalEntry> expenseData;
+      List<InsightTotalEntry> incomeData;
+
+      if (insightsService != null) {
+        final (List<InsightTotalEntry> expense, List<InsightTotalEntry> income) =
+            await (
+              insightsService.getExpenseTotal(start: start, end: end),
+              insightsService.getIncomeTotal(start: start, end: end),
+            ).wait;
+        expenseData = expense;
+        incomeData = income;
+      } else {
+        // Fallback to direct API call if service not available
+        final FireflyIii api = context.read<FireflyService>().api;
+        final (
+          Response<InsightTotal> respInsightExpense,
+          Response<InsightTotal> respInsightIncome,
+        ) = await (
+              api.v1InsightExpenseTotalGet(
+                start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
+                end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
+              ),
+              api.v1InsightIncomeTotalGet(
+                start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
+                end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
+              ),
+            ).wait;
+        apiThrowErrorIfEmpty(respInsightExpense, mounted ? context : null);
+        apiThrowErrorIfEmpty(respInsightIncome, mounted ? context : null);
+        expenseData = respInsightExpense.body ?? <InsightTotalEntry>[];
+        incomeData = respInsightIncome.body ?? <InsightTotalEntry>[];
+      }
 
       lastMonthsExpense[e] =
-          respInsightExpense.body!.isNotEmpty
-              ? respInsightExpense.body!.first
+          expenseData.isNotEmpty
+              ? expenseData.first
               : const InsightTotalEntry(differenceFloat: 0);
       lastMonthsIncome[e] =
-          respInsightIncome.body!.isNotEmpty
-              ? respInsightIncome.body!.first
+          incomeData.isNotEmpty
+              ? incomeData.first
               : const InsightTotalEntry(differenceFloat: 0);
     }
 
@@ -233,58 +272,66 @@ class _HomeMainState extends State<HomeMain>
       return true;
     }
 
-    final FireflyIii api = context.read<FireflyService>().api;
+    final InsightsService? insightsService = context.read<InsightsService?>();
     final TimeZoneHandler tzHandler = context.read<FireflyService>().tzHandler;
     final CurrencyRead defaultCurrency =
         context.read<FireflyService>().defaultCurrency;
 
     final DateTime now = tzHandler.sNow().clearTime();
+    final DateTime start = now.copyWith(day: 1);
 
-    late final Response<InsightGroup> respIncomeData;
-    late final Response<InsightGroup> respExpenseData;
-    if (!tags) {
-      (respIncomeData, respExpenseData) =
-          await (
-            api.v1InsightIncomeCategoryGet(
-              start: DateFormat(
-                'yyyy-MM-dd',
-                'en_US',
-              ).format(now.copyWith(day: 1)),
-              end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
-            ),
-            api.v1InsightExpenseCategoryGet(
-              start: DateFormat(
-                'yyyy-MM-dd',
-                'en_US',
-              ).format(now.copyWith(day: 1)),
-              end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
-            ),
-          ).wait;
+    List<InsightGroupEntry> incomeData;
+    List<InsightGroupEntry> expenseData;
+
+    // Use InsightsService with cache-first strategy
+    if (insightsService != null) {
+      if (!tags) {
+        (incomeData, expenseData) = await (
+          insightsService.getIncomeByCategory(start: start, end: now),
+          insightsService.getExpenseByCategory(start: start, end: now),
+        ).wait;
+      } else {
+        (incomeData, expenseData) = await (
+          insightsService.getIncomeByTag(start: start, end: now),
+          insightsService.getExpenseByTag(start: start, end: now),
+        ).wait;
+      }
     } else {
-      (respIncomeData, respExpenseData) =
-          await (
-            api.v1InsightIncomeTagGet(
-              start: DateFormat(
-                'yyyy-MM-dd',
-                'en_US',
-              ).format(now.copyWith(day: 1)),
-              end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
-            ),
-            api.v1InsightExpenseTagGet(
-              start: DateFormat(
-                'yyyy-MM-dd',
-                'en_US',
-              ).format(now.copyWith(day: 1)),
-              end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
-            ),
-          ).wait;
+      // Fallback to direct API call if service not available
+      final FireflyIii api = context.read<FireflyService>().api;
+      late final Response<InsightGroup> respIncomeData;
+      late final Response<InsightGroup> respExpenseData;
+      if (!tags) {
+        (respIncomeData, respExpenseData) = await (
+          api.v1InsightIncomeCategoryGet(
+            start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
+            end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
+          ),
+          api.v1InsightExpenseCategoryGet(
+            start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
+            end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
+          ),
+        ).wait;
+      } else {
+        (respIncomeData, respExpenseData) = await (
+          api.v1InsightIncomeTagGet(
+            start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
+            end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
+          ),
+          api.v1InsightExpenseTagGet(
+            start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
+            end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
+          ),
+        ).wait;
+      }
+      apiThrowErrorIfEmpty(respIncomeData, mounted ? context : null);
+      apiThrowErrorIfEmpty(respExpenseData, mounted ? context : null);
+      incomeData = respIncomeData.body ?? <InsightGroupEntry>[];
+      expenseData = respExpenseData.body ?? <InsightGroupEntry>[];
     }
-    apiThrowErrorIfEmpty(respIncomeData, mounted ? context : null);
-    apiThrowErrorIfEmpty(respExpenseData, mounted ? context : null);
 
     final Map<String, double> incomes = <String, double>{};
-    for (InsightGroupEntry entry
-        in respIncomeData.body ?? <InsightGroupEntry>[]) {
+    for (InsightGroupEntry entry in incomeData) {
       if (entry.id?.isEmpty ?? true) {
         continue;
       }
@@ -294,7 +341,7 @@ class _HomeMainState extends State<HomeMain>
       incomes[entry.id!] = entry.differenceFloat ?? 0;
     }
 
-    for (InsightGroupEntry entry in respExpenseData.body!) {
+    for (InsightGroupEntry entry in expenseData) {
       if (entry.id?.isEmpty ?? true) {
         continue;
       }
@@ -318,32 +365,58 @@ class _HomeMainState extends State<HomeMain>
   }
 
   Future<List<BudgetLimitRead>> _fetchBudgets() async {
-    final FireflyIii api = context.read<FireflyService>().api;
+    final ChartDataService? chartService = context.read<ChartDataService?>();
+    final BudgetRepository budgetRepository = context.read<BudgetRepository>();
     final TimeZoneHandler tzHandler = context.read<FireflyService>().tzHandler;
 
     final DateTime now = tzHandler.sNow().clearTime();
+    final DateTime start = now.copyWith(day: 1);
 
-    final (
-      Response<BudgetArray> respBudgetInfos,
-      Response<BudgetLimitArray> respBudgets,
-    ) = await (
-          api.v1BudgetsGet(),
-          api.v1BudgetLimitsGet(
-            start: DateFormat(
-              'yyyy-MM-dd',
-              'en_US',
-            ).format(now.copyWith(day: 1)),
-            end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
-          ),
-        ).wait;
-    apiThrowErrorIfEmpty(respBudgetInfos, mounted ? context : null);
-    apiThrowErrorIfEmpty(respBudgets, mounted ? context : null);
-
-    for (BudgetRead budget in respBudgetInfos.body!.data) {
-      budgetInfos[budget.id] = budget.attributes;
+    // Try to get budget info from BudgetRepository (cache-first, local DB)
+    try {
+      final List<BudgetEntity> localBudgets = await budgetRepository.getAll();
+      for (final BudgetEntity budget in localBudgets) {
+        budgetInfos[budget.id] = BudgetProperties(
+          name: budget.name,
+          active: budget.active,
+          // Note: order field not stored locally, will be null
+          // This affects sorting slightly but data loads instantly
+          order: null,
+        );
+      }
+      log.fine('Loaded ${localBudgets.length} budgets from local repository');
+    } catch (e, stackTrace) {
+      // Fallback to API if local repository fails
+      log.warning('Failed to load budgets from repository, falling back to API', e, stackTrace);
+      final FireflyIii api = context.read<FireflyService>().api;
+      final Response<BudgetArray> respBudgetInfo = await api.v1BudgetsGet();
+      if (respBudgetInfo.body?.data != null) {
+        for (final BudgetRead budget in respBudgetInfo.body!.data) {
+          budgetInfos[budget.id] = BudgetProperties(
+            name: budget.attributes.name,
+            active: budget.attributes.active,
+            order: budget.attributes.order,
+          );
+        }
+      }
     }
 
-    respBudgets.body!.data.sort((BudgetLimitRead a, BudgetLimitRead b) {
+    // Use ChartDataService for budget limits (cache-first)
+    List<BudgetLimitRead> budgetLimits;
+    if (chartService != null) {
+      budgetLimits = await chartService.getBudgetLimits(start: start, end: now);
+    } else {
+      // Fallback to direct API call if service not available
+      final FireflyIii api = context.read<FireflyService>().api;
+      final Response<BudgetLimitArray> respBudgets = await api.v1BudgetLimitsGet(
+        start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
+        end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
+      );
+      apiThrowErrorIfEmpty(respBudgets, mounted ? context : null);
+      budgetLimits = respBudgets.body?.data ?? <BudgetLimitRead>[];
+    }
+
+    budgetLimits.sort((BudgetLimitRead a, BudgetLimitRead b) {
       final BudgetProperties? budgetA = budgetInfos[a.attributes.budgetId];
       final BudgetProperties? budgetB = budgetInfos[b.attributes.budgetId];
 
@@ -363,7 +436,7 @@ class _HomeMainState extends State<HomeMain>
       return a.attributes.start!.compareTo(b.attributes.start!);
     });
 
-    return respBudgets.body!.data;
+    return budgetLimits;
   }
 
   Future<List<BillRead>> _fetchBills() async {
@@ -373,13 +446,13 @@ class _HomeMainState extends State<HomeMain>
     final DateTime now = tzHandler.sNow().clearTime();
     final DateTime end = now.copyWith(day: now.day + 7);
 
+    // Fetch bills from API (until local DB migration is complete)
     final Response<BillArray> respBills = await api.v1BillsGet(
       start: DateFormat('yyyy-MM-dd', 'en_US').format(now),
       end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
     );
-    apiThrowErrorIfEmpty(respBills, mounted ? context : null);
 
-    return respBills.body!.data
+    final List<BillRead> bills = (respBills.body?.data ?? <BillRead>[])
         .where(
           (BillRead e) => (e.attributes.nextExpectedMatch != null
                   ? tzHandler.sTime(e.attributes.nextExpectedMatch!)
@@ -389,6 +462,8 @@ class _HomeMainState extends State<HomeMain>
               .isBefore(end.copyWith(day: end.day + 1)),
         )
         .toList(growable: false);
+
+    return bills;
   }
 
   Future<bool> _fetchBalance() async {

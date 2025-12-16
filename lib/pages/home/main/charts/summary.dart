@@ -9,6 +9,7 @@ import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/services/data/chart_data_service.dart';
 import 'package:waterflyiii/widgets/charts.dart';
 
 class SummaryChart extends StatelessWidget {
@@ -79,17 +80,31 @@ class _SummaryChartPopupState extends State<SummaryChartPopup> {
   ValueNotifier<DateTime?> date = ValueNotifier<DateTime?>(null);
 
   Future<List<ChartDataSet>> _fetchData(BuildContext context) async {
-    final FireflyIii api = context.read<FireflyService>().api;
+    final ChartDataService? chartService = context.read<ChartDataService?>();
     final DateTime now = DateTime.now().toLocal().clearTime();
 
-    final Response<ChartLine> respChartData = await api
-        .v1ChartAccountOverviewGet(
-          start: DateFormat(
-            'yyyy-MM-dd',
-          ).format(now.copyWith(month: now.month - 36)),
-          end: DateFormat('yyyy-MM-dd').format(now),
-        );
-    apiThrowErrorIfEmpty(respChartData, mounted ? context : null);
+    List<ChartDataSet> chartData;
+    
+    // Use ChartDataService with cache-first strategy
+    if (chartService != null) {
+      final ChartLine chartLine = await chartService.getAccountOverview(
+        start: now.copyWith(month: now.month - 36),
+        end: now,
+      );
+      chartData = chartLine.toList();
+    } else {
+      // Fallback to direct API call if service not available
+      final FireflyIii api = context.read<FireflyService>().api;
+      final Response<ChartLine> respChartData = await api
+          .v1ChartAccountOverviewGet(
+            start: DateFormat(
+              'yyyy-MM-dd',
+            ).format(now.copyWith(month: now.month - 36)),
+            end: DateFormat('yyyy-MM-dd').format(now),
+          );
+      apiThrowErrorIfEmpty(respChartData, mounted ? context : null);
+      chartData = respChartData.body!.toList();
+    }
 
     currencies.clear();
     balances.clear();
@@ -97,7 +112,7 @@ class _SummaryChartPopupState extends State<SummaryChartPopup> {
 
     // Initialize table variables
     DateTime? latestDate;
-    for (ChartDataSet e in respChartData.body!) {
+    for (ChartDataSet e in chartData) {
       if (latestDate == null || e.endDate!.isAfter(latestDate)) {
         latestDate = e.endDate;
       }
@@ -122,7 +137,7 @@ class _SummaryChartPopupState extends State<SummaryChartPopup> {
     }
     date.value = latestDate!.clearTime();
 
-    return respChartData.body!;
+    return chartData;
   }
 
   void trackballPositionChange(

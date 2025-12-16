@@ -8,6 +8,9 @@ import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/piggy_bank_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -64,11 +67,43 @@ class _HomePiggybankState extends State<HomePiggybank>
     });
   }
 
+  /// Converts PiggyBankEntity to PiggyBankRead for UI compatibility.
+  PiggyBankRead _entityToPiggyBankRead(PiggyBankEntity entity) {
+    return PiggyBankRead(
+      id: entity.id,
+      type: 'piggy_banks',
+      attributes: PiggyBankProperties(
+        name: entity.name,
+        currencyId: entity.currencyId,
+        currencyCode: entity.currencyCode,
+        currencySymbol: entity.currencySymbol,
+        currencyDecimalPlaces: entity.currencyDecimalPlaces,
+        targetAmount: entity.targetAmount?.toString(),
+        currentAmount: entity.currentAmount.toString(),
+        percentage: entity.percentage,
+        leftToSave: entity.leftToSave?.toString(),
+        startDate: entity.startDate,
+        targetDate: entity.targetDate,
+        active: entity.active,
+        objectGroupId: entity.objectGroupId,
+        objectGroupOrder: entity.objectGroupOrder,
+        objectGroupTitle: entity.objectGroupTitle,
+        order: entity.order,
+        // Note: accounts not stored in local entity
+        accounts: <PiggyBankAccountRead>[],
+      ),
+      links: const ObjectLink(self: ''),
+    );
+  }
+
   Future<void> _fetchPage() async {
     if (_pagingState.isLoading) return;
 
     try {
-      final FireflyIii api = context.read<FireflyService>().api;
+      final PiggyBankRepository piggyBankRepository =
+          context.read<PiggyBankRepository>();
+      final AccountRepository accountRepository =
+          context.read<AccountRepository>();
       final CurrencyRead defaultCurrency =
           context.read<FireflyService>().defaultCurrency;
 
@@ -77,18 +112,30 @@ class _HomePiggybankState extends State<HomePiggybank>
         "Getting page $pageKey (${_pagingState.pages?.length} pages loaded)",
       );
 
-      final Response<PiggyBankArray> respPiggies = await api.v1PiggyBanksGet(
-        page: pageKey,
-        limit: _numberOfItemsPerRequest,
-      );
-      apiThrowErrorIfEmpty(respPiggies, mounted ? context : null);
+      // Use PiggyBankRepository with cache-first strategy
+      final List<PiggyBankEntity> piggyEntities =
+          await piggyBankRepository.getAll();
 
-      final List<PiggyBankRead> piggyList = respPiggies.body!.data;
-      piggyList.sortByCompare(
+      // Convert to PiggyBankRead for UI compatibility
+      final List<PiggyBankRead> allPiggies =
+          piggyEntities.map(_entityToPiggyBankRead).toList();
+
+      allPiggies.sortByCompare(
         (PiggyBankRead element) => element.attributes.objectGroupOrder,
         (int? a, int? b) => (a ?? 0).compareTo(b ?? 0),
       );
-      final bool isLastPage = piggyList.length < _numberOfItemsPerRequest;
+
+      // Implement simple pagination over local data
+      final int startIndex = (pageKey - 1) * _numberOfItemsPerRequest;
+      final int endIndex = startIndex + _numberOfItemsPerRequest;
+      final List<PiggyBankRead> piggyList = allPiggies.length > startIndex
+          ? allPiggies.sublist(
+              startIndex,
+              endIndex > allPiggies.length ? allPiggies.length : endIndex,
+            )
+          : <PiggyBankRead>[];
+
+      final bool isLastPage = endIndex >= allPiggies.length;
 
       if (mounted) {
         setState(() {
@@ -132,14 +179,35 @@ class _HomePiggybankState extends State<HomePiggybank>
       for (final MapEntry<String, double> entry
           in accountIdToPiggyTotal.entries) {
         final String accountId = entry.key;
-        final Response<AccountSingle> respAcc = await api.v1AccountsIdGet(
-          id: accountId,
-        );
-        apiThrowErrorIfEmpty(respAcc, mounted ? context : null);
-        final AccountRead account = respAcc.body!.data;
+        // Use AccountRepository with cache-first strategy
+        final AccountEntity? accountEntity =
+            await accountRepository.getById(accountId);
 
-        final double accountBalance =
-            double.tryParse(account.attributes.currentBalance ?? "") ?? 0;
+        if (accountEntity == null) continue;
+
+        // Parse account type from string
+        ShortAccountTypeProperty? accountType;
+        try {
+          accountType = ShortAccountTypeProperty.values.firstWhere(
+            (ShortAccountTypeProperty e) => e.value == accountEntity.type,
+            orElse: () => ShortAccountTypeProperty.asset,
+          );
+        } catch (_) {
+          accountType = ShortAccountTypeProperty.asset;
+        }
+
+        final AccountRead account = AccountRead(
+          id: accountEntity.id,
+          type: 'accounts',
+          attributes: AccountProperties(
+            name: accountEntity.name,
+            type: accountType,
+            currencyCode: accountEntity.currencyCode,
+            currentBalance: accountEntity.currentBalance.toString(),
+          ),
+        );
+
+        final double accountBalance = accountEntity.currentBalance;
         final double totalInPiggyBanks = entry.value;
         final double availableBalance = accountBalance - totalInPiggyBanks;
 
@@ -147,10 +215,10 @@ class _HomePiggybankState extends State<HomePiggybank>
           id: account.attributes.currencyId ?? "0",
           type: "currencies",
           attributes: CurrencyProperties(
-            code: account.attributes.currencyCode ?? "",
+            code: accountEntity.currencyCode,
             name: "",
-            symbol: account.attributes.currencySymbol ?? "",
-            decimalPlaces: account.attributes.currencyDecimalPlaces,
+            symbol: accountEntity.currencyCode,
+            decimalPlaces: 2,
           ),
         );
         if (currency.id == "0") {

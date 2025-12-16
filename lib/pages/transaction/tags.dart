@@ -4,6 +4,8 @@ import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/tag_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -168,6 +170,16 @@ class _TagDialogState extends State<TagDialog> {
   }
 
   Future<List<String>>? _getTags() async {
+    // Try to use TagRepository (cache-first) if available
+    final TagRepository? tagRepository = context.read<TagRepository?>();
+    
+    if (tagRepository != null) {
+      // Use local database with cache-first strategy
+      final List<TagEntity> tagEntities = await tagRepository.getAll();
+      return tagEntities.map((TagEntity e) => e.tag).toList();
+    }
+    
+    // Fallback to direct API call if repository not available
     final FireflyIii api = context.read<FireflyService>().api;
     final List<String> tags = <String>[];
     late Response<TagArray> response;

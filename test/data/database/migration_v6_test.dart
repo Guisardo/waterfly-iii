@@ -179,8 +179,8 @@ void main() {
                 id: 'test-bill-123',
                 serverId: const Value<String?>('server-bill-123'),
                 name: 'Test Bill',
-                amountMin: 50.0,
-                amountMax: 100.0,
+                minAmount: 50.0,
+                maxAmount: 100.0,
                 date: now,
                 repeatFreq: 'monthly',
                 currencyCode: 'USD',
@@ -668,11 +668,11 @@ void main() {
   });
 
   group('Database Schema Version', () {
-    test('should report schema version 6', () async {
+    test('should report schema version 7', () async {
       final AppDatabase database =
           AppDatabase.forTesting(NativeDatabase.memory());
 
-      expect(database.schemaVersion, equals(6));
+      expect(database.schemaVersion, equals(7));
 
       await database.close();
     });
