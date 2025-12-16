@@ -53,6 +53,20 @@ class Accounts extends Table {
   /// Timestamp when the account was last updated locally.
   DateTimeColumn get updatedAt => dateTime()();
 
+  /// Server's last updated timestamp for incremental sync change detection.
+  ///
+  /// This field stores the `updated_at` timestamp from the Firefly III API
+  /// response. It is used during incremental sync to determine if the local
+  /// entity needs to be updated by comparing with the server's timestamp.
+  ///
+  /// If server timestamp is newer, the entity is updated. If equal or older,
+  /// the entity is skipped (no database write), improving sync performance.
+  ///
+  /// Nullable for:
+  /// - Offline-created accounts that haven't been synced yet
+  /// - Legacy accounts created before incremental sync was implemented
+  DateTimeColumn get serverUpdatedAt => dateTime().nullable()();
+
   /// Whether the account has been synced with the server.
   BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 

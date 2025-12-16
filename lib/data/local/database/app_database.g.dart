@@ -185,6 +185,18 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _isSyncedMeta = const VerificationMeta(
     'isSynced',
   );
@@ -254,6 +266,7 @@ class $TransactionsTable extends Transactions
     tags,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
     lastSyncAttempt,
@@ -408,6 +421,15 @@ class $TransactionsTable extends Transactions
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_synced')) {
       context.handle(
         _isSyncedMeta,
@@ -527,6 +549,10 @@ class $TransactionsTable extends Transactions
             DriftSqlType.dateTime,
             data['${effectivePrefix}updated_at'],
           )!,
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
       isSynced:
           attachedDatabase.typeMapping.read(
             DriftSqlType.bool,
@@ -610,6 +636,20 @@ class TransactionEntity extends DataClass
   /// Timestamp when the transaction was last updated locally.
   final DateTime updatedAt;
 
+  /// Server's last updated timestamp for incremental sync change detection.
+  ///
+  /// This field stores the `updated_at` timestamp from the Firefly III API
+  /// response. It is used during incremental sync to determine if the local
+  /// entity needs to be updated by comparing with the server's timestamp.
+  ///
+  /// If server timestamp is newer, the entity is updated. If equal or older,
+  /// the entity is skipped (no database write), improving sync performance.
+  ///
+  /// Nullable for:
+  /// - Offline-created transactions that haven't been synced yet
+  /// - Legacy transactions created before incremental sync was implemented
+  final DateTime? serverUpdatedAt;
+
   /// Whether the transaction has been synced with the server.
   final bool isSynced;
 
@@ -639,6 +679,7 @@ class TransactionEntity extends DataClass
     required this.tags,
     required this.createdAt,
     required this.updatedAt,
+    this.serverUpdatedAt,
     required this.isSynced,
     required this.syncStatus,
     this.lastSyncAttempt,
@@ -676,6 +717,9 @@ class TransactionEntity extends DataClass
     map['tags'] = Variable<String>(tags);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
     map['is_synced'] = Variable<bool>(isSynced);
     map['sync_status'] = Variable<String>(syncStatus);
     if (!nullToAbsent || lastSyncAttempt != null) {
@@ -722,6 +766,10 @@ class TransactionEntity extends DataClass
       tags: Value(tags),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
       isSynced: Value(isSynced),
       syncStatus: Value(syncStatus),
       lastSyncAttempt:
@@ -762,6 +810,7 @@ class TransactionEntity extends DataClass
       tags: serializer.fromJson<String>(json['tags']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
       isSynced: serializer.fromJson<bool>(json['isSynced']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
       lastSyncAttempt: serializer.fromJson<DateTime?>(json['lastSyncAttempt']),
@@ -789,6 +838,7 @@ class TransactionEntity extends DataClass
       'tags': serializer.toJson<String>(tags),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
       'isSynced': serializer.toJson<bool>(isSynced),
       'syncStatus': serializer.toJson<String>(syncStatus),
       'lastSyncAttempt': serializer.toJson<DateTime?>(lastSyncAttempt),
@@ -814,6 +864,7 @@ class TransactionEntity extends DataClass
     String? tags,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
     bool? isSynced,
     String? syncStatus,
     Value<DateTime?> lastSyncAttempt = const Value.absent(),
@@ -840,6 +891,8 @@ class TransactionEntity extends DataClass
     tags: tags ?? this.tags,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
     isSynced: isSynced ?? this.isSynced,
     syncStatus: syncStatus ?? this.syncStatus,
     lastSyncAttempt:
@@ -882,6 +935,10 @@ class TransactionEntity extends DataClass
       tags: data.tags.present ? data.tags.value : this.tags,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
       isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
@@ -913,6 +970,7 @@ class TransactionEntity extends DataClass
           ..write('tags: $tags, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('lastSyncAttempt: $lastSyncAttempt, ')
@@ -940,6 +998,7 @@ class TransactionEntity extends DataClass
     tags,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
     lastSyncAttempt,
@@ -966,6 +1025,7 @@ class TransactionEntity extends DataClass
           other.tags == this.tags &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
           other.isSynced == this.isSynced &&
           other.syncStatus == this.syncStatus &&
           other.lastSyncAttempt == this.lastSyncAttempt &&
@@ -990,6 +1050,7 @@ class TransactionEntityCompanion extends UpdateCompanion<TransactionEntity> {
   final Value<String> tags;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> serverUpdatedAt;
   final Value<bool> isSynced;
   final Value<String> syncStatus;
   final Value<DateTime?> lastSyncAttempt;
@@ -1013,6 +1074,7 @@ class TransactionEntityCompanion extends UpdateCompanion<TransactionEntity> {
     this.tags = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.lastSyncAttempt = const Value.absent(),
@@ -1037,6 +1099,7 @@ class TransactionEntityCompanion extends UpdateCompanion<TransactionEntity> {
     this.tags = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.lastSyncAttempt = const Value.absent(),
@@ -1070,6 +1133,7 @@ class TransactionEntityCompanion extends UpdateCompanion<TransactionEntity> {
     Expression<String>? tags,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? serverUpdatedAt,
     Expression<bool>? isSynced,
     Expression<String>? syncStatus,
     Expression<DateTime>? lastSyncAttempt,
@@ -1096,6 +1160,7 @@ class TransactionEntityCompanion extends UpdateCompanion<TransactionEntity> {
       if (tags != null) 'tags': tags,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
       if (isSynced != null) 'is_synced': isSynced,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (lastSyncAttempt != null) 'last_sync_attempt': lastSyncAttempt,
@@ -1122,6 +1187,7 @@ class TransactionEntityCompanion extends UpdateCompanion<TransactionEntity> {
     Value<String>? tags,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? serverUpdatedAt,
     Value<bool>? isSynced,
     Value<String>? syncStatus,
     Value<DateTime?>? lastSyncAttempt,
@@ -1146,6 +1212,7 @@ class TransactionEntityCompanion extends UpdateCompanion<TransactionEntity> {
       tags: tags ?? this.tags,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
       isSynced: isSynced ?? this.isSynced,
       syncStatus: syncStatus ?? this.syncStatus,
       lastSyncAttempt: lastSyncAttempt ?? this.lastSyncAttempt,
@@ -1212,6 +1279,9 @@ class TransactionEntityCompanion extends UpdateCompanion<TransactionEntity> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
     if (isSynced.present) {
       map['is_synced'] = Variable<bool>(isSynced.value);
     }
@@ -1250,6 +1320,7 @@ class TransactionEntityCompanion extends UpdateCompanion<TransactionEntity> {
           ..write('tags: $tags, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('lastSyncAttempt: $lastSyncAttempt, ')
@@ -1432,6 +1503,18 @@ class $AccountsTable extends Accounts
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _isSyncedMeta = const VerificationMeta(
     'isSynced',
   );
@@ -1477,6 +1560,7 @@ class $AccountsTable extends Accounts
     active,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
   ];
@@ -1617,6 +1701,15 @@ class $AccountsTable extends Accounts
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_synced')) {
       context.handle(
         _isSyncedMeta,
@@ -1714,6 +1807,10 @@ class $AccountsTable extends Accounts
             DriftSqlType.dateTime,
             data['${effectivePrefix}updated_at'],
           )!,
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
       isSynced:
           attachedDatabase.typeMapping.read(
             DriftSqlType.bool,
@@ -1782,6 +1879,20 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
   /// Timestamp when the account was last updated locally.
   final DateTime updatedAt;
 
+  /// Server's last updated timestamp for incremental sync change detection.
+  ///
+  /// This field stores the `updated_at` timestamp from the Firefly III API
+  /// response. It is used during incremental sync to determine if the local
+  /// entity needs to be updated by comparing with the server's timestamp.
+  ///
+  /// If server timestamp is newer, the entity is updated. If equal or older,
+  /// the entity is skipped (no database write), improving sync performance.
+  ///
+  /// Nullable for:
+  /// - Offline-created accounts that haven't been synced yet
+  /// - Legacy accounts created before incremental sync was implemented
+  final DateTime? serverUpdatedAt;
+
   /// Whether the account has been synced with the server.
   final bool isSynced;
 
@@ -1804,6 +1915,7 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
     required this.active,
     required this.createdAt,
     required this.updatedAt,
+    this.serverUpdatedAt,
     required this.isSynced,
     required this.syncStatus,
   });
@@ -1842,6 +1954,9 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
     map['active'] = Variable<bool>(active);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
     map['is_synced'] = Variable<bool>(isSynced);
     map['sync_status'] = Variable<String>(syncStatus);
     return map;
@@ -1881,6 +1996,10 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
       active: Value(active),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
       isSynced: Value(isSynced),
       syncStatus: Value(syncStatus),
     );
@@ -1910,6 +2029,7 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
       active: serializer.fromJson<bool>(json['active']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
       isSynced: serializer.fromJson<bool>(json['isSynced']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
@@ -1934,6 +2054,7 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
       'active': serializer.toJson<bool>(active),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
       'isSynced': serializer.toJson<bool>(isSynced),
       'syncStatus': serializer.toJson<String>(syncStatus),
     };
@@ -1956,6 +2077,7 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
     bool? active,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
     bool? isSynced,
     String? syncStatus,
   }) => AccountEntity(
@@ -1980,6 +2102,8 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
     active: active ?? this.active,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
     isSynced: isSynced ?? this.isSynced,
     syncStatus: syncStatus ?? this.syncStatus,
   );
@@ -2017,6 +2141,10 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
       active: data.active.present ? data.active.value : this.active,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
       isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
@@ -2042,6 +2170,7 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
           ..write('active: $active, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
@@ -2066,6 +2195,7 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
     active,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
   );
@@ -2089,6 +2219,7 @@ class AccountEntity extends DataClass implements Insertable<AccountEntity> {
           other.active == this.active &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
           other.isSynced == this.isSynced &&
           other.syncStatus == this.syncStatus);
 }
@@ -2110,6 +2241,7 @@ class AccountEntityCompanion extends UpdateCompanion<AccountEntity> {
   final Value<bool> active;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> serverUpdatedAt;
   final Value<bool> isSynced;
   final Value<String> syncStatus;
   final Value<int> rowid;
@@ -2130,6 +2262,7 @@ class AccountEntityCompanion extends UpdateCompanion<AccountEntity> {
     this.active = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2151,6 +2284,7 @@ class AccountEntityCompanion extends UpdateCompanion<AccountEntity> {
     this.active = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2178,6 +2312,7 @@ class AccountEntityCompanion extends UpdateCompanion<AccountEntity> {
     Expression<bool>? active,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? serverUpdatedAt,
     Expression<bool>? isSynced,
     Expression<String>? syncStatus,
     Expression<int>? rowid,
@@ -2200,6 +2335,7 @@ class AccountEntityCompanion extends UpdateCompanion<AccountEntity> {
       if (active != null) 'active': active,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
       if (isSynced != null) 'is_synced': isSynced,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
@@ -2223,6 +2359,7 @@ class AccountEntityCompanion extends UpdateCompanion<AccountEntity> {
     Value<bool>? active,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? serverUpdatedAt,
     Value<bool>? isSynced,
     Value<String>? syncStatus,
     Value<int>? rowid,
@@ -2244,6 +2381,7 @@ class AccountEntityCompanion extends UpdateCompanion<AccountEntity> {
       active: active ?? this.active,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
       isSynced: isSynced ?? this.isSynced,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
@@ -2303,6 +2441,9 @@ class AccountEntityCompanion extends UpdateCompanion<AccountEntity> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
     if (isSynced.present) {
       map['is_synced'] = Variable<bool>(isSynced.value);
     }
@@ -2334,6 +2475,7 @@ class AccountEntityCompanion extends UpdateCompanion<AccountEntity> {
           ..write('active: $active, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
@@ -2408,6 +2550,18 @@ class $CategoriesTable extends Categories
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _isSyncedMeta = const VerificationMeta(
     'isSynced',
   );
@@ -2443,6 +2597,7 @@ class $CategoriesTable extends Categories
     notes,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
   ];
@@ -2499,6 +2654,15 @@ class $CategoriesTable extends Categories
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_synced')) {
       context.handle(
         _isSyncedMeta,
@@ -2552,6 +2716,10 @@ class $CategoriesTable extends Categories
             DriftSqlType.dateTime,
             data['${effectivePrefix}updated_at'],
           )!,
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
       isSynced:
           attachedDatabase.typeMapping.read(
             DriftSqlType.bool,
@@ -2590,6 +2758,20 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
   /// Timestamp when the category was last updated locally.
   final DateTime updatedAt;
 
+  /// Server's last updated timestamp for incremental sync change detection.
+  ///
+  /// This field stores the `updated_at` timestamp from the Firefly III API
+  /// response. It is used during incremental sync to determine if the local
+  /// entity needs to be updated by comparing with the server's timestamp.
+  ///
+  /// If server timestamp is newer, the entity is updated. If equal or older,
+  /// the entity is skipped (no database write), improving sync performance.
+  ///
+  /// Nullable for:
+  /// - Offline-created categories that haven't been synced yet
+  /// - Legacy categories created before incremental sync was implemented
+  final DateTime? serverUpdatedAt;
+
   /// Whether the category has been synced with the server.
   final bool isSynced;
 
@@ -2602,6 +2784,7 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
     this.notes,
     required this.createdAt,
     required this.updatedAt,
+    this.serverUpdatedAt,
     required this.isSynced,
     required this.syncStatus,
   });
@@ -2618,6 +2801,9 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
     map['is_synced'] = Variable<bool>(isSynced);
     map['sync_status'] = Variable<String>(syncStatus);
     return map;
@@ -2635,6 +2821,10 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
       isSynced: Value(isSynced),
       syncStatus: Value(syncStatus),
     );
@@ -2652,6 +2842,7 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
       isSynced: serializer.fromJson<bool>(json['isSynced']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
@@ -2666,6 +2857,7 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
       'isSynced': serializer.toJson<bool>(isSynced),
       'syncStatus': serializer.toJson<String>(syncStatus),
     };
@@ -2678,6 +2870,7 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
     bool? isSynced,
     String? syncStatus,
   }) => CategoryEntity(
@@ -2687,6 +2880,8 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
     isSynced: isSynced ?? this.isSynced,
     syncStatus: syncStatus ?? this.syncStatus,
   );
@@ -2698,6 +2893,10 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
       isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
@@ -2713,6 +2912,7 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
@@ -2727,6 +2927,7 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
     notes,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
   );
@@ -2740,6 +2941,7 @@ class CategoryEntity extends DataClass implements Insertable<CategoryEntity> {
           other.notes == this.notes &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
           other.isSynced == this.isSynced &&
           other.syncStatus == this.syncStatus);
 }
@@ -2751,6 +2953,7 @@ class CategoryEntityCompanion extends UpdateCompanion<CategoryEntity> {
   final Value<String?> notes;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> serverUpdatedAt;
   final Value<bool> isSynced;
   final Value<String> syncStatus;
   final Value<int> rowid;
@@ -2761,6 +2964,7 @@ class CategoryEntityCompanion extends UpdateCompanion<CategoryEntity> {
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2772,6 +2976,7 @@ class CategoryEntityCompanion extends UpdateCompanion<CategoryEntity> {
     this.notes = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2786,6 +2991,7 @@ class CategoryEntityCompanion extends UpdateCompanion<CategoryEntity> {
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? serverUpdatedAt,
     Expression<bool>? isSynced,
     Expression<String>? syncStatus,
     Expression<int>? rowid,
@@ -2797,6 +3003,7 @@ class CategoryEntityCompanion extends UpdateCompanion<CategoryEntity> {
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
       if (isSynced != null) 'is_synced': isSynced,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
@@ -2810,6 +3017,7 @@ class CategoryEntityCompanion extends UpdateCompanion<CategoryEntity> {
     Value<String?>? notes,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? serverUpdatedAt,
     Value<bool>? isSynced,
     Value<String>? syncStatus,
     Value<int>? rowid,
@@ -2821,6 +3029,7 @@ class CategoryEntityCompanion extends UpdateCompanion<CategoryEntity> {
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
       isSynced: isSynced ?? this.isSynced,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
@@ -2848,6 +3057,9 @@ class CategoryEntityCompanion extends UpdateCompanion<CategoryEntity> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
     if (isSynced.present) {
       map['is_synced'] = Variable<bool>(isSynced.value);
     }
@@ -2869,6 +3081,7 @@ class CategoryEntityCompanion extends UpdateCompanion<CategoryEntity> {
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
@@ -2980,6 +3193,18 @@ class $BudgetsTable extends Budgets
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _isSyncedMeta = const VerificationMeta(
     'isSynced',
   );
@@ -3018,6 +3243,7 @@ class $BudgetsTable extends Budgets
     autoBudgetPeriod,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
   ];
@@ -3101,6 +3327,15 @@ class $BudgetsTable extends Budgets
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_synced')) {
       context.handle(
         _isSyncedMeta,
@@ -3167,6 +3402,10 @@ class $BudgetsTable extends Budgets
             DriftSqlType.dateTime,
             data['${effectivePrefix}updated_at'],
           )!,
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
       isSynced:
           attachedDatabase.typeMapping.read(
             DriftSqlType.bool,
@@ -3214,6 +3453,20 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
   /// Timestamp when the budget was last updated locally.
   final DateTime updatedAt;
 
+  /// Server's last updated timestamp for incremental sync change detection.
+  ///
+  /// This field stores the `updated_at` timestamp from the Firefly III API
+  /// response. It is used during incremental sync to determine if the local
+  /// entity needs to be updated by comparing with the server's timestamp.
+  ///
+  /// If server timestamp is newer, the entity is updated. If equal or older,
+  /// the entity is skipped (no database write), improving sync performance.
+  ///
+  /// Nullable for:
+  /// - Offline-created budgets that haven't been synced yet
+  /// - Legacy budgets created before incremental sync was implemented
+  final DateTime? serverUpdatedAt;
+
   /// Whether the budget has been synced with the server.
   final bool isSynced;
 
@@ -3229,6 +3482,7 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
     this.autoBudgetPeriod,
     required this.createdAt,
     required this.updatedAt,
+    this.serverUpdatedAt,
     required this.isSynced,
     required this.syncStatus,
   });
@@ -3252,6 +3506,9 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
     map['is_synced'] = Variable<bool>(isSynced);
     map['sync_status'] = Variable<String>(syncStatus);
     return map;
@@ -3280,6 +3537,10 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
               : Value(autoBudgetPeriod),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
       isSynced: Value(isSynced),
       syncStatus: Value(syncStatus),
     );
@@ -3300,6 +3561,7 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
       autoBudgetPeriod: serializer.fromJson<String?>(json['autoBudgetPeriod']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
       isSynced: serializer.fromJson<bool>(json['isSynced']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
@@ -3317,6 +3579,7 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
       'autoBudgetPeriod': serializer.toJson<String?>(autoBudgetPeriod),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
       'isSynced': serializer.toJson<bool>(isSynced),
       'syncStatus': serializer.toJson<String>(syncStatus),
     };
@@ -3332,6 +3595,7 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
     Value<String?> autoBudgetPeriod = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
     bool? isSynced,
     String? syncStatus,
   }) => BudgetEntity(
@@ -3351,6 +3615,8 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
             : this.autoBudgetPeriod,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
     isSynced: isSynced ?? this.isSynced,
     syncStatus: syncStatus ?? this.syncStatus,
   );
@@ -3374,6 +3640,10 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
               : this.autoBudgetPeriod,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
       isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
@@ -3392,6 +3662,7 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
           ..write('autoBudgetPeriod: $autoBudgetPeriod, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
@@ -3409,6 +3680,7 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
     autoBudgetPeriod,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
   );
@@ -3425,6 +3697,7 @@ class BudgetEntity extends DataClass implements Insertable<BudgetEntity> {
           other.autoBudgetPeriod == this.autoBudgetPeriod &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
           other.isSynced == this.isSynced &&
           other.syncStatus == this.syncStatus);
 }
@@ -3439,6 +3712,7 @@ class BudgetEntityCompanion extends UpdateCompanion<BudgetEntity> {
   final Value<String?> autoBudgetPeriod;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> serverUpdatedAt;
   final Value<bool> isSynced;
   final Value<String> syncStatus;
   final Value<int> rowid;
@@ -3452,6 +3726,7 @@ class BudgetEntityCompanion extends UpdateCompanion<BudgetEntity> {
     this.autoBudgetPeriod = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3466,6 +3741,7 @@ class BudgetEntityCompanion extends UpdateCompanion<BudgetEntity> {
     this.autoBudgetPeriod = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3483,6 +3759,7 @@ class BudgetEntityCompanion extends UpdateCompanion<BudgetEntity> {
     Expression<String>? autoBudgetPeriod,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? serverUpdatedAt,
     Expression<bool>? isSynced,
     Expression<String>? syncStatus,
     Expression<int>? rowid,
@@ -3497,6 +3774,7 @@ class BudgetEntityCompanion extends UpdateCompanion<BudgetEntity> {
       if (autoBudgetPeriod != null) 'auto_budget_period': autoBudgetPeriod,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
       if (isSynced != null) 'is_synced': isSynced,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
@@ -3513,6 +3791,7 @@ class BudgetEntityCompanion extends UpdateCompanion<BudgetEntity> {
     Value<String?>? autoBudgetPeriod,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? serverUpdatedAt,
     Value<bool>? isSynced,
     Value<String>? syncStatus,
     Value<int>? rowid,
@@ -3527,6 +3806,7 @@ class BudgetEntityCompanion extends UpdateCompanion<BudgetEntity> {
       autoBudgetPeriod: autoBudgetPeriod ?? this.autoBudgetPeriod,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
       isSynced: isSynced ?? this.isSynced,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
@@ -3563,6 +3843,9 @@ class BudgetEntityCompanion extends UpdateCompanion<BudgetEntity> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
     if (isSynced.present) {
       map['is_synced'] = Variable<bool>(isSynced.value);
     }
@@ -3587,6 +3870,7 @@ class BudgetEntityCompanion extends UpdateCompanion<BudgetEntity> {
           ..write('autoBudgetPeriod: $autoBudgetPeriod, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
@@ -3736,6 +4020,18 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _isSyncedMeta = const VerificationMeta(
     'isSynced',
   );
@@ -3778,6 +4074,7 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
     notes,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
   ];
@@ -3889,6 +4186,15 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_synced')) {
       context.handle(
         _isSyncedMeta,
@@ -3977,6 +4283,10 @@ class $BillsTable extends Bills with TableInfo<$BillsTable, BillEntity> {
             DriftSqlType.dateTime,
             data['${effectivePrefix}updated_at'],
           )!,
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
       isSynced:
           attachedDatabase.typeMapping.read(
             DriftSqlType.bool,
@@ -4036,6 +4346,20 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
   /// Timestamp when the bill was last updated locally.
   final DateTime updatedAt;
 
+  /// Server's last updated timestamp for incremental sync change detection.
+  ///
+  /// This field stores the `updated_at` timestamp from the Firefly III API
+  /// response. It is used during incremental sync to determine if the local
+  /// entity needs to be updated by comparing with the server's timestamp.
+  ///
+  /// If server timestamp is newer, the entity is updated. If equal or older,
+  /// the entity is skipped (no database write), improving sync performance.
+  ///
+  /// Nullable for:
+  /// - Offline-created bills that haven't been synced yet
+  /// - Legacy bills created before incremental sync was implemented
+  final DateTime? serverUpdatedAt;
+
   /// Whether the bill has been synced with the server.
   final bool isSynced;
 
@@ -4055,6 +4379,7 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
     this.notes,
     required this.createdAt,
     required this.updatedAt,
+    this.serverUpdatedAt,
     required this.isSynced,
     required this.syncStatus,
   });
@@ -4078,6 +4403,9 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
     map['is_synced'] = Variable<bool>(isSynced);
     map['sync_status'] = Variable<String>(syncStatus);
     return map;
@@ -4102,6 +4430,10 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
       isSynced: Value(isSynced),
       syncStatus: Value(syncStatus),
     );
@@ -4126,6 +4458,7 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
       isSynced: serializer.fromJson<bool>(json['isSynced']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
@@ -4147,6 +4480,7 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
       'isSynced': serializer.toJson<bool>(isSynced),
       'syncStatus': serializer.toJson<String>(syncStatus),
     };
@@ -4166,6 +4500,7 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
     bool? isSynced,
     String? syncStatus,
   }) => BillEntity(
@@ -4182,6 +4517,8 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
     isSynced: isSynced ?? this.isSynced,
     syncStatus: syncStatus ?? this.syncStatus,
   );
@@ -4204,6 +4541,10 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
       isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
@@ -4226,6 +4567,7 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
@@ -4247,6 +4589,7 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
     notes,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
   );
@@ -4267,6 +4610,7 @@ class BillEntity extends DataClass implements Insertable<BillEntity> {
           other.notes == this.notes &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
           other.isSynced == this.isSynced &&
           other.syncStatus == this.syncStatus);
 }
@@ -4285,6 +4629,7 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
   final Value<String?> notes;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> serverUpdatedAt;
   final Value<bool> isSynced;
   final Value<String> syncStatus;
   final Value<int> rowid;
@@ -4302,6 +4647,7 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4320,6 +4666,7 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     this.notes = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4346,6 +4693,7 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? serverUpdatedAt,
     Expression<bool>? isSynced,
     Expression<String>? syncStatus,
     Expression<int>? rowid,
@@ -4364,6 +4712,7 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
       if (isSynced != null) 'is_synced': isSynced,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
@@ -4384,6 +4733,7 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     Value<String?>? notes,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? serverUpdatedAt,
     Value<bool>? isSynced,
     Value<String>? syncStatus,
     Value<int>? rowid,
@@ -4402,6 +4752,7 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
       isSynced: isSynced ?? this.isSynced,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
@@ -4450,6 +4801,9 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
     if (isSynced.present) {
       map['is_synced'] = Variable<bool>(isSynced.value);
     }
@@ -4478,6 +4832,7 @@ class BillEntityCompanion extends UpdateCompanion<BillEntity> {
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
@@ -4608,6 +4963,18 @@ class $PiggyBanksTable extends PiggyBanks
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _isSyncedMeta = const VerificationMeta(
     'isSynced',
   );
@@ -4648,6 +5015,7 @@ class $PiggyBanksTable extends PiggyBanks
     notes,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
   ];
@@ -4742,6 +5110,15 @@ class $PiggyBanksTable extends PiggyBanks
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_synced')) {
       context.handle(
         _isSyncedMeta,
@@ -4817,6 +5194,10 @@ class $PiggyBanksTable extends PiggyBanks
             DriftSqlType.dateTime,
             data['${effectivePrefix}updated_at'],
           )!,
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
       isSynced:
           attachedDatabase.typeMapping.read(
             DriftSqlType.bool,
@@ -4870,6 +5251,20 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
   /// Timestamp when the piggy bank was last updated locally.
   final DateTime updatedAt;
 
+  /// Server's last updated timestamp for incremental sync change detection.
+  ///
+  /// This field stores the `updated_at` timestamp from the Firefly III API
+  /// response. It is used during incremental sync to determine if the local
+  /// entity needs to be updated by comparing with the server's timestamp.
+  ///
+  /// If server timestamp is newer, the entity is updated. If equal or older,
+  /// the entity is skipped (no database write), improving sync performance.
+  ///
+  /// Nullable for:
+  /// - Offline-created piggy banks that haven't been synced yet
+  /// - Legacy piggy banks created before incremental sync was implemented
+  final DateTime? serverUpdatedAt;
+
   /// Whether the piggy bank has been synced with the server.
   final bool isSynced;
 
@@ -4887,6 +5282,7 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
     this.notes,
     required this.createdAt,
     required this.updatedAt,
+    this.serverUpdatedAt,
     required this.isSynced,
     required this.syncStatus,
   });
@@ -4914,6 +5310,9 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
     map['is_synced'] = Variable<bool>(isSynced);
     map['sync_status'] = Variable<String>(syncStatus);
     return map;
@@ -4945,6 +5344,10 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
       isSynced: Value(isSynced),
       syncStatus: Value(syncStatus),
     );
@@ -4967,6 +5370,7 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
       isSynced: serializer.fromJson<bool>(json['isSynced']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
@@ -4986,6 +5390,7 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
       'isSynced': serializer.toJson<bool>(isSynced),
       'syncStatus': serializer.toJson<String>(syncStatus),
     };
@@ -5003,6 +5408,7 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
     bool? isSynced,
     String? syncStatus,
   }) => PiggyBankEntity(
@@ -5017,6 +5423,8 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
     isSynced: isSynced ?? this.isSynced,
     syncStatus: syncStatus ?? this.syncStatus,
   );
@@ -5040,6 +5448,10 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
       isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
@@ -5060,6 +5472,7 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
@@ -5079,6 +5492,7 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
     notes,
     createdAt,
     updatedAt,
+    serverUpdatedAt,
     isSynced,
     syncStatus,
   );
@@ -5097,6 +5511,7 @@ class PiggyBankEntity extends DataClass implements Insertable<PiggyBankEntity> {
           other.notes == this.notes &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
           other.isSynced == this.isSynced &&
           other.syncStatus == this.syncStatus);
 }
@@ -5113,6 +5528,7 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
   final Value<String?> notes;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> serverUpdatedAt;
   final Value<bool> isSynced;
   final Value<String> syncStatus;
   final Value<int> rowid;
@@ -5128,6 +5544,7 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -5144,6 +5561,7 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
     this.notes = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
+    this.serverUpdatedAt = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -5164,6 +5582,7 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? serverUpdatedAt,
     Expression<bool>? isSynced,
     Expression<String>? syncStatus,
     Expression<int>? rowid,
@@ -5180,6 +5599,7 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
       if (isSynced != null) 'is_synced': isSynced,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
@@ -5198,6 +5618,7 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
     Value<String?>? notes,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<DateTime?>? serverUpdatedAt,
     Value<bool>? isSynced,
     Value<String>? syncStatus,
     Value<int>? rowid,
@@ -5214,6 +5635,7 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
       isSynced: isSynced ?? this.isSynced,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
@@ -5256,6 +5678,9 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
     if (isSynced.present) {
       map['is_synced'] = Variable<bool>(isSynced.value);
     }
@@ -5282,6 +5707,7 @@ class PiggyBankEntityCompanion extends UpdateCompanion<PiggyBankEntity> {
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
           ..write('isSynced: $isSynced, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
@@ -8362,43 +8788,153 @@ class ErrorLogEntityCompanion extends UpdateCompanion<ErrorLogEntity> {
   }
 }
 
-class $SyncStatisticsTableTable extends SyncStatisticsTable
-    with TableInfo<$SyncStatisticsTableTable, SyncStatisticsEntity> {
+class $SyncStatisticsTable extends SyncStatistics
+    with TableInfo<$SyncStatisticsTable, SyncStatisticsEntity> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $SyncStatisticsTableTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _keyMeta = const VerificationMeta('key');
+  $SyncStatisticsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
   @override
-  late final GeneratedColumn<String> key = GeneratedColumn<String>(
-    'key',
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  static const VerificationMeta _lastIncrementalSyncMeta =
+      const VerificationMeta('lastIncrementalSync');
   @override
-  late final GeneratedColumn<String> value = GeneratedColumn<String>(
-    'value',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
+  late final GeneratedColumn<DateTime> lastIncrementalSync =
+      GeneratedColumn<DateTime>(
+        'last_incremental_sync',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _lastFullSyncMeta = const VerificationMeta(
+    'lastFullSync',
   );
   @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
+  late final GeneratedColumn<DateTime> lastFullSync = GeneratedColumn<DateTime>(
+    'last_full_sync',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _itemsFetchedTotalMeta = const VerificationMeta(
+    'itemsFetchedTotal',
   );
   @override
-  List<GeneratedColumn> get $columns => [key, value, updatedAt];
+  late final GeneratedColumn<int> itemsFetchedTotal = GeneratedColumn<int>(
+    'items_fetched_total',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _itemsUpdatedTotalMeta = const VerificationMeta(
+    'itemsUpdatedTotal',
+  );
+  @override
+  late final GeneratedColumn<int> itemsUpdatedTotal = GeneratedColumn<int>(
+    'items_updated_total',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _itemsSkippedTotalMeta = const VerificationMeta(
+    'itemsSkippedTotal',
+  );
+  @override
+  late final GeneratedColumn<int> itemsSkippedTotal = GeneratedColumn<int>(
+    'items_skipped_total',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _bandwidthSavedBytesMeta =
+      const VerificationMeta('bandwidthSavedBytes');
+  @override
+  late final GeneratedColumn<int> bandwidthSavedBytes = GeneratedColumn<int>(
+    'bandwidth_saved_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _apiCallsSavedCountMeta =
+      const VerificationMeta('apiCallsSavedCount');
+  @override
+  late final GeneratedColumn<int> apiCallsSavedCount = GeneratedColumn<int>(
+    'api_calls_saved_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _syncWindowStartMeta = const VerificationMeta(
+    'syncWindowStart',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncWindowStart =
+      GeneratedColumn<DateTime>(
+        'sync_window_start',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _syncWindowEndMeta = const VerificationMeta(
+    'syncWindowEnd',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncWindowEnd =
+      GeneratedColumn<DateTime>(
+        'sync_window_end',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _syncWindowDaysMeta = const VerificationMeta(
+    'syncWindowDays',
+  );
+  @override
+  late final GeneratedColumn<int> syncWindowDays = GeneratedColumn<int>(
+    'sync_window_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(30),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    entityType,
+    lastIncrementalSync,
+    lastFullSync,
+    itemsFetchedTotal,
+    itemsUpdatedTotal,
+    itemsSkippedTotal,
+    bandwidthSavedBytes,
+    apiCallsSavedCount,
+    syncWindowStart,
+    syncWindowEnd,
+    syncWindowDays,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -8411,92 +8947,304 @@ class $SyncStatisticsTableTable extends SyncStatisticsTable
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('key')) {
+    if (data.containsKey('entity_type')) {
       context.handle(
-        _keyMeta,
-        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
       );
     } else if (isInserting) {
-      context.missing(_keyMeta);
+      context.missing(_entityTypeMeta);
     }
-    if (data.containsKey('value')) {
+    if (data.containsKey('last_incremental_sync')) {
       context.handle(
-        _valueMeta,
-        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+        _lastIncrementalSyncMeta,
+        lastIncrementalSync.isAcceptableOrUnknown(
+          data['last_incremental_sync']!,
+          _lastIncrementalSyncMeta,
+        ),
       );
     } else if (isInserting) {
-      context.missing(_valueMeta);
+      context.missing(_lastIncrementalSyncMeta);
     }
-    if (data.containsKey('updated_at')) {
+    if (data.containsKey('last_full_sync')) {
       context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+        _lastFullSyncMeta,
+        lastFullSync.isAcceptableOrUnknown(
+          data['last_full_sync']!,
+          _lastFullSyncMeta,
+        ),
       );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('items_fetched_total')) {
+      context.handle(
+        _itemsFetchedTotalMeta,
+        itemsFetchedTotal.isAcceptableOrUnknown(
+          data['items_fetched_total']!,
+          _itemsFetchedTotalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('items_updated_total')) {
+      context.handle(
+        _itemsUpdatedTotalMeta,
+        itemsUpdatedTotal.isAcceptableOrUnknown(
+          data['items_updated_total']!,
+          _itemsUpdatedTotalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('items_skipped_total')) {
+      context.handle(
+        _itemsSkippedTotalMeta,
+        itemsSkippedTotal.isAcceptableOrUnknown(
+          data['items_skipped_total']!,
+          _itemsSkippedTotalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bandwidth_saved_bytes')) {
+      context.handle(
+        _bandwidthSavedBytesMeta,
+        bandwidthSavedBytes.isAcceptableOrUnknown(
+          data['bandwidth_saved_bytes']!,
+          _bandwidthSavedBytesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('api_calls_saved_count')) {
+      context.handle(
+        _apiCallsSavedCountMeta,
+        apiCallsSavedCount.isAcceptableOrUnknown(
+          data['api_calls_saved_count']!,
+          _apiCallsSavedCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_window_start')) {
+      context.handle(
+        _syncWindowStartMeta,
+        syncWindowStart.isAcceptableOrUnknown(
+          data['sync_window_start']!,
+          _syncWindowStartMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_window_end')) {
+      context.handle(
+        _syncWindowEndMeta,
+        syncWindowEnd.isAcceptableOrUnknown(
+          data['sync_window_end']!,
+          _syncWindowEndMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_window_days')) {
+      context.handle(
+        _syncWindowDaysMeta,
+        syncWindowDays.isAcceptableOrUnknown(
+          data['sync_window_days']!,
+          _syncWindowDaysMeta,
+        ),
+      );
     }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {key};
+  Set<GeneratedColumn> get $primaryKey => {entityType};
   @override
   SyncStatisticsEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return SyncStatisticsEntity(
-      key:
+      entityType:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
-            data['${effectivePrefix}key'],
+            data['${effectivePrefix}entity_type'],
           )!,
-      value:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}value'],
-          )!,
-      updatedAt:
+      lastIncrementalSync:
           attachedDatabase.typeMapping.read(
             DriftSqlType.dateTime,
-            data['${effectivePrefix}updated_at'],
+            data['${effectivePrefix}last_incremental_sync'],
+          )!,
+      lastFullSync: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_full_sync'],
+      ),
+      itemsFetchedTotal:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}items_fetched_total'],
+          )!,
+      itemsUpdatedTotal:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}items_updated_total'],
+          )!,
+      itemsSkippedTotal:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}items_skipped_total'],
+          )!,
+      bandwidthSavedBytes:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}bandwidth_saved_bytes'],
+          )!,
+      apiCallsSavedCount:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}api_calls_saved_count'],
+          )!,
+      syncWindowStart: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sync_window_start'],
+      ),
+      syncWindowEnd: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sync_window_end'],
+      ),
+      syncWindowDays:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}sync_window_days'],
           )!,
     );
   }
 
   @override
-  $SyncStatisticsTableTable createAlias(String alias) {
-    return $SyncStatisticsTableTable(attachedDatabase, alias);
+  $SyncStatisticsTable createAlias(String alias) {
+    return $SyncStatisticsTable(attachedDatabase, alias);
   }
 }
 
 class SyncStatisticsEntity extends DataClass
     implements Insertable<SyncStatisticsEntity> {
-  /// Statistic key (e.g., 'total_syncs', 'successful_syncs')
-  final String key;
+  /// Entity type identifier.
+  ///
+  /// Valid values: 'transaction', 'account', 'budget', 'category', 'bill', 'piggy_bank'
+  final String entityType;
 
-  /// Statistic value as string (can store numbers, dates, etc.)
-  final String value;
+  /// Timestamp of the last successful incremental sync for this entity type.
+  ///
+  /// Used to determine the start point for the next incremental sync.
+  /// Always updated after a successful incremental sync completes.
+  final DateTime lastIncrementalSync;
 
-  /// Last updated timestamp
-  final DateTime updatedAt;
+  /// Timestamp of the last successful full sync for this entity type.
+  ///
+  /// Nullable because a full sync may not have occurred yet (e.g., new install
+  /// that only does incremental syncs). Used to determine if a full sync fallback
+  /// is needed (when >7 days since last full sync).
+  final DateTime? lastFullSync;
+
+  /// Total number of items fetched from the server across all incremental syncs.
+  ///
+  /// Cumulative counter used to calculate sync efficiency metrics.
+  /// Reset when statistics are cleared.
+  final int itemsFetchedTotal;
+
+  /// Total number of items that had changes and were updated locally.
+  ///
+  /// Items are updated when server timestamp is newer than local timestamp.
+  /// Used to calculate the update rate (itemsUpdated / itemsFetched).
+  final int itemsUpdatedTotal;
+
+  /// Total number of items that were skipped because they were unchanged.
+  ///
+  /// Items are skipped when local timestamp equals server timestamp.
+  /// High skip rate indicates good incremental sync efficiency.
+  final int itemsSkippedTotal;
+
+  /// Estimated total bandwidth saved in bytes from incremental syncs.
+  ///
+  /// Calculated as: (itemsSkipped * averageEntitySize).
+  /// Provides user-visible metric showing value of incremental sync.
+  final int bandwidthSavedBytes;
+
+  /// Total number of API calls saved from incremental syncs.
+  ///
+  /// Calculated based on reduced pagination needs and cache hits.
+  /// Demonstrates reduced server load from incremental sync.
+  final int apiCallsSavedCount;
+
+  /// Start timestamp of the current sync window.
+  ///
+  /// Defines the beginning of the date range for incremental sync queries.
+  /// Updated at the start of each sync based on last sync timestamp.
+  final DateTime? syncWindowStart;
+
+  /// End timestamp of the current sync window.
+  ///
+  /// Defines the end of the date range for incremental sync queries.
+  /// Typically set to current time when sync starts.
+  final DateTime? syncWindowEnd;
+
+  /// Sync window duration in days.
+  ///
+  /// Configurable by user: 7, 14, 30, 60, or 90 days.
+  /// Default: 30 days provides good balance of coverage vs performance.
+  ///
+  /// Shorter windows = faster syncs, less data.
+  /// Longer windows = more comprehensive, catches more edge cases.
+  final int syncWindowDays;
   const SyncStatisticsEntity({
-    required this.key,
-    required this.value,
-    required this.updatedAt,
+    required this.entityType,
+    required this.lastIncrementalSync,
+    this.lastFullSync,
+    required this.itemsFetchedTotal,
+    required this.itemsUpdatedTotal,
+    required this.itemsSkippedTotal,
+    required this.bandwidthSavedBytes,
+    required this.apiCallsSavedCount,
+    this.syncWindowStart,
+    this.syncWindowEnd,
+    required this.syncWindowDays,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['key'] = Variable<String>(key);
-    map['value'] = Variable<String>(value);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['entity_type'] = Variable<String>(entityType);
+    map['last_incremental_sync'] = Variable<DateTime>(lastIncrementalSync);
+    if (!nullToAbsent || lastFullSync != null) {
+      map['last_full_sync'] = Variable<DateTime>(lastFullSync);
+    }
+    map['items_fetched_total'] = Variable<int>(itemsFetchedTotal);
+    map['items_updated_total'] = Variable<int>(itemsUpdatedTotal);
+    map['items_skipped_total'] = Variable<int>(itemsSkippedTotal);
+    map['bandwidth_saved_bytes'] = Variable<int>(bandwidthSavedBytes);
+    map['api_calls_saved_count'] = Variable<int>(apiCallsSavedCount);
+    if (!nullToAbsent || syncWindowStart != null) {
+      map['sync_window_start'] = Variable<DateTime>(syncWindowStart);
+    }
+    if (!nullToAbsent || syncWindowEnd != null) {
+      map['sync_window_end'] = Variable<DateTime>(syncWindowEnd);
+    }
+    map['sync_window_days'] = Variable<int>(syncWindowDays);
     return map;
   }
 
   SyncStatisticsEntityCompanion toCompanion(bool nullToAbsent) {
     return SyncStatisticsEntityCompanion(
-      key: Value(key),
-      value: Value(value),
-      updatedAt: Value(updatedAt),
+      entityType: Value(entityType),
+      lastIncrementalSync: Value(lastIncrementalSync),
+      lastFullSync:
+          lastFullSync == null && nullToAbsent
+              ? const Value.absent()
+              : Value(lastFullSync),
+      itemsFetchedTotal: Value(itemsFetchedTotal),
+      itemsUpdatedTotal: Value(itemsUpdatedTotal),
+      itemsSkippedTotal: Value(itemsSkippedTotal),
+      bandwidthSavedBytes: Value(bandwidthSavedBytes),
+      apiCallsSavedCount: Value(apiCallsSavedCount),
+      syncWindowStart:
+          syncWindowStart == null && nullToAbsent
+              ? const Value.absent()
+              : Value(syncWindowStart),
+      syncWindowEnd:
+          syncWindowEnd == null && nullToAbsent
+              ? const Value.absent()
+              : Value(syncWindowEnd),
+      syncWindowDays: Value(syncWindowDays),
     );
   }
 
@@ -8506,103 +9254,266 @@ class SyncStatisticsEntity extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return SyncStatisticsEntity(
-      key: serializer.fromJson<String>(json['key']),
-      value: serializer.fromJson<String>(json['value']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      entityType: serializer.fromJson<String>(json['entityType']),
+      lastIncrementalSync: serializer.fromJson<DateTime>(
+        json['lastIncrementalSync'],
+      ),
+      lastFullSync: serializer.fromJson<DateTime?>(json['lastFullSync']),
+      itemsFetchedTotal: serializer.fromJson<int>(json['itemsFetchedTotal']),
+      itemsUpdatedTotal: serializer.fromJson<int>(json['itemsUpdatedTotal']),
+      itemsSkippedTotal: serializer.fromJson<int>(json['itemsSkippedTotal']),
+      bandwidthSavedBytes: serializer.fromJson<int>(
+        json['bandwidthSavedBytes'],
+      ),
+      apiCallsSavedCount: serializer.fromJson<int>(json['apiCallsSavedCount']),
+      syncWindowStart: serializer.fromJson<DateTime?>(json['syncWindowStart']),
+      syncWindowEnd: serializer.fromJson<DateTime?>(json['syncWindowEnd']),
+      syncWindowDays: serializer.fromJson<int>(json['syncWindowDays']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'key': serializer.toJson<String>(key),
-      'value': serializer.toJson<String>(value),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'entityType': serializer.toJson<String>(entityType),
+      'lastIncrementalSync': serializer.toJson<DateTime>(lastIncrementalSync),
+      'lastFullSync': serializer.toJson<DateTime?>(lastFullSync),
+      'itemsFetchedTotal': serializer.toJson<int>(itemsFetchedTotal),
+      'itemsUpdatedTotal': serializer.toJson<int>(itemsUpdatedTotal),
+      'itemsSkippedTotal': serializer.toJson<int>(itemsSkippedTotal),
+      'bandwidthSavedBytes': serializer.toJson<int>(bandwidthSavedBytes),
+      'apiCallsSavedCount': serializer.toJson<int>(apiCallsSavedCount),
+      'syncWindowStart': serializer.toJson<DateTime?>(syncWindowStart),
+      'syncWindowEnd': serializer.toJson<DateTime?>(syncWindowEnd),
+      'syncWindowDays': serializer.toJson<int>(syncWindowDays),
     };
   }
 
   SyncStatisticsEntity copyWith({
-    String? key,
-    String? value,
-    DateTime? updatedAt,
+    String? entityType,
+    DateTime? lastIncrementalSync,
+    Value<DateTime?> lastFullSync = const Value.absent(),
+    int? itemsFetchedTotal,
+    int? itemsUpdatedTotal,
+    int? itemsSkippedTotal,
+    int? bandwidthSavedBytes,
+    int? apiCallsSavedCount,
+    Value<DateTime?> syncWindowStart = const Value.absent(),
+    Value<DateTime?> syncWindowEnd = const Value.absent(),
+    int? syncWindowDays,
   }) => SyncStatisticsEntity(
-    key: key ?? this.key,
-    value: value ?? this.value,
-    updatedAt: updatedAt ?? this.updatedAt,
+    entityType: entityType ?? this.entityType,
+    lastIncrementalSync: lastIncrementalSync ?? this.lastIncrementalSync,
+    lastFullSync: lastFullSync.present ? lastFullSync.value : this.lastFullSync,
+    itemsFetchedTotal: itemsFetchedTotal ?? this.itemsFetchedTotal,
+    itemsUpdatedTotal: itemsUpdatedTotal ?? this.itemsUpdatedTotal,
+    itemsSkippedTotal: itemsSkippedTotal ?? this.itemsSkippedTotal,
+    bandwidthSavedBytes: bandwidthSavedBytes ?? this.bandwidthSavedBytes,
+    apiCallsSavedCount: apiCallsSavedCount ?? this.apiCallsSavedCount,
+    syncWindowStart:
+        syncWindowStart.present ? syncWindowStart.value : this.syncWindowStart,
+    syncWindowEnd:
+        syncWindowEnd.present ? syncWindowEnd.value : this.syncWindowEnd,
+    syncWindowDays: syncWindowDays ?? this.syncWindowDays,
   );
   SyncStatisticsEntity copyWithCompanion(SyncStatisticsEntityCompanion data) {
     return SyncStatisticsEntity(
-      key: data.key.present ? data.key.value : this.key,
-      value: data.value.present ? data.value.value : this.value,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      entityType:
+          data.entityType.present ? data.entityType.value : this.entityType,
+      lastIncrementalSync:
+          data.lastIncrementalSync.present
+              ? data.lastIncrementalSync.value
+              : this.lastIncrementalSync,
+      lastFullSync:
+          data.lastFullSync.present
+              ? data.lastFullSync.value
+              : this.lastFullSync,
+      itemsFetchedTotal:
+          data.itemsFetchedTotal.present
+              ? data.itemsFetchedTotal.value
+              : this.itemsFetchedTotal,
+      itemsUpdatedTotal:
+          data.itemsUpdatedTotal.present
+              ? data.itemsUpdatedTotal.value
+              : this.itemsUpdatedTotal,
+      itemsSkippedTotal:
+          data.itemsSkippedTotal.present
+              ? data.itemsSkippedTotal.value
+              : this.itemsSkippedTotal,
+      bandwidthSavedBytes:
+          data.bandwidthSavedBytes.present
+              ? data.bandwidthSavedBytes.value
+              : this.bandwidthSavedBytes,
+      apiCallsSavedCount:
+          data.apiCallsSavedCount.present
+              ? data.apiCallsSavedCount.value
+              : this.apiCallsSavedCount,
+      syncWindowStart:
+          data.syncWindowStart.present
+              ? data.syncWindowStart.value
+              : this.syncWindowStart,
+      syncWindowEnd:
+          data.syncWindowEnd.present
+              ? data.syncWindowEnd.value
+              : this.syncWindowEnd,
+      syncWindowDays:
+          data.syncWindowDays.present
+              ? data.syncWindowDays.value
+              : this.syncWindowDays,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('SyncStatisticsEntity(')
-          ..write('key: $key, ')
-          ..write('value: $value, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('entityType: $entityType, ')
+          ..write('lastIncrementalSync: $lastIncrementalSync, ')
+          ..write('lastFullSync: $lastFullSync, ')
+          ..write('itemsFetchedTotal: $itemsFetchedTotal, ')
+          ..write('itemsUpdatedTotal: $itemsUpdatedTotal, ')
+          ..write('itemsSkippedTotal: $itemsSkippedTotal, ')
+          ..write('bandwidthSavedBytes: $bandwidthSavedBytes, ')
+          ..write('apiCallsSavedCount: $apiCallsSavedCount, ')
+          ..write('syncWindowStart: $syncWindowStart, ')
+          ..write('syncWindowEnd: $syncWindowEnd, ')
+          ..write('syncWindowDays: $syncWindowDays')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(key, value, updatedAt);
+  int get hashCode => Object.hash(
+    entityType,
+    lastIncrementalSync,
+    lastFullSync,
+    itemsFetchedTotal,
+    itemsUpdatedTotal,
+    itemsSkippedTotal,
+    bandwidthSavedBytes,
+    apiCallsSavedCount,
+    syncWindowStart,
+    syncWindowEnd,
+    syncWindowDays,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SyncStatisticsEntity &&
-          other.key == this.key &&
-          other.value == this.value &&
-          other.updatedAt == this.updatedAt);
+          other.entityType == this.entityType &&
+          other.lastIncrementalSync == this.lastIncrementalSync &&
+          other.lastFullSync == this.lastFullSync &&
+          other.itemsFetchedTotal == this.itemsFetchedTotal &&
+          other.itemsUpdatedTotal == this.itemsUpdatedTotal &&
+          other.itemsSkippedTotal == this.itemsSkippedTotal &&
+          other.bandwidthSavedBytes == this.bandwidthSavedBytes &&
+          other.apiCallsSavedCount == this.apiCallsSavedCount &&
+          other.syncWindowStart == this.syncWindowStart &&
+          other.syncWindowEnd == this.syncWindowEnd &&
+          other.syncWindowDays == this.syncWindowDays);
 }
 
 class SyncStatisticsEntityCompanion
     extends UpdateCompanion<SyncStatisticsEntity> {
-  final Value<String> key;
-  final Value<String> value;
-  final Value<DateTime> updatedAt;
+  final Value<String> entityType;
+  final Value<DateTime> lastIncrementalSync;
+  final Value<DateTime?> lastFullSync;
+  final Value<int> itemsFetchedTotal;
+  final Value<int> itemsUpdatedTotal;
+  final Value<int> itemsSkippedTotal;
+  final Value<int> bandwidthSavedBytes;
+  final Value<int> apiCallsSavedCount;
+  final Value<DateTime?> syncWindowStart;
+  final Value<DateTime?> syncWindowEnd;
+  final Value<int> syncWindowDays;
   final Value<int> rowid;
   const SyncStatisticsEntityCompanion({
-    this.key = const Value.absent(),
-    this.value = const Value.absent(),
-    this.updatedAt = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.lastIncrementalSync = const Value.absent(),
+    this.lastFullSync = const Value.absent(),
+    this.itemsFetchedTotal = const Value.absent(),
+    this.itemsUpdatedTotal = const Value.absent(),
+    this.itemsSkippedTotal = const Value.absent(),
+    this.bandwidthSavedBytes = const Value.absent(),
+    this.apiCallsSavedCount = const Value.absent(),
+    this.syncWindowStart = const Value.absent(),
+    this.syncWindowEnd = const Value.absent(),
+    this.syncWindowDays = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SyncStatisticsEntityCompanion.insert({
-    required String key,
-    required String value,
-    required DateTime updatedAt,
+    required String entityType,
+    required DateTime lastIncrementalSync,
+    this.lastFullSync = const Value.absent(),
+    this.itemsFetchedTotal = const Value.absent(),
+    this.itemsUpdatedTotal = const Value.absent(),
+    this.itemsSkippedTotal = const Value.absent(),
+    this.bandwidthSavedBytes = const Value.absent(),
+    this.apiCallsSavedCount = const Value.absent(),
+    this.syncWindowStart = const Value.absent(),
+    this.syncWindowEnd = const Value.absent(),
+    this.syncWindowDays = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : key = Value(key),
-       value = Value(value),
-       updatedAt = Value(updatedAt);
+  }) : entityType = Value(entityType),
+       lastIncrementalSync = Value(lastIncrementalSync);
   static Insertable<SyncStatisticsEntity> custom({
-    Expression<String>? key,
-    Expression<String>? value,
-    Expression<DateTime>? updatedAt,
+    Expression<String>? entityType,
+    Expression<DateTime>? lastIncrementalSync,
+    Expression<DateTime>? lastFullSync,
+    Expression<int>? itemsFetchedTotal,
+    Expression<int>? itemsUpdatedTotal,
+    Expression<int>? itemsSkippedTotal,
+    Expression<int>? bandwidthSavedBytes,
+    Expression<int>? apiCallsSavedCount,
+    Expression<DateTime>? syncWindowStart,
+    Expression<DateTime>? syncWindowEnd,
+    Expression<int>? syncWindowDays,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (key != null) 'key': key,
-      if (value != null) 'value': value,
-      if (updatedAt != null) 'updated_at': updatedAt,
+      if (entityType != null) 'entity_type': entityType,
+      if (lastIncrementalSync != null)
+        'last_incremental_sync': lastIncrementalSync,
+      if (lastFullSync != null) 'last_full_sync': lastFullSync,
+      if (itemsFetchedTotal != null) 'items_fetched_total': itemsFetchedTotal,
+      if (itemsUpdatedTotal != null) 'items_updated_total': itemsUpdatedTotal,
+      if (itemsSkippedTotal != null) 'items_skipped_total': itemsSkippedTotal,
+      if (bandwidthSavedBytes != null)
+        'bandwidth_saved_bytes': bandwidthSavedBytes,
+      if (apiCallsSavedCount != null)
+        'api_calls_saved_count': apiCallsSavedCount,
+      if (syncWindowStart != null) 'sync_window_start': syncWindowStart,
+      if (syncWindowEnd != null) 'sync_window_end': syncWindowEnd,
+      if (syncWindowDays != null) 'sync_window_days': syncWindowDays,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   SyncStatisticsEntityCompanion copyWith({
-    Value<String>? key,
-    Value<String>? value,
-    Value<DateTime>? updatedAt,
+    Value<String>? entityType,
+    Value<DateTime>? lastIncrementalSync,
+    Value<DateTime?>? lastFullSync,
+    Value<int>? itemsFetchedTotal,
+    Value<int>? itemsUpdatedTotal,
+    Value<int>? itemsSkippedTotal,
+    Value<int>? bandwidthSavedBytes,
+    Value<int>? apiCallsSavedCount,
+    Value<DateTime?>? syncWindowStart,
+    Value<DateTime?>? syncWindowEnd,
+    Value<int>? syncWindowDays,
     Value<int>? rowid,
   }) {
     return SyncStatisticsEntityCompanion(
-      key: key ?? this.key,
-      value: value ?? this.value,
-      updatedAt: updatedAt ?? this.updatedAt,
+      entityType: entityType ?? this.entityType,
+      lastIncrementalSync: lastIncrementalSync ?? this.lastIncrementalSync,
+      lastFullSync: lastFullSync ?? this.lastFullSync,
+      itemsFetchedTotal: itemsFetchedTotal ?? this.itemsFetchedTotal,
+      itemsUpdatedTotal: itemsUpdatedTotal ?? this.itemsUpdatedTotal,
+      itemsSkippedTotal: itemsSkippedTotal ?? this.itemsSkippedTotal,
+      bandwidthSavedBytes: bandwidthSavedBytes ?? this.bandwidthSavedBytes,
+      apiCallsSavedCount: apiCallsSavedCount ?? this.apiCallsSavedCount,
+      syncWindowStart: syncWindowStart ?? this.syncWindowStart,
+      syncWindowEnd: syncWindowEnd ?? this.syncWindowEnd,
+      syncWindowDays: syncWindowDays ?? this.syncWindowDays,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -8610,14 +9521,40 @@ class SyncStatisticsEntityCompanion
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (key.present) {
-      map['key'] = Variable<String>(key.value);
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
     }
-    if (value.present) {
-      map['value'] = Variable<String>(value.value);
+    if (lastIncrementalSync.present) {
+      map['last_incremental_sync'] = Variable<DateTime>(
+        lastIncrementalSync.value,
+      );
     }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    if (lastFullSync.present) {
+      map['last_full_sync'] = Variable<DateTime>(lastFullSync.value);
+    }
+    if (itemsFetchedTotal.present) {
+      map['items_fetched_total'] = Variable<int>(itemsFetchedTotal.value);
+    }
+    if (itemsUpdatedTotal.present) {
+      map['items_updated_total'] = Variable<int>(itemsUpdatedTotal.value);
+    }
+    if (itemsSkippedTotal.present) {
+      map['items_skipped_total'] = Variable<int>(itemsSkippedTotal.value);
+    }
+    if (bandwidthSavedBytes.present) {
+      map['bandwidth_saved_bytes'] = Variable<int>(bandwidthSavedBytes.value);
+    }
+    if (apiCallsSavedCount.present) {
+      map['api_calls_saved_count'] = Variable<int>(apiCallsSavedCount.value);
+    }
+    if (syncWindowStart.present) {
+      map['sync_window_start'] = Variable<DateTime>(syncWindowStart.value);
+    }
+    if (syncWindowEnd.present) {
+      map['sync_window_end'] = Variable<DateTime>(syncWindowEnd.value);
+    }
+    if (syncWindowDays.present) {
+      map['sync_window_days'] = Variable<int>(syncWindowDays.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -8628,9 +9565,17 @@ class SyncStatisticsEntityCompanion
   @override
   String toString() {
     return (StringBuffer('SyncStatisticsEntityCompanion(')
-          ..write('key: $key, ')
-          ..write('value: $value, ')
-          ..write('updatedAt: $updatedAt, ')
+          ..write('entityType: $entityType, ')
+          ..write('lastIncrementalSync: $lastIncrementalSync, ')
+          ..write('lastFullSync: $lastFullSync, ')
+          ..write('itemsFetchedTotal: $itemsFetchedTotal, ')
+          ..write('itemsUpdatedTotal: $itemsUpdatedTotal, ')
+          ..write('itemsSkippedTotal: $itemsSkippedTotal, ')
+          ..write('bandwidthSavedBytes: $bandwidthSavedBytes, ')
+          ..write('apiCallsSavedCount: $apiCallsSavedCount, ')
+          ..write('syncWindowStart: $syncWindowStart, ')
+          ..write('syncWindowEnd: $syncWindowEnd, ')
+          ..write('syncWindowDays: $syncWindowDays, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -9329,8 +10274,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $IdMappingTable idMapping = $IdMappingTable(this);
   late final $ConflictsTable conflicts = $ConflictsTable(this);
   late final $ErrorLogTable errorLog = $ErrorLogTable(this);
-  late final $SyncStatisticsTableTable syncStatisticsTable =
-      $SyncStatisticsTableTable(this);
+  late final $SyncStatisticsTable syncStatistics = $SyncStatisticsTable(this);
   late final $CacheMetadataTableTable cacheMetadataTable =
       $CacheMetadataTableTable(this);
   @override
@@ -9349,7 +10293,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idMapping,
     conflicts,
     errorLog,
-    syncStatisticsTable,
+    syncStatistics,
     cacheMetadataTable,
   ];
 }
@@ -9373,6 +10317,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       Value<String> tags,
       required DateTime createdAt,
       required DateTime updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<DateTime?> lastSyncAttempt,
@@ -9398,6 +10343,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<String> tags,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<DateTime?> lastSyncAttempt,
@@ -9496,6 +10442,11 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9614,6 +10565,11 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isSynced => $composableBuilder(
     column: $table.isSynced,
     builder: (column) => ColumnOrderings(column),
@@ -9709,6 +10665,11 @@ class $$TransactionsTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isSynced =>
       $composableBuilder(column: $table.isSynced, builder: (column) => column);
 
@@ -9779,6 +10740,7 @@ class $$TransactionsTableTableManager
                 Value<String> tags = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<DateTime?> lastSyncAttempt = const Value.absent(),
@@ -9802,6 +10764,7 @@ class $$TransactionsTableTableManager
                 tags: tags,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 lastSyncAttempt: lastSyncAttempt,
@@ -9827,6 +10790,7 @@ class $$TransactionsTableTableManager
                 Value<String> tags = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<DateTime?> lastSyncAttempt = const Value.absent(),
@@ -9850,6 +10814,7 @@ class $$TransactionsTableTableManager
                 tags: tags,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 lastSyncAttempt: lastSyncAttempt,
@@ -9906,6 +10871,7 @@ typedef $$AccountsTableCreateCompanionBuilder =
       Value<bool> active,
       required DateTime createdAt,
       required DateTime updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<int> rowid,
@@ -9928,6 +10894,7 @@ typedef $$AccountsTableUpdateCompanionBuilder =
       Value<bool> active,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<int> rowid,
@@ -10019,6 +10986,11 @@ class $$AccountsTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10122,6 +11094,11 @@ class $$AccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isSynced => $composableBuilder(
     column: $table.isSynced,
     builder: (column) => ColumnOrderings(column),
@@ -10202,6 +11179,11 @@ class $$AccountsTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isSynced =>
       $composableBuilder(column: $table.isSynced, builder: (column) => column);
 
@@ -10258,6 +11240,7 @@ class $$AccountsTableTableManager
                 Value<bool> active = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10278,6 +11261,7 @@ class $$AccountsTableTableManager
                 active: active,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 rowid: rowid,
@@ -10300,6 +11284,7 @@ class $$AccountsTableTableManager
                 Value<bool> active = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10320,6 +11305,7 @@ class $$AccountsTableTableManager
                 active: active,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 rowid: rowid,
@@ -10364,6 +11350,7 @@ typedef $$CategoriesTableCreateCompanionBuilder =
       Value<String?> notes,
       required DateTime createdAt,
       required DateTime updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<int> rowid,
@@ -10376,6 +11363,7 @@ typedef $$CategoriesTableUpdateCompanionBuilder =
       Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<int> rowid,
@@ -10417,6 +11405,11 @@ class $$CategoriesTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10470,6 +11463,11 @@ class $$CategoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isSynced => $composableBuilder(
     column: $table.isSynced,
     builder: (column) => ColumnOrderings(column),
@@ -10507,6 +11505,11 @@ class $$CategoriesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<bool> get isSynced =>
       $composableBuilder(column: $table.isSynced, builder: (column) => column);
@@ -10554,6 +11557,7 @@ class $$CategoriesTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10564,6 +11568,7 @@ class $$CategoriesTableTableManager
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 rowid: rowid,
@@ -10576,6 +11581,7 @@ class $$CategoriesTableTableManager
                 Value<String?> notes = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10586,6 +11592,7 @@ class $$CategoriesTableTableManager
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 rowid: rowid,
@@ -10633,6 +11640,7 @@ typedef $$BudgetsTableCreateCompanionBuilder =
       Value<String?> autoBudgetPeriod,
       required DateTime createdAt,
       required DateTime updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<int> rowid,
@@ -10648,6 +11656,7 @@ typedef $$BudgetsTableUpdateCompanionBuilder =
       Value<String?> autoBudgetPeriod,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<int> rowid,
@@ -10704,6 +11713,11 @@ class $$BudgetsTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10772,6 +11786,11 @@ class $$BudgetsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isSynced => $composableBuilder(
     column: $table.isSynced,
     builder: (column) => ColumnOrderings(column),
@@ -10825,6 +11844,11 @@ class $$BudgetsTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isSynced =>
       $composableBuilder(column: $table.isSynced, builder: (column) => column);
 
@@ -10874,6 +11898,7 @@ class $$BudgetsTableTableManager
                 Value<String?> autoBudgetPeriod = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10887,6 +11912,7 @@ class $$BudgetsTableTableManager
                 autoBudgetPeriod: autoBudgetPeriod,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 rowid: rowid,
@@ -10902,6 +11928,7 @@ class $$BudgetsTableTableManager
                 Value<String?> autoBudgetPeriod = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10915,6 +11942,7 @@ class $$BudgetsTableTableManager
                 autoBudgetPeriod: autoBudgetPeriod,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 rowid: rowid,
@@ -10966,6 +11994,7 @@ typedef $$BillsTableCreateCompanionBuilder =
       Value<String?> notes,
       required DateTime createdAt,
       required DateTime updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<int> rowid,
@@ -10985,6 +12014,7 @@ typedef $$BillsTableUpdateCompanionBuilder =
       Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<int> rowid,
@@ -11060,6 +12090,11 @@ class $$BillsTableFilterComposer extends Composer<_$AppDatabase, $BillsTable> {
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11148,6 +12183,11 @@ class $$BillsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isSynced => $composableBuilder(
     column: $table.isSynced,
     builder: (column) => ColumnOrderings(column),
@@ -11211,6 +12251,11 @@ class $$BillsTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isSynced =>
       $composableBuilder(column: $table.isSynced, builder: (column) => column);
 
@@ -11261,6 +12306,7 @@ class $$BillsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -11278,6 +12324,7 @@ class $$BillsTableTableManager
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 rowid: rowid,
@@ -11297,6 +12344,7 @@ class $$BillsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -11314,6 +12362,7 @@ class $$BillsTableTableManager
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 rowid: rowid,
@@ -11360,6 +12409,7 @@ typedef $$PiggyBanksTableCreateCompanionBuilder =
       Value<String?> notes,
       required DateTime createdAt,
       required DateTime updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<int> rowid,
@@ -11377,6 +12427,7 @@ typedef $$PiggyBanksTableUpdateCompanionBuilder =
       Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<DateTime?> serverUpdatedAt,
       Value<bool> isSynced,
       Value<String> syncStatus,
       Value<int> rowid,
@@ -11443,6 +12494,11 @@ class $$PiggyBanksTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11521,6 +12577,11 @@ class $$PiggyBanksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isSynced => $composableBuilder(
     column: $table.isSynced,
     builder: (column) => ColumnOrderings(column),
@@ -11580,6 +12641,11 @@ class $$PiggyBanksTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isSynced =>
       $composableBuilder(column: $table.isSynced, builder: (column) => column);
 
@@ -11631,6 +12697,7 @@ class $$PiggyBanksTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -11646,6 +12713,7 @@ class $$PiggyBanksTableTableManager
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 rowid: rowid,
@@ -11663,6 +12731,7 @@ class $$PiggyBanksTableTableManager
                 Value<String?> notes = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
                 Value<bool> isSynced = const Value.absent(),
                 Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -11678,6 +12747,7 @@ class $$PiggyBanksTableTableManager
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
                 isSynced: isSynced,
                 syncStatus: syncStatus,
                 rowid: rowid,
@@ -13199,156 +14269,325 @@ typedef $$ErrorLogTableProcessedTableManager =
       ErrorLogEntity,
       PrefetchHooks Function()
     >;
-typedef $$SyncStatisticsTableTableCreateCompanionBuilder =
+typedef $$SyncStatisticsTableCreateCompanionBuilder =
     SyncStatisticsEntityCompanion Function({
-      required String key,
-      required String value,
-      required DateTime updatedAt,
+      required String entityType,
+      required DateTime lastIncrementalSync,
+      Value<DateTime?> lastFullSync,
+      Value<int> itemsFetchedTotal,
+      Value<int> itemsUpdatedTotal,
+      Value<int> itemsSkippedTotal,
+      Value<int> bandwidthSavedBytes,
+      Value<int> apiCallsSavedCount,
+      Value<DateTime?> syncWindowStart,
+      Value<DateTime?> syncWindowEnd,
+      Value<int> syncWindowDays,
       Value<int> rowid,
     });
-typedef $$SyncStatisticsTableTableUpdateCompanionBuilder =
+typedef $$SyncStatisticsTableUpdateCompanionBuilder =
     SyncStatisticsEntityCompanion Function({
-      Value<String> key,
-      Value<String> value,
-      Value<DateTime> updatedAt,
+      Value<String> entityType,
+      Value<DateTime> lastIncrementalSync,
+      Value<DateTime?> lastFullSync,
+      Value<int> itemsFetchedTotal,
+      Value<int> itemsUpdatedTotal,
+      Value<int> itemsSkippedTotal,
+      Value<int> bandwidthSavedBytes,
+      Value<int> apiCallsSavedCount,
+      Value<DateTime?> syncWindowStart,
+      Value<DateTime?> syncWindowEnd,
+      Value<int> syncWindowDays,
       Value<int> rowid,
     });
 
-class $$SyncStatisticsTableTableFilterComposer
-    extends Composer<_$AppDatabase, $SyncStatisticsTableTable> {
-  $$SyncStatisticsTableTableFilterComposer({
+class $$SyncStatisticsTableFilterComposer
+    extends Composer<_$AppDatabase, $SyncStatisticsTable> {
+  $$SyncStatisticsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get key => $composableBuilder(
-    column: $table.key,
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get value => $composableBuilder(
-    column: $table.value,
+  ColumnFilters<DateTime> get lastIncrementalSync => $composableBuilder(
+    column: $table.lastIncrementalSync,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
+  ColumnFilters<DateTime> get lastFullSync => $composableBuilder(
+    column: $table.lastFullSync,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get itemsFetchedTotal => $composableBuilder(
+    column: $table.itemsFetchedTotal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get itemsUpdatedTotal => $composableBuilder(
+    column: $table.itemsUpdatedTotal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get itemsSkippedTotal => $composableBuilder(
+    column: $table.itemsSkippedTotal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bandwidthSavedBytes => $composableBuilder(
+    column: $table.bandwidthSavedBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get apiCallsSavedCount => $composableBuilder(
+    column: $table.apiCallsSavedCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncWindowStart => $composableBuilder(
+    column: $table.syncWindowStart,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncWindowEnd => $composableBuilder(
+    column: $table.syncWindowEnd,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get syncWindowDays => $composableBuilder(
+    column: $table.syncWindowDays,
     builder: (column) => ColumnFilters(column),
   );
 }
 
-class $$SyncStatisticsTableTableOrderingComposer
-    extends Composer<_$AppDatabase, $SyncStatisticsTableTable> {
-  $$SyncStatisticsTableTableOrderingComposer({
+class $$SyncStatisticsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SyncStatisticsTable> {
+  $$SyncStatisticsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get key => $composableBuilder(
-    column: $table.key,
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get value => $composableBuilder(
-    column: $table.value,
+  ColumnOrderings<DateTime> get lastIncrementalSync => $composableBuilder(
+    column: $table.lastIncrementalSync,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
+  ColumnOrderings<DateTime> get lastFullSync => $composableBuilder(
+    column: $table.lastFullSync,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get itemsFetchedTotal => $composableBuilder(
+    column: $table.itemsFetchedTotal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get itemsUpdatedTotal => $composableBuilder(
+    column: $table.itemsUpdatedTotal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get itemsSkippedTotal => $composableBuilder(
+    column: $table.itemsSkippedTotal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bandwidthSavedBytes => $composableBuilder(
+    column: $table.bandwidthSavedBytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get apiCallsSavedCount => $composableBuilder(
+    column: $table.apiCallsSavedCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncWindowStart => $composableBuilder(
+    column: $table.syncWindowStart,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncWindowEnd => $composableBuilder(
+    column: $table.syncWindowEnd,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get syncWindowDays => $composableBuilder(
+    column: $table.syncWindowDays,
     builder: (column) => ColumnOrderings(column),
   );
 }
 
-class $$SyncStatisticsTableTableAnnotationComposer
-    extends Composer<_$AppDatabase, $SyncStatisticsTableTable> {
-  $$SyncStatisticsTableTableAnnotationComposer({
+class $$SyncStatisticsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SyncStatisticsTable> {
+  $$SyncStatisticsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get key =>
-      $composableBuilder(column: $table.key, builder: (column) => column);
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<String> get value =>
-      $composableBuilder(column: $table.value, builder: (column) => column);
+  GeneratedColumn<DateTime> get lastIncrementalSync => $composableBuilder(
+    column: $table.lastIncrementalSync,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+  GeneratedColumn<DateTime> get lastFullSync => $composableBuilder(
+    column: $table.lastFullSync,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get itemsFetchedTotal => $composableBuilder(
+    column: $table.itemsFetchedTotal,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get itemsUpdatedTotal => $composableBuilder(
+    column: $table.itemsUpdatedTotal,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get itemsSkippedTotal => $composableBuilder(
+    column: $table.itemsSkippedTotal,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get bandwidthSavedBytes => $composableBuilder(
+    column: $table.bandwidthSavedBytes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get apiCallsSavedCount => $composableBuilder(
+    column: $table.apiCallsSavedCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get syncWindowStart => $composableBuilder(
+    column: $table.syncWindowStart,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get syncWindowEnd => $composableBuilder(
+    column: $table.syncWindowEnd,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get syncWindowDays => $composableBuilder(
+    column: $table.syncWindowDays,
+    builder: (column) => column,
+  );
 }
 
-class $$SyncStatisticsTableTableTableManager
+class $$SyncStatisticsTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $SyncStatisticsTableTable,
+          $SyncStatisticsTable,
           SyncStatisticsEntity,
-          $$SyncStatisticsTableTableFilterComposer,
-          $$SyncStatisticsTableTableOrderingComposer,
-          $$SyncStatisticsTableTableAnnotationComposer,
-          $$SyncStatisticsTableTableCreateCompanionBuilder,
-          $$SyncStatisticsTableTableUpdateCompanionBuilder,
+          $$SyncStatisticsTableFilterComposer,
+          $$SyncStatisticsTableOrderingComposer,
+          $$SyncStatisticsTableAnnotationComposer,
+          $$SyncStatisticsTableCreateCompanionBuilder,
+          $$SyncStatisticsTableUpdateCompanionBuilder,
           (
             SyncStatisticsEntity,
             BaseReferences<
               _$AppDatabase,
-              $SyncStatisticsTableTable,
+              $SyncStatisticsTable,
               SyncStatisticsEntity
             >,
           ),
           SyncStatisticsEntity,
           PrefetchHooks Function()
         > {
-  $$SyncStatisticsTableTableTableManager(
+  $$SyncStatisticsTableTableManager(
     _$AppDatabase db,
-    $SyncStatisticsTableTable table,
+    $SyncStatisticsTable table,
   ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer:
-              () => $$SyncStatisticsTableTableFilterComposer(
-                $db: db,
-                $table: table,
-              ),
+              () => $$SyncStatisticsTableFilterComposer($db: db, $table: table),
           createOrderingComposer:
-              () => $$SyncStatisticsTableTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
+              () =>
+                  $$SyncStatisticsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer:
-              () => $$SyncStatisticsTableTableAnnotationComposer(
+              () => $$SyncStatisticsTableAnnotationComposer(
                 $db: db,
                 $table: table,
               ),
           updateCompanionCallback:
               ({
-                Value<String> key = const Value.absent(),
-                Value<String> value = const Value.absent(),
-                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String> entityType = const Value.absent(),
+                Value<DateTime> lastIncrementalSync = const Value.absent(),
+                Value<DateTime?> lastFullSync = const Value.absent(),
+                Value<int> itemsFetchedTotal = const Value.absent(),
+                Value<int> itemsUpdatedTotal = const Value.absent(),
+                Value<int> itemsSkippedTotal = const Value.absent(),
+                Value<int> bandwidthSavedBytes = const Value.absent(),
+                Value<int> apiCallsSavedCount = const Value.absent(),
+                Value<DateTime?> syncWindowStart = const Value.absent(),
+                Value<DateTime?> syncWindowEnd = const Value.absent(),
+                Value<int> syncWindowDays = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SyncStatisticsEntityCompanion(
-                key: key,
-                value: value,
-                updatedAt: updatedAt,
+                entityType: entityType,
+                lastIncrementalSync: lastIncrementalSync,
+                lastFullSync: lastFullSync,
+                itemsFetchedTotal: itemsFetchedTotal,
+                itemsUpdatedTotal: itemsUpdatedTotal,
+                itemsSkippedTotal: itemsSkippedTotal,
+                bandwidthSavedBytes: bandwidthSavedBytes,
+                apiCallsSavedCount: apiCallsSavedCount,
+                syncWindowStart: syncWindowStart,
+                syncWindowEnd: syncWindowEnd,
+                syncWindowDays: syncWindowDays,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                required String key,
-                required String value,
-                required DateTime updatedAt,
+                required String entityType,
+                required DateTime lastIncrementalSync,
+                Value<DateTime?> lastFullSync = const Value.absent(),
+                Value<int> itemsFetchedTotal = const Value.absent(),
+                Value<int> itemsUpdatedTotal = const Value.absent(),
+                Value<int> itemsSkippedTotal = const Value.absent(),
+                Value<int> bandwidthSavedBytes = const Value.absent(),
+                Value<int> apiCallsSavedCount = const Value.absent(),
+                Value<DateTime?> syncWindowStart = const Value.absent(),
+                Value<DateTime?> syncWindowEnd = const Value.absent(),
+                Value<int> syncWindowDays = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SyncStatisticsEntityCompanion.insert(
-                key: key,
-                value: value,
-                updatedAt: updatedAt,
+                entityType: entityType,
+                lastIncrementalSync: lastIncrementalSync,
+                lastFullSync: lastFullSync,
+                itemsFetchedTotal: itemsFetchedTotal,
+                itemsUpdatedTotal: itemsUpdatedTotal,
+                itemsSkippedTotal: itemsSkippedTotal,
+                bandwidthSavedBytes: bandwidthSavedBytes,
+                apiCallsSavedCount: apiCallsSavedCount,
+                syncWindowStart: syncWindowStart,
+                syncWindowEnd: syncWindowEnd,
+                syncWindowDays: syncWindowDays,
                 rowid: rowid,
               ),
           withReferenceMapper:
@@ -13366,21 +14605,21 @@ class $$SyncStatisticsTableTableTableManager
       );
 }
 
-typedef $$SyncStatisticsTableTableProcessedTableManager =
+typedef $$SyncStatisticsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $SyncStatisticsTableTable,
+      $SyncStatisticsTable,
       SyncStatisticsEntity,
-      $$SyncStatisticsTableTableFilterComposer,
-      $$SyncStatisticsTableTableOrderingComposer,
-      $$SyncStatisticsTableTableAnnotationComposer,
-      $$SyncStatisticsTableTableCreateCompanionBuilder,
-      $$SyncStatisticsTableTableUpdateCompanionBuilder,
+      $$SyncStatisticsTableFilterComposer,
+      $$SyncStatisticsTableOrderingComposer,
+      $$SyncStatisticsTableAnnotationComposer,
+      $$SyncStatisticsTableCreateCompanionBuilder,
+      $$SyncStatisticsTableUpdateCompanionBuilder,
       (
         SyncStatisticsEntity,
         BaseReferences<
           _$AppDatabase,
-          $SyncStatisticsTableTable,
+          $SyncStatisticsTable,
           SyncStatisticsEntity
         >,
       ),
@@ -13704,8 +14943,8 @@ class $AppDatabaseManager {
       $$ConflictsTableTableManager(_db, _db.conflicts);
   $$ErrorLogTableTableManager get errorLog =>
       $$ErrorLogTableTableManager(_db, _db.errorLog);
-  $$SyncStatisticsTableTableTableManager get syncStatisticsTable =>
-      $$SyncStatisticsTableTableTableManager(_db, _db.syncStatisticsTable);
+  $$SyncStatisticsTableTableManager get syncStatistics =>
+      $$SyncStatisticsTableTableManager(_db, _db.syncStatistics);
   $$CacheMetadataTableTableTableManager get cacheMetadataTable =>
       $$CacheMetadataTableTableTableManager(_db, _db.cacheMetadataTable);
 }

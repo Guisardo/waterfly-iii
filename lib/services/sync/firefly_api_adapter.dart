@@ -1,7 +1,38 @@
 import 'package:logging/logging.dart';
-import '../../generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/models/paginated_result.dart';
+
+/// Exception thrown when an API operation fails.
+///
+/// Contains the error message and optionally the HTTP status code.
+class ApiException implements Exception {
+  /// Error message describing what went wrong.
+  final String message;
+
+  /// HTTP status code if available.
+  final int? statusCode;
+
+  /// Response headers if available (for rate limiting).
+  final Map<String, String>? headers;
+
+  /// Creates a new API exception.
+  ApiException(this.message, {this.statusCode, this.headers});
+
+  @override
+  String toString() => 'ApiException: $message${statusCode != null ? ' (status: $statusCode)' : ''}';
+}
 
 /// Adapter for Firefly III API client to work with sync manager.
+///
+/// This adapter provides a clean interface for interacting with the Firefly III
+/// API, handling pagination, error handling, and data transformation. It is
+/// designed to work with both full sync and incremental sync strategies.
+///
+/// Key features:
+/// - Paginated API methods that return [PaginatedResult] with metadata
+/// - Date-range filtering for incremental sync support
+/// - Comprehensive error handling with [ApiException]
+/// - Logging for debugging and monitoring
 class FireflyApiAdapter {
   final Logger _logger = Logger('FireflyApiAdapter');
   final FireflyIii apiClient;
@@ -887,5 +918,358 @@ class FireflyApiAdapter {
     
     _logger.info('Fetched ${transactions.length} transactions since $since');
     return transactions;
+  }
+
+  // ==================== Paginated API Methods (Incremental Sync) ====================
+
+  /// Fetch transactions with pagination and optional date filtering.
+  ///
+  /// This method returns pagination metadata along with the data, enabling
+  /// efficient iteration through large datasets for incremental sync.
+  ///
+  /// Parameters:
+  /// - [page]: Page number (1-indexed)
+  /// - [start]: Optional start date filter (YYYY-MM-DD format)
+  /// - [end]: Optional end date filter (YYYY-MM-DD format)
+  /// - [limit]: Items per page (default: 50)
+  ///
+  /// Returns a [PaginatedResult] containing:
+  /// - Transaction data for the requested page
+  /// - Total count of all transactions matching the filter
+  /// - Current page number
+  /// - Total number of pages
+  /// - Items per page
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await adapter.getTransactionsPaginated(
+  ///   page: 1,
+  ///   start: DateTime(2024, 12, 1),
+  ///   end: DateTime(2024, 12, 31),
+  /// );
+  ///
+  /// while (result.hasMore) {
+  ///   result = await adapter.getTransactionsPaginated(
+  ///     page: result.currentPage + 1,
+  ///     start: DateTime(2024, 12, 1),
+  ///   );
+  /// }
+  /// ```
+  Future<PaginatedResult<Map<String, dynamic>>> getTransactionsPaginated({
+    required int page,
+    DateTime? start,
+    DateTime? end,
+    int limit = 50,
+  }) async {
+    _logger.fine('Fetching transactions page $page (start: $start, end: $end, limit: $limit)');
+
+    final response = await apiClient.v1TransactionsGet(
+      page: page,
+      limit: limit,
+      start: start?.toIso8601String().split('T')[0],
+      end: end?.toIso8601String().split('T')[0],
+    );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch transactions: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final TransactionArray body = response.body!;
+    final Meta? meta = body.meta;
+
+    // Extract pagination metadata, using safe defaults if not available
+    final int total = meta?.pagination?.total ?? body.data.length;
+    final int currentPage = meta?.pagination?.currentPage ?? page;
+    final int totalPages = meta?.pagination?.totalPages ?? 1;
+    final int perPage = meta?.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+      data: body.data.map((TransactionRead t) => <String, dynamic>{
+        'id': t.id,
+        'type': t.type,
+        'attributes': t.attributes.toJson(),
+      }).toList(),
+      total: total,
+      currentPage: currentPage,
+      totalPages: totalPages,
+      perPage: perPage,
+    );
+
+    _logger.fine('Fetched transactions page $page: ${result.data.length} items '
+        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+
+    return result;
+  }
+
+  /// Fetch accounts with pagination and optional date filtering.
+  ///
+  /// Similar to [getTransactionsPaginated] but for accounts.
+  /// The date filter affects balance calculations, not account filtering.
+  ///
+  /// Parameters:
+  /// - [page]: Page number (1-indexed)
+  /// - [start]: Optional start date for balance calculation
+  /// - [limit]: Items per page (default: 50)
+  Future<PaginatedResult<Map<String, dynamic>>> getAccountsPaginated({
+    required int page,
+    DateTime? start,
+    int limit = 50,
+  }) async {
+    _logger.fine('Fetching accounts page $page (start: $start, limit: $limit)');
+
+    final response = await apiClient.v1AccountsGet(
+      page: page,
+      limit: limit,
+      date: start?.toIso8601String().split('T')[0],
+    );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch accounts: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final AccountArray body = response.body!;
+    final Meta? meta = body.meta;
+
+    final int total = meta?.pagination?.total ?? body.data.length;
+    final int currentPage = meta?.pagination?.currentPage ?? page;
+    final int totalPages = meta?.pagination?.totalPages ?? 1;
+    final int perPage = meta?.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+      data: body.data.map((AccountRead a) => <String, dynamic>{
+        'id': a.id,
+        'type': a.type,
+        'attributes': a.attributes.toJson(),
+      }).toList(),
+      total: total,
+      currentPage: currentPage,
+      totalPages: totalPages,
+      perPage: perPage,
+    );
+
+    _logger.fine('Fetched accounts page $page: ${result.data.length} items '
+        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+
+    return result;
+  }
+
+  /// Fetch budgets with pagination and optional date filtering.
+  ///
+  /// Similar to [getTransactionsPaginated] but for budgets.
+  /// The date filter affects budget limit calculations.
+  ///
+  /// Parameters:
+  /// - [page]: Page number (1-indexed)
+  /// - [start]: Optional start date for budget period
+  /// - [end]: Optional end date for budget period
+  /// - [limit]: Items per page (default: 50)
+  Future<PaginatedResult<Map<String, dynamic>>> getBudgetsPaginated({
+    required int page,
+    DateTime? start,
+    DateTime? end,
+    int limit = 50,
+  }) async {
+    _logger.fine('Fetching budgets page $page (start: $start, end: $end, limit: $limit)');
+
+    final response = await apiClient.v1BudgetsGet(
+      page: page,
+      limit: limit,
+      start: start?.toIso8601String().split('T')[0],
+      end: end?.toIso8601String().split('T')[0],
+    );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch budgets: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final BudgetArray body = response.body!;
+    final Meta? meta = body.meta;
+
+    final int total = meta?.pagination?.total ?? body.data.length;
+    final int currentPage = meta?.pagination?.currentPage ?? page;
+    final int totalPages = meta?.pagination?.totalPages ?? 1;
+    final int perPage = meta?.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+      data: body.data.map((BudgetRead b) => <String, dynamic>{
+        'id': b.id,
+        'type': b.type,
+        'attributes': b.attributes.toJson(),
+      }).toList(),
+      total: total,
+      currentPage: currentPage,
+      totalPages: totalPages,
+      perPage: perPage,
+    );
+
+    _logger.fine('Fetched budgets page $page: ${result.data.length} items '
+        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+
+    return result;
+  }
+
+  /// Fetch categories with pagination.
+  ///
+  /// Note: Firefly III API does not support date filtering for categories.
+  /// Categories are cached entities with extended TTL (24 hours).
+  ///
+  /// Parameters:
+  /// - [page]: Page number (1-indexed)
+  /// - [limit]: Items per page (default: 50)
+  Future<PaginatedResult<Map<String, dynamic>>> getCategoriesPaginated({
+    required int page,
+    int limit = 50,
+  }) async {
+    _logger.fine('Fetching categories page $page (limit: $limit)');
+
+    final response = await apiClient.v1CategoriesGet(
+      page: page,
+      limit: limit,
+    );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch categories: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final CategoryArray body = response.body!;
+    final Meta? meta = body.meta;
+
+    final int total = meta?.pagination?.total ?? body.data.length;
+    final int currentPage = meta?.pagination?.currentPage ?? page;
+    final int totalPages = meta?.pagination?.totalPages ?? 1;
+    final int perPage = meta?.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+      data: body.data.map((CategoryRead c) => <String, dynamic>{
+        'id': c.id,
+        'type': c.type,
+        'attributes': c.attributes.toJson(),
+      }).toList(),
+      total: total,
+      currentPage: currentPage,
+      totalPages: totalPages,
+      perPage: perPage,
+    );
+
+    _logger.fine('Fetched categories page $page: ${result.data.length} items '
+        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+
+    return result;
+  }
+
+  /// Fetch bills with pagination.
+  ///
+  /// Note: Firefly III API does not support date filtering for bills.
+  /// Bills are cached entities with extended TTL (24 hours).
+  ///
+  /// Parameters:
+  /// - [page]: Page number (1-indexed)
+  /// - [limit]: Items per page (default: 50)
+  Future<PaginatedResult<Map<String, dynamic>>> getBillsPaginated({
+    required int page,
+    int limit = 50,
+  }) async {
+    _logger.fine('Fetching bills page $page (limit: $limit)');
+
+    final response = await apiClient.v1BillsGet(
+      page: page,
+      limit: limit,
+    );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch bills: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final BillArray body = response.body!;
+    final Meta? meta = body.meta;
+
+    final int total = meta?.pagination?.total ?? body.data.length;
+    final int currentPage = meta?.pagination?.currentPage ?? page;
+    final int totalPages = meta?.pagination?.totalPages ?? 1;
+    final int perPage = meta?.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+      data: body.data.map((BillRead b) => <String, dynamic>{
+        'id': b.id,
+        'type': b.type,
+        'attributes': b.attributes.toJson(),
+      }).toList(),
+      total: total,
+      currentPage: currentPage,
+      totalPages: totalPages,
+      perPage: perPage,
+    );
+
+    _logger.fine('Fetched bills page $page: ${result.data.length} items '
+        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+
+    return result;
+  }
+
+  /// Fetch piggy banks with pagination.
+  ///
+  /// Note: Firefly III API does not support date filtering for piggy banks.
+  /// Piggy banks are cached entities with extended TTL (24 hours).
+  ///
+  /// Parameters:
+  /// - [page]: Page number (1-indexed)
+  /// - [limit]: Items per page (default: 50)
+  Future<PaginatedResult<Map<String, dynamic>>> getPiggyBanksPaginated({
+    required int page,
+    int limit = 50,
+  }) async {
+    _logger.fine('Fetching piggy banks page $page (limit: $limit)');
+
+    final response = await apiClient.v1PiggyBanksGet(
+      page: page,
+      limit: limit,
+    );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch piggy banks: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final PiggyBankArray body = response.body!;
+    final Meta? meta = body.meta;
+
+    final int total = meta?.pagination?.total ?? body.data.length;
+    final int currentPage = meta?.pagination?.currentPage ?? page;
+    final int totalPages = meta?.pagination?.totalPages ?? 1;
+    final int perPage = meta?.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+      data: body.data.map((PiggyBankRead p) => <String, dynamic>{
+        'id': p.id,
+        'type': p.type,
+        'attributes': p.attributes.toJson(),
+      }).toList(),
+      total: total,
+      currentPage: currentPage,
+      totalPages: totalPages,
+      perPage: perPage,
+    );
+
+    _logger.fine('Fetched piggy banks page $page: ${result.data.length} items '
+        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+
+    return result;
   }
 }
