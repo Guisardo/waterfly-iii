@@ -12,6 +12,8 @@ import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/models/cache/cache_invalidation_event.dart';
 import 'package:waterflyiii/models/cache/cache_result.dart';
 import 'package:waterflyiii/models/cache/cache_stats.dart';
+import 'package:waterflyiii/models/cache/etag_response.dart';
+import 'package:waterflyiii/services/cache/etag_handler.dart';
 
 /// Cache Service
 ///
@@ -149,19 +151,54 @@ class CacheService {
   /// Timer for periodic cache cleanup
   Timer? _cleanupTimer;
 
+  /// Maximum cache size in megabytes
+  ///
+  /// When cache size exceeds this limit, LRU eviction is triggered.
+  /// Default: 100MB. Can be configured via settings.
+  ///
+  /// Note: This is an estimated size based on cache metadata entries.
+  /// Actual disk usage may vary based on entity data stored in entity tables.
+  int _maxCacheSizeMB = 100;
+
+  /// ETag handler for HTTP cache validation
+  ///
+  /// Handles ETag extraction, If-None-Match header injection, and 304 responses.
+  /// Provides bandwidth savings through conditional HTTP requests.
+  ///
+  /// Optional: Only used when ETag-aware fetchers are provided.
+  final ETagHandler? etagHandler;
+
+  /// Number of ETag-aware requests
+  int _etagRequests = 0;
+
+  /// Number of 304 Not Modified responses (ETag hits)
+  int _etagHits = 0;
+
   /// Creates a cache service with the specified database
   ///
   /// Parameters:
   /// - [database]: AppDatabase instance for cache metadata storage
+  /// - [etagHandler]: Optional ETag handler for HTTP cache validation
   ///
   /// Automatically starts periodic cleanup on initialization.
   ///
+  /// ETag Support:
+  /// If [etagHandler] is provided, the cache service can use ETags for
+  /// bandwidth-efficient cache validation. This requires ETag-aware fetchers
+  /// that return [ETagResponse] objects.
+  ///
   /// Example:
   /// ```dart
-  /// final cacheService = CacheService(database: appDatabase);
+  /// final cacheService = CacheService(
+  ///   database: appDatabase,
+  ///   etagHandler: ETagHandler(), // Optional
+  /// );
   /// ```
-  CacheService({required this.database}) {
-    _log.info('CacheService initialized');
+  CacheService({
+    required this.database,
+    this.etagHandler,
+  }) {
+    _log.info('CacheService initialized (ETag support: ${etagHandler != null})');
     _startPeriodicCleanup();
   }
 
@@ -275,6 +312,325 @@ class CacheService {
     _cacheMisses++;
     _log.info('Cache miss: $entityType:$entityId');
     return await _fetchAndCache(entityType, entityId, fetcher, ttl);
+  }
+
+  /// Get data with cache-first strategy and ETag support
+  ///
+  /// Enhanced version of get() that supports HTTP ETag cache validation for
+  /// bandwidth-efficient caching. Requires an ETag-aware fetcher that accepts
+  /// an optional cached ETag and returns an ETagResponse.
+  ///
+  /// ETag Flow:
+  /// 1. Check cache freshness
+  /// 2. If fresh: Return cached data (no API call)
+  /// 3. If stale/miss: Fetch with If-None-Match header (cached ETag)
+  /// 4. If 304: Use cached data (bandwidth saved ~90%)
+  /// 5. If 200: Use new data and update ETag
+  ///
+  /// Bandwidth Savings:
+  /// - 304 response: ~200 bytes (headers only)
+  /// - 200 response: 2-50KB+ (full response)
+  /// - Typical savings: 80-95% for unchanged data
+  ///
+  /// Type Parameters:
+  /// - [T]: Type of entity being retrieved
+  ///
+  /// Parameters:
+  /// - [entityType]: Entity type (e.g., 'transaction', 'account')
+  /// - [entityId]: Entity ID or cache key
+  /// - [fetcher]: ETag-aware function that accepts cached ETag and returns ETagResponse<T>
+  /// - [ttl]: Time-to-live duration (defaults from CacheTtlConfig)
+  /// - [forceRefresh]: Skip cache and force API fetch
+  /// - [backgroundRefresh]: Enable background refresh for stale data
+  ///
+  /// Returns:
+  /// [CacheResult<T>] containing data, source, and freshness info
+  ///
+  /// Requires:
+  /// - [etagHandler] must be provided in constructor
+  ///
+  /// Throws:
+  /// - [StateError] if etagHandler is null
+  /// - Exception from fetcher if API call fails and no cached data available
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await cacheService.getWithETag<Account>(
+  ///   entityType: 'account',
+  ///   entityId: '123',
+  ///   fetcher: (cachedETag) async {
+  ///     // Make API request with If-None-Match header
+  ///     final options = etagHandler.createOptionsWithETag(
+  ///       path: '/api/accounts/123',
+  ///       ifNoneMatch: cachedETag,
+  ///     );
+  ///     final response = await dio.fetch(options);
+  ///     return etagHandler.wrapResponse<Account>(
+  ///       response: response,
+  ///       parser: (json) => Account.fromJson(json),
+  ///       cachedData: cachedAccountIfAvailable,
+  ///     );
+  ///   },
+  /// );
+  ///
+  /// if (result.data != null) {
+  ///   // Use account data
+  ///   // If from 304: bandwidth saved!
+  ///   // If from 200: fresh data with new ETag
+  /// }
+  /// ```
+  Future<CacheResult<T>> getWithETag<T>({
+    required String entityType,
+    required String entityId,
+    required Future<ETagResponse<T>> Function(String? cachedETag) fetcher,
+    Duration? ttl,
+    bool forceRefresh = false,
+    bool backgroundRefresh = true,
+  }) async {
+    if (etagHandler == null) {
+      throw StateError(
+        'ETagHandler not provided. Use CacheService(etagHandler: ETagHandler()) constructor.',
+      );
+    }
+
+    _totalRequests++;
+    _etagRequests++;
+    _log.fine('Cache get with ETag: $entityType:$entityId (force=$forceRefresh)');
+
+    // Force refresh bypasses cache completely
+    if (forceRefresh) {
+      _log.fine('Force refresh requested, bypassing cache');
+      return await _fetchAndCacheWithETag(
+        entityType,
+        entityId,
+        fetcher,
+        ttl,
+        cachedETag: null,
+      );
+    }
+
+    // Check cache freshness
+    final bool fresh = await isFresh(entityType, entityId);
+
+    if (fresh) {
+      // Cache hit (fresh): Return immediately without API call
+      _cacheHits++;
+      _hitsByEntityType[entityType] = (_hitsByEntityType[entityType] ?? 0) + 1;
+      _log.info('Cache hit (fresh): $entityType:$entityId');
+
+      final T? data = await _getFromLocalDb<T>(entityType, entityId);
+      await _updateLastAccessed(entityType, entityId);
+
+      return CacheResult<T>(
+        data: data,
+        source: CacheSource.cache,
+        isFresh: true,
+        cachedAt: await _getCachedAt(entityType, entityId),
+      );
+    }
+
+    // Get cached data and ETag
+    final T? cachedData = await _getFromLocalDb<T>(entityType, entityId);
+    final String? cachedETag = await _getCachedETag(entityType, entityId);
+
+    if (cachedData != null) {
+      // Cache hit (stale): Return cached data immediately, refresh in background
+      _staleServed++;
+      _log.info('Cache hit (stale): $entityType:$entityId (ETag: ${cachedETag != null})');
+
+      if (backgroundRefresh) {
+        // Start background refresh with ETag (fire-and-forget)
+        _log.fine('Starting background refresh with ETag for $entityType:$entityId');
+        unawaited(_backgroundRefreshWithETag(
+          entityType,
+          entityId,
+          fetcher,
+          ttl,
+          cachedETag,
+          cachedData,
+        ));
+      }
+
+      return CacheResult<T>(
+        data: cachedData,
+        source: CacheSource.cache,
+        isFresh: false,
+        cachedAt: await _getCachedAt(entityType, entityId),
+      );
+    }
+
+    // Cache miss: Fetch from API (no cached ETag available)
+    _cacheMisses++;
+    _log.info('Cache miss: $entityType:$entityId');
+    return await _fetchAndCacheWithETag(
+      entityType,
+      entityId,
+      fetcher,
+      ttl,
+      cachedETag: null,
+    );
+  }
+
+  /// Background refresh with ETag support and retry logic
+  ///
+  /// Fetches fresh data from API in the background with ETag validation.
+  /// If server returns 304, cached data is still valid (bandwidth saved).
+  /// If server returns 200, cache is updated with new data and new ETag.
+  ///
+  /// Parameters:
+  /// - [entityType]: Entity type being refreshed
+  /// - [entityId]: Entity ID being refreshed
+  /// - [fetcher]: ETag-aware fetcher function
+  /// - [ttl]: Time-to-live for the refreshed data
+  /// - [cachedETag]: Cached ETag value (for If-None-Match)
+  /// - [cachedData]: Cached data (for 304 responses)
+  Future<void> _backgroundRefreshWithETag<T>(
+    String entityType,
+    String entityId,
+    Future<ETagResponse<T>> Function(String? cachedETag) fetcher,
+    Duration? ttl,
+    String? cachedETag,
+    T cachedData,
+  ) async {
+    _backgroundRefreshes++;
+
+    try {
+      _log.fine('Background ETag refresh starting: $entityType:$entityId');
+
+      // Use retry package for resilient API calls
+      final ETagResponse<T> etagResponse = await retry(
+        () => fetcher(cachedETag),
+        maxAttempts: 2,
+        onRetry: (e) =>
+            _log.warning('Retry background ETag fetch: $entityType:$entityId', e),
+      );
+
+      // Handle 304 Not Modified
+      if (etagResponse.isNotModified) {
+        _etagHits++;
+        _log.info(
+          'Background refresh: 304 Not Modified (bandwidth saved) - $entityType:$entityId',
+        );
+
+        // Update lastAccessedAt to keep cache fresh
+        await _updateLastAccessed(entityType, entityId);
+
+        // Emit refresh event with cached data (data unchanged)
+        _invalidationStream.add(CacheInvalidationEvent(
+          entityType: entityType,
+          entityId: entityId,
+          eventType: CacheEventType.refreshed,
+          data: cachedData,
+          timestamp: DateTime.now(),
+        ));
+
+        return;
+      }
+
+      // Handle 200 OK (data changed)
+      if (etagResponse.isSuccessful && etagResponse.hasData) {
+        _log.info('Background refresh: 200 OK (data changed) - $entityType:$entityId');
+
+        // Update cache with fresh data and new ETag
+        await set(
+          entityType: entityType,
+          entityId: entityId,
+          data: etagResponse.data!,
+          ttl: ttl,
+          etag: etagResponse.normalizedETag,
+        );
+
+        // Emit refresh event with new data
+        _invalidationStream.add(CacheInvalidationEvent(
+          entityType: entityType,
+          entityId: entityId,
+          eventType: CacheEventType.refreshed,
+          data: etagResponse.data,
+          timestamp: DateTime.now(),
+        ));
+      } else {
+        _log.warning(
+          'Background refresh returned unsuccessful status: ${etagResponse.statusCode}',
+        );
+      }
+    } catch (e, stackTrace) {
+      _log.severe(
+        'Background ETag refresh failed: $entityType:$entityId',
+        e,
+        stackTrace,
+      );
+      // Don't propagate error - cached data already returned to user
+    }
+  }
+
+  /// Fetch from API with ETag support and cache result
+  ///
+  /// Called on cache miss or force refresh for ETag-aware requests.
+  ///
+  /// Parameters:
+  /// - [entityType]: Entity type being fetched
+  /// - [entityId]: Entity ID being fetched
+  /// - [fetcher]: ETag-aware fetcher function
+  /// - [ttl]: Time-to-live for cached data
+  /// - [cachedETag]: Cached ETag value (may be null on first request)
+  ///
+  /// Returns:
+  /// [CacheResult<T>] with data from API
+  Future<CacheResult<T>> _fetchAndCacheWithETag<T>(
+    String entityType,
+    String entityId,
+    Future<ETagResponse<T>> Function(String? cachedETag) fetcher,
+    Duration? ttl, {
+    required String? cachedETag,
+  }) async {
+    try {
+      _log.fine('Fetching from API with ETag: $entityType:$entityId');
+
+      final ETagResponse<T> etagResponse = await fetcher(cachedETag);
+
+      // Handle 304 Not Modified (shouldn't happen on cache miss, but possible)
+      if (etagResponse.isNotModified) {
+        _etagHits++;
+        _log.warning(
+          '304 response on cache miss - unusual. Using null data. $entityType:$entityId',
+        );
+
+        return CacheResult<T>(
+          data: null,
+          source: CacheSource.api,
+          isFresh: true,
+          cachedAt: DateTime.now(),
+        );
+      }
+
+      // Handle successful response
+      if (etagResponse.isSuccessful && etagResponse.hasData) {
+        // Cache the result with ETag
+        await set(
+          entityType: entityType,
+          entityId: entityId,
+          data: etagResponse.data!,
+          ttl: ttl,
+          etag: etagResponse.normalizedETag,
+        );
+
+        return CacheResult<T>(
+          data: etagResponse.data,
+          source: CacheSource.api,
+          isFresh: true,
+          cachedAt: DateTime.now(),
+        );
+      }
+
+      // Handle error response
+      _log.severe('API fetch failed with status: ${etagResponse.statusCode}');
+      throw Exception(
+        'API returned error status: ${etagResponse.statusCode}',
+      );
+    } catch (e, stackTrace) {
+      _log.severe('API fetch with ETag failed: $entityType:$entityId', e, stackTrace);
+      rethrow;
+    }
   }
 
   /// Background refresh with retry logic
@@ -692,6 +1048,10 @@ class CacheService {
     // Entity data varies, estimate ~2KB average per entry
     final estimatedSizeMB = ((totalEntries * 2200) / (1024 * 1024)).round();
 
+    // Calculate ETag statistics
+    final double etagHitRate =
+        _etagRequests > 0 ? _etagHits / _etagRequests : 0.0;
+
     return CacheStats(
       totalRequests: _totalRequests,
       cacheHits: _cacheHits,
@@ -705,6 +1065,9 @@ class CacheService {
       totalEntries: totalEntries,
       invalidatedEntries: invalidatedEntries,
       hitsByEntityType: Map<String, int>.from(_hitsByEntityType),
+      etagRequests: _etagRequests,
+      etagHits: _etagHits,
+      etagHitRate: etagHitRate,
     );
   }
 
@@ -752,13 +1115,239 @@ class CacheService {
     });
   }
 
+  /// Calculate current cache size
+  ///
+  /// Estimates cache size based on:
+  /// - Cache metadata entries: ~200 bytes each
+  /// - Average entity data: ~2KB per entry (estimated)
+  ///
+  /// Note: This is an approximation. Actual size varies by entity type:
+  /// - Transactions: ~1KB (relatively small)
+  /// - Accounts: ~500 bytes (small)
+  /// - Categories: ~300 bytes (very small)
+  /// - Transaction lists: ~50KB+ (large, contains many transactions)
+  ///
+  /// Returns:
+  /// Estimated cache size in megabytes
+  ///
+  /// Example:
+  /// ```dart
+  /// final sizeMB = await cacheService.calculateCacheSizeMB();
+  /// print('Cache size: ${sizeMB}MB');
+  /// ```
+  Future<int> calculateCacheSizeMB() async {
+    final totalEntries = await database
+        .select(database.cacheMetadataTable)
+        .get()
+        .then((l) => l.length);
+
+    // Estimate: 200 bytes metadata + 2KB entity data per entry
+    final estimatedBytes = totalEntries * 2200;
+    final estimatedMB = (estimatedBytes / (1024 * 1024)).round();
+
+    _log.finest('Cache size estimate: ${estimatedMB}MB ($totalEntries entries)');
+
+    return estimatedMB;
+  }
+
+  /// Set maximum cache size limit
+  ///
+  /// Updates the cache size limit and triggers LRU eviction if current size
+  /// exceeds the new limit.
+  ///
+  /// Parameters:
+  /// - [sizeMB]: Maximum cache size in megabytes (must be > 0)
+  ///
+  /// Throws:
+  /// [ArgumentError] if sizeMB <= 0
+  ///
+  /// Example:
+  /// ```dart
+  /// await cacheService.setMaxCacheSizeMB(50); // Limit to 50MB
+  /// ```
+  Future<void> setMaxCacheSizeMB(int sizeMB) async {
+    if (sizeMB <= 0) {
+      throw ArgumentError('Cache size limit must be greater than 0');
+    }
+
+    _log.info('Setting cache size limit to ${sizeMB}MB (was ${_maxCacheSizeMB}MB)');
+    _maxCacheSizeMB = sizeMB;
+
+    // Check if eviction needed with new limit
+    await evictLruIfNeeded();
+  }
+
+  /// Get current maximum cache size limit
+  ///
+  /// Returns:
+  /// Maximum cache size in megabytes
+  ///
+  /// Example:
+  /// ```dart
+  /// final limit = cacheService.maxCacheSizeMB;
+  /// print('Cache limit: ${limit}MB');
+  /// ```
+  int get maxCacheSizeMB => _maxCacheSizeMB;
+
+  /// Evict least-recently-used cache entries if size exceeds limit
+  ///
+  /// LRU Eviction Strategy:
+  /// 1. Calculate current cache size
+  /// 2. If size <= limit: Do nothing
+  /// 3. If size > limit:
+  ///    - Query all cache entries ordered by lastAccessedAt (ascending)
+  ///    - Evict oldest entries until size <= limit
+  ///    - Log eviction metrics
+  ///
+  /// This preserves:
+  /// - Recently accessed data (likely to be needed again)
+  /// - Frequently accessed data (accessed recently)
+  ///
+  /// This evicts:
+  /// - Stale data that hasn't been accessed in a while
+  /// - One-time accessed data that's unlikely to be needed again
+  ///
+  /// Example:
+  /// ```dart
+  /// await cacheService.evictLruIfNeeded();
+  /// // Cache now under size limit
+  /// ```
+  Future<void> evictLruIfNeeded() async {
+    await _lock.synchronized(() async {
+      final currentSizeMB = await calculateCacheSizeMB();
+
+      if (currentSizeMB <= _maxCacheSizeMB) {
+        _log.finest(
+          'Cache size OK: ${currentSizeMB}MB / ${_maxCacheSizeMB}MB (no eviction needed)',
+        );
+        return;
+      }
+
+      _log.warning(
+        'Cache size exceeded: ${currentSizeMB}MB / ${_maxCacheSizeMB}MB, starting LRU eviction',
+      );
+
+      // Get all entries sorted by last access (oldest first)
+      final entries = await (database.select(database.cacheMetadataTable)
+            ..orderBy([
+              (tbl) => OrderingTerm.asc(tbl.lastAccessedAt),
+            ]))
+          .get();
+
+      int evictedCount = 0;
+      int freedMB = 0;
+
+      // Evict entries until under limit
+      for (final entry in entries) {
+        // Recalculate current size
+        final newSizeMB = await calculateCacheSizeMB();
+        if (newSizeMB <= _maxCacheSizeMB) {
+          _log.info(
+            'LRU eviction target reached: ${newSizeMB}MB / ${_maxCacheSizeMB}MB',
+          );
+          break;
+        }
+
+        // Estimate entry size (metadata + data)
+        final entrySizeKB = 2.2; // 2.2KB average per entry
+        final entrySizeMB = entrySizeKB / 1024;
+
+        // Delete cache metadata entry
+        final deleted = await (database.delete(database.cacheMetadataTable)
+              ..where(
+                (tbl) =>
+                    tbl.entityType.equals(entry.entityType) &
+                    tbl.entityId.equals(entry.entityId),
+              ))
+            .go();
+
+        if (deleted > 0) {
+          evictedCount++;
+          freedMB += entrySizeMB.ceil();
+
+          _log.fine(
+            'Evicted cache entry: ${entry.entityType}:${entry.entityId} '
+            '(last accessed: ${entry.lastAccessedAt})',
+          );
+        }
+      }
+
+      // Update eviction counter
+      _evictions += evictedCount;
+
+      final finalSizeMB = await calculateCacheSizeMB();
+      _log.warning(
+        'LRU eviction complete: evicted $evictedCount entries, '
+        'freed ~${freedMB}MB, final size: ${finalSizeMB}MB',
+      );
+    });
+  }
+
+  /// Manually trigger LRU eviction
+  ///
+  /// Forces LRU eviction regardless of cache size.
+  /// Useful for testing or manual cache management.
+  ///
+  /// Parameters:
+  /// - [targetSizeMB]: Target size to evict down to (defaults to half of max)
+  ///
+  /// Example:
+  /// ```dart
+  /// await cacheService.evictLru(targetSizeMB: 50);
+  /// print('Cache evicted down to 50MB');
+  /// ```
+  Future<void> evictLru({int? targetSizeMB}) async {
+    final target = targetSizeMB ?? (_maxCacheSizeMB ~/ 2);
+
+    await _lock.synchronized(() async {
+      _log.info('Manual LRU eviction to ${target}MB');
+
+      // Get all entries sorted by last access (oldest first)
+      final entries = await (database.select(database.cacheMetadataTable)
+            ..orderBy([
+              (tbl) => OrderingTerm.asc(tbl.lastAccessedAt),
+            ]))
+          .get();
+
+      int evictedCount = 0;
+
+      for (final entry in entries) {
+        final currentSizeMB = await calculateCacheSizeMB();
+        if (currentSizeMB <= target) {
+          break;
+        }
+
+        // Delete entry
+        await (database.delete(database.cacheMetadataTable)
+              ..where(
+                (tbl) =>
+                    tbl.entityType.equals(entry.entityType) &
+                    tbl.entityId.equals(entry.entityId),
+              ))
+            .go();
+
+        evictedCount++;
+      }
+
+      _evictions += evictedCount;
+
+      final finalSizeMB = await calculateCacheSizeMB();
+      _log.info('Manual LRU eviction complete: evicted $evictedCount entries, final size: ${finalSizeMB}MB');
+    });
+  }
+
   /// Start periodic cleanup timer
   ///
-  /// Runs cleanExpired() every 30 minutes automatically.
+  /// Runs cache maintenance every 30 minutes:
+  /// - Clean expired entries
+  /// - Check cache size and evict if needed
+  ///
+  /// Both operations are thread-safe and non-blocking.
   void _startPeriodicCleanup() {
     _cleanupTimer = Timer.periodic(const Duration(minutes: 30), (timer) {
-      _log.fine('Running periodic cache cleanup');
+      _log.fine('Running periodic cache maintenance');
       unawaited(cleanExpired());
+      unawaited(evictLruIfNeeded());
     });
   }
 
@@ -814,6 +1403,36 @@ class CacheService {
           ))
         .getSingleOrNull();
     return metadata?.cachedAt;
+  }
+
+  /// Get cached ETag
+  ///
+  /// Returns the ETag value for the cached entry, used for HTTP conditional requests.
+  /// Returns null if no ETag is stored or entry doesn't exist.
+  ///
+  /// Parameters:
+  /// - [entityType]: Entity type
+  /// - [entityId]: Entity ID
+  ///
+  /// Returns:
+  /// Cached ETag value or null
+  ///
+  /// Example:
+  /// ```dart
+  /// final cachedETag = await cacheService._getCachedETag('account', '123');
+  /// if (cachedETag != null) {
+  ///   // Use for If-None-Match header
+  /// }
+  /// ```
+  Future<String?> _getCachedETag(String entityType, String entityId) async {
+    final metadata = await (database.select(database.cacheMetadataTable)
+          ..where(
+            (tbl) =>
+                tbl.entityType.equals(entityType) &
+                tbl.entityId.equals(entityId),
+          ))
+        .getSingleOrNull();
+    return metadata?.etag;
   }
 
   // ========== Query Parameter Hashing ==========

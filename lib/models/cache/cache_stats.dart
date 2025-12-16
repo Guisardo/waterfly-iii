@@ -227,6 +227,54 @@ class CacheStats {
   /// - Categories have few hits (consider longer TTL)
   final Map<String, int> hitsByEntityType;
 
+  /// Number of ETag-aware requests
+  ///
+  /// Count of requests that used ETags for HTTP cache validation.
+  /// Subset of totalRequests that used the getWithETag() method.
+  ///
+  /// ETag requests enable bandwidth-efficient caching through
+  /// conditional HTTP requests (If-None-Match header).
+  ///
+  /// Example: 300 ETag-aware requests out of 1000 total
+  final int etagRequests;
+
+  /// Number of 304 Not Modified responses (ETag hits)
+  ///
+  /// Count of ETag requests where:
+  /// - Server returned 304 Not Modified
+  /// - Cached data still valid
+  /// - No response body transmitted (bandwidth saved)
+  ///
+  /// High ETag hits = significant bandwidth savings
+  ///
+  /// Bandwidth savings per 304:
+  /// - Typical response: 2-50KB
+  /// - 304 response: ~200 bytes
+  /// - Savings: 90-99% per request
+  ///
+  /// Example: 240 ETag hits out of 300 ETag requests (80% hit rate)
+  final int etagHits;
+
+  /// ETag hit rate (0.0 - 1.0)
+  ///
+  /// Ratio of 304 responses to ETag-aware requests.
+  ///
+  /// Formula: etagHitRate = etagHits / etagRequests
+  ///
+  /// Target hit rates:
+  /// - Excellent: > 0.80 (80%+)
+  /// - Good: 0.60 - 0.80 (60-80%)
+  /// - Acceptable: 0.40 - 0.60 (40-60%)
+  /// - Poor: < 0.40 (< 40%, data changing frequently)
+  ///
+  /// High ETag hit rate indicates:
+  /// - Data changes infrequently
+  /// - Significant bandwidth savings
+  /// - Effective HTTP caching
+  ///
+  /// Example: 0.80 (80% of ETag requests returned 304)
+  final double etagHitRate;
+
   /// Creates cache statistics with the specified values
   ///
   /// Parameters:
@@ -242,6 +290,9 @@ class CacheStats {
   /// - [totalEntries]: Total number of cache entries
   /// - [invalidatedEntries]: Number of invalidated entries
   /// - [hitsByEntityType]: Hit counts by entity type
+  /// - [etagRequests]: Number of ETag-aware requests (optional, default: 0)
+  /// - [etagHits]: Number of 304 Not Modified responses (optional, default: 0)
+  /// - [etagHitRate]: ETag hit rate (optional, default: 0.0)
   ///
   /// Example:
   /// ```dart
@@ -258,6 +309,9 @@ class CacheStats {
   ///   totalEntries: 523,
   ///   invalidatedEntries: 47,
   ///   hitsByEntityType: {'transaction': 350, 'account': 200},
+  ///   etagRequests: 300,
+  ///   etagHits: 240,
+  ///   etagHitRate: 0.80,
   /// );
   /// ```
   const CacheStats({
@@ -273,6 +327,9 @@ class CacheStats {
     required this.totalEntries,
     required this.invalidatedEntries,
     required this.hitsByEntityType,
+    this.etagRequests = 0,
+    this.etagHits = 0,
+    this.etagHitRate = 0.0,
   });
 
   /// Get hit rate as percentage (0-100)
@@ -394,6 +451,41 @@ class CacheStats {
     }
   }
 
+  /// Get ETag hit rate as percentage (0-100)
+  ///
+  /// Convenience getter for display purposes.
+  ///
+  /// Example:
+  /// ```dart
+  /// print('ETag hit rate: ${stats.etagHitRatePercent.toStringAsFixed(1)}%');
+  /// // Output: "ETag hit rate: 80.0%"
+  /// ```
+  double get etagHitRatePercent => etagHitRate * 100;
+
+  /// Get estimated bandwidth saved from ETags
+  ///
+  /// Estimates bandwidth saved from 304 Not Modified responses.
+  ///
+  /// Assumptions:
+  /// - Average 200 response: 5KB
+  /// - Average 304 response: 200 bytes
+  /// - Savings per 304: ~4.8KB
+  ///
+  /// Formula: bandwidthSaved = etagHits * 4.8KB
+  ///
+  /// Returns bandwidth saved in MB.
+  ///
+  /// Example:
+  /// ```dart
+  /// print('Bandwidth saved: ${stats.etagBandwidthSavedMB.toStringAsFixed(2)} MB');
+  /// // Output: "Bandwidth saved: 1.15 MB" (for 240 ETag hits)
+  /// ```
+  double get etagBandwidthSavedMB {
+    const double avgSavingsPerHitKB = 4.8; // ~5KB - 0.2KB
+    final double savedKB = etagHits * avgSavingsPerHitKB;
+    return savedKB / 1024; // Convert to MB
+  }
+
   /// Check if cache performance is healthy
   ///
   /// Returns true if all key metrics meet targets:
@@ -451,6 +543,11 @@ class CacheStats {
       'invalidationRate': invalidationRate,
       'isHealthy': isHealthy,
       'hitsByEntityType': hitsByEntityType,
+      'etagRequests': etagRequests,
+      'etagHits': etagHits,
+      'etagHitRate': etagHitRate,
+      'etagHitRatePercent': etagHitRatePercent,
+      'etagBandwidthSavedMB': etagBandwidthSavedMB,
     };
   }
 
@@ -473,6 +570,10 @@ class CacheStats {
   /// ```
   @override
   String toString() {
+    final String etagStats = etagRequests > 0
+        ? '  etag: $etagHits/$etagRequests (${etagHitRatePercent.toStringAsFixed(1)}%), saved ${etagBandwidthSavedMB.toStringAsFixed(2)} MB,\n'
+        : '';
+
     return 'CacheStats(\n'
         '  requests: $totalRequests,\n'
         '  hits: $cacheHits (${hitRatePercent.toStringAsFixed(1)}%),\n'
@@ -480,6 +581,7 @@ class CacheStats {
         '  stale: $staleServed (${(staleRate * 100).toStringAsFixed(1)}%),\n'
         '  refreshes: $backgroundRefreshes/$staleServed (${(refreshSuccessRate * 100).toStringAsFixed(1)}%),\n'
         '  evictions: $evictions,\n'
+        '$etagStats'
         '  avgAge: $averageAgeFormatted,\n'
         '  size: $totalCacheSizeMB MB,\n'
         '  entries: $totalEntries (${invalidatedEntries} invalidated),\n'
