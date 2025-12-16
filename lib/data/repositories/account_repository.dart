@@ -65,7 +65,7 @@ import 'package:waterflyiii/validators/account_validator.dart';
 /// - Typical cache miss: 5-50ms database fetch time
 /// - Target cache hit rate: >75%
 /// - Expected API call reduction: 70-80%
-class AccountRepository implements BaseRepository<AccountEntity, String> {
+class AccountRepository extends BaseRepository<AccountEntity, String> {
   /// Creates an account repository with comprehensive cache integration.
   ///
   /// Parameters:
@@ -89,14 +89,11 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
     UuidService? uuidService,
     SyncQueueManager? syncQueueManager,
     AccountValidator? validator,
-  })  : _database = database,
-        _cacheService = cacheService,
-        _uuidService = uuidService ?? UuidService(),
+  })  : _uuidService = uuidService ?? UuidService(),
         _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
-        _validator = validator ?? AccountValidator();
+        _validator = validator ?? AccountValidator(),
+        super(database: database, cacheService: cacheService);
 
-  final AppDatabase _database;
-  final CacheService? _cacheService;
   final UuidService _uuidService;
   final SyncQueueManager _syncQueueManager;
   final AccountValidator _validator;
@@ -105,20 +102,23 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   final Logger logger = Logger('AccountRepository');
 
   // ========================================================================
-  // CACHE CONFIGURATION
+  // CACHE CONFIGURATION (Required by BaseRepository)
   // ========================================================================
 
-  /// Entity type for cache keys
-  static const String _entityType = 'account';
+  @override
+  String get entityType => 'account';
 
-  /// Cache TTL for single accounts (15 minutes)
-  static Duration get _cacheTtl => CacheTtlConfig.accounts;
+  @override
+  Duration get cacheTtl => CacheTtlConfig.accounts;
+
+  @override
+  Duration get collectionCacheTtl => CacheTtlConfig.accountsList;
 
   @override
   Future<List<AccountEntity>> getAll() async {
     try {
       logger.fine('Fetching all accounts');
-      final List<AccountEntity> accounts = await _database.select(_database.accounts).get();
+      final List<AccountEntity> accounts = await database.select(database.accounts).get();
       logger.info('Retrieved ${accounts.length} accounts');
       return accounts;
     } catch (error, stackTrace) {
@@ -134,7 +134,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   @override
   Stream<List<AccountEntity>> watchAll() {
     logger.fine('Watching all accounts');
-    return _database.select(_database.accounts).watch();
+    return database.select(database.accounts).watch();
   }
 
   /// Retrieves an account by ID with cache-first strategy.
@@ -188,15 +188,15 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
 
     try {
       // If CacheService available, use cache-first strategy
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.finest('Using cache-first strategy for account $id');
 
         final CacheResult<AccountEntity?> cacheResult =
-            await _cacheService.get<AccountEntity?>(
-          entityType: _entityType,
+            await cacheService!.get<AccountEntity?>(
+          entityType: entityType,
           entityId: id,
           fetcher: () => _fetchAccountFromDb(id),
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
           forceRefresh: forceRefresh,
           backgroundRefresh: backgroundRefresh,
         );
@@ -238,7 +238,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
       logger.finest('Fetching account from database: $id');
 
       final SimpleSelectStatement<$AccountsTable, AccountEntity> query =
-          _database.select(_database.accounts)
+          database.select(database.accounts)
             ..where(($AccountsTable a) => a.id.equals(id));
 
       final AccountEntity? account = await query.getSingleOrNull();
@@ -267,7 +267,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   @override
   Stream<AccountEntity?> watchById(String id) {
     logger.fine('Watching account: $id');
-    final SimpleSelectStatement<$AccountsTable, AccountEntity> query = _database.select(_database.accounts)
+    final SimpleSelectStatement<$AccountsTable, AccountEntity> query = database.select(database.accounts)
       ..where(($AccountsTable a) => a.id.equals(id));
     return query.watchSingleOrNull();
   }
@@ -388,7 +388,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
         syncStatus: const Value('pending'),
       );
 
-      await _database.into(_database.accounts).insert(companion);
+      await database.into(database.accounts).insert(companion);
       logger.info('Account inserted into database: $id');
 
       // Retrieve created account (bypassing cache to get fresh data)
@@ -431,21 +431,21 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
       logger.fine('Account added to sync queue: $id');
 
       // Step 5: Store in cache with metadata
-      if (_cacheService != null) {
-        await _cacheService.set<AccountEntity>(
-          entityType: _entityType,
+      if (cacheService != null) {
+        await cacheService!.set<AccountEntity>(
+          entityType: entityType,
           entityId: id,
           data: created,
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
         );
         logger.fine('Account stored in cache: $id');
       }
 
       // Step 6: Trigger cascade invalidation for related entities
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation cascade for account creation');
         await CacheInvalidationRules.onAccountMutation(
-          _cacheService,
+          cacheService!,
           created,
           MutationType.create,
         );
@@ -548,7 +548,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
         syncStatus: const Value('pending'),
       );
 
-      await _database.update(_database.accounts).replace(companion);
+      await database.update(database.accounts).replace(companion);
       logger.info('Account updated in database: $id');
 
       // Retrieve updated account
@@ -591,21 +591,21 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
       logger.fine('Account update added to sync queue: $id');
 
       // Step 5: Update cache with new data
-      if (_cacheService != null) {
-        await _cacheService.set<AccountEntity>(
-          entityType: _entityType,
+      if (cacheService != null) {
+        await cacheService!.set<AccountEntity>(
+          entityType: entityType,
           entityId: id,
           data: updated,
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
         );
         logger.fine('Account cache updated: $id');
       }
 
       // Step 6: Trigger cascade invalidation for related entities
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation cascade for account update');
         await CacheInvalidationRules.onAccountMutation(
-          _cacheService,
+          cacheService!,
           updated,
           MutationType.update,
         );
@@ -658,7 +658,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
       }
 
       // Step 2: Delete from local database
-      await (_database.delete(_database.accounts)
+      await (database.delete(database.accounts)
             ..where(($AccountsTable a) => a.id.equals(id)))
           .go();
       logger.info('Account deleted from database: $id');
@@ -686,16 +686,16 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
       }
 
       // Step 4: Invalidate cache entry
-      if (_cacheService != null) {
-        await _cacheService.invalidate(_entityType, id);
+      if (cacheService != null) {
+        await cacheService!.invalidate(entityType, id);
         logger.fine('Account cache invalidated: $id');
       }
 
       // Step 5: Trigger cascade invalidation for related entities
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation cascade for account deletion');
         await CacheInvalidationRules.onAccountMutation(
-          _cacheService,
+          cacheService!,
           existing,
           MutationType.delete,
         );
@@ -714,7 +714,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<List<AccountEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced accounts');
-      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = _database.select(_database.accounts)
+      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = database.select(database.accounts)
         ..where(($AccountsTable a) => a.isSynced.equals(false));
       final List<AccountEntity> accounts = await query.get();
       logger.info('Found ${accounts.length} unsynced accounts');
@@ -734,7 +734,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
     try {
       logger.info('Marking account as synced: $localId -> $serverId');
 
-      await (_database.update(_database.accounts)..where(($AccountsTable a) => a.id.equals(localId))).write(
+      await (database.update(database.accounts)..where(($AccountsTable a) => a.id.equals(localId))).write(
         AccountEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -768,7 +768,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<void> clearCache() async {
     try {
       logger.warning('Clearing all accounts from cache');
-      await _database.delete(_database.accounts).go();
+      await database.delete(database.accounts).go();
       logger.info('Account cache cleared');
     } catch (error, stackTrace) {
       logger.severe('Failed to clear account cache', error, stackTrace);
@@ -780,7 +780,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<int> count() async {
     try {
       logger.fine('Counting accounts');
-      final int count = await _database.select(_database.accounts).get().then((List<AccountEntity> list) => list.length);
+      final int count = await database.select(database.accounts).get().then((List<AccountEntity> list) => list.length);
       logger.fine('Account count: $count');
       return count;
     } catch (error, stackTrace) {
@@ -797,7 +797,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<List<AccountEntity>> getByType(String type) async {
     try {
       logger.fine('Fetching accounts by type: $type');
-      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = _database.select(_database.accounts)
+      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = database.select(database.accounts)
         ..where(($AccountsTable a) => a.type.equals(type))
         ..orderBy(<OrderClauseGenerator<$AccountsTable>>[($AccountsTable a) => OrderingTerm.asc(a.name)]);
       final List<AccountEntity> accounts = await query.get();
@@ -817,7 +817,7 @@ class AccountRepository implements BaseRepository<AccountEntity, String> {
   Future<List<AccountEntity>> getActive() async {
     try {
       logger.fine('Fetching active accounts');
-      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = _database.select(_database.accounts)
+      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = database.select(database.accounts)
         ..where(($AccountsTable a) => a.active.equals(true))
         ..orderBy(<OrderClauseGenerator<$AccountsTable>>[($AccountsTable a) => OrderingTerm.asc(a.name)]);
       final List<AccountEntity> accounts = await query.get();

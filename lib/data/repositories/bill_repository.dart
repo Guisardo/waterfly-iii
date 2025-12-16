@@ -66,7 +66,7 @@ import 'package:waterflyiii/validators/transaction_validator.dart';
 /// - Typical cache miss: 5-50ms database fetch time
 /// - Target cache hit rate: >75%
 /// - Expected API call reduction: 70-80%
-class BillRepository implements BaseRepository<BillEntity, String> {
+class BillRepository extends BaseRepository<BillEntity, String> {
   /// Creates a bill repository with comprehensive cache integration.
   ///
   /// Parameters:
@@ -90,14 +90,11 @@ class BillRepository implements BaseRepository<BillEntity, String> {
     UuidService? uuidService,
     SyncQueueManager? syncQueueManager,
     BillValidator? validator,
-  })  : _database = database,
-        _cacheService = cacheService,
-        _uuidService = uuidService ?? UuidService(),
+  })  : _uuidService = uuidService ?? UuidService(),
         _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
-        _validator = validator ?? BillValidator();
+        _validator = validator ?? BillValidator(),
+        super(database: database, cacheService: cacheService);
 
-  final AppDatabase _database;
-  final CacheService? _cacheService;
   final UuidService _uuidService;
   final SyncQueueManager _syncQueueManager;
   final BillValidator _validator;
@@ -106,20 +103,23 @@ class BillRepository implements BaseRepository<BillEntity, String> {
   final Logger logger = Logger('BillRepository');
 
   // ========================================================================
-  // CACHE CONFIGURATION
+  // CACHE CONFIGURATION (Required by BaseRepository)
   // ========================================================================
 
-  /// Entity type for cache keys
-  static const String _entityType = 'bill';
+  @override
+  String get entityType => 'bill';
 
-  /// Cache TTL for single bills (1 hour - bills change infrequently)
-  static Duration get _cacheTtl => CacheTtlConfig.bills;
+  @override
+  Duration get cacheTtl => CacheTtlConfig.bills;
+
+  @override
+  Duration get collectionCacheTtl => CacheTtlConfig.billsList;
 
   @override
   Future<List<BillEntity>> getAll() async {
     try {
       logger.fine('Fetching all bills');
-      final List<BillEntity> bills = await (_database.select(_database.bills)
+      final List<BillEntity> bills = await (database.select(database.bills)
             ..orderBy(<OrderClauseGenerator<$BillsTable>>[($BillsTable b) => OrderingTerm.asc(b.name)]))
           .get();
       logger.info('Retrieved ${bills.length} bills');
@@ -137,7 +137,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
   @override
   Stream<List<BillEntity>> watchAll() {
     logger.fine('Watching all bills');
-    return (_database.select(_database.bills)..orderBy(<OrderClauseGenerator<$BillsTable>>[($BillsTable b) => OrderingTerm.asc(b.name)])).watch();
+    return (database.select(database.bills)..orderBy(<OrderClauseGenerator<$BillsTable>>[($BillsTable b) => OrderingTerm.asc(b.name)])).watch();
   }
 
   /// Retrieves a bill by ID with cache-first strategy.
@@ -191,15 +191,15 @@ class BillRepository implements BaseRepository<BillEntity, String> {
 
     try {
       // If CacheService available, use cache-first strategy
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.finest('Using cache-first strategy for bill $id');
 
         final CacheResult<BillEntity?> cacheResult =
-            await _cacheService.get<BillEntity?>(
-          entityType: _entityType,
+            await cacheService!.get<BillEntity?>(
+          entityType: entityType,
           entityId: id,
           fetcher: () => _fetchBillFromDb(id),
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
           forceRefresh: forceRefresh,
           backgroundRefresh: backgroundRefresh,
         );
@@ -242,7 +242,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
     logger.finest('Fetching bill from database: $id');
 
     final SimpleSelectStatement<$BillsTable, BillEntity> query =
-        _database.select(_database.bills)
+        database.select(database.bills)
           ..where(($BillsTable b) => b.id.equals(id));
 
     final BillEntity? bill = await query.getSingleOrNull();
@@ -259,7 +259,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
   @override
   Stream<BillEntity?> watchById(String id) {
     logger.fine('Watching bill: $id');
-    final SimpleSelectStatement<$BillsTable, BillEntity> query = _database.select(_database.bills)
+    final SimpleSelectStatement<$BillsTable, BillEntity> query = database.select(database.bills)
       ..where(($BillsTable b) => b.id.equals(id));
     return query.watchSingleOrNull();
   }
@@ -353,7 +353,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
         syncStatus: const Value('pending'),
       );
 
-      await _database.into(_database.bills).insert(companion);
+      await database.into(database.bills).insert(companion);
 
       // Retrieve created bill (bypassing cache for fresh data)
       final BillEntity? created = await _fetchBillFromDb(id);
@@ -362,13 +362,13 @@ class BillRepository implements BaseRepository<BillEntity, String> {
       }
 
       // Store in cache with metadata (if CacheService available)
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Storing created bill in cache: $id');
-        await _cacheService.set<BillEntity>(
-          entityType: _entityType,
+        await cacheService!.set<BillEntity>(
+          entityType: entityType,
           entityId: id,
           data: created,
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
         );
       }
 
@@ -398,10 +398,10 @@ class BillRepository implements BaseRepository<BillEntity, String> {
       );
 
       // Trigger cascade cache invalidation (if CacheService available)
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation for bill creation: $id');
         await CacheInvalidationRules.onBillMutation(
-          _cacheService,
+          cacheService!,
           created,
           MutationType.create,
         );
@@ -497,7 +497,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
         syncStatus: const Value('pending'),
       );
 
-      await _database.update(_database.bills).replace(companion);
+      await database.update(database.bills).replace(companion);
 
       // Retrieve updated bill (bypassing cache for fresh data)
       final BillEntity? updated = await _fetchBillFromDb(id);
@@ -506,13 +506,13 @@ class BillRepository implements BaseRepository<BillEntity, String> {
       }
 
       // Update cache with fresh data (if CacheService available)
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Updating bill in cache: $id');
-        await _cacheService.set<BillEntity>(
-          entityType: _entityType,
+        await cacheService!.set<BillEntity>(
+          entityType: entityType,
           entityId: id,
           data: updated,
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
         );
       }
 
@@ -542,10 +542,10 @@ class BillRepository implements BaseRepository<BillEntity, String> {
       );
 
       // Trigger cascade cache invalidation (if CacheService available)
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation for bill update: $id');
         await CacheInvalidationRules.onBillMutation(
-          _cacheService,
+          cacheService!,
           updated,
           MutationType.update,
         );
@@ -614,7 +614,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
       if (wasSynced) {
         // Soft delete: Mark as deleted and add to sync queue
         logger.fine('Soft deleting synced bill: $id');
-        await (_database.update(_database.bills)
+        await (database.update(database.bills)
               ..where(($BillsTable b) => b.id.equals(id)))
             .write(
           BillEntityCompanion(
@@ -640,22 +640,22 @@ class BillRepository implements BaseRepository<BillEntity, String> {
       } else {
         // Hard delete: Not synced, just delete locally
         logger.fine('Hard deleting unsynced bill: $id');
-        await (_database.delete(_database.bills)
+        await (database.delete(database.bills)
               ..where(($BillsTable b) => b.id.equals(id)))
             .go();
       }
 
       // Invalidate bill from cache (if CacheService available)
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Invalidating deleted bill from cache: $id');
-        await _cacheService.invalidate(_entityType, id);
+        await cacheService!.invalidate(entityType, id);
       }
 
       // Trigger cascade cache invalidation (if CacheService available)
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation for bill deletion: $id');
         await CacheInvalidationRules.onBillMutation(
-          _cacheService,
+          cacheService!,
           existing,
           MutationType.delete,
         );
@@ -673,7 +673,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
   Future<List<BillEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced bills');
-      final SimpleSelectStatement<$BillsTable, BillEntity> query = _database.select(_database.bills)
+      final SimpleSelectStatement<$BillsTable, BillEntity> query = database.select(database.bills)
         ..where(($BillsTable b) => b.isSynced.equals(false));
       final List<BillEntity> bills = await query.get();
       logger.info('Found ${bills.length} unsynced bills');
@@ -693,7 +693,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
     try {
       logger.info('Marking bill as synced: $localId -> $serverId');
 
-      await (_database.update(_database.bills)..where(($BillsTable b) => b.id.equals(localId))).write(
+      await (database.update(database.bills)..where(($BillsTable b) => b.id.equals(localId))).write(
         BillEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -727,7 +727,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
   Future<void> clearCache() async {
     try {
       logger.warning('Clearing all bills from cache');
-      await _database.delete(_database.bills).go();
+      await database.delete(database.bills).go();
       logger.info('Bill cache cleared');
     } catch (error, stackTrace) {
       logger.severe('Failed to clear bill cache', error, stackTrace);
@@ -739,7 +739,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
   Future<int> count() async {
     try {
       logger.fine('Counting bills');
-      final int count = await _database.select(_database.bills).get().then((List<BillEntity> list) => list.length);
+      final int count = await database.select(database.bills).get().then((List<BillEntity> list) => list.length);
       logger.fine('Bill count: $count');
       return count;
     } catch (error, stackTrace) {
@@ -756,7 +756,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
   Future<List<BillEntity>> getActive() async {
     try {
       logger.fine('Fetching active bills');
-      final SimpleSelectStatement<$BillsTable, BillEntity> query = _database.select(_database.bills)
+      final SimpleSelectStatement<$BillsTable, BillEntity> query = database.select(database.bills)
         ..where(($BillsTable b) => b.active.equals(true))
         ..orderBy(<OrderClauseGenerator<$BillsTable>>[($BillsTable b) => OrderingTerm.asc(b.name)]);
       final List<BillEntity> bills = await query.get();
@@ -776,7 +776,7 @@ class BillRepository implements BaseRepository<BillEntity, String> {
   Future<List<BillEntity>> getByFrequency(String frequency) async {
     try {
       logger.fine('Fetching bills by frequency: $frequency');
-      final SimpleSelectStatement<$BillsTable, BillEntity> query = _database.select(_database.bills)
+      final SimpleSelectStatement<$BillsTable, BillEntity> query = database.select(database.bills)
         ..where(($BillsTable b) => b.repeatFreq.equals(frequency))
         ..orderBy(<OrderClauseGenerator<$BillsTable>>[($BillsTable b) => OrderingTerm.asc(b.name)]);
       final List<BillEntity> bills = await query.get();

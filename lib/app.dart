@@ -13,6 +13,10 @@ import 'package:provider/single_child_widget.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/budget_repository.dart';
+import 'package:waterflyiii/data/repositories/category_repository.dart';
+import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/pages/login.dart';
@@ -22,6 +26,7 @@ import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/providers/sync_provider.dart';
 import 'package:waterflyiii/services/cache/cache_service.dart';
+import 'package:waterflyiii/services/cache/cache_warming_service.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/widgets/logo.dart';
 
@@ -228,7 +233,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
               create: (_) => SyncProvider(),
             ),
 
-            // Database and Cache (Phase 2: Cache-First Architecture)
+            // Database and Cache (Phase 2-3: Cache-First Architecture)
             Provider<AppDatabase>(
               create: (_) => AppDatabase(),
               dispose: (_, AppDatabase db) => db.close(),
@@ -238,6 +243,40 @@ class _WaterflyAppState extends State<WaterflyApp> {
                 database: context.read<AppDatabase>(),
               ),
               dispose: (_, CacheService cache) => cache.dispose(),
+            ),
+            // Cache Warming Service (Phase 3: Background Refresh)
+            Provider<CacheWarmingService>(
+              create: (BuildContext context) {
+                final AppDatabase database = context.read<AppDatabase>();
+                final CacheService cacheService = context.read<CacheService>();
+
+                // Create repositories with cache service
+                final TransactionRepository transactionRepository =
+                    TransactionRepository(
+                  database: database,
+                  cacheService: cacheService,
+                );
+                final AccountRepository accountRepository = AccountRepository(
+                  database: database,
+                  cacheService: cacheService,
+                );
+                final BudgetRepository budgetRepository = BudgetRepository(
+                  database: database,
+                  cacheService: cacheService,
+                );
+                final CategoryRepository categoryRepository = CategoryRepository(
+                  database: database,
+                  cacheService: cacheService,
+                );
+
+                return CacheWarmingService(
+                  cacheService: cacheService,
+                  transactionRepository: transactionRepository,
+                  accountRepository: accountRepository,
+                  budgetRepository: budgetRepository,
+                  categoryRepository: categoryRepository,
+                );
+              },
             ),
           ],
           builder: (BuildContext context, _) {
@@ -275,11 +314,33 @@ class _WaterflyAppState extends State<WaterflyApp> {
                 } else {
                   log.finest(() => "signing in");
                   context.read<FireflyService>().signInFromStorage().then(
-                    (bool _) => setState(() {
+                    (bool signedInSuccess) {
                       log.finest(() => "set _startup = false");
-                      _authed = true;
-                      _startup = false;
-                    }),
+                      if (!mounted) return;
+
+                      setState(() {
+                        _authed = true;
+                        _startup = false;
+                      });
+
+                      // Trigger cache warming after successful sign-in (Phase 3)
+                      if (signedInSuccess && mounted) {
+                        log.fine('Triggering cache warming after sign-in');
+                        try {
+                          final CacheWarmingService warmingService =
+                              context.read<CacheWarmingService>();
+                          // Fire-and-forget: warm in background without blocking
+                          Future<void>.microtask(
+                            () => warmingService.warmOnStartup(),
+                          );
+                        } catch (e) {
+                          log.warning(
+                            'Failed to start cache warming: $e',
+                          );
+                          // Non-fatal: app continues normally
+                        }
+                      }
+                    },
                   );
                 }
               }

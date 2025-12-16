@@ -58,7 +58,7 @@ import 'package:waterflyiii/services/uuid/uuid_service.dart';
 /// - Typical cache miss: 5-50ms database fetch time
 /// - Target cache hit rate: >75%
 /// - Expected API call reduction: 70-80%
-class BudgetRepository implements BaseRepository<BudgetEntity, String> {
+class BudgetRepository extends BaseRepository<BudgetEntity, String> {
   /// Creates a budget repository with comprehensive cache integration.
   ///
   /// Parameters:
@@ -77,32 +77,32 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
     required AppDatabase database,
     CacheService? cacheService,
     UuidService? uuidService,
-  })  : _database = database,
-        _cacheService = cacheService,
-        _uuidService = uuidService ?? UuidService();
+  })  : _uuidService = uuidService ?? UuidService(),
+        super(database: database, cacheService: cacheService);
 
-  final AppDatabase _database;
-  final CacheService? _cacheService;
   final UuidService _uuidService;
 
   @override
   final Logger logger = Logger('BudgetRepository');
 
   // ========================================================================
-  // CACHE CONFIGURATION
+  // CACHE CONFIGURATION (Required by BaseRepository)
   // ========================================================================
 
-  /// Entity type for cache keys
-  static const String _entityType = 'budget';
+  @override
+  String get entityType => 'budget';
 
-  /// Cache TTL for single budgets (15 minutes)
-  static Duration get _cacheTtl => CacheTtlConfig.budgets;
+  @override
+  Duration get cacheTtl => CacheTtlConfig.budgets;
+
+  @override
+  Duration get collectionCacheTtl => CacheTtlConfig.budgetsList;
 
   @override
   Future<List<BudgetEntity>> getAll() async {
     try {
       logger.fine('Fetching all budgets');
-      final List<BudgetEntity> budgets = await (_database.select(_database.budgets)
+      final List<BudgetEntity> budgets = await (database.select(database.budgets)
             ..orderBy(<OrderClauseGenerator<$BudgetsTable>>[($BudgetsTable b) => OrderingTerm.asc(b.name)]))
           .get();
       logger.info('Retrieved ${budgets.length} budgets');
@@ -120,7 +120,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   @override
   Stream<List<BudgetEntity>> watchAll() {
     logger.fine('Watching all budgets');
-    return (_database.select(_database.budgets)..orderBy(<OrderClauseGenerator<$BudgetsTable>>[($BudgetsTable b) => OrderingTerm.asc(b.name)]))
+    return (database.select(database.budgets)..orderBy(<OrderClauseGenerator<$BudgetsTable>>[($BudgetsTable b) => OrderingTerm.asc(b.name)]))
         .watch();
   }
 
@@ -158,15 +158,15 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
 
     try {
       // If CacheService available, use cache-first strategy
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.finest('Using cache-first strategy for budget $id');
 
         final CacheResult<BudgetEntity?> cacheResult =
-            await _cacheService.get<BudgetEntity?>(
-          entityType: _entityType,
+            await cacheService!.get<BudgetEntity?>(
+          entityType: entityType,
           entityId: id,
           fetcher: () => _fetchBudgetFromDb(id),
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
           forceRefresh: forceRefresh,
           backgroundRefresh: backgroundRefresh,
         );
@@ -208,7 +208,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
       logger.finest('Fetching budget from database: $id');
 
       final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query =
-          _database.select(_database.budgets)
+          database.select(database.budgets)
             ..where(($BudgetsTable b) => b.id.equals(id));
 
       final BudgetEntity? budget = await query.getSingleOrNull();
@@ -237,7 +237,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   @override
   Stream<BudgetEntity?> watchById(String id) {
     logger.fine('Watching budget: $id');
-    final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = _database.select(_database.budgets)..where(($BudgetsTable b) => b.id.equals(id));
+    final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = database.select(database.budgets)..where(($BudgetsTable b) => b.id.equals(id));
     return query.watchSingleOrNull();
   }
 
@@ -290,7 +290,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
         syncStatus: const Value('pending'),
       );
 
-      await _database.into(_database.budgets).insert(companion);
+      await database.into(database.budgets).insert(companion);
       logger.info('Budget inserted into database: $id');
 
       // Retrieve created budget (bypassing cache to get fresh data)
@@ -304,21 +304,21 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
       logger.info('Budget created successfully: $id');
 
       // Step 3: Store in cache with metadata
-      if (_cacheService != null) {
-        await _cacheService.set<BudgetEntity>(
-          entityType: _entityType,
+      if (cacheService != null) {
+        await cacheService!.set<BudgetEntity>(
+          entityType: entityType,
           entityId: id,
           data: created,
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
         );
         logger.fine('Budget stored in cache: $id');
       }
 
       // Step 4: Trigger cascade invalidation for related entities
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation cascade for budget creation');
         await CacheInvalidationRules.onBudgetMutation(
-          _cacheService,
+          cacheService!,
           created,
           MutationType.create,
         );
@@ -377,7 +377,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
         syncStatus: const Value('pending'),
       );
 
-      await _database.update(_database.budgets).replace(companion);
+      await database.update(database.budgets).replace(companion);
       logger.info('Budget updated in database: $id');
 
       // Retrieve updated budget
@@ -391,21 +391,21 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
       logger.info('Budget updated successfully: $id');
 
       // Step 3: Update cache with new data
-      if (_cacheService != null) {
-        await _cacheService.set<BudgetEntity>(
-          entityType: _entityType,
+      if (cacheService != null) {
+        await cacheService!.set<BudgetEntity>(
+          entityType: entityType,
           entityId: id,
           data: updated,
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
         );
         logger.fine('Budget cache updated: $id');
       }
 
       // Step 4: Trigger cascade invalidation for related entities
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation cascade for budget update');
         await CacheInvalidationRules.onBudgetMutation(
-          _cacheService,
+          cacheService!,
           updated,
           MutationType.update,
         );
@@ -448,22 +448,22 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
       }
 
       // Step 2: Delete from local database
-      await (_database.delete(_database.budgets)
+      await (database.delete(database.budgets)
             ..where(($BudgetsTable b) => b.id.equals(id)))
           .go();
       logger.info('Budget deleted from database: $id');
 
       // Step 3: Invalidate cache entry
-      if (_cacheService != null) {
-        await _cacheService.invalidate(_entityType, id);
+      if (cacheService != null) {
+        await cacheService!.invalidate(entityType, id);
         logger.fine('Budget cache invalidated: $id');
       }
 
       // Step 4: Trigger cascade invalidation for related entities
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation cascade for budget deletion');
         await CacheInvalidationRules.onBudgetMutation(
-          _cacheService,
+          cacheService!,
           existing,
           MutationType.delete,
         );
@@ -482,7 +482,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   Future<List<BudgetEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced budgets');
-      final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = _database.select(_database.budgets)
+      final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = database.select(database.budgets)
         ..where(($BudgetsTable b) => b.isSynced.equals(false));
       final List<BudgetEntity> budgets = await query.get();
       logger.info('Found ${budgets.length} unsynced budgets');
@@ -502,7 +502,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
     try {
       logger.info('Marking budget as synced: $localId -> $serverId');
 
-      await (_database.update(_database.budgets)..where(($BudgetsTable b) => b.id.equals(localId))).write(
+      await (database.update(database.budgets)..where(($BudgetsTable b) => b.id.equals(localId))).write(
         BudgetEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -536,7 +536,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   Future<void> clearCache() async {
     try {
       logger.warning('Clearing all budgets from cache');
-      await _database.delete(_database.budgets).go();
+      await database.delete(database.budgets).go();
       logger.info('Budget cache cleared');
     } catch (error, stackTrace) {
       logger.severe('Failed to clear budget cache', error, stackTrace);
@@ -548,7 +548,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   Future<int> count() async {
     try {
       logger.fine('Counting budgets');
-      final int count = await _database.select(_database.budgets).get().then((List<BudgetEntity> list) => list.length);
+      final int count = await database.select(database.budgets).get().then((List<BudgetEntity> list) => list.length);
       logger.fine('Budget count: $count');
       return count;
     } catch (error, stackTrace) {
@@ -565,7 +565,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   Future<List<BudgetEntity>> getActive() async {
     try {
       logger.fine('Fetching active budgets');
-      final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = _database.select(_database.budgets)
+      final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = database.select(database.budgets)
         ..where(($BudgetsTable b) => b.active.equals(true))
         ..orderBy(<OrderClauseGenerator<$BudgetsTable>>[($BudgetsTable b) => OrderingTerm.asc(b.name)]);
       final List<BudgetEntity> budgets = await query.get();
@@ -585,7 +585,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
   Future<List<BudgetEntity>> getAutoBudgets() async {
     try {
       logger.fine('Fetching auto-budgets');
-      final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = _database.select(_database.budgets)
+      final SimpleSelectStatement<$BudgetsTable, BudgetEntity> query = database.select(database.budgets)
         ..where(($BudgetsTable b) => b.autoBudgetType.isNotNull())
         ..orderBy(<OrderClauseGenerator<$BudgetsTable>>[($BudgetsTable b) => OrderingTerm.asc(b.name)]);
       final List<BudgetEntity> budgets = await query.get();
@@ -610,7 +610,7 @@ class BudgetRepository implements BaseRepository<BudgetEntity, String> {
     try {
       logger.fine('Calculating spending for budget: $budgetId from $startDate to $endDate');
 
-      final List<TransactionEntity> transactions = await (_database.select(_database.transactions)
+      final List<TransactionEntity> transactions = await (database.select(database.transactions)
             ..where(($TransactionsTable t) =>
                 t.budgetId.equals(budgetId) &
                 t.type.equals('withdrawal') &

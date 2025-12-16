@@ -72,7 +72,7 @@ import 'base_repository.dart';
 /// - Target cache hit rate: >75%
 /// - Expected API call reduction: 70-80%
 class TransactionRepository
-    implements BaseRepository<TransactionEntity, String> {
+    extends BaseRepository<TransactionEntity, String> {
   /// Creates a transaction repository with comprehensive cache integration.
   ///
   /// Parameters:
@@ -98,15 +98,12 @@ class TransactionRepository
     QueryCache? queryCache,
     UuidService? uuidService,
     TransactionValidator? validator,
-  })  : _database = database,
-        _cacheService = cacheService,
-        _syncQueueManager = syncQueueManager,
+  })  : _syncQueueManager = syncQueueManager,
         _queryCache = queryCache,
         _uuidService = uuidService ?? UuidService(),
-        _validator = validator ?? TransactionValidator();
+        _validator = validator ?? TransactionValidator(),
+        super(database: database, cacheService: cacheService);
 
-  final AppDatabase _database;
-  final CacheService? _cacheService;
   final SyncQueueManager? _syncQueueManager;
   final QueryCache? _queryCache;
   final UuidService _uuidService;
@@ -116,20 +113,23 @@ class TransactionRepository
   final Logger logger = Logger('TransactionRepository');
 
   // ========================================================================
-  // CACHE CONFIGURATION
+  // CACHE CONFIGURATION (Required by BaseRepository)
   // ========================================================================
 
-  /// Entity type for cache keys
-  static const String _entityType = 'transaction';
+  @override
+  String get entityType => 'transaction';
 
-  /// Cache TTL for single transactions
-  static Duration get _cacheTtl => CacheTtlConfig.transactions;
+  @override
+  Duration get cacheTtl => CacheTtlConfig.transactions;
+
+  @override
+  Duration get collectionCacheTtl => CacheTtlConfig.transactionsList;
 
   @override
   Future<List<TransactionEntity>> getAll() async {
     try {
       logger.fine('Fetching all transactions');
-      final List<TransactionEntity> transactions = await _database.select(_database.transactions).get();
+      final List<TransactionEntity> transactions = await database.select(database.transactions).get();
       logger.info('Retrieved ${transactions.length} transactions');
       return transactions;
     } catch (error, stackTrace) {
@@ -145,7 +145,7 @@ class TransactionRepository
   @override
   Stream<List<TransactionEntity>> watchAll() {
     logger.fine('Watching all transactions');
-    return _database.select(_database.transactions).watch();
+    return database.select(database.transactions).watch();
   }
 
   /// Retrieves a transaction by ID with cache-first strategy.
@@ -199,15 +199,15 @@ class TransactionRepository
 
     try {
       // If CacheService available, use cache-first strategy
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.finest('Using cache-first strategy for transaction $id');
 
         final CacheResult<TransactionEntity?> cacheResult =
-            await _cacheService.get<TransactionEntity?>(
-          entityType: _entityType,
+            await cacheService!.get<TransactionEntity?>(
+          entityType: entityType,
           entityId: id,
           fetcher: () => _fetchTransactionFromDb(id),
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
           forceRefresh: forceRefresh,
           backgroundRefresh: backgroundRefresh,
         );
@@ -249,7 +249,7 @@ class TransactionRepository
       logger.finest('Fetching transaction from database: $id');
 
       final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query =
-          _database.select(_database.transactions)
+          database.select(database.transactions)
             ..where(($TransactionsTable t) => t.id.equals(id));
 
       final TransactionEntity? transaction = await query.getSingleOrNull();
@@ -278,7 +278,7 @@ class TransactionRepository
   @override
   Stream<TransactionEntity?> watchById(String id) {
     logger.fine('Watching transaction: $id');
-    final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = _database.select(_database.transactions)
+    final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions)
       ..where(($TransactionsTable t) => t.id.equals(id));
     return query.watchSingleOrNull();
   }
@@ -372,7 +372,7 @@ class TransactionRepository
         syncError: const Value.absent(),
       );
 
-      await _database.into(_database.transactions).insert(companion);
+      await database.into(database.transactions).insert(companion);
       logger.info('Transaction inserted into database: $id');
 
       // Retrieve created transaction (bypassing cache to get fresh data)
@@ -418,21 +418,21 @@ class TransactionRepository
       }
 
       // Step 4: Store in cache with metadata
-      if (_cacheService != null) {
-        await _cacheService.set<TransactionEntity>(
-          entityType: _entityType,
+      if (cacheService != null) {
+        await cacheService!.set<TransactionEntity>(
+          entityType: entityType,
           entityId: id,
           data: created,
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
         );
         logger.fine('Transaction stored in cache: $id');
       }
 
       // Step 5: Trigger cascade invalidation for related entities
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation cascade for transaction creation');
         await CacheInvalidationRules.onTransactionMutation(
-          _cacheService,
+          cacheService!,
           created,
           MutationType.create,
         );
@@ -509,7 +509,7 @@ class TransactionRepository
       );
 
       final UpdateStatement<$TransactionsTable, TransactionEntity> query =
-          _database.update(_database.transactions)
+          database.update(database.transactions)
             ..where(($TransactionsTable t) => t.id.equals(id));
       await query.write(companion);
       logger.info('Transaction updated in database: $id');
@@ -557,21 +557,21 @@ class TransactionRepository
       }
 
       // Step 4: Update cache with new data
-      if (_cacheService != null) {
-        await _cacheService.set<TransactionEntity>(
-          entityType: _entityType,
+      if (cacheService != null) {
+        await cacheService!.set<TransactionEntity>(
+          entityType: entityType,
           entityId: id,
           data: updated,
-          ttl: _cacheTtl,
+          ttl: cacheTtl,
         );
         logger.fine('Transaction cache updated: $id');
       }
 
       // Step 5: Trigger cascade invalidation for related entities
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation cascade for transaction update');
         await CacheInvalidationRules.onTransactionMutation(
-          _cacheService,
+          cacheService!,
           updated,
           MutationType.update,
         );
@@ -623,7 +623,7 @@ class TransactionRepository
 
       // Step 2: Delete from local database
       final DeleteStatement<$TransactionsTable, TransactionEntity> query =
-          _database.delete(_database.transactions)
+          database.delete(database.transactions)
             ..where(($TransactionsTable t) => t.id.equals(id));
       await query.go();
       logger.info('Transaction deleted from database: $id');
@@ -649,16 +649,16 @@ class TransactionRepository
       }
 
       // Step 4: Invalidate cache entry
-      if (_cacheService != null) {
-        await _cacheService.invalidate(_entityType, id);
+      if (cacheService != null) {
+        await cacheService!.invalidate(entityType, id);
         logger.fine('Transaction cache invalidated: $id');
       }
 
       // Step 5: Trigger cascade invalidation for related entities
-      if (_cacheService != null) {
+      if (cacheService != null) {
         logger.fine('Triggering cache invalidation cascade for transaction deletion');
         await CacheInvalidationRules.onTransactionMutation(
-          _cacheService,
+          cacheService!,
           existing,
           MutationType.delete,
         );
@@ -679,7 +679,7 @@ class TransactionRepository
   Future<List<TransactionEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced transactions');
-      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = _database.select(_database.transactions)
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions)
         ..where(($TransactionsTable t) => t.isSynced.equals(false));
       final List<TransactionEntity> transactions = await query.get();
       logger.info('Found ${transactions.length} unsynced transactions');
@@ -707,7 +707,7 @@ class TransactionRepository
         syncError: const Value.absent(),
       );
 
-      final UpdateStatement<$TransactionsTable, TransactionEntity> query = _database.update(_database.transactions)
+      final UpdateStatement<$TransactionsTable, TransactionEntity> query = database.update(database.transactions)
         ..where(($TransactionsTable t) => t.id.equals(localId));
       await query.write(companion);
 
@@ -745,7 +745,7 @@ class TransactionRepository
   Future<void> clearCache() async {
     try {
       logger.warning('Clearing all transactions from cache');
-      await _database.delete(_database.transactions).go();
+      await database.delete(database.transactions).go();
       logger.info('Transaction cache cleared');
     } catch (error, stackTrace) {
       logger.severe('Failed to clear transaction cache', error, stackTrace);
@@ -756,8 +756,8 @@ class TransactionRepository
   @override
   Future<int> count() async {
     try {
-      final Expression<int> countExp = _database.transactions.id.count();
-      final JoinedSelectStatement<$TransactionsTable, TransactionEntity> query = _database.selectOnly(_database.transactions)
+      final Expression<int> countExp = database.transactions.id.count();
+      final JoinedSelectStatement<$TransactionsTable, TransactionEntity> query = database.selectOnly(database.transactions)
         ..addColumns(<Expression<Object>>[countExp]);
       final TypedResult result = await query.getSingle();
       final int count = result.read(countExp) ?? 0;
@@ -779,7 +779,7 @@ class TransactionRepository
   ) async {
     try {
       logger.fine('Fetching transactions from $startDate to $endDate');
-      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = _database.select(_database.transactions)
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions)
         ..where(($TransactionsTable t) => t.date.isBiggerOrEqualValue(startDate))
         ..where(($TransactionsTable t) => t.date.isSmallerOrEqualValue(endDate))
         ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[($TransactionsTable t) => OrderingTerm.desc(t.date)]);
@@ -802,7 +802,7 @@ class TransactionRepository
   Future<List<TransactionEntity>> getByAccount(String accountId) async {
     try {
       logger.fine('Fetching transactions for account: $accountId');
-      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = _database.select(_database.transactions)
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions)
         ..where(($TransactionsTable t) =>
             t.sourceAccountId.equals(accountId) |
             t.destinationAccountId.equals(accountId))
@@ -830,7 +830,7 @@ class TransactionRepository
   Future<List<TransactionEntity>> getByCategory(String categoryId) async {
     try {
       logger.fine('Fetching transactions for category: $categoryId');
-      final query = _database.select(_database.transactions)
+      final query = database.select(database.transactions)
         ..where((t) => t.categoryId.equals(categoryId))
         ..orderBy([(t) => OrderingTerm.desc(t.date)]);
       final transactions = await query.get();
@@ -881,8 +881,8 @@ class TransactionRepository
         final accountValidation = await _validator.validateAccountReferences(
           data,
           (accountId) async {
-            final results = await (_database
-                .select(_database.accounts)
+            final results = await (database
+                .select(database.accounts)
                 ..where((t) => t.id.equals(accountId))).get();
             return results.isNotEmpty;
           },
@@ -920,7 +920,7 @@ class TransactionRepository
         syncStatus: const Value('pending'),
       );
 
-      await _database.into(_database.transactions).insert(companion);
+      await database.into(database.transactions).insert(companion);
 
       logger.info('Transaction inserted into database: $id');
 
@@ -995,8 +995,8 @@ class TransactionRepository
         final accountValidation = await _validator.validateAccountReferences(
           data,
           (accountId) async {
-            final results = await (_database
-                .select(_database.accounts)
+            final results = await (database
+                .select(database.accounts)
                 ..where((t) => t.id.equals(accountId))).get();
             return results.isNotEmpty;
           },
@@ -1028,7 +1028,7 @@ class TransactionRepository
         syncStatus: const Value('pending'),
       );
 
-      final updateQuery = _database.update(_database.transactions)
+      final updateQuery = database.update(database.transactions)
         ..where((t) => t.id.equals(id));
       await updateQuery.write(companion);
 
@@ -1105,7 +1105,7 @@ class TransactionRepository
           updatedAt: Value(DateTime.now()),
         );
 
-        final updateQuery = _database.update(_database.transactions)
+        final updateQuery = database.update(database.transactions)
           ..where((t) => t.id.equals(id));
         await updateQuery.write(companion);
 
@@ -1128,7 +1128,7 @@ class TransactionRepository
         // Step 4: Not synced, remove completely
         logger.info('Transaction not synced, removing from database: $id');
 
-        final deleteQuery = _database.delete(_database.transactions)
+        final deleteQuery = database.delete(database.transactions)
           ..where((t) => t.id.equals(id));
         await deleteQuery.go();
 
@@ -1192,7 +1192,7 @@ class TransactionRepository
       }
 
       // Build query
-      var query = _database.select(_database.transactions);
+      var query = database.select(database.transactions);
 
       // Apply filters
       if (startDate != null) {
