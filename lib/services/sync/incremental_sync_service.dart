@@ -1,11 +1,190 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
+import 'package:retry/retry.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/models/incremental_sync_stats.dart';
 import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/services/sync/date_range_iterator.dart';
 import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
 import 'package:waterflyiii/services/sync/sync_progress_tracker.dart';
+
+/// Event types for sync progress tracking.
+enum SyncProgressEventType {
+  /// Sync has started.
+  started,
+
+  /// An entity type sync has started.
+  entityStarted,
+
+  /// An entity type sync has completed.
+  entityCompleted,
+
+  /// Progress update within an entity type.
+  progress,
+
+  /// A retry is being attempted.
+  retry,
+
+  /// Sync completed successfully.
+  completed,
+
+  /// Sync failed.
+  failed,
+
+  /// Cache was used (API call saved).
+  cacheHit,
+}
+
+/// Event emitted during sync progress for UI updates.
+///
+/// Provides detailed information about sync progress, including:
+/// - Current entity type being synced
+/// - Items fetched/updated/skipped
+/// - Retry attempts
+/// - Error information
+class SyncProgressEvent {
+  /// Type of the event.
+  final SyncProgressEventType type;
+
+  /// Entity type being synced (e.g., 'transaction', 'account').
+  final String? entityType;
+
+  /// Current progress message.
+  final String message;
+
+  /// Number of items fetched so far.
+  final int itemsFetched;
+
+  /// Number of items updated so far.
+  final int itemsUpdated;
+
+  /// Number of items skipped so far.
+  final int itemsSkipped;
+
+  /// Total items expected (if known).
+  final int? totalItems;
+
+  /// Current retry attempt number (if retrying).
+  final int? retryAttempt;
+
+  /// Maximum retry attempts (if retrying).
+  final int? maxRetries;
+
+  /// Error message (if failed).
+  final String? error;
+
+  /// Timestamp of the event.
+  final DateTime timestamp;
+
+  /// Creates a new sync progress event.
+  SyncProgressEvent({
+    required this.type,
+    this.entityType,
+    required this.message,
+    this.itemsFetched = 0,
+    this.itemsUpdated = 0,
+    this.itemsSkipped = 0,
+    this.totalItems,
+    this.retryAttempt,
+    this.maxRetries,
+    this.error,
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
+
+  /// Factory for started event.
+  factory SyncProgressEvent.started() => SyncProgressEvent(
+        type: SyncProgressEventType.started,
+        message: 'Incremental sync started',
+      );
+
+  /// Factory for entity started event.
+  factory SyncProgressEvent.entityStarted(String entityType) => SyncProgressEvent(
+        type: SyncProgressEventType.entityStarted,
+        entityType: entityType,
+        message: 'Syncing $entityType',
+      );
+
+  /// Factory for entity completed event.
+  factory SyncProgressEvent.entityCompleted(
+    String entityType,
+    IncrementalSyncStats stats,
+  ) =>
+      SyncProgressEvent(
+        type: SyncProgressEventType.entityCompleted,
+        entityType: entityType,
+        message: 'Completed $entityType: ${stats.summary}',
+        itemsFetched: stats.itemsFetched,
+        itemsUpdated: stats.itemsUpdated,
+        itemsSkipped: stats.itemsSkipped,
+      );
+
+  /// Factory for progress update event.
+  factory SyncProgressEvent.progress(
+    String entityType,
+    int fetched,
+    int updated,
+    int skipped, {
+    int? total,
+  }) =>
+      SyncProgressEvent(
+        type: SyncProgressEventType.progress,
+        entityType: entityType,
+        message: 'Progress: $fetched fetched, $updated updated, $skipped skipped',
+        itemsFetched: fetched,
+        itemsUpdated: updated,
+        itemsSkipped: skipped,
+        totalItems: total,
+      );
+
+  /// Factory for retry event.
+  factory SyncProgressEvent.retry(
+    String entityType,
+    int attempt,
+    int maxAttempts,
+    String reason,
+  ) =>
+      SyncProgressEvent(
+        type: SyncProgressEventType.retry,
+        entityType: entityType,
+        message: 'Retry $attempt/$maxAttempts: $reason',
+        retryAttempt: attempt,
+        maxRetries: maxAttempts,
+      );
+
+  /// Factory for completed event.
+  factory SyncProgressEvent.completed(IncrementalSyncResult result) => SyncProgressEvent(
+        type: SyncProgressEventType.completed,
+        message: 'Sync completed: ${result.totalUpdated} updated, ${result.totalSkipped} skipped',
+        itemsFetched: result.totalFetched,
+        itemsUpdated: result.totalUpdated,
+        itemsSkipped: result.totalSkipped,
+      );
+
+  /// Factory for failed event.
+  factory SyncProgressEvent.failed(String error) => SyncProgressEvent(
+        type: SyncProgressEventType.failed,
+        message: 'Sync failed: $error',
+        error: error,
+      );
+
+  /// Factory for cache hit event.
+  factory SyncProgressEvent.cacheHit(String entityType) => SyncProgressEvent(
+        type: SyncProgressEventType.cacheHit,
+        entityType: entityType,
+        message: '$entityType cache fresh, skipping API call',
+      );
+
+  /// Calculate progress percentage if total is known.
+  double? get progressPercent {
+    if (totalItems == null || totalItems == 0) return null;
+    return (itemsFetched / totalItems!) * 100.0;
+  }
+
+  @override
+  String toString() => 'SyncProgressEvent(${type.name}: $message)';
+}
 
 /// Service for performing incremental synchronization using a three-tier strategy.
 ///
@@ -73,6 +252,25 @@ class IncrementalSyncService {
   /// Configuration: Clock skew tolerance in minutes (default: 5).
   final int clockSkewToleranceMinutes;
 
+  /// Configuration: Maximum retry attempts for failed operations (default: 3).
+  final int maxRetryAttempts;
+
+  /// Configuration: Initial retry delay (default: 1 second).
+  final Duration initialRetryDelay;
+
+  /// Configuration: Maximum retry delay (default: 30 seconds).
+  final Duration maxRetryDelay;
+
+  /// Retry options for API operations using the retry package.
+  late final RetryOptions _retryOptions;
+
+  /// Stream controller for sync progress events.
+  final StreamController<SyncProgressEvent> _progressStreamController =
+      StreamController<SyncProgressEvent>.broadcast();
+
+  /// Stream of sync progress events for UI updates.
+  Stream<SyncProgressEvent> get progressStream => _progressStreamController.stream;
+
   /// Creates a new incremental sync service.
   IncrementalSyncService({
     required AppDatabase database,
@@ -84,10 +282,32 @@ class IncrementalSyncService {
     this.cacheTtlHours = 24,
     this.maxDaysSinceFullSync = 7,
     this.clockSkewToleranceMinutes = 5,
+    this.maxRetryAttempts = 3,
+    this.initialRetryDelay = const Duration(seconds: 1),
+    this.maxRetryDelay = const Duration(seconds: 30),
   })  : _database = database,
         _apiAdapter = apiAdapter,
         _cacheService = cacheService,
-        _progressTracker = progressTracker;
+        _progressTracker = progressTracker {
+    _retryOptions = RetryOptions(
+      maxAttempts: maxRetryAttempts,
+      delayFactor: initialRetryDelay,
+      maxDelay: maxRetryDelay,
+      randomizationFactor: 0.25,
+    );
+  }
+
+  /// Dispose resources.
+  void dispose() {
+    _progressStreamController.close();
+  }
+
+  /// Emit a sync progress event.
+  void _emitProgress(SyncProgressEvent event) {
+    if (!_progressStreamController.isClosed) {
+      _progressStreamController.add(event);
+    }
+  }
 
   // ==================== Main Entry Point ====================
 
@@ -99,6 +319,12 @@ class IncrementalSyncService {
   /// - First sync (no previous full sync)
   /// - More than 7 days since last full sync
   ///
+  /// Features:
+  /// - Automatic retry with exponential backoff on failures
+  /// - Progress events emitted via [progressStream]
+  /// - Detailed statistics tracking per entity type
+  /// - Cache integration for Tier 2 entities
+  ///
   /// Returns [IncrementalSyncResult] with detailed statistics.
   Future<IncrementalSyncResult> performIncrementalSync({
     bool forceFullSync = false,
@@ -108,11 +334,13 @@ class IncrementalSyncService {
         <String, IncrementalSyncStats>{};
 
     _logger.info('Starting incremental sync');
+    _emitProgress(SyncProgressEvent.started());
 
     try {
       // Check if incremental sync is possible
       if (forceFullSync || !await _canUseIncrementalSync()) {
         _logger.warning('Falling back to full sync');
+        _emitProgress(SyncProgressEvent.failed('Full sync required'));
         // Return indicator that full sync is needed
         return IncrementalSyncResult(
           isIncremental: false,
@@ -131,16 +359,21 @@ class IncrementalSyncService {
       _logger.fine('Tier 1: Syncing date-range filtered entities');
 
       statsByEntity['transaction'] =
-          await _syncTransactionsIncremental(since);
-      statsByEntity['account'] = await _syncAccountsIncremental(since);
-      statsByEntity['budget'] = await _syncBudgetsIncremental(since);
+          await _syncEntityWithRetry('transaction', () => _syncTransactionsIncremental(since));
+      statsByEntity['account'] =
+          await _syncEntityWithRetry('account', () => _syncAccountsIncremental(since));
+      statsByEntity['budget'] =
+          await _syncEntityWithRetry('budget', () => _syncBudgetsIncremental(since));
 
       // TIER 2: Extended cache entities
       _logger.fine('Tier 2: Syncing cached entities');
 
-      statsByEntity['category'] = await _syncCategoriesIncremental();
-      statsByEntity['bill'] = await _syncBillsIncremental();
-      statsByEntity['piggy_bank'] = await _syncPiggyBanksIncremental();
+      statsByEntity['category'] =
+          await _syncEntityWithRetry('category', () => _syncCategoriesIncremental());
+      statsByEntity['bill'] =
+          await _syncEntityWithRetry('bill', () => _syncBillsIncremental());
+      statsByEntity['piggy_bank'] =
+          await _syncEntityWithRetry('piggy_bank', () => _syncPiggyBanksIncremental());
 
       // Update sync statistics in database
       await _updateSyncStatistics(statsByEntity);
@@ -151,14 +384,19 @@ class IncrementalSyncService {
       final Duration duration = DateTime.now().difference(startTime);
       _logger.info('Incremental sync completed in ${duration.inSeconds}s');
 
-      return IncrementalSyncResult(
+      final IncrementalSyncResult result = IncrementalSyncResult(
         isIncremental: true,
         success: true,
         duration: duration,
         statsByEntity: statsByEntity,
       );
+
+      _emitProgress(SyncProgressEvent.completed(result));
+
+      return result;
     } catch (e, stackTrace) {
       _logger.severe('Incremental sync failed', e, stackTrace);
+      _emitProgress(SyncProgressEvent.failed(e.toString()));
 
       return IncrementalSyncResult(
         isIncremental: true,
@@ -168,6 +406,91 @@ class IncrementalSyncService {
         error: e.toString(),
       );
     }
+  }
+
+  /// Sync an entity type with retry logic.
+  ///
+  /// Wraps the sync operation with exponential backoff retry.
+  /// Emits progress events for retry attempts.
+  Future<IncrementalSyncStats> _syncEntityWithRetry(
+    String entityType,
+    Future<IncrementalSyncStats> Function() syncOperation,
+  ) async {
+    _emitProgress(SyncProgressEvent.entityStarted(entityType));
+    int attemptCount = 0;
+
+    try {
+      final IncrementalSyncStats stats = await _retryOptions.retry(
+        () async {
+          attemptCount++;
+          if (attemptCount > 1) {
+            _emitProgress(SyncProgressEvent.retry(
+              entityType,
+              attemptCount,
+              maxRetryAttempts,
+              'Retrying after previous failure',
+            ));
+          }
+          return await syncOperation();
+        },
+        retryIf: (e) => _isRetryableError(e),
+        onRetry: (e) {
+          _logger.warning('Retry $attemptCount for $entityType: $e');
+        },
+      );
+
+      _emitProgress(SyncProgressEvent.entityCompleted(entityType, stats));
+      return stats;
+    } catch (e) {
+      // Return stats indicating failure
+      final IncrementalSyncStats failedStats = IncrementalSyncStats(
+        entityType: entityType,
+      )..complete(success: false, error: e.toString());
+
+      _emitProgress(SyncProgressEvent.entityCompleted(entityType, failedStats));
+      rethrow;
+    }
+  }
+
+  /// Check if an error is retryable.
+  ///
+  /// Returns true for transient errors like network issues or rate limiting.
+  bool _isRetryableError(Exception e) {
+    final String errorMessage = e.toString().toLowerCase();
+
+    // Retry on network-related errors
+    if (errorMessage.contains('socket') ||
+        errorMessage.contains('timeout') ||
+        errorMessage.contains('connection') ||
+        errorMessage.contains('network')) {
+      return true;
+    }
+
+    // Retry on rate limiting (429)
+    if (errorMessage.contains('429') ||
+        errorMessage.contains('rate limit') ||
+        errorMessage.contains('too many requests')) {
+      return true;
+    }
+
+    // Retry on server errors (5xx)
+    if (errorMessage.contains('500') ||
+        errorMessage.contains('502') ||
+        errorMessage.contains('503') ||
+        errorMessage.contains('504')) {
+      return true;
+    }
+
+    // Don't retry on client errors (4xx except 429)
+    if (errorMessage.contains('400') ||
+        errorMessage.contains('401') ||
+        errorMessage.contains('403') ||
+        errorMessage.contains('404')) {
+      return false;
+    }
+
+    // Default: retry on unknown errors
+    return true;
   }
 
   // ==================== Tier 1: Date-Range Filtered ====================
@@ -193,6 +516,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'transaction',
         start: since,
+        retryConfig: RetryConfig(
+          maxAttempts: maxRetryAttempts,
+          initialDelay: initialRetryDelay,
+          maxDelay: maxRetryDelay,
+        ),
       );
 
       await for (final Map<String, dynamic> serverTx in iterator.iterate()) {
@@ -227,6 +555,16 @@ class IncrementalSyncService {
         }
 
         _progressTracker?.incrementCompleted();
+
+        // Emit progress every 50 items (transactions are typically more numerous)
+        if (stats.itemsFetched % 50 == 0) {
+          _emitProgress(SyncProgressEvent.progress(
+            'transaction',
+            stats.itemsFetched,
+            stats.itemsUpdated,
+            stats.itemsSkipped,
+          ));
+        }
       }
 
       stats.calculateBandwidthSaved();
@@ -253,6 +591,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'account',
         start: since,
+        retryConfig: RetryConfig(
+          maxAttempts: maxRetryAttempts,
+          initialDelay: initialRetryDelay,
+          maxDelay: maxRetryDelay,
+        ),
       );
 
       await for (final Map<String, dynamic> serverAccount
@@ -273,6 +616,16 @@ class IncrementalSyncService {
         }
 
         _progressTracker?.incrementCompleted();
+
+        // Emit progress every 10 items
+        if (stats.itemsFetched % 10 == 0) {
+          _emitProgress(SyncProgressEvent.progress(
+            'account',
+            stats.itemsFetched,
+            stats.itemsUpdated,
+            stats.itemsSkipped,
+          ));
+        }
       }
 
       stats.calculateBandwidthSaved();
@@ -299,6 +652,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'budget',
         start: since,
+        retryConfig: RetryConfig(
+          maxAttempts: maxRetryAttempts,
+          initialDelay: initialRetryDelay,
+          maxDelay: maxRetryDelay,
+        ),
       );
 
       await for (final Map<String, dynamic> serverBudget
@@ -319,6 +677,16 @@ class IncrementalSyncService {
         }
 
         _progressTracker?.incrementCompleted();
+
+        // Emit progress every 10 items
+        if (stats.itemsFetched % 10 == 0) {
+          _emitProgress(SyncProgressEvent.progress(
+            'budget',
+            stats.itemsFetched,
+            stats.itemsUpdated,
+            stats.itemsSkipped,
+          ));
+        }
       }
 
       stats.calculateBandwidthSaved();
@@ -354,6 +722,7 @@ class IncrementalSyncService {
       );
       stats.apiCallsSaved = 1;
       stats.complete(success: true);
+      _emitProgress(SyncProgressEvent.cacheHit('category'));
       return stats;
     }
 
@@ -364,6 +733,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'category',
         start: DateTime.now().subtract(Duration(days: syncWindowDays)),
+        retryConfig: RetryConfig(
+          maxAttempts: maxRetryAttempts,
+          initialDelay: initialRetryDelay,
+          maxDelay: maxRetryDelay,
+        ),
       );
 
       await for (final Map<String, dynamic> serverCategory
@@ -381,6 +755,16 @@ class IncrementalSyncService {
           stats.itemsUpdated++;
         } else {
           stats.itemsSkipped++;
+        }
+
+        // Emit progress every 10 items
+        if (stats.itemsFetched % 10 == 0) {
+          _emitProgress(SyncProgressEvent.progress(
+            'category',
+            stats.itemsFetched,
+            stats.itemsUpdated,
+            stats.itemsSkipped,
+          ));
         }
       }
 
@@ -411,6 +795,7 @@ class IncrementalSyncService {
       _logger.info('Bills cache fresh, skipping sync');
       stats.apiCallsSaved = 1;
       stats.complete(success: true);
+      _emitProgress(SyncProgressEvent.cacheHit('bill'));
       return stats;
     }
 
@@ -419,6 +804,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'bill',
         start: DateTime.now().subtract(Duration(days: syncWindowDays)),
+        retryConfig: RetryConfig(
+          maxAttempts: maxRetryAttempts,
+          initialDelay: initialRetryDelay,
+          maxDelay: maxRetryDelay,
+        ),
       );
 
       await for (final Map<String, dynamic> serverBill in iterator.iterate()) {
@@ -435,6 +825,16 @@ class IncrementalSyncService {
           stats.itemsUpdated++;
         } else {
           stats.itemsSkipped++;
+        }
+
+        // Emit progress every 10 items
+        if (stats.itemsFetched % 10 == 0) {
+          _emitProgress(SyncProgressEvent.progress(
+            'bill',
+            stats.itemsFetched,
+            stats.itemsUpdated,
+            stats.itemsSkipped,
+          ));
         }
       }
 
@@ -465,6 +865,7 @@ class IncrementalSyncService {
       _logger.info('Piggy banks cache fresh, skipping sync');
       stats.apiCallsSaved = 1;
       stats.complete(success: true);
+      _emitProgress(SyncProgressEvent.cacheHit('piggy_bank'));
       return stats;
     }
 
@@ -473,6 +874,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'piggy_bank',
         start: DateTime.now().subtract(Duration(days: syncWindowDays)),
+        retryConfig: RetryConfig(
+          maxAttempts: maxRetryAttempts,
+          initialDelay: initialRetryDelay,
+          maxDelay: maxRetryDelay,
+        ),
       );
 
       await for (final Map<String, dynamic> serverPiggyBank
@@ -490,6 +896,16 @@ class IncrementalSyncService {
           stats.itemsUpdated++;
         } else {
           stats.itemsSkipped++;
+        }
+
+        // Emit progress every 10 items
+        if (stats.itemsFetched % 10 == 0) {
+          _emitProgress(SyncProgressEvent.progress(
+            'piggy_bank',
+            stats.itemsFetched,
+            stats.itemsUpdated,
+            stats.itemsSkipped,
+          ));
         }
       }
 

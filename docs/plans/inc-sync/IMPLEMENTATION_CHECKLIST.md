@@ -1138,7 +1138,7 @@ Similar implementation to transactions:
 - [x] Implement `_syncBudgetsIncremental()`
 - [x] Implement merge helpers
 - [x] Add logging and statistics
-- [ ] Test each implementation
+- [x] Test each implementation
 
 ### Task 3.4: Implement Smart Caching for Categories, Bills, Piggy Banks
 
@@ -1319,6 +1319,124 @@ Future<bool> _canUseIncrementalSync() async {
 - [x] Return comprehensive SyncResult (as `IncrementalSyncResult`)
 - [x] Handle errors gracefully
 
+### Task 3.6: Implement Retry Logic with Exponential Backoff (OPTIONAL/ADVANCED)
+
+**File:** `lib/services/sync/incremental_sync_service.dart`
+
+**Implementation:**
+
+```dart
+/// Configuration for retry behavior.
+final int maxRetryAttempts;
+final Duration initialRetryDelay;
+final Duration maxRetryDelay;
+
+/// Retry options using the retry package.
+late final RetryOptions _retryOptions;
+
+/// Sync an entity type with retry logic.
+Future<IncrementalSyncStats> _syncEntityWithRetry(
+  String entityType,
+  Future<IncrementalSyncStats> Function() syncOperation,
+) async {
+  return await _retryOptions.retry(
+    () => syncOperation(),
+    retryIf: (e) => _isRetryableError(e),
+    onRetry: (e) => _logger.warning('Retry for $entityType: $e'),
+  );
+}
+
+/// Check if an error is retryable (network, rate limit, server errors).
+bool _isRetryableError(Exception e) {
+  final String msg = e.toString().toLowerCase();
+  return msg.contains('socket') || msg.contains('timeout') ||
+         msg.contains('429') || msg.contains('5');
+}
+```
+
+**Checklist:**
+- [x] Add retry configuration options
+- [x] Implement `_syncEntityWithRetry()` wrapper
+- [x] Implement `_isRetryableError()` predicate
+- [x] Apply retry to all entity sync methods
+- [x] Emit retry progress events
+
+### Task 3.7: Implement Sync Progress Callbacks (OPTIONAL/ADVANCED)
+
+**File:** `lib/services/sync/incremental_sync_service.dart`
+
+**Implementation:**
+
+```dart
+/// Event types for sync progress tracking.
+enum SyncProgressEventType {
+  started, entityStarted, entityCompleted, progress, retry, completed, failed, cacheHit,
+}
+
+/// Event emitted during sync progress for UI updates.
+class SyncProgressEvent {
+  final SyncProgressEventType type;
+  final String? entityType;
+  final String message;
+  final int itemsFetched;
+  final int itemsUpdated;
+  final int itemsSkipped;
+  // ... additional fields
+}
+
+/// Stream of sync progress events for UI updates.
+Stream<SyncProgressEvent> get progressStream => _progressStreamController.stream;
+```
+
+**Checklist:**
+- [x] Create `SyncProgressEvent` class
+- [x] Create `SyncProgressEventType` enum
+- [x] Add `progressStream` for UI subscription
+- [x] Emit events at key sync milestones
+- [x] Add progress percentage calculation
+
+### Task 3.8: Enhance DateRangeIterator with Batch Processing (OPTIONAL/ADVANCED)
+
+**File:** `lib/services/sync/date_range_iterator.dart`
+
+**Implementation:**
+
+```dart
+/// Configuration for retry behavior.
+class RetryConfig {
+  final int maxAttempts;
+  final Duration initialDelay;
+  final Duration maxDelay;
+}
+
+/// Configuration for batch processing.
+class BatchConfig {
+  final int batchSize;
+  final Duration batchDelay;
+  final bool parallelProcessing;
+  final int maxConcurrency;
+}
+
+/// Iterate through entities in batches.
+Stream<List<Map<String, dynamic>>> iterateBatches({int? size}) async* { ... }
+
+/// Process items in parallel with concurrency limit.
+Future<List<T>> processInParallel<T>({
+  required Future<T> Function(Map<String, dynamic> item) processor,
+  int? batchSize,
+  int? maxConcurrency,
+}) async { ... }
+```
+
+**Checklist:**
+- [x] Create `RetryConfig` class
+- [x] Create `BatchConfig` class
+- [x] Implement `iterateBatches()` method
+- [x] Implement `iterateBatchesWithProgress()` method
+- [x] Implement `processInParallel()` method
+- [x] Add `_fetchPageWithRetry()` with exponential backoff
+- [x] Add `_isRetryableError()` predicate
+
 ### Phase 3 Completion Checklist
 
 - [x] All tasks 3.1 through 3.5 completed
@@ -1327,7 +1445,10 @@ Future<bool> _canUseIncrementalSync() async {
 - [x] Statistics tracked accurately
 - [x] Error handling comprehensive
 - [x] Logging detailed
-- [ ] Integration tests pass
+- [x] Integration tests pass
+- [x] Retry logic with exponential backoff (Task 3.6)
+- [x] Sync progress callbacks (Task 3.7)
+- [x] Advanced batch processing (Task 3.8)
 
 ---
 
