@@ -353,7 +353,7 @@ class IncrementalSyncService {
 
       // Get sync window
       final DateTime since = await _getSyncWindowStart();
-      _logger.info('Sync window: ${syncWindowDays} days (since: $since)');
+      _logger.info('Sync window: $syncWindowDays days (since: $since)');
 
       // TIER 1: Date-range filtered entities
       _logger.fine('Tier 1: Syncing date-range filtered entities');
@@ -416,12 +416,12 @@ class IncrementalSyncService {
     String entityType,
     Future<IncrementalSyncStats> Function() syncOperation,
   ) async {
-    _emitProgress(SyncProgressEvent.entityStarted(entityType));
+      _emitProgress(SyncProgressEvent.entityStarted(entityType));
     int attemptCount = 0;
 
     try {
       final IncrementalSyncStats stats = await _retryOptions.retry(
-        () async {
+        () {
           attemptCount++;
           if (attemptCount > 1) {
             _emitProgress(SyncProgressEvent.retry(
@@ -431,10 +431,10 @@ class IncrementalSyncService {
               'Retrying after previous failure',
             ));
           }
-          return await syncOperation();
+          return syncOperation();
         },
-        retryIf: (e) => _isRetryableError(e),
-        onRetry: (e) {
+        retryIf: (Exception e) => _isRetryableError(e),
+        onRetry: (Exception e) {
           _logger.warning('Retry $attemptCount for $entityType: $e');
         },
       );
@@ -1301,10 +1301,43 @@ class IncrementalSyncService {
 
   // ==================== Cache Management ====================
 
-  /// Check if cache is fresh for an entity list.
+  /// Check if cache metadata is fresh (within TTL).
+  ///
+  /// A cache entry is fresh if:
+  /// 1. Cache metadata exists
+  /// 2. Not explicitly invalidated
+  /// 3. Current time < (cachedAt + ttl)
+  ///
+  /// This method uses the CacheService abstraction which provides
+  /// the correct cache-first architecture pattern.
+  ///
+  /// Parameters:
+  /// - [cacheKey]: Cache key for the entity list (e.g., 'category_list')
+  ///
+  /// Returns:
+  /// - true if cache is fresh and can be used
+  /// - false if cache is stale, invalidated, or missing
+  ///
+  /// Example:
+  /// ```dart
+  /// if (await _isCacheFresh('category_list')) {
+  ///   _logger.info('Categories cache fresh, skipping sync');
+  ///   return;
+  /// }
+  /// ```
   Future<bool> _isCacheFresh(String cacheKey) async {
     try {
-      return await _cacheService.isFresh(cacheKey, 'all');
+      // Use CacheService.isFresh() which handles metadata checking
+      // and TTL validation according to cache-first architecture
+      final bool isFresh = await _cacheService.isFresh(cacheKey, 'all');
+      
+      if (isFresh) {
+        _logger.fine('Cache fresh for $cacheKey (TTL: ${cacheTtlHours}h)');
+      } else {
+        _logger.fine('Cache stale or missing for $cacheKey');
+      }
+      
+      return isFresh;
     } catch (e) {
       _logger.warning('Cache check failed for $cacheKey: $e');
       return false;
@@ -1332,7 +1365,7 @@ class IncrementalSyncService {
   Future<void> _updateSyncStatistics(
     Map<String, IncrementalSyncStats> statsByEntity,
   ) async {
-    for (final entry in statsByEntity.entries) {
+    for (final MapEntry<String, IncrementalSyncStats> entry in statsByEntity.entries) {
       final String entityType = entry.key;
       final IncrementalSyncStats stats = entry.value;
 
@@ -1374,7 +1407,7 @@ class IncrementalSyncService {
             SyncStatisticsEntityCompanion.insert(
               entityType: entityType,
               lastIncrementalSync: DateTime.now(),
-              lastFullSync: Value<DateTime?>(null),
+              lastFullSync: const Value<DateTime?>(null),
               itemsFetchedTotal: Value<int>(stats.itemsFetched),
               itemsUpdatedTotal: Value<int>(stats.itemsUpdated),
               itemsSkippedTotal: Value<int>(stats.itemsSkipped),
@@ -1393,6 +1426,15 @@ class IncrementalSyncService {
   // ==================== Force Sync Methods ====================
 
   /// Force sync specific entity type (bypasses cache).
+  ///
+  /// This is the generic method that handles all entity types.
+  /// For convenience, use the specific methods like [forceSyncCategories],
+  /// [forceSyncBills], or [forceSyncPiggyBanks] for better type safety.
+  ///
+  /// Parameters:
+  /// - [entityType]: Entity type to force sync ('transaction', 'account', etc.)
+  ///
+  /// Returns statistics for the sync operation.
   Future<IncrementalSyncStats> forceSyncEntityType(String entityType) async {
     _logger.info('Force sync requested for $entityType');
 
@@ -1422,6 +1464,51 @@ class IncrementalSyncService {
       default:
         throw ArgumentError('Unknown entity type: $entityType');
     }
+  }
+
+  /// Force sync categories (user-initiated, bypasses cache).
+  ///
+  /// Invalidates the category cache and performs a full sync of all categories.
+  /// Useful when user wants to ensure they have the latest category data.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stats = await syncService.forceSyncCategories();
+  /// print('Synced ${stats.itemsUpdated} categories');
+  /// ```
+  Future<IncrementalSyncStats> forceSyncCategories() {
+    _logger.info('Force sync categories (user-initiated)');
+    return forceSyncEntityType('category');
+  }
+
+  /// Force sync bills (user-initiated, bypasses cache).
+  ///
+  /// Invalidates the bill cache and performs a full sync of all bills.
+  /// Useful when user wants to ensure they have the latest bill data.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stats = await syncService.forceSyncBills();
+  /// print('Synced ${stats.itemsUpdated} bills');
+  /// ```
+  Future<IncrementalSyncStats> forceSyncBills() {
+    _logger.info('Force sync bills (user-initiated)');
+    return forceSyncEntityType('bill');
+  }
+
+  /// Force sync piggy banks (user-initiated, bypasses cache).
+  ///
+  /// Invalidates the piggy bank cache and performs a full sync of all piggy banks.
+  /// Useful when user wants to ensure they have the latest piggy bank data.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stats = await syncService.forceSyncPiggyBanks();
+  /// print('Synced ${stats.itemsUpdated} piggy banks');
+  /// ```
+  Future<IncrementalSyncStats> forceSyncPiggyBanks() {
+    _logger.info('Force sync piggy banks (user-initiated)');
+    return forceSyncEntityType('piggy_bank');
   }
 
   // ==================== Utility Methods ====================

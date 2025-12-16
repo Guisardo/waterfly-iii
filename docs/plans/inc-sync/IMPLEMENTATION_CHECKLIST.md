@@ -1219,8 +1219,12 @@ Future<void> forceSyncCategories() async {
 - [x] Implement `_syncCategoriesIncremental()`
 - [x] Implement `_syncBillsIncremental()`
 - [x] Implement `_syncPiggyBanksIncremental()`
-- [x] Implement `_isCacheFresh()` helper
-- [x] Add force sync methods for each entity type
+- [x] Implement `_isCacheFresh()` helper with comprehensive documentation
+- [x] Add force sync methods for each entity type:
+  - [x] `forceSyncEntityType()` - Generic method
+  - [x] `forceSyncCategories()` - Convenience wrapper
+  - [x] `forceSyncBills()` - Convenience wrapper
+  - [x] `forceSyncPiggyBanks()` - Convenience wrapper
 - [x] Integrate with existing cache service
 - [x] Add comprehensive logging
 
