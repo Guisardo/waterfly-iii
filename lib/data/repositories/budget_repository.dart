@@ -6,7 +6,6 @@ import 'package:waterflyiii/data/repositories/base_repository.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
 import 'package:waterflyiii/models/cache/cache_result.dart';
 import 'package:waterflyiii/services/cache/cache_invalidation_rules.dart';
-import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 
 /// Repository for managing budget data with cache-first architecture.
@@ -74,11 +73,10 @@ class BudgetRepository extends BaseRepository<BudgetEntity, String> {
   /// );
   /// ```
   BudgetRepository({
-    required AppDatabase database,
-    CacheService? cacheService,
+    required super.database,
+    super.cacheService,
     UuidService? uuidService,
-  })  : _uuidService = uuidService ?? UuidService(),
-        super(database: database, cacheService: cacheService);
+  })  : _uuidService = uuidService ?? UuidService();
 
   final UuidService _uuidService;
 

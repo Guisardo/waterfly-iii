@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
+import 'package:waterflyiii/services/sync/sync_statistics.dart';
 
 final Logger _log = Logger('SyncStatusIndicator');
 
@@ -124,9 +125,9 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
   @override
   Widget build(BuildContext context) {
     return Consumer<SyncStatusProvider>(
-      builder: (context, provider, child) {
-        final status = _getSyncStatus(provider);
-        final pendingCount = _getPendingCount(provider);
+      builder: (BuildContext context, SyncStatusProvider provider, Widget? child) {
+        final SyncStatus status = _getSyncStatus(provider);
+        final int pendingCount = _getPendingCount(provider);
 
         // Control rotation animation
         if (status == SyncStatus.syncing) {
@@ -177,8 +178,8 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
     SyncStatus status,
     int pendingCount,
   ) {
-    final statistics = provider.statistics;
-    final lastSyncTime = statistics?.lastSyncTime;
+    final SyncStatistics? statistics = provider.statistics;
+    final DateTime? lastSyncTime = statistics?.lastSyncTime;
 
     return Card(
       child: InkWell(
@@ -189,9 +190,9 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Row(
-                children: [
+                children: <Widget>[
                   RotationTransition(
                     turns: _rotationController,
                     child: Icon(
@@ -204,7 +205,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: <Widget>[
                         Text(
                           _getStatusText(status, pendingCount),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -248,7 +249,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                   ),
                 ],
               ),
-              if (provider.currentProgress != null) ...[
+              if (provider.currentProgress != null) ...<Widget>[
                 const SizedBox(height: 12),
                 LinearProgressIndicator(
                   value: provider.currentProgress!.percentage / 100,
@@ -304,7 +305,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
     }
 
     // Check connectivity status for offline
-    final connectivity = Provider.of<ConnectivityProvider>(
+    final ConnectivityProvider connectivity = Provider.of<ConnectivityProvider>(
       context,
       listen: false,
     );
@@ -313,7 +314,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
       return SyncStatus.offline;
     }
 
-    final pendingCount = _getPendingCount(provider);
+    final int pendingCount = _getPendingCount(provider);
     if (pendingCount > 0) {
       return SyncStatus.pending;
     }
@@ -379,8 +380,8 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
 
   /// Format last sync time.
   String _formatLastSyncTime(DateTime lastSync) {
-    final now = DateTime.now();
-    final difference = now.difference(lastSync);
+    final DateTime now = DateTime.now();
+    final Duration difference = now.difference(lastSync);
 
     if (difference.inMinutes < 1) {
       return 'Just now';
@@ -405,10 +406,10 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
   void _showQuickActions(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
+      builder: (BuildContext context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             ListTile(
               leading: const Icon(Icons.sync),
               title: const Text('Sync now'),
@@ -417,7 +418,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                 _log.info('Manual sync triggered');
                 
                 try {
-                  final syncStatusProvider = Provider.of<SyncStatusProvider>(
+                  final SyncStatusProvider syncStatusProvider = Provider.of<SyncStatusProvider>(
                     context,
                     listen: false,
                   );
@@ -455,7 +456,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                 _log.info('Full sync triggered');
                 
                 try {
-                  final syncStatusProvider = Provider.of<SyncStatusProvider>(
+                  final SyncStatusProvider syncStatusProvider = Provider.of<SyncStatusProvider>(
                     context,
                     listen: false,
                   );

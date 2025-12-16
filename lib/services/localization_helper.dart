@@ -11,8 +11,8 @@ class LocalizationHelper {
   /// Get localized strings for the user's preferred locale.
   static Future<S> getLocalizations() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final localeStr = prefs.getString(SettingsProvider.settingLocale);
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? localeStr = prefs.getString(SettingsProvider.settingLocale);
       
       Locale locale;
       if (localeStr != null && localeStr != 'unset') {
@@ -39,7 +39,7 @@ class LocalizationHelper {
   }
 
   static Locale _parseLocale(String localeStr) {
-    final parts = localeStr.split('-');
+    final List<String> parts = localeStr.split('-');
     if (parts.length == 2) {
       return Locale(parts[0], parts[1]);
     }

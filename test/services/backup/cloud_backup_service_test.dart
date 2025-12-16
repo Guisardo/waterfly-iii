@@ -18,7 +18,7 @@ void main() {
     tempDir = await Directory.systemTemp.createTemp('waterfly_backup_test_');
     
     // Reset shared preferences data for each test
-    prefsData = {};
+    prefsData = <String, Object>{};
     
     // Mock path_provider
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -76,7 +76,7 @@ void main() {
       // Arrange - Create a test database file in the mocked app documents directory
       final File testDb = File(p.join(tempDir.path, 'waterfly_offline.db'));
       await testDb.create(recursive: true);
-      await testDb.writeAsString('SQLite format 3\0test data');
+      await testDb.writeAsString('SQLite format 30test data');
 
       // Act
       final CloudBackupMetadata metadata = await backupService.createBackup(
@@ -93,7 +93,7 @@ void main() {
       // Arrange - Create test database
       final File testDb = File(p.join(tempDir.path, 'waterfly_offline.db'));
       await testDb.create(recursive: true);
-      await testDb.writeAsString('SQLite format 3\0test data');
+      await testDb.writeAsString('SQLite format 30test data');
 
       await backupService.createBackup(description: 'Backup 1');
       await Future<void>.delayed(const Duration(seconds: 1));
@@ -110,7 +110,7 @@ void main() {
       // Arrange - Create test database
       final File testDb = File(p.join(tempDir.path, 'waterfly_offline.db'));
       await testDb.create(recursive: true);
-      await testDb.writeAsString('SQLite format 3\0test data');
+      await testDb.writeAsString('SQLite format 30test data');
 
       // Create more backups than maxBackups
       await backupService.createBackup(description: 'Backup 1');
@@ -132,14 +132,14 @@ void main() {
       // Arrange - Create test database
       final File testDb = File(p.join(tempDir.path, 'waterfly_offline.db'));
       await testDb.create(recursive: true);
-      const String originalContent = 'SQLite format 3\0original data';
+      const String originalContent = 'SQLite format 30original data';
       await testDb.writeAsString(originalContent);
 
       // Create backup
       final CloudBackupMetadata metadata = await backupService.createBackup();
 
       // Modify database
-      await testDb.writeAsString('SQLite format 3\0modified data');
+      await testDb.writeAsString('SQLite format 30modified data');
 
       // Act - Restore from backup
       await backupService.restoreBackup(metadata.id);
@@ -153,7 +153,7 @@ void main() {
       // Arrange
       final File testDb = File(p.join(tempDir.path, 'waterfly_offline.db'));
       await testDb.create(recursive: true);
-      await testDb.writeAsString('SQLite format 3\0test data');
+      await testDb.writeAsString('SQLite format 30test data');
 
       final CloudBackupMetadata metadata = await backupService.createBackup();
 
@@ -169,7 +169,7 @@ void main() {
       // Arrange
       final File testDb = File(p.join(tempDir.path, 'waterfly_offline.db'));
       await testDb.create(recursive: true);
-      await testDb.writeAsString('SQLite format 3\0test data');
+      await testDb.writeAsString('SQLite format 30test data');
 
       // Act
       final DateTime beforeBackup = DateTime.now();
@@ -185,7 +185,7 @@ void main() {
       // Arrange
       final File testDb = File(p.join(tempDir.path, 'waterfly_offline.db'));
       await testDb.create(recursive: true);
-      await testDb.writeAsString('SQLite format 3\0test data');
+      await testDb.writeAsString('SQLite format 30test data');
 
       // Create backup
       await backupService.createBackup();

@@ -33,21 +33,21 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find and fill server URL field
-      final serverUrlField = find.byKey(const Key('serverUrlField'));
+      final Finder serverUrlField = find.byKey(const Key('serverUrlField'));
       if (serverUrlField.evaluate().isNotEmpty) {
         await tester.enterText(serverUrlField, 'https://demo.firefly-iii.org');
         await tester.pumpAndSettle();
       }
 
       // Find and fill personal access token field
-      final tokenField = find.byKey(const Key('tokenField'));
+      final Finder tokenField = find.byKey(const Key('tokenField'));
       if (tokenField.evaluate().isNotEmpty) {
         await tester.enterText(tokenField, 'demo-token');
         await tester.pumpAndSettle();
       }
 
       // Tap login button
-      final loginButton = find.byKey(const Key('loginButton'));
+      final Finder loginButton = find.byKey(const Key('loginButton'));
       if (loginButton.evaluate().isNotEmpty) {
         await tester.tap(loginButton);
         await tester.pumpAndSettle(const Duration(seconds: 5));
@@ -66,7 +66,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assuming user is logged in, test navigation
-      final bottomNav = find.byType(BottomNavigationBar);
+      final Finder bottomNav = find.byType(BottomNavigationBar);
       if (bottomNav.evaluate().isNotEmpty) {
         // Navigate to Transactions
         await tester.tap(find.byIcon(Icons.receipt_long));
@@ -91,26 +91,26 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find and tap FAB to create transaction
-      final fab = find.byType(FloatingActionButton);
+      final Finder fab = find.byType(FloatingActionButton);
       if (fab.evaluate().isNotEmpty) {
         await tester.tap(fab);
         await tester.pumpAndSettle();
 
         // Fill transaction details
-        final descriptionField = find.byKey(const Key('transactionDescription'));
+        final Finder descriptionField = find.byKey(const Key('transactionDescription'));
         if (descriptionField.evaluate().isNotEmpty) {
           await tester.enterText(descriptionField, 'Test Transaction');
           await tester.pumpAndSettle();
         }
 
-        final amountField = find.byKey(const Key('transactionAmount'));
+        final Finder amountField = find.byKey(const Key('transactionAmount'));
         if (amountField.evaluate().isNotEmpty) {
           await tester.enterText(amountField, '100.00');
           await tester.pumpAndSettle();
         }
 
         // Save transaction
-        final saveButton = find.byKey(const Key('saveTransaction'));
+        final Finder saveButton = find.byKey(const Key('saveTransaction'));
         if (saveButton.evaluate().isNotEmpty) {
           await tester.tap(saveButton);
           await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -123,13 +123,13 @@ void main() {
       await tester.pumpAndSettle();
 
       // Navigate to settings
-      final settingsIcon = find.byIcon(Icons.settings);
+      final Finder settingsIcon = find.byIcon(Icons.settings);
       if (settingsIcon.evaluate().isNotEmpty) {
         await tester.tap(settingsIcon);
         await tester.pumpAndSettle();
 
         // Find offline mode toggle
-        final offlineToggle = find.byKey(const Key('offlineModeToggle'));
+        final Finder offlineToggle = find.byKey(const Key('offlineModeToggle'));
         if (offlineToggle.evaluate().isNotEmpty) {
           await tester.tap(offlineToggle);
           await tester.pumpAndSettle();
@@ -149,7 +149,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find sync button
-      final syncButton = find.byKey(const Key('syncButton'));
+      final Finder syncButton = find.byKey(const Key('syncButton'));
       if (syncButton.evaluate().isNotEmpty) {
         await tester.tap(syncButton);
         await tester.pumpAndSettle(const Duration(seconds: 5));

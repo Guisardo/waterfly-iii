@@ -7,7 +7,6 @@ import 'package:waterflyiii/exceptions/offline_exceptions.dart';
 import 'package:waterflyiii/models/cache/cache_result.dart';
 import 'package:waterflyiii/models/sync_operation.dart';
 import 'package:waterflyiii/services/cache/cache_invalidation_rules.dart';
-import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 import 'package:waterflyiii/validators/piggy_bank_validator.dart';
@@ -86,15 +85,14 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
   /// );
   /// ```
   PiggyBankRepository({
-    required AppDatabase database,
-    CacheService? cacheService,
+    required super.database,
+    super.cacheService,
     UuidService? uuidService,
     SyncQueueManager? syncQueueManager,
     PiggyBankValidator? validator,
   })  : _uuidService = uuidService ?? UuidService(),
         _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
-        _validator = validator ?? PiggyBankValidator(),
-        super(database: database, cacheService: cacheService);
+        _validator = validator ?? PiggyBankValidator();
 
   final UuidService _uuidService;
   final SyncQueueManager _syncQueueManager;
@@ -314,7 +312,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
     try {
       logger.info('Creating piggy bank: ${entity.name}');
 
-      final Map<String, dynamic> entityMap = {
+      final Map<String, dynamic> entityMap = <String, dynamic>{
         'id': entity.id,
         'serverId': entity.serverId,
         'name': entity.name,
@@ -333,7 +331,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
             'Piggy bank validation failed: ${validationResult.errors.join(', ')}';
         logger.warning(errorMessage);
         throw ValidationException(errorMessage,
-            {'errors': validationResult.errors});
+            <String, dynamic>{'errors': validationResult.errors});
       }
 
       final String id = entity.id.isEmpty
@@ -465,7 +463,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
         throw DatabaseException('Piggy bank not found: $id');
       }
 
-      final Map<String, dynamic> entityMap = {
+      final Map<String, dynamic> entityMap = <String, dynamic>{
         'id': entity.id,
         'serverId': entity.serverId,
         'name': entity.name,
@@ -484,7 +482,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
             'Piggy bank validation failed: ${validationResult.errors.join(', ')}';
         logger.warning(errorMessage);
         throw ValidationException(errorMessage,
-            {'errors': validationResult.errors});
+            <String, dynamic>{'errors': validationResult.errors});
       }
 
       final DateTime now = DateTime.now();
@@ -797,8 +795,8 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
       logger.info('Adding $amount to piggy bank: $id');
 
       if (amount <= 0) {
-        throw ValidationException(
-            'Amount must be positive', {'amount': 'must be > 0'});
+        throw const ValidationException(
+            'Amount must be positive', <String, dynamic>{'amount': 'must be > 0'});
       }
 
       // Get existing piggy bank (bypassing cache for fresh data)
@@ -814,7 +812,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
         logger.warning('Adding $amount would exceed target amount');
         throw ValidationException(
           'Amount would exceed target',
-          {
+          <String, dynamic>{
             'current': existing.currentAmount,
             'adding': amount,
             'target': target
@@ -929,8 +927,8 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
       logger.info('Removing $amount from piggy bank: $id');
 
       if (amount <= 0) {
-        throw ValidationException(
-            'Amount must be positive', {'amount': 'must be > 0'});
+        throw const ValidationException(
+            'Amount must be positive', <String, dynamic>{'amount': 'must be > 0'});
       }
 
       // Get existing piggy bank (bypassing cache for fresh data)
@@ -945,7 +943,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
         logger.warning('Removing $amount would result in negative balance');
         throw ValidationException(
           'Insufficient funds',
-          {'current': existing.currentAmount, 'removing': amount},
+          <String, dynamic>{'current': existing.currentAmount, 'removing': amount},
         );
       }
 

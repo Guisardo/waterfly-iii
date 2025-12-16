@@ -139,7 +139,7 @@ class SyncService {
     List<String>? entityTypes,
     required DateTime startTime,
   }) async {
-    return await Future.any([
+    return Future.any(<Future<SyncResult>>[
       _performSync(mode: mode, entityTypes: entityTypes, startTime: startTime),
       Future.delayed(timeout, () => throw TimeoutException('Sync timeout', timeout)),
     ]);
@@ -152,9 +152,9 @@ class SyncService {
   }) async {
     switch (mode) {
       case SyncMode.full:
-        return await _performFullSync(entityTypes: entityTypes, startTime: startTime);
+        return _performFullSync(entityTypes: entityTypes, startTime: startTime);
       case SyncMode.incremental:
-        return await _performIncrementalSync(entityTypes: entityTypes, startTime: startTime);
+        return _performIncrementalSync(entityTypes: entityTypes, startTime: startTime);
     }
   }
 
@@ -172,12 +172,12 @@ class SyncService {
   }) async {
     _logger.info('Performing full sync');
     
-    final List<String> types = entityTypes ?? ['transactions', 'accounts', 'categories', 'budgets', 'bills', 'piggy_banks'];
-    final Map<String, EntitySyncStats> statsByEntity = {};
+    final List<String> types = entityTypes ?? <String>['transactions', 'accounts', 'categories', 'budgets', 'bills', 'piggy_banks'];
+    final Map<String, EntitySyncStats> statsByEntity = <String, EntitySyncStats>{};
     int totalOperations = 0;
     int successfulOperations = 0;
     int failedOperations = 0;
-    final List<String> errors = [];
+    final List<String> errors = <String>[];
 
     try {
       // Clear local data if requested
@@ -244,14 +244,14 @@ class SyncService {
   }) async {
     _logger.info('Performing incremental sync');
     
-    final List<String> types = entityTypes ?? ['transactions', 'accounts', 'categories', 'budgets', 'bills', 'piggy_banks'];
-    final Map<String, EntitySyncStats> statsByEntity = {};
+    final List<String> types = entityTypes ?? <String>['transactions', 'accounts', 'categories', 'budgets', 'bills', 'piggy_banks'];
+    final Map<String, EntitySyncStats> statsByEntity = <String, EntitySyncStats>{};
     int totalOperations = 0;
     int successfulOperations = 0;
     int failedOperations = 0;
     int conflictsDetected = 0;
-    int conflictsResolved = 0;
-    final List<String> errors = [];
+    final int conflictsResolved = 0;
+    final List<String> errors = <String>[];
 
     try {
       // Get last sync timestamp
@@ -377,7 +377,7 @@ class SyncService {
     required String entityType,
     DateTime? since,
   }) async {
-    final List<Map<String, dynamic>> allEntities = [];
+    final List<Map<String, dynamic>> allEntities = <Map<String, dynamic>>[];
     int page = 1;
     bool hasMore = true;
 
@@ -419,7 +419,7 @@ class SyncService {
     // TODO: Implement actual API calls using FireflyApiAdapter
     // This is a placeholder that returns empty list
     _logger.fine('Fetching $entityType page $page (size: $pageSize)');
-    return [];
+    return <Map<String, dynamic>>[];
   }
 
   /// Check if entity has conflicts with local version.

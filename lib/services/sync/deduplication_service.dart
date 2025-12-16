@@ -97,7 +97,7 @@ class DeduplicationService {
       );
       throw SyncException(
         'Failed to check for duplicates',
-        {'error': e.toString()},
+        <String, dynamic>{'error': e.toString()},
       );
     }
   }
@@ -116,22 +116,22 @@ class DeduplicationService {
     _logger.info('Merging duplicates in ${operations.length} operations');
 
     try {
-      final Map<String, List<SyncOperation>> grouped = {};
+      final Map<String, List<SyncOperation>> grouped = <String, List<SyncOperation>>{};
 
       // Group by entity + operation type
-      for (final operation in operations) {
-        final key = '${operation.entityType}:${operation.entityId}:'
+      for (final SyncOperation operation in operations) {
+        final String key = '${operation.entityType}:${operation.entityId}:'
             '${operation.operation.name}';
 
-        grouped.putIfAbsent(key, () => []);
+        grouped.putIfAbsent(key, () => <SyncOperation>[]);
         grouped[key]!.add(operation);
       }
 
-      final List<SyncOperation> deduplicated = [];
+      final List<SyncOperation> deduplicated = <SyncOperation>[];
       int mergedCount = 0;
 
       // Process each group
-      for (final group in grouped.values) {
+      for (final List<SyncOperation> group in grouped.values) {
         if (group.length == 1) {
           // No duplicates
           deduplicated.add(group.first);
@@ -139,15 +139,15 @@ class DeduplicationService {
         }
 
         // Sort by creation time (newest first)
-        group.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        group.sort((SyncOperation a, SyncOperation b) => b.createdAt.compareTo(a.createdAt));
 
         // Keep the newest operation
-        final newest = group.first;
+        final SyncOperation newest = group.first;
 
         // For UPDATE operations, merge payloads
         if (newest.operation == SyncOperationType.update) {
-          final mergedPayload = _mergePayloads(
-            group.map((op) => op.payload).toList(),
+          final Map<String, dynamic> mergedPayload = _mergePayloads(
+            group.map((SyncOperation op) => op.payload).toList(),
           );
 
           deduplicated.add(newest.copyWith(payload: mergedPayload));
@@ -169,7 +169,7 @@ class DeduplicationService {
       _logger.severe('Failed to merge duplicates', e, stackTrace);
       throw SyncException(
         'Failed to merge duplicates',
-        {'error': e.toString()},
+        <String, dynamic>{'error': e.toString()},
       );
     }
   }
@@ -190,7 +190,7 @@ class DeduplicationService {
               tbl.status.equals(SyncOperationStatus.pending.name) |
               tbl.status.equals(SyncOperationStatus.processing.name),
         )
-        ..orderBy([
+        ..orderBy(<OrderClauseGenerator<$SyncQueueTable>>[
           ($SyncQueueTable tbl) => OrderingTerm(expression: tbl.createdAt, mode: OrderingMode.desc),
         ]);
 
@@ -201,8 +201,8 @@ class DeduplicationService {
         return 0;
       }
 
-      final Set<String> seen = {};
-      final List<String> toDelete = [];
+      final Set<String> seen = <String>{};
+      final List<String> toDelete = <String>[];
 
       for (final SyncQueueEntity operation in operations) {
         final String key = '${operation.entityType}:${operation.entityId}:'
@@ -229,7 +229,7 @@ class DeduplicationService {
       _logger.severe('Failed to remove duplicates from queue', e, stackTrace);
       throw SyncException(
         'Failed to remove duplicates from queue',
-        {'error': e.toString()},
+        <String, dynamic>{'error': e.toString()},
       );
     }
   }
@@ -239,29 +239,29 @@ class DeduplicationService {
   /// Generates a hash of the payload for comparison
   String _hashPayload(Map<String, dynamic> payload) {
     // Sort keys for consistent hashing
-    final sortedKeys = payload.keys.toList()..sort();
-    final sortedPayload = Map.fromEntries(
-      sortedKeys.map((key) => MapEntry(key, payload[key])),
+    final List<String> sortedKeys = payload.keys.toList()..sort();
+    final Map<String, dynamic> sortedPayload = Map.fromEntries(
+      sortedKeys.map((String key) => MapEntry(key, payload[key])),
     );
 
-    final payloadString = jsonEncode(sortedPayload);
-    final bytes = utf8.encode(payloadString);
-    final digest = sha256.convert(bytes);
+    final String payloadString = jsonEncode(sortedPayload);
+    final Uint8List bytes = utf8.encode(payloadString);
+    final Digest digest = sha256.convert(bytes);
 
     return digest.toString();
   }
 
   /// Merges multiple payloads, keeping the most recent values
   Map<String, dynamic> _mergePayloads(List<Map<String, dynamic>> payloads) {
-    if (payloads.isEmpty) return {};
+    if (payloads.isEmpty) return <String, dynamic>{};
     if (payloads.length == 1) return payloads.first;
 
     // Start with the newest payload
-    final merged = Map<String, dynamic>.from(payloads.first);
+    final Map<String, dynamic> merged = Map<String, dynamic>.from(payloads.first);
 
     // Merge in values from older payloads (only if not present)
     for (int i = 1; i < payloads.length; i++) {
-      for (final entry in payloads[i].entries) {
+      for (final MapEntry<String, dynamic> entry in payloads[i].entries) {
         merged.putIfAbsent(entry.key, () => entry.value);
       }
     }

@@ -5,22 +5,22 @@ import 'package:logging/logging.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:workmanager/workmanager.dart';
 
-import '../../data/local/database/app_database.dart';
-import '../../models/sync_operation.dart';
-import '../../models/sync_progress.dart';
-import '../../models/conflict.dart';
-import '../../exceptions/sync_exceptions.dart';
-import '../connectivity/connectivity_service.dart';
-import '../connectivity/connectivity_status.dart';
-import '../id_mapping/id_mapping_service.dart';
-import 'sync_progress_tracker.dart';
-import 'sync_queue_manager.dart';
-import 'firefly_api_adapter.dart';
-import 'conflict_detector.dart';
-import 'conflict_resolver.dart';
-import 'retry_strategy.dart';
-import 'circuit_breaker.dart';
-import 'operation_tracker.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/models/sync_operation.dart';
+import 'package:waterflyiii/models/sync_progress.dart';
+import 'package:waterflyiii/models/conflict.dart';
+import 'package:waterflyiii/exceptions/sync_exceptions.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
+import 'package:waterflyiii/services/id_mapping/id_mapping_service.dart';
+import 'package:waterflyiii/services/sync/sync_progress_tracker.dart';
+import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
+import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/sync/conflict_detector.dart';
+import 'package:waterflyiii/services/sync/conflict_resolver.dart';
+import 'package:waterflyiii/services/sync/retry_strategy.dart';
+import 'package:waterflyiii/services/sync/circuit_breaker.dart';
+import 'package:waterflyiii/services/sync/operation_tracker.dart';
 
 /// Main synchronization manager that orchestrates the sync process.
 ///
@@ -184,7 +184,7 @@ class SyncManager {
   /// Throws:
   ///   SyncOperationError: If sync fails
   Future<SyncResult> synchronize({bool fullSync = false}) async {
-    return await _syncLock.synchronized(() async {
+    return _syncLock.synchronized(() async {
       if (_isSyncing) {
         throw SyncOperationError(
           'Sync already in progress',
@@ -199,14 +199,14 @@ class SyncManager {
         _logger.info('Starting synchronization');
 
         // Check connectivity
-        final isOnline = await _checkConnectivity();
+        final bool isOnline = await _checkConnectivity();
         if (!isOnline) {
           _logger.warning('Sync aborted: device is offline');
           return _createEmptyResult();
         }
 
         // Get pending operations
-        final operations = await _getPendingOperations();
+        final List<SyncOperation> operations = await _getPendingOperations();
 
         if (operations.isEmpty) {
           _logger.info('No pending operations to sync');
@@ -222,7 +222,7 @@ class SyncManager {
         );
 
         // Group operations by entity type for efficient processing
-        final groupedOperations = _groupOperationsByEntityType(operations);
+        final Map<String, List<SyncOperation>> groupedOperations = _groupOperationsByEntityType(operations);
 
         // Process operations
         _progressTracker.updatePhase(SyncPhase.syncing);
@@ -230,7 +230,7 @@ class SyncManager {
 
         // Detect conflicts
         _progressTracker.updatePhase(SyncPhase.detectingConflicts);
-        final conflicts = await _detectConflicts(operations);
+        final List<Conflict> conflicts = await _detectConflicts(operations);
 
         // Resolve conflicts
         if (conflicts.isNotEmpty) {
@@ -252,7 +252,7 @@ class SyncManager {
         await _finalize();
 
         // Complete tracking
-        final result = _progressTracker.complete(success: true);
+        final SyncResult result = _progressTracker.complete(success: true);
 
         _lastSyncTime = DateTime.now();
         _logger.info('Synchronization completed successfully: $result');
@@ -261,7 +261,7 @@ class SyncManager {
       } catch (e, stackTrace) {
         _logger.severe('Synchronization failed', e, stackTrace);
 
-        final result = _progressTracker.complete(success: false);
+        final SyncResult result = _progressTracker.complete(success: false);
         return result;
       } finally {
         _isSyncing = false;
@@ -283,10 +283,10 @@ class SyncManager {
     try {
       _logger.fine('Retrieving pending operations from queue');
       
-      final operations = await _queueManager.getPendingOperations();
+      final List<SyncOperation> operations = await _queueManager.getPendingOperations();
       
       // Track all queued operations
-      for (final operation in operations) {
+      for (final SyncOperation operation in operations) {
         await _operationTracker.trackOperation(operation.id, 'queued');
       }
       
@@ -294,7 +294,7 @@ class SyncManager {
         'Retrieved ${operations.length} pending operations from queue',
         <String, dynamic>{
           'count': operations.length,
-          'entity_types': operations.map((op) => op.entityType).toSet().toList(),
+          'entity_types': operations.map((SyncOperation op) => op.entityType).toSet().toList(),
         },
       );
       
@@ -313,14 +313,14 @@ class SyncManager {
   Map<String, List<SyncOperation>> _groupOperationsByEntityType(
     List<SyncOperation> operations,
   ) {
-    final grouped = <String, List<SyncOperation>>{};
+    final Map<String, List<SyncOperation>> grouped = <String, List<SyncOperation>>{};
 
-    for (final operation in operations) {
-      grouped.putIfAbsent(operation.entityType, () => []).add(operation);
+    for (final SyncOperation operation in operations) {
+      grouped.putIfAbsent(operation.entityType, () => <SyncOperation>[]).add(operation);
     }
 
     _logger.fine(
-      'Grouped operations: ${grouped.entries.map((e) => '${e.key}=${e.value.length}').join(', ')}',
+      'Grouped operations: ${grouped.entries.map((MapEntry<String, List<SyncOperation>> e) => '${e.key}=${e.value.length}').join(', ')}',
     );
 
     return grouped;
@@ -330,15 +330,15 @@ class SyncManager {
   Future<void> _processOperations(
     Map<String, List<SyncOperation>> groupedOperations,
   ) async {
-    for (final entry in groupedOperations.entries) {
-      final entityType = entry.key;
-      final operations = entry.value;
+    for (final MapEntry<String, List<SyncOperation>> entry in groupedOperations.entries) {
+      final String entityType = entry.key;
+      final List<SyncOperation> operations = entry.value;
 
       _logger.info('Processing ${operations.length} $entityType operations');
 
       // Process in batches
       for (int i = 0; i < operations.length; i += batchSize) {
-        final batch = operations.skip(i).take(batchSize).toList();
+        final List<SyncOperation> batch = operations.skip(i).take(batchSize).toList();
         await _processBatch(batch);
       }
     }
@@ -349,13 +349,13 @@ class SyncManager {
     _logger.fine('Processing batch of ${batch.length} operations');
 
     // Process operations with limited concurrency
-    final futures = <Future>[];
+    final List<Future<dynamic>> futures = <Future>[];
 
-    for (final operation in batch) {
+    for (final SyncOperation operation in batch) {
       if (futures.length >= maxConcurrentOperations) {
         // Wait for one to complete
         await Future.any(futures);
-        futures.removeWhere((f) => f.hashCode == f.hashCode);
+        futures.removeWhere((Future<dynamic> f) => f.hashCode == f.hashCode);
       }
 
       futures.add(_processOperation(operation));
@@ -464,7 +464,7 @@ class SyncManager {
 
     try {
       // Step 1: Resolve ID references from local to server IDs
-      final resolvedPayload = await _resolveTransactionReferences(
+      final Map<String, dynamic> resolvedPayload = await _resolveTransactionReferences(
         operation.payload,
       );
 
@@ -497,7 +497,7 @@ class SyncManager {
 
         case SyncOperationType.update:
           // Get server ID from mapping
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -523,7 +523,7 @@ class SyncManager {
 
         case SyncOperationType.delete:
           // Get server ID from mapping
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -612,11 +612,11 @@ class SyncManager {
   Future<Map<String, dynamic>> _resolveTransactionReferences(
     Map<String, dynamic> payload,
   ) async {
-    final resolved = Map<String, dynamic>.from(payload);
+    final Map<String, dynamic> resolved = Map<String, dynamic>.from(payload);
 
     // Resolve source account ID
     if (payload['source_id'] != null) {
-      final serverId = await _idMapping.getServerId(payload['source_id'] as String,
+      final String? serverId = await _idMapping.getServerId(payload['source_id'] as String,
       );
       if (serverId != null) {
         resolved['source_id'] = serverId;
@@ -625,7 +625,7 @@ class SyncManager {
 
     // Resolve destination account ID
     if (payload['destination_id'] != null) {
-      final serverId = await _idMapping.getServerId(payload['destination_id'] as String,
+      final String? serverId = await _idMapping.getServerId(payload['destination_id'] as String,
       );
       if (serverId != null) {
         resolved['destination_id'] = serverId;
@@ -634,7 +634,7 @@ class SyncManager {
 
     // Resolve category ID
     if (payload['category_id'] != null) {
-      final serverId = await _idMapping.getServerId(payload['category_id'] as String,
+      final String? serverId = await _idMapping.getServerId(payload['category_id'] as String,
       );
       if (serverId != null) {
         resolved['category_id'] = serverId;
@@ -643,7 +643,7 @@ class SyncManager {
 
     // Resolve budget ID
     if (payload['budget_id'] != null) {
-      final serverId = await _idMapping.getServerId(payload['budget_id'] as String,
+      final String? serverId = await _idMapping.getServerId(payload['budget_id'] as String,
       );
       if (serverId != null) {
         resolved['budget_id'] = serverId;
@@ -652,7 +652,7 @@ class SyncManager {
 
     // Resolve bill ID
     if (payload['bill_id'] != null) {
-      final serverId = await _idMapping.getServerId(payload['bill_id'] as String,
+      final String? serverId = await _idMapping.getServerId(payload['bill_id'] as String,
       );
       if (serverId != null) {
         resolved['bill_id'] = serverId;
@@ -678,11 +678,11 @@ class SyncManager {
   ) async {
     try {
       // Update the transaction in local database with server data
-      final attributes = serverData['attributes'] as Map<String, dynamic>?;
+      final Map<String, dynamic>? attributes = serverData['attributes'] as Map<String, dynamic>?;
       
       if (attributes != null) {
         await (_database.update(_database.transactions)
-              ..where((t) => t.id.equals(localId)))
+              ..where(($TransactionsTable t) => t.id.equals(localId)))
             .write(
           TransactionEntityCompanion(
             serverId: Value(serverData['id'] as String?),
@@ -723,7 +723,7 @@ class SyncManager {
           break;
 
         case SyncOperationType.update:
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -742,7 +742,7 @@ class SyncManager {
           break;
 
         case SyncOperationType.delete:
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -800,7 +800,7 @@ class SyncManager {
           break;
 
         case SyncOperationType.update:
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -819,7 +819,7 @@ class SyncManager {
           break;
 
         case SyncOperationType.delete:
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -877,7 +877,7 @@ class SyncManager {
           break;
 
         case SyncOperationType.update:
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -896,7 +896,7 @@ class SyncManager {
           break;
 
         case SyncOperationType.delete:
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -954,7 +954,7 @@ class SyncManager {
           break;
 
         case SyncOperationType.update:
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -973,7 +973,7 @@ class SyncManager {
           break;
 
         case SyncOperationType.delete:
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -1024,9 +1024,9 @@ class SyncManager {
 
     try {
       // Resolve account ID reference
-      final resolvedPayload = Map<String, dynamic>.from(operation.payload);
+      final Map<String, dynamic> resolvedPayload = Map<String, dynamic>.from(operation.payload);
       if (resolvedPayload['account_id'] != null) {
-        final serverId = await _idMapping.getServerId(resolvedPayload['account_id'] as String,
+        final String? serverId = await _idMapping.getServerId(resolvedPayload['account_id'] as String,
         );
         if (serverId != null) {
           resolvedPayload['account_id'] = serverId;
@@ -1042,7 +1042,7 @@ class SyncManager {
           break;
 
         case SyncOperationType.update:
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -1061,7 +1061,7 @@ class SyncManager {
           break;
 
         case SyncOperationType.delete:
-          final serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(operation.entityId,
           );
           
           if (serverId == null) {
@@ -1103,16 +1103,16 @@ class SyncManager {
   ) async {
     _logger.info('Detecting conflicts for ${operations.length} operations');
 
-    final conflictMap = await _conflictDetector.detectConflictsBatch(
+    final Map<String, Conflict?> conflictMap = await _conflictDetector.detectConflictsBatch(
       operations,
-      (entityIds) async => {for (var id in entityIds) id: null},
+      (List<String> entityIds) async => <String, Map<String, dynamic>?>{for (String id in entityIds) id: null},
     );
     
-    final conflicts = conflictMap.values.whereType<Conflict>().toList();
+    final List<Conflict> conflicts = conflictMap.values.whereType<Conflict>().toList();
 
     if (conflicts.isNotEmpty) {
       _logger.warning('Detected ${conflicts.length} conflicts');
-      for (final conflict in conflicts) {
+      for (final Conflict conflict in conflicts) {
         _progressTracker.incrementConflicts(conflictId: conflict.id);
       }
     }
@@ -1125,7 +1125,7 @@ class SyncManager {
     _logger.info('Resolving ${conflicts.length} conflicts');
 
     if (autoResolveConflicts) {
-      final resolutions = await _conflictResolver.autoResolveConflicts(conflicts);
+      final Map<String, Resolution> resolutions = await _conflictResolver.autoResolveConflicts(conflicts);
       _logger.info('Auto-resolved ${resolutions.length} conflicts');
     } else {
       _logger.info('Auto-resolution disabled, conflicts require manual resolution');
@@ -1151,11 +1151,11 @@ class SyncManager {
     
     try {
       // Step 1: Get last sync timestamp
-      final lastSyncQuery = await (_database.select(_database.syncMetadata)
-            ..where((m) => m.key.equals('last_partial_sync')))
+      final SyncMetadataEntity? lastSyncQuery = await (_database.select(_database.syncMetadata)
+            ..where(($SyncMetadataTable m) => m.key.equals('last_partial_sync')))
           .getSingleOrNull();
       
-      final DateTime? lastSync = lastSyncQuery?.value.isNotEmpty == true
+      final DateTime? lastSync = lastSyncQuery?.value.isNotEmpty ?? false
           ? DateTime.tryParse(lastSyncQuery!.value)
           : null;
       
@@ -1176,7 +1176,7 @@ class SyncManager {
       
       // Step 4: Update last sync timestamp
       await (_database.update(_database.syncMetadata)
-            ..where((m) => m.key.equals('last_partial_sync')))
+            ..where(($SyncMetadataTable m) => m.key.equals('last_partial_sync')))
           .write(
         SyncMetadataEntityCompanion(
           value: Value(DateTime.now().toIso8601String()),
@@ -1208,24 +1208,24 @@ class SyncManager {
     try {
       // Step 1: Validate consistency
       // Check that all synced entities have valid references
-      final unsyncedCount = await (_database.select(_database.transactions)
-            ..where((t) => t.isSynced.equals(false)))
+      final int unsyncedCount = await (_database.select(_database.transactions)
+            ..where(($TransactionsTable t) => t.isSynced.equals(false)))
           .get()
-          .then((list) => list.length);
+          .then((List<TransactionEntity> list) => list.length);
       
       _logger.fine('Unsynced transactions remaining: $unsyncedCount');
       
       // Step 2: Clean up completed operations
       // Remove operations that have been successfully processed
       await (_database.delete(_database.syncQueue)
-            ..where((q) => q.status.equals('completed')))
+            ..where(($SyncQueueTable q) => q.status.equals('completed')))
           .go();
       
       _logger.fine('Cleaned up completed sync operations');
       
       // Step 3: Update metadata
       await (_database.update(_database.syncMetadata)
-            ..where((m) => m.key.equals('last_full_sync')))
+            ..where(($SyncMetadataTable m) => m.key.equals('last_full_sync')))
           .write(
         SyncMetadataEntityCompanion(
           value: Value(DateTime.now().toIso8601String()),
@@ -1406,7 +1406,7 @@ class SyncManager {
       );
 
       // Step 3: Notify user with fix suggestions
-      final fixSuggestion = _generateFixSuggestion(error);
+      final String fixSuggestion = _generateFixSuggestion(error);
       
       _progressTracker.incrementFailed(
         operationId: operation.id,
@@ -1447,8 +1447,8 @@ class SyncManager {
   /// Returns:
   ///   User-friendly suggestion for fixing the validation error
   String _generateFixSuggestion(ValidationError error) {
-    final field = error.field ?? 'unknown field';
-    final rule = error.rule ?? 'unknown rule';
+    final String field = error.field ?? 'unknown field';
+    final String rule = error.rule ?? 'unknown rule';
 
     // Generate specific suggestions based on common validation rules
     if (rule.contains('required')) {
@@ -1541,7 +1541,7 @@ class SyncManager {
 
   /// Create empty result when no operations to sync.
   SyncResult _createEmptyResult() {
-    final now = DateTime.now();
+    final DateTime now = DateTime.now();
     return SyncResult(
       success: true,
       totalOperations: 0,
@@ -1552,8 +1552,8 @@ class SyncManager {
       conflictsResolved: 0,
       startTime: now,
       endTime: now,
-      errors: const [],
-      statsByEntity: const {},
+      errors: const <String>[],
+      statsByEntity: const <String, EntitySyncStats>{},
     );
   }
 
@@ -1584,27 +1584,27 @@ class SyncManager {
 
         // Fetch all data from server
         _logger.fine('Fetching accounts from server');
-        final accounts = await _apiClient.getAllAccounts();
+        final List<Map<String, dynamic>> accounts = await _apiClient.getAllAccounts();
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching categories from server');
-        final categories = await _apiClient.getAllCategories();
+        final List<Map<String, dynamic>> categories = await _apiClient.getAllCategories();
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching budgets from server');
-        final budgets = await _apiClient.getAllBudgets();
+        final List<Map<String, dynamic>> budgets = await _apiClient.getAllBudgets();
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching bills from server');
-        final bills = await _apiClient.getAllBills();
+        final List<Map<String, dynamic>> bills = await _apiClient.getAllBills();
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching piggy banks from server');
-        final piggyBanks = await _apiClient.getAllPiggyBanks();
+        final List<Map<String, dynamic>> piggyBanks = await _apiClient.getAllPiggyBanks();
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching transactions from server');
-        final transactions = await _apiClient.getAllTransactions();
+        final List<Map<String, dynamic>> transactions = await _apiClient.getAllTransactions();
         _progressTracker.incrementCompleted();
 
         _logger.info(
@@ -1634,9 +1634,9 @@ class SyncManager {
 
           // Use batch operations for efficient bulk inserts
           _logger.fine('Batch inserting accounts (${accounts.length} items)');
-          await _database.batch((batch) {
-            for (final account in accounts) {
-              final attrs = account['attributes'] as Map<String, dynamic>;
+          await _database.batch((Batch batch) {
+            for (final Map<String, dynamic> account in accounts) {
+              final Map<String, dynamic> attrs = account['attributes'] as Map<String, dynamic>;
               batch.insert(
                 _database.accounts,
                 AccountEntityCompanion.insert(
@@ -1659,9 +1659,9 @@ class SyncManager {
           });
 
           _logger.fine('Batch inserting categories (${categories.length} items)');
-          await _database.batch((batch) {
-            for (final category in categories) {
-              final attrs = category['attributes'] as Map<String, dynamic>;
+          await _database.batch((Batch batch) {
+            for (final Map<String, dynamic> category in categories) {
+              final Map<String, dynamic> attrs = category['attributes'] as Map<String, dynamic>;
               batch.insert(
                 _database.categories,
                 CategoryEntityCompanion.insert(
@@ -1679,9 +1679,9 @@ class SyncManager {
           });
 
           _logger.fine('Batch inserting budgets (${budgets.length} items)');
-          await _database.batch((batch) {
-            for (final budget in budgets) {
-              final attrs = budget['attributes'] as Map<String, dynamic>;
+          await _database.batch((Batch batch) {
+            for (final Map<String, dynamic> budget in budgets) {
+              final Map<String, dynamic> attrs = budget['attributes'] as Map<String, dynamic>;
               batch.insert(
                 _database.budgets,
                 BudgetEntityCompanion.insert(
@@ -1698,9 +1698,9 @@ class SyncManager {
           });
 
           _logger.fine('Batch inserting bills (${bills.length} items)');
-          await _database.batch((batch) {
-            for (final bill in bills) {
-              final attrs = bill['attributes'] as Map<String, dynamic>;
+          await _database.batch((Batch batch) {
+            for (final Map<String, dynamic> bill in bills) {
+              final Map<String, dynamic> attrs = bill['attributes'] as Map<String, dynamic>;
               batch.insert(
                 _database.bills,
                 BillEntityCompanion.insert(
@@ -1723,9 +1723,9 @@ class SyncManager {
           });
 
           _logger.fine('Batch inserting piggy banks (${piggyBanks.length} items)');
-          await _database.batch((batch) {
-            for (final piggyBank in piggyBanks) {
-              final attrs = piggyBank['attributes'] as Map<String, dynamic>;
+          await _database.batch((Batch batch) {
+            for (final Map<String, dynamic> piggyBank in piggyBanks) {
+              final Map<String, dynamic> attrs = piggyBank['attributes'] as Map<String, dynamic>;
               batch.insert(
                 _database.piggyBanks,
                 PiggyBankEntityCompanion.insert(
@@ -1748,20 +1748,20 @@ class SyncManager {
 
           // Process transactions in batches to avoid memory issues with large datasets
           _logger.fine('Batch inserting transactions (${transactions.length} items)');
-          const batchSize = 500; // Process 500 transactions at a time
+          const int batchSize = 500; // Process 500 transactions at a time
           for (int i = 0; i < transactions.length; i += batchSize) {
-            final end = (i + batchSize < transactions.length) ? i + batchSize : transactions.length;
-            final batch = transactions.sublist(i, end);
+            final int end = (i + batchSize < transactions.length) ? i + batchSize : transactions.length;
+            final List<Map<String, dynamic>> batch = transactions.sublist(i, end);
             
             _logger.fine('Processing transaction batch ${i ~/ batchSize + 1} (${batch.length} items)');
             
-            await _database.batch((dbBatch) {
-              for (final transaction in batch) {
-                final attrs = transaction['attributes'] as Map<String, dynamic>;
-                final txList = attrs['transactions'] as List<dynamic>;
+            await _database.batch((Batch dbBatch) {
+              for (final Map<String, dynamic> transaction in batch) {
+                final Map<String, dynamic> attrs = transaction['attributes'] as Map<String, dynamic>;
+                final List<dynamic> txList = attrs['transactions'] as List<dynamic>;
                 
                 for (final tx in txList) {
-                  final txData = tx as Map<String, dynamic>;
+                  final Map<String, dynamic> txData = tx as Map<String, dynamic>;
                   dbBatch.insert(
                     _database.transactions,
                     TransactionEntityCompanion.insert(
@@ -1848,36 +1848,36 @@ class SyncManager {
           phase: SyncPhase.pulling,
         );
 
-        final since = _lastSyncTime!;
+        final DateTime since = _lastSyncTime!;
 
         // Fetch changes from server
         _logger.fine('Fetching account changes since $since');
-        final accounts = await _apiClient.getAccountsSince(since);
+        final List<Map<String, dynamic>> accounts = await _apiClient.getAccountsSince(since);
         await _mergeAccounts(accounts);
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching category changes since $since');
-        final categories = await _apiClient.getCategoriesSince(since);
+        final List<Map<String, dynamic>> categories = await _apiClient.getCategoriesSince(since);
         await _mergeCategories(categories);
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching budget changes since $since');
-        final budgets = await _apiClient.getBudgetsSince(since);
+        final List<Map<String, dynamic>> budgets = await _apiClient.getBudgetsSince(since);
         await _mergeBudgets(budgets);
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching bill changes since $since');
-        final bills = await _apiClient.getBillsSince(since);
+        final List<Map<String, dynamic>> bills = await _apiClient.getBillsSince(since);
         await _mergeBills(bills);
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching piggy bank changes since $since');
-        final piggyBanks = await _apiClient.getPiggyBanksSince(since);
+        final List<Map<String, dynamic>> piggyBanks = await _apiClient.getPiggyBanksSince(since);
         await _mergePiggyBanks(piggyBanks);
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching transaction changes since $since');
-        final transactions = await _apiClient.getTransactionsSince(since);
+        final List<Map<String, dynamic>> transactions = await _apiClient.getTransactionsSince(since);
         await _mergeTransactions(transactions);
         _progressTracker.incrementCompleted();
 
@@ -1917,13 +1917,13 @@ class SyncManager {
 
   /// Merge accounts from server with local data
   Future<void> _mergeAccounts(List<Map<String, dynamic>> accounts) async {
-    for (final account in accounts) {
-      final serverId = account['id'] as String;
-      final attrs = account['attributes'] as Map<String, dynamic>;
+    for (final Map<String, dynamic> account in accounts) {
+      final String serverId = account['id'] as String;
+      final Map<String, dynamic> attrs = account['attributes'] as Map<String, dynamic>;
       
       // Check if local has pending changes
-      final local = await (_database.select(_database.accounts)
-            ..where((tbl) => tbl.serverId.equals(serverId)))
+      final AccountEntity? local = await (_database.select(_database.accounts)
+            ..where(($AccountsTable tbl) => tbl.serverId.equals(serverId)))
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
@@ -1960,12 +1960,12 @@ class SyncManager {
 
   /// Merge categories from server with local data
   Future<void> _mergeCategories(List<Map<String, dynamic>> categories) async {
-    for (final category in categories) {
-      final serverId = category['id'] as String;
-      final attrs = category['attributes'] as Map<String, dynamic>;
+    for (final Map<String, dynamic> category in categories) {
+      final String serverId = category['id'] as String;
+      final Map<String, dynamic> attrs = category['attributes'] as Map<String, dynamic>;
       
-      final local = await (_database.select(_database.categories)
-            ..where((tbl) => tbl.serverId.equals(serverId)))
+      final CategoryEntity? local = await (_database.select(_database.categories)
+            ..where(($CategoriesTable tbl) => tbl.serverId.equals(serverId)))
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
@@ -1996,12 +1996,12 @@ class SyncManager {
 
   /// Merge budgets from server with local data
   Future<void> _mergeBudgets(List<Map<String, dynamic>> budgets) async {
-    for (final budget in budgets) {
-      final serverId = budget['id'] as String;
-      final attrs = budget['attributes'] as Map<String, dynamic>;
+    for (final Map<String, dynamic> budget in budgets) {
+      final String serverId = budget['id'] as String;
+      final Map<String, dynamic> attrs = budget['attributes'] as Map<String, dynamic>;
       
-      final local = await (_database.select(_database.budgets)
-            ..where((tbl) => tbl.serverId.equals(serverId)))
+      final BudgetEntity? local = await (_database.select(_database.budgets)
+            ..where(($BudgetsTable tbl) => tbl.serverId.equals(serverId)))
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
@@ -2031,12 +2031,12 @@ class SyncManager {
 
   /// Merge bills from server with local data
   Future<void> _mergeBills(List<Map<String, dynamic>> bills) async {
-    for (final bill in bills) {
-      final serverId = bill['id'] as String;
-      final attrs = bill['attributes'] as Map<String, dynamic>;
+    for (final Map<String, dynamic> bill in bills) {
+      final String serverId = bill['id'] as String;
+      final Map<String, dynamic> attrs = bill['attributes'] as Map<String, dynamic>;
       
-      final local = await (_database.select(_database.bills)
-            ..where((tbl) => tbl.serverId.equals(serverId)))
+      final BillEntity? local = await (_database.select(_database.bills)
+            ..where(($BillsTable tbl) => tbl.serverId.equals(serverId)))
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
@@ -2072,12 +2072,12 @@ class SyncManager {
 
   /// Merge piggy banks from server with local data
   Future<void> _mergePiggyBanks(List<Map<String, dynamic>> piggyBanks) async {
-    for (final piggyBank in piggyBanks) {
-      final serverId = piggyBank['id'] as String;
-      final attrs = piggyBank['attributes'] as Map<String, dynamic>;
+    for (final Map<String, dynamic> piggyBank in piggyBanks) {
+      final String serverId = piggyBank['id'] as String;
+      final Map<String, dynamic> attrs = piggyBank['attributes'] as Map<String, dynamic>;
       
-      final local = await (_database.select(_database.piggyBanks)
-            ..where((tbl) => tbl.serverId.equals(serverId)))
+      final PiggyBankEntity? local = await (_database.select(_database.piggyBanks)
+            ..where(($PiggyBanksTable tbl) => tbl.serverId.equals(serverId)))
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
@@ -2112,12 +2112,12 @@ class SyncManager {
 
   /// Merge transactions from server with local data
   Future<void> _mergeTransactions(List<Map<String, dynamic>> transactions) async {
-    for (final transaction in transactions) {
-      final serverId = transaction['id'] as String;
-      final attrs = transaction['attributes'] as Map<String, dynamic>;
+    for (final Map<String, dynamic> transaction in transactions) {
+      final String serverId = transaction['id'] as String;
+      final Map<String, dynamic> attrs = transaction['attributes'] as Map<String, dynamic>;
       
-      final local = await (_database.select(_database.transactions)
-            ..where((tbl) => tbl.serverId.equals(serverId)))
+      final TransactionEntity? local = await (_database.select(_database.transactions)
+            ..where(($TransactionsTable tbl) => tbl.serverId.equals(serverId)))
           .getSingleOrNull();
       
       if (local != null && !local.isSynced) {
@@ -2131,9 +2131,9 @@ class SyncManager {
         continue;
       }
       
-      final txList = attrs['transactions'] as List<dynamic>;
+      final List<dynamic> txList = attrs['transactions'] as List<dynamic>;
       for (final tx in txList) {
-        final txData = tx as Map<String, dynamic>;
+        final Map<String, dynamic> txData = tx as Map<String, dynamic>;
         await _database.into(_database.transactions).insertOnConflictUpdate(
           TransactionEntityCompanion.insert(
             id: serverId,
@@ -2203,10 +2203,10 @@ class SyncManager {
     required Map<String, dynamic> serverData,
   }) async {
     try {
-      final conflictId = '${entityType}_${entityId}_${DateTime.now().millisecondsSinceEpoch}';
+      final String conflictId = '${entityType}_${entityId}_${DateTime.now().millisecondsSinceEpoch}';
       
       // Detect conflicting fields
-      final conflictingFields = _detectConflictingFields(localData, serverData);
+      final List<String> conflictingFields = _detectConflictingFields(localData, serverData);
       
       await _database.into(_database.conflicts).insert(
         ConflictEntityCompanion.insert(
@@ -2240,7 +2240,7 @@ class SyncManager {
     dynamic localData,
     Map<String, dynamic> serverData,
   ) {
-    final conflictingFields = <String>[];
+    final List<String> conflictingFields = <String>[];
     
     try {
       // Convert local data to map
@@ -2249,7 +2249,7 @@ class SyncManager {
           : (localData as dynamic).toJson();
       
       // Compare each field
-      for (final key in serverData.keys) {
+      for (final String key in serverData.keys) {
         if (!localMap.containsKey(key)) continue;
         
         final localValue = localMap[key];
@@ -2265,7 +2265,7 @@ class SyncManager {
       }
       
       // Check for fields only in local
-      for (final key in localMap.keys) {
+      for (final String key in localMap.keys) {
         if (!serverData.containsKey(key) && localMap[key] != null) {
           conflictingFields.add(key);
         }
@@ -2289,7 +2289,7 @@ class SyncManager {
   /// Initialize connectivity listener for automatic retry.
   void _initializeConnectivityListener() {
     _connectivitySubscription = _connectivity.statusStream.listen(
-      (status) {
+      (ConnectivityStatus status) {
         _handleConnectivityChange(status);
       },
       onError: (error, stackTrace) {
@@ -2302,7 +2302,7 @@ class SyncManager {
 
   /// Handle connectivity status changes.
   void _handleConnectivityChange(ConnectivityStatus status) {
-    final isOnline = status == ConnectivityStatus.online;
+    final bool isOnline = status == ConnectivityStatus.online;
     
     _logger.fine(
       'Connectivity changed',
@@ -2331,8 +2331,8 @@ class SyncManager {
 
   /// Check if device is online before sync operations.
   Future<bool> _checkConnectivity() async {
-    final status = _connectivity.currentStatus;
-    final isOnline = status == ConnectivityStatus.online;
+    final ConnectivityStatus status = _connectivity.currentStatus;
+    final bool isOnline = status == ConnectivityStatus.online;
     
     if (!isOnline) {
       _logger.warning('Cannot sync: device is offline');
@@ -2349,7 +2349,7 @@ class SyncManager {
   /// - Average processing time
   /// - Retry statistics
   Future<OperationStatistics> getOperationStatistics() async {
-    return await _operationTracker.getOperationStatistics();
+    return _operationTracker.getOperationStatistics();
   }
 
   /// Get the complete history of a specific operation.
@@ -2358,7 +2358,7 @@ class SyncManager {
   Future<List<OperationHistoryEntry>> getOperationHistory(
     String operationId,
   ) async {
-    return await _operationTracker.getOperationHistory(operationId);
+    return _operationTracker.getOperationHistory(operationId);
   }
 
   /// Clear old operation history to prevent unbounded growth.

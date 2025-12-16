@@ -19,12 +19,12 @@ class OfflineHelpScreen extends StatelessWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
-        children: [
+        children: <Widget>[
           _buildSection(
             context,
             'How Offline Mode Works',
             Icons.cloud_off,
-            [
+            <String>[
               'Offline mode allows you to use Waterfly III without an internet connection.',
               'All changes are saved locally on your device.',
               'When you reconnect, changes are automatically synced with the server.',
@@ -36,7 +36,7 @@ class OfflineHelpScreen extends StatelessWidget {
             context,
             'Understanding Sync Status',
             Icons.sync,
-            [
+            <String>[
               'Green cloud icon: All data is synced',
               'Yellow cloud icon: Pending operations waiting to sync',
               'Red cloud icon: You are offline',
@@ -49,7 +49,7 @@ class OfflineHelpScreen extends StatelessWidget {
             context,
             'Resolving Conflicts',
             Icons.warning_amber,
-            [
+            <String>[
               'Conflicts occur when the same data is modified both locally and on the server.',
               'You\'ll be notified when conflicts are detected.',
               'Choose to keep local changes, use server version, or merge both.',
@@ -77,9 +77,9 @@ class OfflineHelpScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Row(
-              children: [
+              children: <Widget>[
                 Icon(icon, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 12),
                 Expanded(
@@ -91,11 +91,11 @@ class OfflineHelpScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            ...points.map((point) => Padding(
+            ...points.map((String point) => Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Text('• ', style: Theme.of(context).textTheme.bodyMedium),
                       Expanded(
                         child: Text(
@@ -113,20 +113,20 @@ class OfflineHelpScreen extends StatelessWidget {
   }
 
   Widget _buildFAQSection(BuildContext context) {
-    final faqs = [
-      {
+    final List<Map<String, String>> faqs = <Map<String, String>>[
+      <String, String>{
         'question': 'Will my data be safe offline?',
         'answer': 'Yes, all data is stored securely on your device and synced when online.',
       },
-      {
+      <String, String>{
         'question': 'What happens if I delete something offline?',
         'answer': 'The deletion will be synced when you reconnect. If the item was modified on the server, you\'ll be notified of a conflict.',
       },
-      {
+      <String, String>{
         'question': 'Can I use offline mode on multiple devices?',
         'answer': 'Yes, but be aware that changes on different devices may create conflicts that need to be resolved.',
       },
-      {
+      <String, String>{
         'question': 'How long can I stay offline?',
         'answer': 'There\'s no time limit. You can work offline as long as needed.',
       },
@@ -137,9 +137,9 @@ class OfflineHelpScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Row(
-              children: [
+              children: <Widget>[
                 Icon(Icons.help_outline, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 12),
                 Text(
@@ -149,14 +149,14 @@ class OfflineHelpScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            ...faqs.map((faq) => ExpansionTile(
+            ...faqs.map((Map<String, String> faq) => ExpansionTile(
                   title: Text(
                     faq['question']!,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
-                  children: [
+                  children: <Widget>[
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Text(
@@ -173,16 +173,16 @@ class OfflineHelpScreen extends StatelessWidget {
   }
 
   Widget _buildTroubleshootingSection(BuildContext context) {
-    final issues = [
-      {
+    final List<Map<String, String>> issues = <Map<String, String>>[
+      <String, String>{
         'problem': 'Sync is not working',
         'solution': 'Check your internet connection. Try manually syncing from the sync status screen. If the problem persists, try force full sync in settings.',
       },
-      {
+      <String, String>{
         'problem': 'Too many conflicts',
         'solution': 'Avoid making changes on multiple devices while offline. Sync frequently when online to minimize conflicts.',
       },
-      {
+      <String, String>{
         'problem': 'Data seems outdated',
         'solution': 'Pull down to refresh on list screens. Check the last sync time in the dashboard sync status card.',
       },
@@ -193,9 +193,9 @@ class OfflineHelpScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Row(
-              children: [
+              children: <Widget>[
                 Icon(Icons.build, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 12),
                 Text(
@@ -205,11 +205,11 @@ class OfflineHelpScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            ...issues.map((issue) => Padding(
+            ...issues.map((Map<String, String> issue) => Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Text(
                         issue['problem']!,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(

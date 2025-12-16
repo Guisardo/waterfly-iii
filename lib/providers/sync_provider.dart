@@ -81,7 +81,7 @@ class SyncProvider extends ChangeNotifier {
     
     // Auto-calculate progress if we have operation counts
     if (_totalOperations > 0) {
-      final calculatedProgress = _completedOperations / _totalOperations;
+      final double calculatedProgress = _completedOperations / _totalOperations;
       if ((calculatedProgress - _progress).abs() > 0.001) {
         _progress = calculatedProgress.clamp(0.0, 1.0);
         changed = true;

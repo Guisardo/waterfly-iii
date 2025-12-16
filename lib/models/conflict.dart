@@ -128,7 +128,7 @@ class Conflict extends Equatable {
 
   /// Convert to JSON for storage
   Map<String, dynamic> toJson() {
-    return {
+    return <String, dynamic>{
       'id': id,
       'operation_id': operationId,
       'entity_type': entityType,
@@ -154,14 +154,14 @@ class Conflict extends Equatable {
       entityType: json['entity_type'] as String,
       entityId: json['entity_id'] as String,
       conflictType: ConflictType.values.firstWhere(
-        (e) => e.name == json['conflict_type'],
+        (ConflictType e) => e.name == json['conflict_type'],
       ),
       localData: jsonDecode(json['local_data'] as String) as Map<String, dynamic>,
       remoteData: jsonDecode(json['remote_data'] as String) as Map<String, dynamic>,
       conflictingFields: (jsonDecode(json['conflicting_fields'] as String) as List)
           .cast<String>(),
       severity: ConflictSeverity.values.firstWhere(
-        (e) => e.name == json['severity'],
+        (ConflictSeverity e) => e.name == json['severity'],
       ),
       detectedAt: DateTime.parse(json['detected_at'] as String),
       resolvedAt: json['resolved_at'] != null
@@ -169,7 +169,7 @@ class Conflict extends Equatable {
           : null,
       resolutionStrategy: json['resolution_strategy'] != null
           ? ResolutionStrategy.values.firstWhere(
-              (e) => e.name == json['resolution_strategy'],
+              (ResolutionStrategy e) => e.name == json['resolution_strategy'],
             )
           : null,
       resolvedBy: json['resolved_by'] as String?,
@@ -178,7 +178,7 @@ class Conflict extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
+  List<Object?> get props => <Object?>[
         id,
         operationId,
         entityType,
@@ -283,7 +283,7 @@ class Resolution extends Equatable {
   });
 
   @override
-  List<Object?> get props => [
+  List<Object?> get props => <Object?>[
         conflict,
         strategy,
         resolvedData,
@@ -344,13 +344,13 @@ class ConflictStatistics extends Equatable {
 
   /// Auto-resolution rate (auto / resolved)
   double get autoResolutionRate {
-    final resolved = autoResolvedConflicts + manuallyResolvedConflicts;
+    final int resolved = autoResolvedConflicts + manuallyResolvedConflicts;
     if (resolved == 0) return 0.0;
     return autoResolvedConflicts / resolved;
   }
 
   @override
-  List<Object?> get props => [
+  List<Object?> get props => <Object?>[
         totalConflicts,
         unresolvedConflicts,
         autoResolvedConflicts,

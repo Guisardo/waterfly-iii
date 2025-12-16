@@ -110,7 +110,7 @@ void main() {
 
     group('Configuration', () {
       test('should use default configuration values', () {
-        final defaultService = IncrementalSyncService(
+        final IncrementalSyncService defaultService = IncrementalSyncService(
           database: database,
           apiAdapter: mockApiAdapter,
           cacheService: mockCacheService,
@@ -124,7 +124,7 @@ void main() {
       });
 
       test('should accept custom configuration values', () {
-        final customService = IncrementalSyncService(
+        final IncrementalSyncService customService = IncrementalSyncService(
           database: database,
           apiAdapter: mockApiAdapter,
           cacheService: mockCacheService,
@@ -147,14 +147,14 @@ void main() {
 
     group('Incremental Sync Eligibility', () {
       test('should require full sync when incremental sync is disabled', () async {
-        final disabledService = IncrementalSyncService(
+        final IncrementalSyncService disabledService = IncrementalSyncService(
           database: database,
           apiAdapter: mockApiAdapter,
           cacheService: mockCacheService,
           enableIncrementalSync: false,
         );
 
-        final result = await disabledService.performIncrementalSync();
+        final IncrementalSyncResult result = await disabledService.performIncrementalSync();
 
         expect(result.isIncremental, isFalse);
         expect(result.success, isFalse);
@@ -165,7 +165,7 @@ void main() {
         // Clear sync metadata to simulate first-time sync
         await _clearSyncMetadata(database);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.isIncremental, isFalse);
         expect(result.success, isFalse);
@@ -179,7 +179,7 @@ void main() {
           DateTime.now().subtract(const Duration(days: 10)),
         );
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.isIncremental, isFalse);
         expect(result.success, isFalse);
@@ -196,14 +196,14 @@ void main() {
         // Setup empty responses for all entity types
         _setupEmptyApiResponses(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.isIncremental, isTrue);
         expect(result.success, isTrue);
       });
 
       test('should force full sync when forceFullSync parameter is true', () async {
-        final result = await syncService.performIncrementalSync(forceFullSync: true);
+        final IncrementalSyncResult result = await syncService.performIncrementalSync(forceFullSync: true);
 
         expect(result.isIncremental, isFalse);
         expect(result.success, isFalse);
@@ -223,7 +223,7 @@ void main() {
 
       test('should fetch transactions with date filter', () async {
         // Setup mock response
-        final serverTimestamp = DateTime.now();
+        final DateTime serverTimestamp = DateTime.now();
         _setupTransactionResponse(mockApiAdapter, <Map<String, dynamic>>[
           _createServerTransaction('1', 'Test Transaction 1', 100.0, serverTimestamp),
           _createServerTransaction('2', 'Test Transaction 2', 200.0, serverTimestamp),
@@ -234,7 +234,7 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
         expect(result.statsByEntity['transaction'], matcher.isNotNull);
@@ -244,7 +244,7 @@ void main() {
 
       test('should skip unchanged transactions based on timestamp', () async {
         // First, insert an existing transaction with same timestamp
-        final timestamp = DateTime.now().subtract(const Duration(hours: 1));
+        final DateTime timestamp = DateTime.now().subtract(const Duration(hours: 1));
         await _insertTransaction(database, '1', 'Existing Transaction', 100.0, timestamp);
 
         // Setup API response with same timestamp (should be skipped)
@@ -257,7 +257,7 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
         expect(result.statsByEntity['transaction']!.itemsFetched, equals(1));
@@ -267,11 +267,11 @@ void main() {
 
       test('should update transactions with newer server timestamp', () async {
         // Insert existing transaction with old timestamp
-        final oldTimestamp = DateTime.now().subtract(const Duration(hours: 2));
+        final DateTime oldTimestamp = DateTime.now().subtract(const Duration(hours: 2));
         await _insertTransaction(database, '1', 'Old Transaction', 100.0, oldTimestamp);
 
         // Setup API response with newer timestamp
-        final newTimestamp = DateTime.now();
+        final DateTime newTimestamp = DateTime.now();
         _setupTransactionResponse(mockApiAdapter, <Map<String, dynamic>>[
           _createServerTransaction('1', 'Updated Transaction', 150.0, newTimestamp),
         ]);
@@ -281,15 +281,15 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
         expect(result.statsByEntity['transaction']!.itemsUpdated, equals(1));
         expect(result.statsByEntity['transaction']!.itemsSkipped, equals(0));
 
         // Verify database was updated
-        final updatedTx = await (database.select(database.transactions)
-              ..where((t) => t.serverId.equals('1')))
+        final TransactionEntity? updatedTx = await (database.select(database.transactions)
+              ..where(($TransactionsTable t) => t.serverId.equals('1')))
             .getSingleOrNull();
 
         expect(updatedTx, matcher.isNotNull);
@@ -299,11 +299,11 @@ void main() {
 
       test('should handle clock skew within tolerance', () async {
         // Insert transaction with timestamp
-        final localTimestamp = DateTime.now();
+        final DateTime localTimestamp = DateTime.now();
         await _insertTransaction(database, '1', 'Transaction', 100.0, localTimestamp);
 
         // Setup API response with timestamp within 5-minute tolerance
-        final serverTimestamp = localTimestamp.add(const Duration(minutes: 3));
+        final DateTime serverTimestamp = localTimestamp.add(const Duration(minutes: 3));
         _setupTransactionResponse(mockApiAdapter, <Map<String, dynamic>>[
           _createServerTransaction('1', 'Transaction', 100.0, serverTimestamp),
         ]);
@@ -313,7 +313,7 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         // Within tolerance, should be skipped
         expect(result.statsByEntity['transaction']!.itemsSkipped, equals(1));
@@ -321,11 +321,11 @@ void main() {
 
       test('should detect and handle clock skew beyond tolerance', () async {
         // Insert transaction with timestamp
-        final localTimestamp = DateTime.now();
+        final DateTime localTimestamp = DateTime.now();
         await _insertTransaction(database, '1', 'Transaction', 100.0, localTimestamp);
 
         // Setup API response with timestamp beyond tolerance
-        final serverTimestamp = localTimestamp.add(const Duration(minutes: 10));
+        final DateTime serverTimestamp = localTimestamp.add(const Duration(minutes: 10));
         _setupTransactionResponse(mockApiAdapter, <Map<String, dynamic>>[
           _createServerTransaction('1', 'Transaction', 100.0, serverTimestamp),
         ]);
@@ -335,7 +335,7 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         // Beyond tolerance, should be updated
         expect(result.statsByEntity['transaction']!.itemsUpdated, equals(1));
@@ -351,7 +351,7 @@ void main() {
       });
 
       test('should fetch and sync accounts', () async {
-        final serverTimestamp = DateTime.now();
+        final DateTime serverTimestamp = DateTime.now();
 
         _setupEmptyTransactionResponse(mockApiAdapter);
         _setupAccountResponse(mockApiAdapter, <Map<String, dynamic>>[
@@ -363,7 +363,7 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
         expect(result.statsByEntity['account']!.itemsFetched, equals(2));
@@ -371,7 +371,7 @@ void main() {
       });
 
       test('should skip unchanged accounts', () async {
-        final timestamp = DateTime.now().subtract(const Duration(hours: 1));
+        final DateTime timestamp = DateTime.now().subtract(const Duration(hours: 1));
         await _insertAccount(database, 'acc-1', 'Checking', 'asset', 1000.0, timestamp);
 
         _setupEmptyTransactionResponse(mockApiAdapter);
@@ -383,7 +383,7 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.statsByEntity['account']!.itemsSkipped, equals(1));
       });
@@ -398,7 +398,7 @@ void main() {
       });
 
       test('should fetch and sync budgets', () async {
-        final serverTimestamp = DateTime.now();
+        final DateTime serverTimestamp = DateTime.now();
 
         _setupEmptyTransactionResponse(mockApiAdapter);
         _setupEmptyAccountResponse(mockApiAdapter);
@@ -410,7 +410,7 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
         expect(result.statsByEntity['budget']!.itemsFetched, equals(2));
@@ -439,7 +439,7 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
         expect(result.statsByEntity['category']!.apiCallsSaved, equals(1));
@@ -456,7 +456,7 @@ void main() {
         when(() => mockCacheService.isFresh('category_list', 'all'))
             .thenAnswer((_) async => false);
 
-        final serverTimestamp = DateTime.now();
+        final DateTime serverTimestamp = DateTime.now();
         _setupEmptyTransactionResponse(mockApiAdapter);
         _setupEmptyAccountResponse(mockApiAdapter);
         _setupEmptyBudgetResponse(mockApiAdapter);
@@ -467,7 +467,7 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
         expect(result.statsByEntity['category']!.itemsFetched, equals(2));
@@ -501,7 +501,7 @@ void main() {
         _setupEmptyCategoryResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
         expect(result.statsByEntity['bill']!.apiCallsSaved, equals(1));
@@ -511,7 +511,7 @@ void main() {
         when(() => mockCacheService.isFresh('bill_list', 'all'))
             .thenAnswer((_) async => false);
 
-        final serverTimestamp = DateTime.now();
+        final DateTime serverTimestamp = DateTime.now();
         _setupEmptyTransactionResponse(mockApiAdapter);
         _setupEmptyAccountResponse(mockApiAdapter);
         _setupEmptyBudgetResponse(mockApiAdapter);
@@ -521,7 +521,7 @@ void main() {
         ]);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.statsByEntity['bill']!.itemsFetched, equals(1));
         expect(result.statsByEntity['bill']!.itemsUpdated, equals(1));
@@ -546,7 +546,7 @@ void main() {
         _setupEmptyCategoryResponse(mockApiAdapter);
         _setupEmptyBillResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
         expect(result.statsByEntity['piggy_bank']!.apiCallsSaved, equals(1));
@@ -556,7 +556,7 @@ void main() {
         when(() => mockCacheService.isFresh('piggy_bank_list', 'all'))
             .thenAnswer((_) async => false);
 
-        final serverTimestamp = DateTime.now();
+        final DateTime serverTimestamp = DateTime.now();
         _setupEmptyTransactionResponse(mockApiAdapter);
         _setupEmptyAccountResponse(mockApiAdapter);
         _setupEmptyBudgetResponse(mockApiAdapter);
@@ -566,7 +566,7 @@ void main() {
           _createServerPiggyBank('pb-1', 'Vacation', 'acc-1', 500.0, serverTimestamp),
         ]);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.statsByEntity['piggy_bank']!.itemsFetched, equals(1));
         expect(result.statsByEntity['piggy_bank']!.itemsUpdated, equals(1));
@@ -584,7 +584,7 @@ void main() {
       });
 
       test('should calculate bandwidth saved correctly', () async {
-        final timestamp = DateTime.now().subtract(const Duration(hours: 1));
+        final DateTime timestamp = DateTime.now().subtract(const Duration(hours: 1));
 
         // Insert existing transactions that will be skipped
         await _insertTransaction(database, '1', 'T1', 100.0, timestamp);
@@ -603,9 +603,9 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
-        final stats = result.statsByEntity['transaction']!;
+        final IncrementalSyncStats stats = result.statsByEntity['transaction']!;
         expect(stats.itemsSkipped, equals(3));
         // 3 skipped transactions * 2048 bytes each = 6144 bytes saved
         expect(stats.bandwidthSavedBytes, equals(3 * 2048));
@@ -614,7 +614,7 @@ void main() {
       test('should calculate overall skip rate', () async {
         _setupEmptyApiResponses(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         // With no items, skip rate should be 0
         expect(result.overallSkipRate, equals(0.0));
@@ -626,24 +626,24 @@ void main() {
         await syncService.performIncrementalSync();
 
         // Verify statistics were saved to database
-        final stats = await database.select(database.syncStatistics).get();
+        final List<SyncStatisticsEntity> stats = await database.select(database.syncStatistics).get();
         expect(stats, isNotEmpty);
       });
 
       test('should update last incremental sync time', () async {
         _setupEmptyApiResponses(mockApiAdapter);
 
-        final beforeSync = DateTime.now();
+        final DateTime beforeSync = DateTime.now();
         await syncService.performIncrementalSync();
-        final afterSync = DateTime.now();
+        final DateTime afterSync = DateTime.now();
 
         // Check last incremental sync was updated
-        final metadata = await (database.select(database.syncMetadata)
-              ..where((m) => m.key.equals('last_incremental_sync')))
+        final SyncMetadataEntity? metadata = await (database.select(database.syncMetadata)
+              ..where(($SyncMetadataTable m) => m.key.equals('last_incremental_sync')))
             .getSingleOrNull();
 
         expect(metadata, matcher.isNotNull);
-        final syncTime = DateTime.parse(metadata!.value);
+        final DateTime syncTime = DateTime.parse(metadata!.value);
         expect(syncTime.isAfter(beforeSync.subtract(const Duration(seconds: 1))), isTrue);
         expect(syncTime.isBefore(afterSync.add(const Duration(seconds: 1))), isTrue);
       });
@@ -660,12 +660,12 @@ void main() {
       });
 
       test('should force sync transactions bypassing cache', () async {
-        final serverTimestamp = DateTime.now();
+        final DateTime serverTimestamp = DateTime.now();
         _setupTransactionResponse(mockApiAdapter, <Map<String, dynamic>>[
           _createServerTransaction('1', 'Forced Transaction', 100.0, serverTimestamp),
         ]);
 
-        final stats = await syncService.forceSyncEntityType('transaction');
+        final IncrementalSyncStats stats = await syncService.forceSyncEntityType('transaction');
 
         expect(stats.itemsFetched, equals(1));
         expect(stats.itemsUpdated, equals(1));
@@ -675,12 +675,12 @@ void main() {
       });
 
       test('should force sync categories bypassing cache', () async {
-        final serverTimestamp = DateTime.now();
+        final DateTime serverTimestamp = DateTime.now();
         _setupCategoryResponse(mockApiAdapter, <Map<String, dynamic>>[
           _createServerCategory('cat-1', 'Forced Category', serverTimestamp),
         ]);
 
-        final stats = await syncService.forceSyncEntityType('category');
+        final IncrementalSyncStats stats = await syncService.forceSyncEntityType('category');
 
         expect(stats.itemsFetched, equals(1));
         expect(stats.itemsUpdated, equals(1));
@@ -715,7 +715,7 @@ void main() {
               limit: any(named: 'limit'),
             )).thenThrow(Exception('API Error'));
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isFalse);
         expect(result.error, contains('API Error'));
@@ -729,7 +729,7 @@ void main() {
               limit: any(named: 'limit'),
             )).thenThrow(Exception('Transaction fetch failed'));
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isFalse);
         expect(result.statsByEntity['transaction']?.success, isFalse);
@@ -763,7 +763,7 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         // Should update (not skip) when timestamp is null
         expect(result.success, isTrue);
@@ -782,7 +782,7 @@ void main() {
       });
 
       test('should sync all entity types in order', () async {
-        final serverTimestamp = DateTime.now();
+        final DateTime serverTimestamp = DateTime.now();
 
         _setupTransactionResponse(mockApiAdapter, <Map<String, dynamic>>[
           _createServerTransaction('tx-1', 'Transaction', 100.0, serverTimestamp),
@@ -803,7 +803,7 @@ void main() {
           _createServerPiggyBank('pb-1', 'PiggyBank', 'acc-1', 500.0, serverTimestamp),
         ]);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
         expect(result.statsByEntity.length, equals(6));
@@ -812,8 +812,8 @@ void main() {
       });
 
       test('should handle mixed updates and skips', () async {
-        final oldTimestamp = DateTime.now().subtract(const Duration(hours: 2));
-        final newTimestamp = DateTime.now();
+        final DateTime oldTimestamp = DateTime.now().subtract(const Duration(hours: 2));
+        final DateTime newTimestamp = DateTime.now();
 
         // Insert existing data
         await _insertTransaction(database, '1', 'Old', 100.0, oldTimestamp);
@@ -830,10 +830,10 @@ void main() {
         _setupEmptyBillResponse(mockApiAdapter);
         _setupEmptyPiggyBankResponse(mockApiAdapter);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
-        final txStats = result.statsByEntity['transaction']!;
+        final IncrementalSyncStats txStats = result.statsByEntity['transaction']!;
         expect(txStats.itemsFetched, equals(2));
         expect(txStats.itemsUpdated, equals(1));
         expect(txStats.itemsSkipped, equals(1));
@@ -848,13 +848,13 @@ void main() {
         when(() => mockCacheService.isFresh('piggy_bank_list', 'all'))
             .thenAnswer((_) async => true);
 
-        final result = await syncService.performIncrementalSync();
+        final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
         expect(result.success, isTrue);
 
         // Verify aggregate statistics
-        final totalApiCallsSaved = result.statsByEntity.values
-            .fold<int>(0, (sum, stats) => sum + stats.apiCallsSaved);
+        final int totalApiCallsSaved = result.statsByEntity.values
+            .fold<int>(0, (int sum, IncrementalSyncStats stats) => sum + stats.apiCallsSaved);
 
         expect(totalApiCallsSaved, equals(3)); // 3 cached entity types
       });
@@ -864,7 +864,7 @@ void main() {
 
     group('IncrementalSyncStats Model', () {
       test('should calculate skip rate correctly', () {
-        final stats = IncrementalSyncStats(
+        final IncrementalSyncStats stats = IncrementalSyncStats(
           entityType: 'transaction',
           itemsFetched: 100,
           itemsUpdated: 30,
@@ -876,19 +876,19 @@ void main() {
       });
 
       test('should format bandwidth saved correctly', () {
-        final bytesStats = IncrementalSyncStats(
+        final IncrementalSyncStats bytesStats = IncrementalSyncStats(
           entityType: 'transaction',
           bandwidthSavedBytes: 500,
         );
         expect(bytesStats.bandwidthSavedFormatted, equals('500 B'));
 
-        final kbStats = IncrementalSyncStats(
+        final IncrementalSyncStats kbStats = IncrementalSyncStats(
           entityType: 'transaction',
           bandwidthSavedBytes: 2048,
         );
         expect(kbStats.bandwidthSavedFormatted, equals('2.0 KB'));
 
-        final mbStats = IncrementalSyncStats(
+        final IncrementalSyncStats mbStats = IncrementalSyncStats(
           entityType: 'transaction',
           bandwidthSavedBytes: 2 * 1024 * 1024,
         );
@@ -896,14 +896,14 @@ void main() {
       });
 
       test('should serialize to JSON correctly', () {
-        final stats = IncrementalSyncStats(
+        final IncrementalSyncStats stats = IncrementalSyncStats(
           entityType: 'transaction',
           itemsFetched: 10,
           itemsUpdated: 3,
           itemsSkipped: 7,
         );
 
-        final json = stats.toJson();
+        final Map<String, dynamic> json = stats.toJson();
 
         expect(json['entityType'], equals('transaction'));
         expect(json['itemsFetched'], equals(10));
@@ -917,7 +917,7 @@ void main() {
 
     group('IncrementalSyncResult Model', () {
       test('should aggregate statistics from all entities', () {
-        final result = IncrementalSyncResult(
+        final IncrementalSyncResult result = IncrementalSyncResult(
           isIncremental: true,
           success: true,
           duration: const Duration(seconds: 10),
@@ -947,7 +947,7 @@ void main() {
       });
 
       test('should serialize to JSON correctly', () {
-        final result = IncrementalSyncResult(
+        final IncrementalSyncResult result = IncrementalSyncResult(
           isIncremental: true,
           success: true,
           duration: const Duration(seconds: 5),
@@ -956,7 +956,7 @@ void main() {
           },
         );
 
-        final json = result.toJson();
+        final Map<String, dynamic> json = result.toJson();
 
         expect(json['isIncremental'], isTrue);
         expect(json['success'], isTrue);

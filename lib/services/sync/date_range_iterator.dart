@@ -324,16 +324,16 @@ class DateRangeIterator {
   Future<PaginatedResult<Map<String, dynamic>>> _fetchPageWithRetry(int page) async {
     int attemptCount = 0;
 
-    return await _retryOptions.retry(
+    return _retryOptions.retry(
       () async {
         attemptCount++;
         if (attemptCount > 1) {
           _logger.fine('Retry attempt $attemptCount for page $page');
         }
-        return await _fetchPage(page);
+        return _fetchPage(page);
       },
-      retryIf: (e) => _isRetryableError(e),
-      onRetry: (e) {
+      retryIf: (Exception e) => _isRetryableError(e),
+      onRetry: (Exception e) {
         _logger.warning(
           'Retrying page $page fetch for $entityType after error: $e',
         );
@@ -690,7 +690,7 @@ class DateRangeIterator {
         // Wait for one to complete before adding more
         final T result = await Future.any(pending);
         results.add(result);
-        pending.removeWhere((future) => false); // Clean up completed futures
+        pending.removeWhere((Future<T> future) => false); // Clean up completed futures
       }
 
       pending.add(processor(item));

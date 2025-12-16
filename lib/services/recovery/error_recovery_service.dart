@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:archive/archive_io.dart';
+import 'package:drift/src/runtime/query_builder/query_builder.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -28,7 +30,7 @@ class ErrorRecoveryService {
     _logger.warning('Attempting error recovery: $error');
 
     try {
-      final errorType = _classifyError(error);
+      final ErrorType errorType = _classifyError(error);
       _logger.info('Error classified as: $errorType');
 
       switch (errorType) {
@@ -57,7 +59,7 @@ class ErrorRecoveryService {
     try {
       // Run integrity check
       _logger.info('Running PRAGMA integrity_check');
-      final integrityResult = await _database.customSelect('PRAGMA integrity_check').get();
+      final List<QueryRow> integrityResult = await _database.customSelect('PRAGMA integrity_check').get();
       _logger.info('Integrity check result: $integrityResult');
 
       if (integrityResult.isNotEmpty &&
@@ -108,18 +110,18 @@ class ErrorRecoveryService {
     _logger.info('Creating database backup');
 
     try {
-      final dbPath = await _getDatabasePath();
-      final backupDir = await _getBackupDirectory();
-      final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      final backupName = '$_backupPrefix$timestamp.db.gz';
-      final backupPath = path.join(backupDir.path, backupName);
+      final String dbPath = await _getDatabasePath();
+      final Directory backupDir = await _getBackupDirectory();
+      final String timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+      final String backupName = '$_backupPrefix$timestamp.db.gz';
+      final String backupPath = path.join(backupDir.path, backupName);
 
       // Copy and compress database file
-      final dbFile = File(dbPath);
-      final bytes = await dbFile.readAsBytes();
-      final compressed = GZipEncoder().encode(bytes);
+      final File dbFile = File(dbPath);
+      final Uint8List bytes = await dbFile.readAsBytes();
+      final List<int> compressed = const GZipEncoder().encode(bytes);
 
-      final backupFile = File(backupPath);
+      final File backupFile = File(backupPath);
       await backupFile.writeAsBytes(compressed);
 
       _logger.info('Backup created: $backupPath');
@@ -139,18 +141,18 @@ class ErrorRecoveryService {
     _logger.info('Restoring database from backup: $backupPath');
 
     try {
-      final dbPath = await _getDatabasePath();
+      final String dbPath = await _getDatabasePath();
 
       // Close database connection
       await _database.close();
 
       // Read and decompress backup
-      final backupFile = File(backupPath);
-      final compressed = await backupFile.readAsBytes();
-      final decompressed = GZipDecoder().decodeBytes(compressed);
+      final File backupFile = File(backupPath);
+      final Uint8List compressed = await backupFile.readAsBytes();
+      final Uint8List decompressed = const GZipDecoder().decodeBytes(compressed);
 
       // Restore database file
-      final dbFile = File(dbPath);
+      final File dbFile = File(dbPath);
       await dbFile.writeAsBytes(decompressed);
 
       _logger.info('Database restored successfully');
@@ -163,27 +165,27 @@ class ErrorRecoveryService {
   /// List available backups.
   Future<List<File>> listBackups() async {
     try {
-      final backupDir = await _getBackupDirectory();
-      final files = await backupDir.list().toList();
+      final Directory backupDir = await _getBackupDirectory();
+      final List<FileSystemEntity> files = await backupDir.list().toList();
 
-      final backups = files
+      final List<File> backups = files
           .whereType<File>()
-          .where((f) => path.basename(f.path).startsWith(_backupPrefix))
+          .where((File f) => path.basename(f.path).startsWith(_backupPrefix))
           .toList();
 
-      backups.sort((a, b) => b.path.compareTo(a.path)); // Newest first
+      backups.sort((File a, File b) => b.path.compareTo(a.path)); // Newest first
 
       return backups;
     } catch (e, stackTrace) {
       _logger.warning('Failed to list backups', e, stackTrace);
-      return [];
+      return <File>[];
     }
   }
 
   /// Delete a specific backup.
   Future<void> deleteBackup(String backupPath) async {
     try {
-      final file = File(backupPath);
+      final File file = File(backupPath);
       if (await file.exists()) {
         await file.delete();
         _logger.info('Backup deleted: $backupPath');
@@ -218,7 +220,7 @@ class ErrorRecoveryService {
   // Private helper methods
 
   ErrorType _classifyError(Exception error) {
-    final errorString = error.toString().toLowerCase();
+    final String errorString = error.toString().toLowerCase();
 
     if (errorString.contains('socket') ||
         errorString.contains('network') ||
@@ -263,8 +265,8 @@ class ErrorRecoveryService {
   }
 
   Future<Directory> _getBackupDirectory() async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final backupDir = Directory(path.join(appDir.path, 'backups'));
+    final Directory appDir = await getApplicationDocumentsDirectory();
+    final Directory backupDir = Directory(path.join(appDir.path, 'backups'));
 
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
@@ -275,18 +277,18 @@ class ErrorRecoveryService {
 
   /// Get the database file path.
   Future<String> _getDatabasePath() async {
-    final appDir = await getApplicationDocumentsDirectory();
+    final Directory appDir = await getApplicationDocumentsDirectory();
     return path.join(appDir.path, 'waterfly_offline.db');
   }
 
   Future<void> _rotateBackups(Directory backupDir) async {
     try {
-      final backups = await listBackups();
+      final List<File> backups = await listBackups();
 
       if (backups.length > _maxBackups) {
         _logger.info('Rotating old backups (keeping last $_maxBackups)');
 
-        for (var i = _maxBackups; i < backups.length; i++) {
+        for (int i = _maxBackups; i < backups.length; i++) {
           await backups[i].delete();
           _logger.info('Deleted old backup: ${backups[i].path}');
         }

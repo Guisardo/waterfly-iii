@@ -38,7 +38,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   String? _filterEntityType;
   String? _filterSeverity;
   String _sortBy = 'date';
-  final Set<String> _selectedConflicts = {};
+  final Set<String> _selectedConflicts = <String>{};
   bool _isSelectionMode = false;
 
   @override
@@ -46,8 +46,8 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Conflicts'),
-        actions: [
-          if (_isSelectionMode) ...[
+        actions: <Widget>[
+          if (_isSelectionMode) ...<Widget>[
             IconButton(
               icon: const Icon(Icons.select_all),
               onPressed: _selectAll,
@@ -58,7 +58,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
               onPressed: _exitSelectionMode,
               tooltip: 'Cancel',
             ),
-          ] else ...[
+          ] else ...<Widget>[
             IconButton(
               icon: const Icon(Icons.filter_list),
               onPressed: _showFilterDialog,
@@ -73,20 +73,20 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         ],
       ),
       body: Consumer<SyncStatusProvider>(
-        builder: (context, provider, child) {
-          final conflicts = provider.unresolvedConflicts;
+        builder: (BuildContext context, SyncStatusProvider provider, Widget? child) {
+          final List<dynamic> conflicts = provider.unresolvedConflicts;
 
           if (conflicts.isEmpty) {
             return _buildEmptyState(context);
           }
 
-          final filteredConflicts = _filterConflicts(conflicts);
-          final sortedConflicts = _sortConflicts(filteredConflicts);
+          final List<dynamic> filteredConflicts = _filterConflicts(conflicts);
+          final List<dynamic> sortedConflicts = _sortConflicts(filteredConflicts);
 
           return RefreshIndicator(
             onRefresh: () => provider.refresh(),
             child: Column(
-              children: [
+              children: <Widget>[
                 if (_filterEntityType != null || _filterSeverity != null)
                   _buildFilterChips(context),
                 if (_isSelectionMode)
@@ -95,7 +95,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16.0),
                     itemCount: sortedConflicts.length,
-                    itemBuilder: (context, index) {
+                    itemBuilder: (BuildContext context, int index) {
                       final conflict = sortedConflicts[index];
                       return _buildConflictCard(context, conflict, index);
                     },
@@ -121,7 +121,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Icon(
             Icons.check_circle_outline,
             size: 80,
@@ -159,7 +159,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Wrap(
         spacing: 8.0,
-        children: [
+        children: <Widget>[
           if (_filterEntityType != null)
             Chip(
               label: Text('Type: $_filterEntityType'),
@@ -181,7 +181,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       color: Theme.of(context).colorScheme.primaryContainer,
       child: Row(
-        children: [
+        children: <Widget>[
           Text(
             '${_selectedConflicts.length} of $totalCount selected',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -196,16 +196,16 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   /// Build conflict card.
   Widget _buildConflictCard(BuildContext context, dynamic conflictEntity, int index) {
     // Convert ConflictEntity to usable data
-    final conflictId = conflictEntity.id as String;
-    final entityType = conflictEntity.entityType as String;
-    final conflictType = conflictEntity.conflictType as String;
-    final detectedAt = conflictEntity.detectedAt as DateTime;
+    final String conflictId = conflictEntity.id as String;
+    final String entityType = conflictEntity.entityType as String;
+    final String conflictType = conflictEntity.conflictType as String;
+    final DateTime detectedAt = conflictEntity.detectedAt as DateTime;
     
     // Parse conflicting fields to determine severity
-    final conflictingFieldsJson = conflictEntity.conflictingFields as String;
-    final severity = _determineSeverity(conflictingFieldsJson, entityType);
+    final String conflictingFieldsJson = conflictEntity.conflictingFields as String;
+    final String severity = _determineSeverity(conflictingFieldsJson, entityType);
     
-    final isSelected = _selectedConflicts.contains(conflictId);
+    final bool isSelected = _selectedConflicts.contains(conflictId);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12.0),
@@ -229,7 +229,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
-            children: [
+            children: <Widget>[
               if (_isSelectionMode)
                 Checkbox(
                   value: isSelected,
@@ -238,9 +238,9 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Row(
-                      children: [
+                      children: <Widget>[
                         Icon(
                           Icons.warning_amber,
                           color: _getSeverityColor(severity),
@@ -267,7 +267,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
                     ),
                     const SizedBox(height: 8),
                     Row(
-                      children: [
+                      children: <Widget>[
                         Icon(Icons.category, size: 14, color: Colors.grey[600]),
                         const SizedBox(width: 4),
                         Text(
@@ -337,13 +337,13 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   void _showConflictDetails(BuildContext context, dynamic conflict) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Conflict Details'),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               const Text(
                 'Local Version:',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -367,7 +367,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
             ],
           ),
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
@@ -395,22 +395,22 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   void _showFilterDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Filter Conflicts'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             ListTile(
               title: const Text('Entity Type'),
               trailing: DropdownButton<String?>(
                 value: _filterEntityType,
-                items: [
+                items: <DropdownMenuItem<String?>>[
                   const DropdownMenuItem(value: null, child: Text('All')),
                   const DropdownMenuItem(value: 'Transaction', child: Text('Transaction')),
                   const DropdownMenuItem(value: 'Account', child: Text('Account')),
                   const DropdownMenuItem(value: 'Category', child: Text('Category')),
                 ],
-                onChanged: (value) {
+                onChanged: (String? value) {
                   setState(() => _filterEntityType = value);
                   Navigator.pop(context);
                 },
@@ -420,13 +420,13 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
               title: const Text('Severity'),
               trailing: DropdownButton<String?>(
                 value: _filterSeverity,
-                items: [
+                items: <DropdownMenuItem<String?>>[
                   const DropdownMenuItem(value: null, child: Text('All')),
                   const DropdownMenuItem(value: 'Low', child: Text('Low')),
                   const DropdownMenuItem(value: 'Medium', child: Text('Medium')),
                   const DropdownMenuItem(value: 'High', child: Text('High')),
                 ],
-                onChanged: (value) {
+                onChanged: (String? value) {
                   setState(() => _filterSeverity = value);
                   Navigator.pop(context);
                 },
@@ -434,7 +434,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
             ),
           ],
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () {
               setState(() {
@@ -458,16 +458,16 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   void _showSortDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Sort By'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             RadioListTile<String>(
               title: const Text('Date'),
               value: 'date',
               groupValue: _sortBy,
-              onChanged: (value) {
+              onChanged: (String? value) {
                 setState(() => _sortBy = value!);
                 Navigator.pop(context);
               },
@@ -476,7 +476,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
               title: const Text('Severity'),
               value: 'severity',
               groupValue: _sortBy,
-              onChanged: (value) {
+              onChanged: (String? value) {
                 setState(() => _sortBy = value!);
                 Navigator.pop(context);
               },
@@ -485,7 +485,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
               title: const Text('Entity Type'),
               value: 'type',
               groupValue: _sortBy,
-              onChanged: (value) {
+              onChanged: (String? value) {
                 setState(() => _sortBy = value!);
                 Navigator.pop(context);
               },
@@ -500,12 +500,12 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   void _showBulkResolutionDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: Text('Resolve ${_selectedConflicts.length} Conflicts'),
         content: const Text(
           'Choose a resolution strategy to apply to all selected conflicts:',
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
@@ -534,7 +534,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
     return conflicts.where((conflictEntity) {
       // Filter by entity type
       if (_filterEntityType != null) {
-        final entityType = conflictEntity.entityType as String;
+        final String entityType = conflictEntity.entityType as String;
         if (entityType != _filterEntityType) {
           return false;
         }
@@ -542,9 +542,9 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
       
       // Filter by severity
       if (_filterSeverity != null) {
-        final conflictingFieldsJson = conflictEntity.conflictingFields as String;
-        final entityType = conflictEntity.entityType as String;
-        final severity = _determineSeverity(conflictingFieldsJson, entityType);
+        final String conflictingFieldsJson = conflictEntity.conflictingFields as String;
+        final String entityType = conflictEntity.entityType as String;
+        final String severity = _determineSeverity(conflictingFieldsJson, entityType);
         if (severity != _filterSeverity) {
           return false;
         }
@@ -556,34 +556,34 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
 
   /// Sort conflicts based on current sort option.
   List<dynamic> _sortConflicts(List<dynamic> conflicts) {
-    final sortedList = List<dynamic>.from(conflicts);
+    final List<dynamic> sortedList = List<dynamic>.from(conflicts);
     
     switch (_sortBy) {
       case 'date':
         sortedList.sort((a, b) {
-          final aDate = a.detectedAt as DateTime;
-          final bDate = b.detectedAt as DateTime;
+          final DateTime aDate = a.detectedAt as DateTime;
+          final DateTime bDate = b.detectedAt as DateTime;
           return bDate.compareTo(aDate); // Newest first
         });
         break;
       case 'entity_type':
         sortedList.sort((a, b) {
-          final aType = a.entityType as String;
-          final bType = b.entityType as String;
+          final String aType = a.entityType as String;
+          final String bType = b.entityType as String;
           return aType.compareTo(bType);
         });
         break;
       case 'severity':
         sortedList.sort((a, b) {
-          final aFields = a.conflictingFields as String;
-          final bFields = b.conflictingFields as String;
-          final aType = a.entityType as String;
-          final bType = b.entityType as String;
-          final aSeverity = _determineSeverity(aFields, aType);
-          final bSeverity = _determineSeverity(bFields, bType);
+          final String aFields = a.conflictingFields as String;
+          final String bFields = b.conflictingFields as String;
+          final String aType = a.entityType as String;
+          final String bType = b.entityType as String;
+          final String aSeverity = _determineSeverity(aFields, aType);
+          final String bSeverity = _determineSeverity(bFields, bType);
           
           // High > Medium > Low
-          final severityOrder = {'High': 3, 'Medium': 2, 'Low': 1};
+          final Map<String, int> severityOrder = <String, int>{'High': 3, 'Medium': 2, 'Low': 1};
           return (severityOrder[bSeverity] ?? 0).compareTo(severityOrder[aSeverity] ?? 0);
         });
         break;
@@ -595,21 +595,21 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   /// Determine conflict severity based on conflicting fields and entity type.
   String _determineSeverity(String conflictingFieldsJson, String entityType) {
     try {
-      final fields = (jsonDecode(conflictingFieldsJson) as List).cast<String>();
+      final List<String> fields = (jsonDecode(conflictingFieldsJson) as List).cast<String>();
       
       // Critical fields that indicate high severity
-      final criticalFields = {
-        'transaction': ['amount', 'date', 'source_id', 'destination_id'],
-        'account': ['account_number', 'iban', 'opening_balance'],
-        'category': ['name'],
-        'budget': ['amount', 'start', 'end'],
-        'bill': ['amount_min', 'amount_max', 'date'],
-        'piggy_bank': ['target_amount', 'current_amount'],
+      final Map<String, List<String>> criticalFields = <String, List<String>>{
+        'transaction': <String>['amount', 'date', 'source_id', 'destination_id'],
+        'account': <String>['account_number', 'iban', 'opening_balance'],
+        'category': <String>['name'],
+        'budget': <String>['amount', 'start', 'end'],
+        'bill': <String>['amount_min', 'amount_max', 'date'],
+        'piggy_bank': <String>['target_amount', 'current_amount'],
       };
       
       // Check if any critical fields are in conflict
-      final entityCriticalFields = criticalFields[entityType] ?? [];
-      final hasCriticalConflict = fields.any((field) => entityCriticalFields.contains(field));
+      final List<String> entityCriticalFields = criticalFields[entityType] ?? <String>[];
+      final bool hasCriticalConflict = fields.any((String field) => entityCriticalFields.contains(field));
       
       if (hasCriticalConflict) {
         return 'High';
@@ -640,7 +640,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
 
   /// Format conflict title based on type and entity.
   String _formatConflictTitle(String conflictType, String entityType) {
-    final formattedEntity = _formatEntityType(entityType);
+    final String formattedEntity = _formatEntityType(entityType);
     
     switch (conflictType) {
       case 'update_conflict':
@@ -656,7 +656,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
 
   /// Format conflict description.
   String _formatConflictDescription(String conflictType, String entityType) {
-    final formattedEntity = _formatEntityType(entityType).toLowerCase();
+    final String formattedEntity = _formatEntityType(entityType).toLowerCase();
     
     switch (conflictType) {
       case 'update_conflict':
@@ -692,8 +692,8 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
 
   /// Format timestamp for display.
   String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
+    final DateTime now = DateTime.now();
+    final Duration difference = now.difference(timestamp);
     
     if (difference.inMinutes < 1) {
       return 'Just now';
@@ -725,14 +725,14 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   /// Select all visible conflicts.
   void _selectAll() {
     setState(() {
-      final provider = Provider.of<SyncStatusProvider>(context, listen: false);
-      final conflicts = provider.unresolvedConflicts;
-      final filteredConflicts = _filterConflicts(conflicts);
+      final SyncStatusProvider provider = Provider.of<SyncStatusProvider>(context, listen: false);
+      final List<dynamic> conflicts = provider.unresolvedConflicts;
+      final List<dynamic> filteredConflicts = _filterConflicts(conflicts);
       
       // Add all visible conflict IDs to selection
       _selectedConflicts.clear();
       for (final conflictEntity in filteredConflicts) {
-        final conflictId = conflictEntity.id as String;
+        final String conflictId = conflictEntity.id as String;
         _selectedConflicts.add(conflictId);
       }
       
@@ -762,25 +762,25 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
+        builder: (BuildContext context) => const Center(
           child: CircularProgressIndicator(),
         ),
       );
       
       // Convert ConflictEntity to Conflict model
-      final conflict = _convertToConflictModel(conflictEntity);
+      final Conflict conflict = _convertToConflictModel(conflictEntity);
       
       // Get dependencies from context
-      final database = Provider.of<AppDatabase>(context, listen: false);
-      final apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
+      final AppDatabase database = Provider.of<AppDatabase>(context, listen: false);
+      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
       
       // Create resolver and resolve conflict
-      final resolver = ConflictResolver(
+      final ConflictResolver resolver = ConflictResolver(
         apiAdapter: apiAdapter,
         database: database,
         queueManager: SyncQueueManager(database),
       );
-      final resolution = await resolver.resolveConflict(conflict, strategy);
+      final Resolution resolution = await resolver.resolveConflict(conflict, strategy);
       
       // Close loading indicator
       if (!mounted) return;
@@ -788,7 +788,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
       
       if (resolution.success) {
         // Refresh conflicts list
-        final provider = Provider.of<SyncStatusProvider>(context, listen: false);
+        final SyncStatusProvider provider = Provider.of<SyncStatusProvider>(context, listen: false);
         await provider.refresh();
         
         // Show success message
@@ -839,10 +839,10 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => Center(
+        builder: (BuildContext context) => Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               const CircularProgressIndicator(),
               const SizedBox(height: 16),
               Text(
@@ -855,33 +855,33 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
       );
       
       // Get all conflicts
-      final provider = Provider.of<SyncStatusProvider>(context, listen: false);
-      final allConflicts = provider.unresolvedConflicts;
+      final SyncStatusProvider provider = Provider.of<SyncStatusProvider>(context, listen: false);
+      final List<dynamic> allConflicts = provider.unresolvedConflicts;
       
       // Filter selected conflicts
-      final selectedConflictEntities = allConflicts.where((conflictEntity) {
-        final conflictId = conflictEntity.id as String;
+      final List<dynamic> selectedConflictEntities = allConflicts.where((conflictEntity) {
+        final String conflictId = conflictEntity.id as String;
         return _selectedConflicts.contains(conflictId);
       }).toList();
       
       // Get dependencies from context
-      final database = Provider.of<AppDatabase>(context, listen: false);
-      final apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
+      final AppDatabase database = Provider.of<AppDatabase>(context, listen: false);
+      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
       
       // Resolve each conflict
-      final resolver = ConflictResolver(
+      final ConflictResolver resolver = ConflictResolver(
         apiAdapter: apiAdapter,
         database: database,
         queueManager: SyncQueueManager(database),
       );
       int successCount = 0;
       int failureCount = 0;
-      final List<String> errors = [];
+      final List<String> errors = <String>[];
       
       for (final conflictEntity in selectedConflictEntities) {
         try {
-          final conflict = _convertToConflictModel(conflictEntity);
-          final resolution = await resolver.resolveConflict(conflict, strategy);
+          final Conflict conflict = _convertToConflictModel(conflictEntity);
+          final Resolution resolution = await resolver.resolveConflict(conflict, strategy);
           
           if (resolution.success) {
             successCount++;
@@ -919,20 +919,20 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         // Show detailed error dialog
         showDialog(
           context: context,
-          builder: (context) => AlertDialog(
+          builder: (BuildContext context) => AlertDialog(
             title: const Text('Bulk Resolution Results'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Text('✓ Resolved: $successCount'),
                   Text('✗ Failed: $failureCount'),
-                  if (errors.isNotEmpty) ...[
+                  if (errors.isNotEmpty) ...<Widget>[
                     const SizedBox(height: 16),
                     const Text('Errors:', style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    ...errors.take(5).map((error) => Padding(
+                    ...errors.take(5).map((String error) => Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text('• $error', style: const TextStyle(fontSize: 12)),
                     )),
@@ -942,7 +942,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
                 ],
               ),
             ),
-            actions: [
+            actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text('OK'),
@@ -974,24 +974,24 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   /// Convert ConflictEntity from database to Conflict model.
   Conflict _convertToConflictModel(dynamic conflictEntity) {
     try {
-      final localData = jsonDecode(conflictEntity.localData as String) as Map<String, dynamic>;
-      final remoteData = jsonDecode(conflictEntity.serverData as String) as Map<String, dynamic>;
-      final conflictingFields = (jsonDecode(conflictEntity.conflictingFields as String) as List).cast<String>();
+      final Map<String, dynamic> localData = jsonDecode(conflictEntity.localData as String) as Map<String, dynamic>;
+      final Map<String, dynamic> remoteData = jsonDecode(conflictEntity.serverData as String) as Map<String, dynamic>;
+      final List<String> conflictingFields = (jsonDecode(conflictEntity.conflictingFields as String) as List).cast<String>();
       
       // Determine conflict type
-      final conflictTypeStr = conflictEntity.conflictType as String;
-      final conflictType = ConflictType.values.firstWhere(
-        (e) => e.name == conflictTypeStr.replaceAll('_', ''),
+      final String conflictTypeStr = conflictEntity.conflictType as String;
+      final ConflictType conflictType = ConflictType.values.firstWhere(
+        (ConflictType e) => e.name == conflictTypeStr.replaceAll('_', ''),
         orElse: () => ConflictType.updateUpdate,
       );
       
       // Determine severity
-      final severityStr = _determineSeverity(
+      final String severityStr = _determineSeverity(
         conflictEntity.conflictingFields as String,
         conflictEntity.entityType as String,
       );
-      final severity = ConflictSeverity.values.firstWhere(
-        (e) => e.name.toLowerCase() == severityStr.toLowerCase(),
+      final ConflictSeverity severity = ConflictSeverity.values.firstWhere(
+        (ConflictSeverity e) => e.name.toLowerCase() == severityStr.toLowerCase(),
         orElse: () => ConflictSeverity.medium,
       );
       
@@ -1009,7 +1009,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         resolvedAt: conflictEntity.resolvedAt as DateTime?,
         resolutionStrategy: conflictEntity.resolutionStrategy != null
             ? ResolutionStrategy.values.firstWhere(
-                (e) => e.name == conflictEntity.resolutionStrategy,
+                (ResolutionStrategy e) => e.name == conflictEntity.resolutionStrategy,
                 orElse: () => ResolutionStrategy.manual,
               )
             : null,

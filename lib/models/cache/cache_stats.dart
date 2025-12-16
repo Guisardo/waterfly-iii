@@ -439,15 +439,15 @@ class CacheStats {
     if (averageAgeSeconds < 60) {
       return '$averageAgeSeconds seconds';
     } else if (averageAgeSeconds < 3600) {
-      final minutes = averageAgeSeconds ~/ 60;
-      return '${minutes} ${minutes == 1 ? 'minute' : 'minutes'}';
+      final int minutes = averageAgeSeconds ~/ 60;
+      return '$minutes ${minutes == 1 ? 'minute' : 'minutes'}';
     } else {
-      final hours = averageAgeSeconds ~/ 3600;
-      final remainingMinutes = (averageAgeSeconds % 3600) ~/ 60;
+      final int hours = averageAgeSeconds ~/ 3600;
+      final int remainingMinutes = (averageAgeSeconds % 3600) ~/ 60;
       if (remainingMinutes == 0) {
-        return '${hours} ${hours == 1 ? 'hour' : 'hours'}';
+        return '$hours ${hours == 1 ? 'hour' : 'hours'}';
       }
-      return '${hours} ${hours == 1 ? 'hour' : 'hours'} $remainingMinutes ${remainingMinutes == 1 ? 'minute' : 'minutes'}';
+      return '$hours ${hours == 1 ? 'hour' : 'hours'} $remainingMinutes ${remainingMinutes == 1 ? 'minute' : 'minutes'}';
     }
   }
 
@@ -584,7 +584,7 @@ class CacheStats {
         '$etagStats'
         '  avgAge: $averageAgeFormatted,\n'
         '  size: $totalCacheSizeMB MB,\n'
-        '  entries: $totalEntries (${invalidatedEntries} invalidated),\n'
+        '  entries: $totalEntries ($invalidatedEntries invalidated),\n'
         '  healthy: $isHealthy\n'
         ')';
   }

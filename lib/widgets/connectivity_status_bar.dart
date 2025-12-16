@@ -89,8 +89,8 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
   @override
   Widget build(BuildContext context) {
     return Consumer<ConnectivityProvider>(
-      builder: (context, connectivity, child) {
-        final status = connectivity.status;
+      builder: (BuildContext context, ConnectivityProvider connectivity, Widget? child) {
+        final ConnectivityStatus status = connectivity.status;
 
         // Handle status changes after build completes
         if (_previousStatus != status) {
@@ -120,7 +120,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    children: <Widget>[
                       Icon(
                         _getStatusIcon(status),
                         color: Colors.white,
@@ -131,7 +131,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                          children: <Widget>[
                             Text(
                               _getStatusText(status),
                               style: const TextStyle(
@@ -240,7 +240,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
   /// Get network type text.
   String _getNetworkTypeText(ConnectivityStatus status) {
     // Get actual network type from connectivity service via provider
-    final connectivity = Provider.of<ConnectivityProvider>(
+    final ConnectivityProvider connectivity = Provider.of<ConnectivityProvider>(
       context,
       listen: false,
     );
@@ -259,9 +259,9 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
   ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: Row(
-          children: [
+          children: <Widget>[
             Icon(
               _getStatusIcon(connectivity.status),
               color: _getStatusColor(connectivity.status),
@@ -273,7 +273,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             _buildDetailRow(
               'Status',
               connectivity.statusText,
@@ -297,7 +297,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
             ),
           ],
         ),
-        actions: [
+        actions: <Widget>[
           if (connectivity.isOffline)
             TextButton.icon(
               onPressed: () async {
@@ -306,12 +306,12 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                 
                 try {
                   // Trigger connectivity check via provider
-                  final connectivityProvider = Provider.of<ConnectivityProvider>(
+                  final ConnectivityProvider connectivityProvider = Provider.of<ConnectivityProvider>(
                     context,
                     listen: false,
                   );
                   
-                  final isOnline = await connectivityProvider.checkConnectivity();
+                  final bool isOnline = await connectivityProvider.checkConnectivity();
                   
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -354,7 +354,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
   Widget _buildDetailRow(String label, String value, Color? valueColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
+      children: <Widget>[
         Text(
           label,
           style: const TextStyle(fontWeight: FontWeight.w500),

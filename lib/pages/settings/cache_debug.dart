@@ -69,10 +69,10 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   CacheStats? _stats;
 
   /// All cache metadata entries (from database)
-  List<CacheMetadataEntity> _entries = [];
+  List<CacheMetadataEntity> _entries = <CacheMetadataEntity>[];
 
   /// Filtered cache entries (after search/filter applied)
-  List<CacheMetadataEntity> _filteredEntries = [];
+  List<CacheMetadataEntity> _filteredEntries = <CacheMetadataEntity>[];
 
   /// Search query for filtering entries
   String _searchQuery = '';
@@ -108,17 +108,17 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
 
       _log.fine('Loading cache debug data');
 
-      final cacheService = context.read<CacheService>();
-      final database = context.read<AppDatabase>();
+      final CacheService cacheService = context.read<CacheService>();
+      final AppDatabase database = context.read<AppDatabase>();
 
       // Fetch statistics
-      final stats = await cacheService.getStats();
+      final CacheStats stats = await cacheService.getStats();
 
       // Fetch all cache entries from database
-      final entries = await database.select(database.cacheMetadataTable).get();
+      final List<CacheMetadataEntity> entries = await database.select(database.cacheMetadataTable).get();
 
       // Sort by last accessed (most recent first)
-      entries.sort((a, b) => b.lastAccessedAt.compareTo(a.lastAccessedAt));
+      entries.sort((CacheMetadataEntity a, CacheMetadataEntity b) => b.lastAccessedAt.compareTo(a.lastAccessedAt));
 
       _log.info('Loaded cache data: ${entries.length} entries');
 
@@ -153,20 +153,20 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   ///
   /// Updates _filteredEntries with matching entries.
   void _applyFilters() {
-    var filtered = _entries;
+    List<CacheMetadataEntity> filtered = _entries;
 
     // Apply type filter
     if (_selectedTypeFilter != null) {
       filtered = filtered
-          .where((entry) => entry.entityType == _selectedTypeFilter)
+          .where((CacheMetadataEntity entry) => entry.entityType == _selectedTypeFilter)
           .toList();
     }
 
     // Apply search query
     if (_searchQuery.isNotEmpty) {
-      final query = _searchQuery.toLowerCase();
+      final String query = _searchQuery.toLowerCase();
       filtered = filtered
-          .where((entry) =>
+          .where((CacheMetadataEntity entry) =>
               entry.entityType.toLowerCase().contains(query) ||
               entry.entityId.toLowerCase().contains(query))
           .toList();
@@ -186,16 +186,16 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   /// Shows confirmation dialog before clearing.
   /// Clears all cache metadata and reloads UI.
   Future<void> _clearAllCache() async {
-    final confirmed = await showDialog<bool>(
+    final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Clear All Cache?'),
         content: const Text(
           'This will clear all cache metadata. '
           'Entity data will remain but be treated as uncached.\n\n'
           'This action cannot be undone.',
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
@@ -214,7 +214,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
     try {
       _log.warning('Clearing all cache (user requested)');
 
-      final cacheService = context.read<CacheService>();
+      final CacheService cacheService = context.read<CacheService>();
       await cacheService.clearAll();
 
       if (!mounted) return;
@@ -246,7 +246,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
     try {
       _log.info('Invalidating cache entry: ${entry.entityType}:${entry.entityId}');
 
-      final cacheService = context.read<CacheService>();
+      final CacheService cacheService = context.read<CacheService>();
       await cacheService.invalidate(entry.entityType, entry.entityId);
 
       if (!mounted) return;
@@ -277,18 +277,18 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   ///
   /// Shows confirmation dialog and invalidates all entries of type.
   Future<void> _invalidateType(String entityType) async {
-    final count =
-        _entries.where((e) => e.entityType == entityType).length;
+    final int count =
+        _entries.where((CacheMetadataEntity e) => e.entityType == entityType).length;
 
-    final confirmed = await showDialog<bool>(
+    final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: Text('Invalidate All $entityType?'),
         content: Text(
           'This will invalidate $count cache entries of type "$entityType".\n\n'
           'Data will be refetched from API on next access.',
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
@@ -306,7 +306,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
     try {
       _log.info('Invalidating all cache entries of type: $entityType');
 
-      final cacheService = context.read<CacheService>();
+      final CacheService cacheService = context.read<CacheService>();
       await cacheService.invalidateType(entityType);
 
       if (!mounted) return;
@@ -332,21 +332,21 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   ///
   /// Shows dialog to enter target size and triggers eviction.
   Future<void> _triggerLruEviction() async {
-    final cacheService = context.read<CacheService>();
-    final currentLimit = cacheService.maxCacheSizeMB;
+    final CacheService cacheService = context.read<CacheService>();
+    final int currentLimit = cacheService.maxCacheSizeMB;
 
-    final targetSizeMB = await showDialog<int>(
+    final int? targetSizeMB = await showDialog<int>(
       context: context,
-      builder: (context) {
+      builder: (BuildContext context) {
         int targetSize = currentLimit ~/ 2;
 
         return AlertDialog(
           title: const Text('Manual LRU Eviction'),
           content: StatefulBuilder(
-            builder: (context, setState) => Column(
+            builder: (BuildContext context, setState) => Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 Text('Current limit: ${currentLimit}MB'),
                 Text('Current size: ${_stats?.totalCacheSizeMB ?? 0}MB'),
                 const SizedBox(height: 16),
@@ -357,7 +357,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
                   max: currentLimit.toDouble(),
                   divisions: currentLimit,
                   label: '${targetSize}MB',
-                  onChanged: (value) {
+                  onChanged: (double value) {
                     setState(() {
                       targetSize = value.round();
                     });
@@ -367,7 +367,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
               ],
             ),
           ),
-          actions: [
+          actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
@@ -411,21 +411,21 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   ///
   /// Shows dialog to enter new size limit and updates CacheService.
   Future<void> _configureSizeLimit() async {
-    final cacheService = context.read<CacheService>();
-    final currentLimit = cacheService.maxCacheSizeMB;
+    final CacheService cacheService = context.read<CacheService>();
+    final int currentLimit = cacheService.maxCacheSizeMB;
 
-    final newLimit = await showDialog<int>(
+    final int? newLimit = await showDialog<int>(
       context: context,
-      builder: (context) {
+      builder: (BuildContext context) {
         int limit = currentLimit;
 
         return AlertDialog(
           title: const Text('Configure Cache Size Limit'),
           content: StatefulBuilder(
-            builder: (context, setState) => Column(
+            builder: (BuildContext context, setState) => Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 Text('Current limit: ${currentLimit}MB'),
                 Text('Current size: ${_stats?.totalCacheSizeMB ?? 0}MB'),
                 const SizedBox(height: 16),
@@ -436,7 +436,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
                   max: 500,
                   divisions: 49,
                   label: '${limit}MB',
-                  onChanged: (value) {
+                  onChanged: (double value) {
                     setState(() {
                       limit = value.round();
                     });
@@ -446,7 +446,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
               ],
             ),
           ),
-          actions: [
+          actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
@@ -491,7 +491,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cache Debug'),
-        actions: [
+        actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadCacheData,
@@ -512,7 +512,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                      children: <Widget>[
                         const Icon(Icons.error, size: 64, color: Colors.red),
                         const SizedBox(height: 16),
                         Text(
@@ -530,7 +530,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
                   ),
                 )
               : Column(
-                  children: [
+                  children: <Widget>[
                     // Statistics Card
                     _buildStatisticsCard(),
 
@@ -551,7 +551,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
                             )
                           : ListView.builder(
                               itemCount: _filteredEntries.length,
-                              itemBuilder: (context, index) {
+                              itemBuilder: (BuildContext context, int index) {
                                 return _buildEntryCard(_filteredEntries[index]);
                               },
                             ),
@@ -583,7 +583,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             const Text(
               'Cache Statistics',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -602,7 +602,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
             _buildStatRow('Stale Served', '${_stats!.staleServed}'),
             _buildStatRow('Background Refreshes', '${_stats!.backgroundRefreshes}'),
             _buildStatRow('Evictions', '${_stats!.evictions}'),
-            if (_stats!.etagRequests > 0) ...[
+            if (_stats!.etagRequests > 0) ...<Widget>[
               const Divider(),
               const Text(
                 'ETag Statistics',
@@ -631,7 +631,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+        children: <Widget>[
           Text(label, style: const TextStyle(fontSize: 14)),
           Text(
             value,
@@ -645,13 +645,13 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   /// Build search and filter bar
   Widget _buildSearchBar() {
     // Get unique entity types for filter
-    final entityTypes = _entries.map((e) => e.entityType).toSet().toList()
+    final List<String> entityTypes = _entries.map((CacheMetadataEntity e) => e.entityType).toSet().toList()
       ..sort();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
-        children: [
+        children: <Widget>[
           // Search field
           Expanded(
             child: TextField(
@@ -661,7 +661,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),
               ),
-              onChanged: (value) {
+              onChanged: (String value) {
                 setState(() {
                   _searchQuery = value;
                 });
@@ -674,17 +674,17 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
           DropdownButton<String?>(
             value: _selectedTypeFilter,
             hint: const Text('All Types'),
-            items: [
+            items: <DropdownMenuItem<String?>>[
               const DropdownMenuItem<String?>(
                 value: null,
                 child: Text('All Types'),
               ),
-              ...entityTypes.map((type) => DropdownMenuItem(
+              ...entityTypes.map((String type) => DropdownMenuItem(
                     value: type,
                     child: Text(type),
                   )),
             ],
-            onChanged: (value) {
+            onChanged: (String? value) {
               setState(() {
                 _selectedTypeFilter = value;
               });
@@ -741,12 +741,12 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
           freshnessLabel,
           style: TextStyle(color: freshnessColor, fontWeight: FontWeight.bold),
         ),
-        children: [
+        children: <Widget>[
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 _buildInfoRow('Cached At', _formatDateTime(entry.cachedAt)),
                 _buildInfoRow('Age', _formatDuration(age)),
                 _buildInfoRow('TTL', '${entry.ttlSeconds}s'),
@@ -758,7 +758,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
+                  children: <Widget>[
                     TextButton.icon(
                       onPressed: () => _invalidateEntry(entry),
                       icon: const Icon(Icons.refresh),
@@ -780,7 +780,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           SizedBox(
             width: 120,
             child: Text(
@@ -810,7 +810,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
             blurRadius: 4,
@@ -820,7 +820,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
+        children: <Widget>[
           ElevatedButton.icon(
             onPressed: _triggerLruEviction,
             icon: const Icon(Icons.cleaning_services),

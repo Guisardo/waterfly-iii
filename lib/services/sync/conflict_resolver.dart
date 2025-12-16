@@ -3,17 +3,17 @@ import 'dart:convert';
 import 'package:logging/logging.dart';
 import 'package:drift/drift.dart';
 
-import '../../data/local/database/app_database.dart';
-import '../../models/conflict.dart';
-import '../../exceptions/sync_exceptions.dart';
-import '../../validators/transaction_validator.dart';
-import '../../validators/account_validator.dart';
-import '../../validators/category_validator.dart';
-import '../../validators/budget_validator.dart';
-import '../../validators/bill_validator.dart';
-import '../../validators/piggy_bank_validator.dart';
-import 'firefly_api_adapter.dart';
-import 'sync_queue_manager.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/models/conflict.dart';
+import 'package:waterflyiii/exceptions/sync_exceptions.dart';
+import 'package:waterflyiii/validators/transaction_validator.dart';
+import 'package:waterflyiii/validators/account_validator.dart';
+import 'package:waterflyiii/validators/category_validator.dart';
+import 'package:waterflyiii/validators/budget_validator.dart';
+import 'package:waterflyiii/validators/bill_validator.dart';
+import 'package:waterflyiii/validators/piggy_bank_validator.dart';
+import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 
 /// Service for resolving conflicts detected during synchronization.
 ///
@@ -103,7 +103,7 @@ class ConflictResolver {
       }
 
       // Apply resolution strategy
-      final resolvedData = await _applyStrategy(conflict, strategy);
+      final Map<String, dynamic> resolvedData = await _applyStrategy(conflict, strategy);
 
       // Validate resolved data
       await _validateResolvedData(conflict.entityType, resolvedData);
@@ -112,7 +112,7 @@ class ConflictResolver {
       await _persistResolution(conflict, strategy, resolvedData);
 
       // Create resolution result
-      final resolution = Resolution(
+      final Resolution resolution = Resolution(
         conflict: conflict,
         strategy: strategy,
         resolvedData: resolvedData,
@@ -135,7 +135,7 @@ class ConflictResolver {
       return Resolution(
         conflict: conflict,
         strategy: strategy,
-        resolvedData: const {},
+        resolvedData: const <String, dynamic>{},
         success: false,
         errorMessage: e.toString(),
         resolvedAt: DateTime.now(),
@@ -150,13 +150,13 @@ class ConflictResolver {
   ) async {
     switch (strategy) {
       case ResolutionStrategy.localWins:
-        return await _resolveLocalWins(conflict);
+        return _resolveLocalWins(conflict);
       case ResolutionStrategy.remoteWins:
-        return await _resolveRemoteWins(conflict);
+        return _resolveRemoteWins(conflict);
       case ResolutionStrategy.lastWriteWins:
-        return await _resolveLastWriteWins(conflict);
+        return _resolveLastWriteWins(conflict);
       case ResolutionStrategy.merge:
-        return await _resolveMerge(conflict);
+        return _resolveMerge(conflict);
       case ResolutionStrategy.manual:
         throw ConflictError(
           'Manual resolution requires user input',
@@ -300,8 +300,8 @@ class ConflictResolver {
         'Applying LAST_WRITE_WINS strategy for conflict ${conflict.id}',
       );
 
-      final localUpdated = _parseDateTime(conflict.localData['updated_at']);
-      final remoteUpdated = _parseDateTime(conflict.remoteData['updated_at']);
+      final DateTime? localUpdated = _parseDateTime(conflict.localData['updated_at']);
+      final DateTime? remoteUpdated = _parseDateTime(conflict.remoteData['updated_at']);
 
       if (localUpdated == null || remoteUpdated == null) {
         _logger.warning(
@@ -334,19 +334,19 @@ class ConflictResolver {
     try {
       _logger.fine('Applying MERGE strategy for conflict ${conflict.id}');
 
-      final merged = <String, dynamic>{};
-      final localData = conflict.localData;
-      final remoteData = conflict.remoteData;
-      final conflictingFields = conflict.conflictingFields.toSet();
+      final Map<String, dynamic> merged = <String, dynamic>{};
+      final Map<String, dynamic> localData = conflict.localData;
+      final Map<String, dynamic> remoteData = conflict.remoteData;
+      final Set<String> conflictingFields = conflict.conflictingFields.toSet();
 
       // Get all unique keys
-      final allKeys = {...localData.keys, ...remoteData.keys};
+      final Set<String> allKeys = <String>{...localData.keys, ...remoteData.keys};
 
-      for (final key in allKeys) {
+      for (final String key in allKeys) {
         if (conflictingFields.contains(key)) {
           // For conflicting fields, use LAST_WRITE_WINS logic
-          final localUpdated = _parseDateTime(localData['updated_at']);
-          final remoteUpdated = _parseDateTime(remoteData['updated_at']);
+          final DateTime? localUpdated = _parseDateTime(localData['updated_at']);
+          final DateTime? remoteUpdated = _parseDateTime(remoteData['updated_at']);
 
           if (localUpdated != null &&
               remoteUpdated != null &&
@@ -376,7 +376,7 @@ class ConflictResolver {
         'entity_id=${conflict.entityId}',
       );
 
-      final serverResponse = await _pushMergedDataToServer(
+      final Map<String, dynamic> serverResponse = await _pushMergedDataToServer(
         conflict.entityType,
         conflict.entityId,
         merged,
@@ -415,23 +415,23 @@ class ConflictResolver {
   ) async {
     if (!autoResolveEnabled) {
       _logger.info('Auto-resolution is disabled');
-      return {};
+      return <String, Resolution>{};
     }
 
     try {
       _logger.info('Auto-resolving ${conflicts.length} conflicts');
 
-      final results = <String, Resolution>{};
-      final now = DateTime.now();
+      final Map<String, Resolution> results = <String, Resolution>{};
+      final DateTime now = DateTime.now();
 
-      for (final conflict in conflicts) {
+      for (final Conflict conflict in conflicts) {
         // Skip already resolved
         if (conflict.isResolved) {
           continue;
         }
 
         // Determine if should auto-resolve
-        final shouldResolve = _shouldAutoResolve(conflict, now);
+        final bool shouldResolve = _shouldAutoResolve(conflict, now);
 
         if (shouldResolve) {
           _logger.fine(
@@ -439,7 +439,7 @@ class ConflictResolver {
             '(severity: ${conflict.severity})',
           );
 
-          final resolution = await resolveConflict(
+          final Resolution resolution = await resolveConflict(
             conflict,
             ResolutionStrategy.lastWriteWins,
           );
@@ -470,7 +470,7 @@ class ConflictResolver {
 
   /// Determine if conflict should be auto-resolved.
   bool _shouldAutoResolve(Conflict conflict, DateTime now) {
-    final age = now.difference(conflict.detectedAt);
+    final Duration age = now.difference(conflict.detectedAt);
 
     switch (conflict.severity) {
       case ConflictSeverity.low:
@@ -508,7 +508,7 @@ class ConflictResolver {
       );
 
       // Fetch conflict from database
-      final conflictEntity = await _getConflictById(conflictId);
+      final ConflictEntity? conflictEntity = await _getConflictById(conflictId);
       if (conflictEntity == null) {
         throw ConflictError(
           'Conflict $conflictId not found',
@@ -525,10 +525,10 @@ class ConflictResolver {
       }
 
       // Convert ConflictEntity to Conflict model
-      final conflict = _convertEntityToModel(conflictEntity);
+      final Conflict conflict = _convertEntityToModel(conflictEntity);
 
       // Resolve using specified strategy
-      final resolution = await resolveConflict(conflict, strategy);
+      final Resolution resolution = await resolveConflict(conflict, strategy);
 
       // Mark as resolved by user in database
       await _updateConflictStatus(
@@ -575,7 +575,7 @@ class ConflictResolver {
       _logger.info('Resolving conflict $conflictId with custom data');
 
       // Fetch conflict from database
-      final conflictEntity = await _getConflictById(conflictId);
+      final ConflictEntity? conflictEntity = await _getConflictById(conflictId);
       if (conflictEntity == null) {
         throw ConflictError(
           'Conflict $conflictId not found',
@@ -592,7 +592,7 @@ class ConflictResolver {
       }
 
       // Convert ConflictEntity to Conflict model
-      final conflict = _convertEntityToModel(conflictEntity);
+      final Conflict conflict = _convertEntityToModel(conflictEntity);
 
       // Validate custom data
       await _validateResolvedData(conflict.entityType, customData);
@@ -604,7 +604,7 @@ class ConflictResolver {
       );
 
       // Push to server
-      final serverResponse = await _pushMergedDataToServer(
+      final Map<String, dynamic> serverResponse = await _pushMergedDataToServer(
         conflict.entityType,
         conflict.entityId,
         customData,
@@ -659,8 +659,8 @@ class ConflictResolver {
     // Use validators from Phase 2
     switch (entityType) {
       case 'transaction':
-        final validator = TransactionValidator();
-        final result = await validator.validate(data);
+        final TransactionValidator validator = TransactionValidator();
+        final ValidationResult result = validator.validate(data);
         if (!result.isValid) {
           throw ValidationError(
             'Transaction validation failed: ${result.errors.join(', ')}',
@@ -670,8 +670,8 @@ class ConflictResolver {
         }
         break;
       case 'account':
-        final validator = AccountValidator();
-        final result = await validator.validate(data);
+        final AccountValidator validator = AccountValidator();
+        final ValidationResult result = await validator.validate(data);
         if (!result.isValid) {
           throw ValidationError(
             'Account validation failed: ${result.errors.join(', ')}',
@@ -681,8 +681,8 @@ class ConflictResolver {
         }
         break;
       case 'category':
-        final validator = CategoryValidator();
-        final result = await validator.validate(data);
+        final CategoryValidator validator = CategoryValidator();
+        final ValidationResult result = await validator.validate(data);
         if (!result.isValid) {
           throw ValidationError(
             'Category validation failed: ${result.errors.join(', ')}',
@@ -692,8 +692,8 @@ class ConflictResolver {
         }
         break;
       case 'budget':
-        final validator = BudgetValidator();
-        final result = await validator.validate(data);
+        final BudgetValidator validator = BudgetValidator();
+        final ValidationResult result = await validator.validate(data);
         if (!result.isValid) {
           throw ValidationError(
             'Budget validation failed: ${result.errors.join(', ')}',
@@ -703,8 +703,8 @@ class ConflictResolver {
         }
         break;
       case 'bill':
-        final validator = BillValidator();
-        final result = await validator.validate(data);
+        final BillValidator validator = BillValidator();
+        final ValidationResult result = await validator.validate(data);
         if (!result.isValid) {
           throw ValidationError(
             'Bill validation failed: ${result.errors.join(', ')}',
@@ -714,8 +714,8 @@ class ConflictResolver {
         }
         break;
       case 'piggy_bank':
-        final validator = PiggyBankValidator();
-        final result = await validator.validate(data);
+        final PiggyBankValidator validator = PiggyBankValidator();
+        final ValidationResult result = await validator.validate(data);
         if (!result.isValid) {
           throw ValidationError(
             'Piggy bank validation failed: ${result.errors.join(', ')}',
@@ -822,50 +822,50 @@ class ConflictResolver {
       _logger.fine('Querying conflict statistics from database');
 
       // Query all conflicts
-      final allConflicts = await (_database.select(_database.conflicts).get());
+      final List<ConflictEntity> allConflicts = await (_database.select(_database.conflicts).get());
 
       // Calculate statistics
-      final totalConflicts = allConflicts.length;
-      final unresolvedConflicts = allConflicts
-          .where((c) => c.status == 'pending')
+      final int totalConflicts = allConflicts.length;
+      final int unresolvedConflicts = allConflicts
+          .where((ConflictEntity c) => c.status == 'pending')
           .length;
       
       // Count by resolution type (auto vs manual)
-      final resolvedConflicts = allConflicts.where((c) => c.status == 'resolved');
-      final autoResolvedConflicts = resolvedConflicts
-          .where((c) => c.resolvedBy == 'system')
+      final Iterable<ConflictEntity> resolvedConflicts = allConflicts.where((ConflictEntity c) => c.status == 'resolved');
+      final int autoResolvedConflicts = resolvedConflicts
+          .where((ConflictEntity c) => c.resolvedBy == 'system')
           .length;
-      final manuallyResolvedConflicts = resolvedConflicts
-          .where((c) => c.resolvedBy == 'user')
+      final int manuallyResolvedConflicts = resolvedConflicts
+          .where((ConflictEntity c) => c.resolvedBy == 'user')
           .length;
 
       // Group by severity (calculate from conflicting fields)
-      final bySeverity = <ConflictSeverity, int>{};
-      for (final conflict in allConflicts) {
-        final severity = _calculateSeverityEnumFromFields(conflict.conflictingFields);
+      final Map<ConflictSeverity, int> bySeverity = <ConflictSeverity, int>{};
+      for (final ConflictEntity conflict in allConflicts) {
+        final ConflictSeverity severity = _calculateSeverityEnumFromFields(conflict.conflictingFields);
         bySeverity[severity] = (bySeverity[severity] ?? 0) + 1;
       }
 
       // Group by conflict type
-      final byType = <ConflictType, int>{};
-      for (final conflict in allConflicts) {
-        final conflictType = _parseConflictType(conflict.conflictType);
+      final Map<ConflictType, int> byType = <ConflictType, int>{};
+      for (final ConflictEntity conflict in allConflicts) {
+        final ConflictType conflictType = _parseConflictType(conflict.conflictType);
         byType[conflictType] = (byType[conflictType] ?? 0) + 1;
       }
 
       // Group by entity type
-      final byEntityType = <String, int>{};
-      for (final conflict in allConflicts) {
+      final Map<String, int> byEntityType = <String, int>{};
+      for (final ConflictEntity conflict in allConflicts) {
         byEntityType[conflict.entityType] = (byEntityType[conflict.entityType] ?? 0) + 1;
       }
 
       // Calculate average resolution time
       double averageResolutionTime = 0.0;
       if (resolvedConflicts.isNotEmpty) {
-        final totalResolutionTime = resolvedConflicts
-            .where((c) => c.resolvedAt != null)
-            .map((c) => c.resolvedAt!.difference(c.detectedAt).inSeconds)
-            .fold<int>(0, (sum, duration) => sum + duration);
+        final int totalResolutionTime = resolvedConflicts
+            .where((ConflictEntity c) => c.resolvedAt != null)
+            .map((ConflictEntity c) => c.resolvedAt!.difference(c.detectedAt).inSeconds)
+            .fold<int>(0, (int sum, int duration) => sum + duration);
         
         averageResolutionTime = totalResolutionTime / resolvedConflicts.length;
       }
@@ -900,16 +900,16 @@ class ConflictResolver {
   /// Calculate severity enum from conflicting fields JSON.
   ConflictSeverity _calculateSeverityEnumFromFields(String conflictingFieldsJson) {
     try {
-      final fields = (jsonDecode(conflictingFieldsJson) as List<dynamic>)
+      final List<String> fields = (jsonDecode(conflictingFieldsJson) as List<dynamic>)
           .cast<String>();
       
       // High severity: critical fields
-      if (fields.any((f) => ['amount', 'type', 'date'].contains(f))) {
+      if (fields.any((String f) => <String>['amount', 'type', 'date'].contains(f))) {
         return ConflictSeverity.high;
       }
       
       // Medium severity: important fields
-      if (fields.any((f) => ['description', 'category', 'account'].contains(f))) {
+      if (fields.any((String f) => <String>['description', 'category', 'account'].contains(f))) {
         return ConflictSeverity.medium;
       }
       
@@ -944,10 +944,10 @@ class ConflictResolver {
     try {
       _logger.fine('Fetching conflict from database: id=$conflictId');
       
-      final query = _database.select(_database.conflicts)
-        ..where((tbl) => tbl.id.equals(conflictId));
+      final SimpleSelectStatement<$ConflictsTable, ConflictEntity> query = _database.select(_database.conflicts)
+        ..where(($ConflictsTable tbl) => tbl.id.equals(conflictId));
       
-      final results = await query.get();
+      final List<ConflictEntity> results = await query.get();
       
       if (results.isEmpty) {
         _logger.warning('Conflict not found: id=$conflictId');
@@ -980,8 +980,8 @@ class ConflictResolver {
         'Updating conflict status: id=$conflictId, status=$status',
       );
 
-      final update = _database.update(_database.conflicts)
-        ..where((tbl) => tbl.id.equals(conflictId));
+      final UpdateStatement<$ConflictsTable, ConflictEntity> update = _database.update(_database.conflicts)
+        ..where(($ConflictsTable tbl) => tbl.id.equals(conflictId));
 
       await update.write(
         ConflictEntityCompanion(
@@ -1007,9 +1007,9 @@ class ConflictResolver {
   /// Convert ConflictEntity to Conflict model.
   Conflict _convertEntityToModel(ConflictEntity entity) {
     try {
-      final localData = jsonDecode(entity.localData) as Map<String, dynamic>;
-      final serverData = jsonDecode(entity.serverData) as Map<String, dynamic>;
-      final conflictingFields = (jsonDecode(entity.conflictingFields) as List<dynamic>)
+      final Map<String, dynamic> localData = jsonDecode(entity.localData) as Map<String, dynamic>;
+      final Map<String, dynamic> serverData = jsonDecode(entity.serverData) as Map<String, dynamic>;
+      final List<String> conflictingFields = (jsonDecode(entity.conflictingFields) as List<dynamic>)
           .cast<String>();
 
       // Determine conflict type
@@ -1030,9 +1030,9 @@ class ConflictResolver {
 
       // Calculate severity
       ConflictSeverity severity;
-      if (conflictingFields.any((f) => ['amount', 'type', 'date'].contains(f))) {
+      if (conflictingFields.any((String f) => <String>['amount', 'type', 'date'].contains(f))) {
         severity = ConflictSeverity.high;
-      } else if (conflictingFields.any((f) => ['description', 'category', 'account'].contains(f))) {
+      } else if (conflictingFields.any((String f) => <String>['description', 'category', 'account'].contains(f))) {
         severity = ConflictSeverity.medium;
       } else {
         severity = ConflictSeverity.low;
@@ -1137,8 +1137,8 @@ class ConflictResolver {
         switch (entityType) {
           case 'transaction':
             // Update transaction in database
-            final update = _database.update(_database.transactions)
-              ..where((tbl) => tbl.id.equals(entityId));
+            final UpdateStatement<$TransactionsTable, TransactionEntity> update = _database.update(_database.transactions)
+              ..where(($TransactionsTable tbl) => tbl.id.equals(entityId));
             
             await update.write(
               TransactionEntityCompanion(
@@ -1152,61 +1152,61 @@ class ConflictResolver {
             break;
 
           case 'account':
-            final update = _database.update(_database.accounts)
-              ..where((tbl) => tbl.id.equals(entityId));
+            final UpdateStatement<$AccountsTable, AccountEntity> update = _database.update(_database.accounts)
+              ..where(($AccountsTable tbl) => tbl.id.equals(entityId));
             
             await update.write(
-              AccountEntityCompanion(
-                isSynced: const Value(true),
-                syncStatus: const Value('synced'),
+              const AccountEntityCompanion(
+                isSynced: Value(true),
+                syncStatus: Value('synced'),
               ),
             );
             break;
 
           case 'category':
-            final update = _database.update(_database.categories)
-              ..where((tbl) => tbl.id.equals(entityId));
+            final UpdateStatement<$CategoriesTable, CategoryEntity> update = _database.update(_database.categories)
+              ..where(($CategoriesTable tbl) => tbl.id.equals(entityId));
             
             await update.write(
-              CategoryEntityCompanion(
-                isSynced: const Value(true),
-                syncStatus: const Value('synced'),
+              const CategoryEntityCompanion(
+                isSynced: Value(true),
+                syncStatus: Value('synced'),
               ),
             );
             break;
 
           case 'budget':
-            final update = _database.update(_database.budgets)
-              ..where((tbl) => tbl.id.equals(entityId));
+            final UpdateStatement<$BudgetsTable, BudgetEntity> update = _database.update(_database.budgets)
+              ..where(($BudgetsTable tbl) => tbl.id.equals(entityId));
             
             await update.write(
-              BudgetEntityCompanion(
-                isSynced: const Value(true),
-                syncStatus: const Value('synced'),
+              const BudgetEntityCompanion(
+                isSynced: Value(true),
+                syncStatus: Value('synced'),
               ),
             );
             break;
 
           case 'bill':
-            final update = _database.update(_database.bills)
-              ..where((tbl) => tbl.id.equals(entityId));
+            final UpdateStatement<$BillsTable, BillEntity> update = _database.update(_database.bills)
+              ..where(($BillsTable tbl) => tbl.id.equals(entityId));
             
             await update.write(
-              BillEntityCompanion(
-                isSynced: const Value(true),
-                syncStatus: const Value('synced'),
+              const BillEntityCompanion(
+                isSynced: Value(true),
+                syncStatus: Value('synced'),
               ),
             );
             break;
 
           case 'piggy_bank':
-            final update = _database.update(_database.piggyBanks)
-              ..where((tbl) => tbl.id.equals(entityId));
+            final UpdateStatement<$PiggyBanksTable, PiggyBankEntity> update = _database.update(_database.piggyBanks)
+              ..where(($PiggyBanksTable tbl) => tbl.id.equals(entityId));
             
             await update.write(
-              PiggyBankEntityCompanion(
-                isSynced: const Value(true),
-                syncStatus: const Value('synced'),
+              const PiggyBankEntityCompanion(
+                isSynced: Value(true),
+                syncStatus: Value('synced'),
               ),
             );
             break;

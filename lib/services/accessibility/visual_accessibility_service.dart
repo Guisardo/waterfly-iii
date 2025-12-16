@@ -32,10 +32,10 @@ class VisualAccessibilityService {
     required Color background,
     bool largeText = false,
   }) {
-    final contrast = calculateContrastRatio(foreground, background);
-    final requiredRatio = largeText ? 3.0 : 4.5;
+    final double contrast = calculateContrastRatio(foreground, background);
+    final double requiredRatio = largeText ? 3.0 : 4.5;
     
-    final meetsRequirement = contrast >= requiredRatio;
+    final bool meetsRequirement = contrast >= requiredRatio;
     
     if (!meetsRequirement) {
       _logger.warning(
@@ -53,26 +53,26 @@ class VisualAccessibilityService {
     required Color background,
     bool largeText = false,
   }) {
-    final contrast = calculateContrastRatio(foreground, background);
-    final requiredRatio = largeText ? 4.5 : 7.0;
+    final double contrast = calculateContrastRatio(foreground, background);
+    final double requiredRatio = largeText ? 4.5 : 7.0;
     
     return contrast >= requiredRatio;
   }
 
   /// Calculate contrast ratio between two colors
   double calculateContrastRatio(Color foreground, Color background) {
-    final fgLuminance = foreground.computeLuminance();
-    final bgLuminance = background.computeLuminance();
+    final double fgLuminance = foreground.computeLuminance();
+    final double bgLuminance = background.computeLuminance();
     
-    final lighter = fgLuminance > bgLuminance ? fgLuminance : bgLuminance;
-    final darker = fgLuminance > bgLuminance ? bgLuminance : fgLuminance;
+    final double lighter = fgLuminance > bgLuminance ? fgLuminance : bgLuminance;
+    final double darker = fgLuminance > bgLuminance ? bgLuminance : fgLuminance;
     
     return (lighter + 0.05) / (darker + 0.05);
   }
 
   /// Get accessible color for text on given background
   Color getAccessibleTextColor(Color background) {
-    final luminance = background.computeLuminance();
+    final double luminance = background.computeLuminance();
     
     // Use white text on dark backgrounds, black on light backgrounds
     return luminance > 0.5 ? Colors.black : Colors.white;
@@ -89,13 +89,13 @@ class VisualAccessibilityService {
     MainAxisAlignment alignment = MainAxisAlignment.center,
     double spacing = 4.0,
   }) {
-    final effectiveIconColor = iconColor ?? Theme.of(context).colorScheme.onSurface;
-    final effectiveTextStyle = textStyle ?? Theme.of(context).textTheme.labelSmall;
+    final Color effectiveIconColor = iconColor ?? Theme.of(context).colorScheme.onSurface;
+    final TextStyle? effectiveTextStyle = textStyle ?? Theme.of(context).textTheme.labelSmall;
     
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: alignment,
-      children: [
+      children: <Widget>[
         Icon(
           icon,
           color: effectiveIconColor,
@@ -121,7 +121,7 @@ class VisualAccessibilityService {
   }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         Icon(
           icon,
           color: color,
@@ -140,7 +140,7 @@ class VisualAccessibilityService {
 
   /// Validate theme colors for accessibility
   Map<String, bool> validateThemeColors(ColorScheme colorScheme) {
-    final results = <String, bool>{};
+    final Map<String, bool> results = <String, bool>{};
     
     // Check primary text on primary background
     results['primary_text'] = checkContrast(
@@ -172,7 +172,7 @@ class VisualAccessibilityService {
       background: colorScheme.surface,
     );
     
-    final failedChecks = results.entries.where((e) => !e.value).map((e) => e.key).toList();
+    final List<String> failedChecks = results.entries.where((MapEntry<String, bool> e) => !e.value).map((MapEntry<String, bool> e) => e.key).toList();
     
     if (failedChecks.isNotEmpty) {
       _logger.warning('Theme color contrast issues: ${failedChecks.join(", ")}');
@@ -203,13 +203,13 @@ class VisualAccessibilityService {
     int? maxLines,
     TextOverflow? overflow,
   }) {
-    final textScaleFactor = getTextScaleFactor(context);
-    final effectiveStyle = style ?? Theme.of(context).textTheme.bodyMedium;
-    final baseFontSize = effectiveStyle?.fontSize ?? 14.0;
-    final scaledFontSize = baseFontSize * textScaleFactor;
+    final double textScaleFactor = getTextScaleFactor(context);
+    final TextStyle? effectiveStyle = style ?? Theme.of(context).textTheme.bodyMedium;
+    final double baseFontSize = effectiveStyle?.fontSize ?? 14.0;
+    final double scaledFontSize = baseFontSize * textScaleFactor;
     
     // Ensure minimum font size
-    final finalFontSize = scaledFontSize < minFontSize ? minFontSize : scaledFontSize;
+    final double finalFontSize = scaledFontSize < minFontSize ? minFontSize : scaledFontSize;
     
     return Text(
       text,
@@ -283,8 +283,8 @@ class VisualAccessibilityService {
     _logger.info('Text scale factor: ${getTextScaleFactor(context)}');
     _logger.info('High contrast mode: ${isHighContrastEnabled(context)}');
     
-    final validationResults = validateThemeColors(colorScheme);
-    final failedChecks = validationResults.entries.where((e) => !e.value).length;
+    final Map<String, bool> validationResults = validateThemeColors(colorScheme);
+    final int failedChecks = validationResults.entries.where((MapEntry<String, bool> e) => !e.value).length;
     
     if (failedChecks > 0) {
       _logger.warning('$failedChecks color contrast checks failed');

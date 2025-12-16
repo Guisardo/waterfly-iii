@@ -1,6 +1,6 @@
 import 'package:logging/logging.dart';
 
-import 'transaction_validator.dart';
+import 'package:waterflyiii/validators/transaction_validator.dart';
 
 /// Validates budget data before storage or synchronization.
 class BudgetValidator {
@@ -10,7 +10,7 @@ class BudgetValidator {
   Future<ValidationResult> validate(Map<String, dynamic> data) async {
     _logger.fine('Validating budget data');
 
-    final errors = <String>[];
+    final List<String> errors = <String>[];
 
     // Required fields
     if (!data.containsKey('name') ||
@@ -18,7 +18,7 @@ class BudgetValidator {
         (data['name'] as String).trim().isEmpty) {
       errors.add('Budget name is required');
     } else {
-      final name = (data['name'] as String).trim();
+      final String name = (data['name'] as String).trim();
       if (name.length > 255) {
         errors.add('Budget name exceeds maximum length of 255 characters');
       }
@@ -26,7 +26,7 @@ class BudgetValidator {
 
     // Amount validation
     if (data.containsKey('amount') && data['amount'] != null) {
-      final amount = _parseAmount(data['amount']);
+      final double? amount = _parseAmount(data['amount']);
       if (amount == null) {
         errors.add('Budget amount must be a valid number');
       } else if (amount < 0) {
@@ -38,8 +38,8 @@ class BudgetValidator {
 
     // Period validation
     if (data.containsKey('period') && data['period'] != null) {
-      final period = data['period'] as String;
-      const validPeriods = ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'];
+      final String period = data['period'] as String;
+      const List<String> validPeriods = <String>['daily', 'weekly', 'monthly', 'quarterly', 'yearly'];
       if (!validPeriods.contains(period.toLowerCase())) {
         errors.add('Invalid budget period: $period');
       }
@@ -47,13 +47,13 @@ class BudgetValidator {
 
     // Date range validation
     if (data.containsKey('start_date') && data['start_date'] != null) {
-      final startDate = _parseDate(data['start_date']);
+      final DateTime? startDate = _parseDate(data['start_date']);
       if (startDate == null) {
         errors.add('Invalid start date format');
       }
 
       if (data.containsKey('end_date') && data['end_date'] != null) {
-        final endDate = _parseDate(data['end_date']);
+        final DateTime? endDate = _parseDate(data['end_date']);
         if (endDate == null) {
           errors.add('Invalid end date format');
         } else if (startDate != null && endDate.isBefore(startDate)) {
@@ -62,7 +62,7 @@ class BudgetValidator {
       }
     }
 
-    final isValid = errors.isEmpty;
+    final bool isValid = errors.isEmpty;
     if (!isValid) {
       _logger.warning('Budget validation failed: ${errors.join(', ')}');
     }

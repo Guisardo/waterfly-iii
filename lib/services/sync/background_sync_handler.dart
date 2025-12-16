@@ -6,6 +6,8 @@ import 'package:cronet_http/cronet_http.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waterflyiii/models/sync_operation.dart';
+import 'package:waterflyiii/models/sync_progress.dart';
 import 'package:workmanager/workmanager.dart';
 
 import 'package:waterflyiii/data/local/database/app_database.dart';
@@ -87,7 +89,7 @@ void backgroundSyncCallback() {
         final SyncProgressTracker progressTracker = SyncProgressTracker();
         
         // Check pending operations
-        final pendingOps = await queueManager.getPendingOperations();
+        final List<SyncOperation> pendingOps = await queueManager.getPendingOperations();
         logger.info('Pending operations in queue: ${pendingOps.length}');
         
         // Initialize API client with stored credentials
@@ -114,7 +116,7 @@ void backgroundSyncCallback() {
         
         // Perform incremental sync
         logger.info('Starting synchronization...');
-        final result = await syncManager.synchronize(fullSync: false);
+        final SyncResult result = await syncManager.synchronize(fullSync: false);
         
         logger.info('=== Background sync completed ===');
         logger.info('Success: ${result.success}');

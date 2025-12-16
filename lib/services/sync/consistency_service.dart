@@ -224,24 +224,24 @@ class ConsistencyService {
     bool dryRun = false,
   }) async {
     _logger.info('Repairing ${type.name}${dryRun ? ' (dry run)' : ''}');
-    return await _repairType(type, dryRun: dryRun);
+    return _repairType(type, dryRun: dryRun);
   }
 
   /// Check for specific type of consistency issue.
   Future<List<InconsistencyIssue>> _checkType(InconsistencyType type) async {
     switch (type) {
       case InconsistencyType.missingSyncedServerId:
-        return await _checkMissingSyncedServerIds();
+        return _checkMissingSyncedServerIds();
       case InconsistencyType.orphanedOperation:
-        return await _checkOrphanedOperations();
+        return _checkOrphanedOperations();
       case InconsistencyType.duplicateOperation:
-        return await _checkDuplicateOperations();
+        return _checkDuplicateOperations();
       case InconsistencyType.brokenReference:
-        return await _checkBrokenReferences();
+        return _checkBrokenReferences();
       case InconsistencyType.balanceMismatch:
-        return await _checkBalanceMismatches();
+        return _checkBalanceMismatches();
       case InconsistencyType.timestampInconsistency:
-        return await _checkTimestampInconsistencies();
+        return _checkTimestampInconsistencies();
     }
   }
 
@@ -249,17 +249,17 @@ class ConsistencyService {
   Future<int> _repairType(InconsistencyType type, {required bool dryRun}) async {
     switch (type) {
       case InconsistencyType.missingSyncedServerId:
-        return await _repairMissingSyncedServerIds(dryRun: dryRun);
+        return _repairMissingSyncedServerIds(dryRun: dryRun);
       case InconsistencyType.orphanedOperation:
-        return await _repairOrphanedOperations(dryRun: dryRun);
+        return _repairOrphanedOperations(dryRun: dryRun);
       case InconsistencyType.duplicateOperation:
-        return await _repairDuplicateOperations(dryRun: dryRun);
+        return _repairDuplicateOperations(dryRun: dryRun);
       case InconsistencyType.brokenReference:
-        return await _repairBrokenReferences(dryRun: dryRun);
+        return _repairBrokenReferences(dryRun: dryRun);
       case InconsistencyType.balanceMismatch:
-        return await _repairBalanceMismatches(dryRun: dryRun);
+        return _repairBalanceMismatches(dryRun: dryRun);
       case InconsistencyType.timestampInconsistency:
-        return await _repairTimestampInconsistencies(dryRun: dryRun);
+        return _repairTimestampInconsistencies(dryRun: dryRun);
     }
   }
 
@@ -283,7 +283,7 @@ class ConsistencyService {
           description: 'Transaction marked as synced but has no server ID',
           suggestedFix: 'Mark as not synced or fetch server ID',
           severity: InconsistencySeverity.medium,
-          context: {'local_id': t.id},
+          context: <String, dynamic>{'local_id': t.id},
         ));
       }
 
@@ -300,7 +300,7 @@ class ConsistencyService {
           description: 'Account marked as synced but has no server ID',
           suggestedFix: 'Mark as not synced or fetch server ID',
           severity: InconsistencySeverity.medium,
-          context: {'local_id': a.id},
+          context: <String, dynamic>{'local_id': a.id},
         ));
       }
 
@@ -349,7 +349,7 @@ class ConsistencyService {
             description: 'Operation exists for deleted ${op.entityType}',
             suggestedFix: 'Remove orphaned operation',
             severity: InconsistencySeverity.low,
-            context: {'operation_id': op.id, 'operation': op.operation},
+            context: <String, dynamic>{'operation_id': op.id, 'operation': op.operation},
           ));
         }
       }
@@ -386,7 +386,7 @@ class ConsistencyService {
             description: '${entry.value.length} duplicate operations for same entity',
             suggestedFix: 'Keep most recent, remove others',
             severity: InconsistencySeverity.low,
-            context: {
+            context: <String, dynamic>{
               'count': entry.value.length,
               'operation_ids': entry.value.map((SyncQueueEntity o) => o.id).toList(),
             },
@@ -423,7 +423,7 @@ class ConsistencyService {
               description: 'Transaction references non-existent source account',
               suggestedFix: 'Remove transaction or fix account reference',
               severity: InconsistencySeverity.high,
-              context: {'source_account_id': t.sourceAccountId},
+              context: <String, dynamic>{'source_account_id': t.sourceAccountId},
             ));
           }
         }
@@ -442,7 +442,7 @@ class ConsistencyService {
               description: 'Transaction references non-existent destination account',
               suggestedFix: 'Remove transaction or fix account reference',
               severity: InconsistencySeverity.high,
-              context: {'destination_account_id': t.destinationAccountId},
+              context: <String, dynamic>{'destination_account_id': t.destinationAccountId},
             ));
           }
         }
@@ -464,7 +464,7 @@ class ConsistencyService {
             description: 'Piggy bank references non-existent account',
             suggestedFix: 'Remove piggy bank or fix account reference',
             severity: InconsistencySeverity.high,
-            context: {'account_id': pb.accountId},
+            context: <String, dynamic>{'account_id': pb.accountId},
           ));
         }
       }
@@ -512,7 +512,7 @@ class ConsistencyService {
             description: 'Account balance mismatch: stored=$storedBalance, calculated=$calculatedBalance',
             suggestedFix: 'Recalculate balance from transactions',
             severity: InconsistencySeverity.medium,
-            context: {
+            context: <String, dynamic>{
               'stored_balance': storedBalance,
               'calculated_balance': calculatedBalance,
               'difference': difference,
@@ -544,7 +544,7 @@ class ConsistencyService {
             description: 'Updated timestamp is before created timestamp',
             suggestedFix: 'Set updatedAt = createdAt',
             severity: InconsistencySeverity.low,
-            context: {
+            context: <String, dynamic>{
               'created_at': t.createdAt.toIso8601String(),
               'updated_at': t.updatedAt.toIso8601String(),
             },

@@ -191,7 +191,7 @@ class CacheResult<T> {
   /// showSubtitle('Last updated: $ageStr'); // "Last updated: 5 minutes ago"
   /// ```
   String? get cacheAgeFormatted {
-    final age = cacheAgeSeconds;
+    final int? age = cacheAgeSeconds;
     if (age == null) return null;
 
     if (age < 30) {
@@ -199,11 +199,11 @@ class CacheResult<T> {
     } else if (age < 60) {
       return '$age seconds ago';
     } else if (age < 3600) {
-      final minutes = age ~/ 60;
-      return '${minutes} ${minutes == 1 ? 'minute' : 'minutes'} ago';
+      final int minutes = age ~/ 60;
+      return '$minutes ${minutes == 1 ? 'minute' : 'minutes'} ago';
     } else {
-      final hours = age ~/ 3600;
-      return '${hours} ${hours == 1 ? 'hour' : 'hours'} ago';
+      final int hours = age ~/ 3600;
+      return '$hours ${hours == 1 ? 'hour' : 'hours'} ago';
     }
   }
 

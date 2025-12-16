@@ -1,7 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:logging/logging.dart';
 
-import '../../models/sync_progress.dart';
+import 'package:waterflyiii/models/sync_progress.dart';
 
 /// Service for managing sync-related notifications.
 ///
@@ -37,14 +37,14 @@ class SyncNotificationService {
     }
 
     try {
-      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-      const iosSettings = DarwinInitializationSettings(
+      const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
         requestAlertPermission: true,
         requestBadgePermission: true,
         requestSoundPermission: true,
       );
 
-      const settings = InitializationSettings(
+      const InitializationSettings settings = InitializationSettings(
         android: androidSettings,
         iOS: iosSettings,
       );
@@ -55,7 +55,7 @@ class SyncNotificationService {
       );
 
       // Create notification channel for Android
-      const androidChannel = AndroidNotificationChannel(
+      const AndroidNotificationChannel androidChannel = AndroidNotificationChannel(
         _channelId,
         _channelName,
         description: _channelDescription,
@@ -107,7 +107,7 @@ class SyncNotificationService {
     }
 
     try {
-      final percentage = progress.percentage.toInt();
+      final int percentage = progress.percentage.toInt();
       
       await _notifications.show(
         _syncNotificationId,
@@ -247,7 +247,7 @@ class SyncNotificationService {
         playSound: false,
         enableVibration: false,
       ),
-      iOS: DarwinNotificationDetails(
+      iOS: const DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: false,

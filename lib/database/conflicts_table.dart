@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 
-import '../models/conflict.dart';
+import 'package:waterflyiii/models/conflict.dart';
 
 /// Database table for storing sync conflicts.
 ///
@@ -54,11 +54,11 @@ class ConflictsTable {
 
   /// Insert a conflict into the database.
   static Future<void> insert(Database db, Conflict conflict) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final int now = DateTime.now().millisecondsSinceEpoch;
 
     await db.insert(
       tableName,
-      {
+      <String, Object?>{
         'id': conflict.id,
         'operation_id': conflict.operationId,
         'entity_type': conflict.entityType,
@@ -88,11 +88,11 @@ class ConflictsTable {
     required String resolvedBy,
     required Map<String, dynamic> resolvedData,
   }) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final int now = DateTime.now().millisecondsSinceEpoch;
 
     await db.update(
       tableName,
-      {
+      <String, Object?>{
         'resolved_at': now,
         'resolution_strategy': strategy.name,
         'resolved_by': resolvedBy,
@@ -100,16 +100,16 @@ class ConflictsTable {
         'updated_at': now,
       },
       where: 'id = ?',
-      whereArgs: [conflictId],
+      whereArgs: <Object?>[conflictId],
     );
   }
 
   /// Get a conflict by ID.
   static Future<Conflict?> getById(Database db, String id) async {
-    final results = await db.query(
+    final List<Map<String, Object?>> results = await db.query(
       tableName,
       where: 'id = ?',
-      whereArgs: [id],
+      whereArgs: <Object?>[id],
     );
 
     if (results.isEmpty) return null;
@@ -119,10 +119,10 @@ class ConflictsTable {
 
   /// Get a conflict by operation ID.
   static Future<Conflict?> getByOperationId(Database db, String operationId) async {
-    final results = await db.query(
+    final List<Map<String, Object?>> results = await db.query(
       tableName,
       where: 'operation_id = ?',
-      whereArgs: [operationId],
+      whereArgs: <Object?>[operationId],
     );
 
     if (results.isEmpty) return null;
@@ -132,7 +132,7 @@ class ConflictsTable {
 
   /// Get all unresolved conflicts.
   static Future<List<Conflict>> getUnresolved(Database db) async {
-    final results = await db.query(
+    final List<Map<String, Object?>> results = await db.query(
       tableName,
       where: 'resolved_at IS NULL',
       orderBy: 'detected_at DESC',
@@ -146,10 +146,10 @@ class ConflictsTable {
     Database db,
     ConflictSeverity severity,
   ) async {
-    final results = await db.query(
+    final List<Map<String, Object?>> results = await db.query(
       tableName,
       where: 'resolved_at IS NULL AND severity = ?',
-      whereArgs: [severity.name],
+      whereArgs: <Object?>[severity.name],
       orderBy: 'detected_at DESC',
     );
 
@@ -162,10 +162,10 @@ class ConflictsTable {
     String entityType,
     String entityId,
   ) async {
-    final results = await db.query(
+    final List<Map<String, Object?>> results = await db.query(
       tableName,
       where: 'entity_type = ? AND entity_id = ?',
-      whereArgs: [entityType, entityId],
+      whereArgs: <Object?>[entityType, entityId],
       orderBy: 'detected_at DESC',
     );
 
@@ -175,69 +175,69 @@ class ConflictsTable {
   /// Get conflict statistics.
   static Future<ConflictStatistics> getStatistics(Database db) async {
     // Total conflicts
-    final totalResult = await db.rawQuery(
+    final List<Map<String, Object?>> totalResult = await db.rawQuery(
       'SELECT COUNT(*) as count FROM $tableName',
     );
-    final totalConflicts = totalResult.first['count'] as int;
+    final int totalConflicts = totalResult.first['count'] as int;
 
     // Unresolved conflicts
-    final unresolvedResult = await db.rawQuery(
+    final List<Map<String, Object?>> unresolvedResult = await db.rawQuery(
       'SELECT COUNT(*) as count FROM $tableName WHERE resolved_at IS NULL',
     );
-    final unresolvedConflicts = unresolvedResult.first['count'] as int;
+    final int unresolvedConflicts = unresolvedResult.first['count'] as int;
 
     // Auto-resolved conflicts
-    final autoResolvedResult = await db.rawQuery(
+    final List<Map<String, Object?>> autoResolvedResult = await db.rawQuery(
       'SELECT COUNT(*) as count FROM $tableName WHERE resolved_by = ?',
-      ['auto'],
+      <Object?>['auto'],
     );
-    final autoResolvedConflicts = autoResolvedResult.first['count'] as int;
+    final int autoResolvedConflicts = autoResolvedResult.first['count'] as int;
 
     // Manually resolved conflicts
-    final manuallyResolvedResult = await db.rawQuery(
+    final List<Map<String, Object?>> manuallyResolvedResult = await db.rawQuery(
       'SELECT COUNT(*) as count FROM $tableName WHERE resolved_by = ?',
-      ['user'],
+      <Object?>['user'],
     );
-    final manuallyResolvedConflicts = manuallyResolvedResult.first['count'] as int;
+    final int manuallyResolvedConflicts = manuallyResolvedResult.first['count'] as int;
 
     // By severity
-    final severityResult = await db.rawQuery(
+    final List<Map<String, Object?>> severityResult = await db.rawQuery(
       'SELECT severity, COUNT(*) as count FROM $tableName GROUP BY severity',
     );
-    final bySeverity = <ConflictSeverity, int>{};
-    for (final row in severityResult) {
-      final severity = ConflictSeverity.values.firstWhere(
-        (s) => s.name == row['severity'],
+    final Map<ConflictSeverity, int> bySeverity = <ConflictSeverity, int>{};
+    for (final Map<String, Object?> row in severityResult) {
+      final ConflictSeverity severity = ConflictSeverity.values.firstWhere(
+        (ConflictSeverity s) => s.name == row['severity'],
       );
       bySeverity[severity] = row['count'] as int;
     }
 
     // By type
-    final typeResult = await db.rawQuery(
+    final List<Map<String, Object?>> typeResult = await db.rawQuery(
       'SELECT conflict_type, COUNT(*) as count FROM $tableName GROUP BY conflict_type',
     );
-    final byType = <ConflictType, int>{};
-    for (final row in typeResult) {
-      final type = ConflictType.values.firstWhere(
-        (t) => t.name == row['conflict_type'],
+    final Map<ConflictType, int> byType = <ConflictType, int>{};
+    for (final Map<String, Object?> row in typeResult) {
+      final ConflictType type = ConflictType.values.firstWhere(
+        (ConflictType t) => t.name == row['conflict_type'],
       );
       byType[type] = row['count'] as int;
     }
 
     // By entity type
-    final entityTypeResult = await db.rawQuery(
+    final List<Map<String, Object?>> entityTypeResult = await db.rawQuery(
       'SELECT entity_type, COUNT(*) as count FROM $tableName GROUP BY entity_type',
     );
-    final byEntityType = <String, int>{};
-    for (final row in entityTypeResult) {
+    final Map<String, int> byEntityType = <String, int>{};
+    for (final Map<String, Object?> row in entityTypeResult) {
       byEntityType[row['entity_type'] as String] = row['count'] as int;
     }
 
     // Average resolution time
-    final resolutionTimeResult = await db.rawQuery(
+    final List<Map<String, Object?>> resolutionTimeResult = await db.rawQuery(
       'SELECT AVG(resolved_at - detected_at) as avg_time FROM $tableName WHERE resolved_at IS NOT NULL',
     );
-    final avgResolutionTime = (resolutionTimeResult.first['avg_time'] as num?)?.toDouble() ?? 0.0;
+    final double avgResolutionTime = (resolutionTimeResult.first['avg_time'] as num?)?.toDouble() ?? 0.0;
 
     return ConflictStatistics(
       totalConflicts: totalConflicts,
@@ -256,20 +256,20 @@ class ConflictsTable {
     await db.delete(
       tableName,
       where: 'id = ?',
-      whereArgs: [id],
+      whereArgs: <Object?>[id],
     );
   }
 
   /// Delete all resolved conflicts older than the specified duration.
   static Future<int> deleteOldResolved(Database db, Duration age) async {
-    final cutoffTime = DateTime.now()
+    final int cutoffTime = DateTime.now()
         .subtract(age)
         .millisecondsSinceEpoch;
 
-    return await db.delete(
+    return db.delete(
       tableName,
       where: 'resolved_at IS NOT NULL AND resolved_at < ?',
-      whereArgs: [cutoffTime],
+      whereArgs: <Object?>[cutoffTime],
     );
   }
 
@@ -286,7 +286,7 @@ class ConflictsTable {
       entityType: map['entity_type'] as String,
       entityId: map['entity_id'] as String,
       conflictType: ConflictType.values.firstWhere(
-        (t) => t.name == map['conflict_type'],
+        (ConflictType t) => t.name == map['conflict_type'],
       ),
       localData: jsonDecode(map['local_data'] as String) as Map<String, dynamic>,
       remoteData: jsonDecode(map['remote_data'] as String) as Map<String, dynamic>,
@@ -294,7 +294,7 @@ class ConflictsTable {
         jsonDecode(map['conflicting_fields'] as String) as List,
       ),
       severity: ConflictSeverity.values.firstWhere(
-        (s) => s.name == map['severity'],
+        (ConflictSeverity s) => s.name == map['severity'],
       ),
       detectedAt: DateTime.fromMillisecondsSinceEpoch(
         map['detected_at'] as int,

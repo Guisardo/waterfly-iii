@@ -270,7 +270,7 @@ class ETagHandler {
     Map<String, dynamic>? queryParameters,
     Map<String, dynamic>? headers,
   }) {
-    final options = RequestOptions(
+    final RequestOptions options = RequestOptions(
       path: path,
       method: method,
       baseUrl: baseUrl ?? '',
@@ -527,8 +527,8 @@ class ETagHandler {
   /// Dio Headers.map returns Map<String, List<String>>, but we need
   /// Map<String, String> for ETagResponse.
   Map<String, String> _convertHeaders(Map<String, List<String>> headersMap) {
-    final Map<String, String> converted = {};
-    headersMap.forEach((key, values) {
+    final Map<String, String> converted = <String, String>{};
+    headersMap.forEach((String key, List<String> values) {
       if (values.isNotEmpty) {
         converted[key] = values.join(', ');
       }
@@ -592,7 +592,7 @@ class ETagHandler {
         ? (bandwidthSavedMB / totalBandwidthMB) * 100
         : 0.0;
 
-    return {
+    return <String, dynamic>{
       'totalRequests': _totalRequests,
       'notModifiedCount': _notModifiedCount,
       'modifiedCount': _modifiedCount,
@@ -634,7 +634,7 @@ class ETagHandler {
   /// // Logs: ETag Statistics: total=100, 304=75, savings=80%
   /// ```
   void logStats() {
-    final stats = getStats();
+    final Map<String, dynamic> stats = getStats();
     _log.info(
       'ETag Statistics: '
       'total=${stats['totalRequests']}, '

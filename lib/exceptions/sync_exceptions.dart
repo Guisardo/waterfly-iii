@@ -45,7 +45,7 @@ abstract class SyncException implements Exception {
 
   @override
   String toString() {
-    final buffer = StringBuffer('$runtimeType: $message');
+    final StringBuffer buffer = StringBuffer('$runtimeType: $message');
     if (context != null && context!.isNotEmpty) {
       buffer.write('\nContext: $context');
     }
@@ -117,7 +117,7 @@ class ServerError extends SyncException {
 
   @override
   String toString() {
-    final buffer = StringBuffer(super.toString());
+    final StringBuffer buffer = StringBuffer(super.toString());
     if (statusCode != null) {
       buffer.write('\nStatus Code: $statusCode');
     }
@@ -204,7 +204,7 @@ class ConflictError extends SyncException {
 
   @override
   String toString() {
-    final buffer = StringBuffer(super.toString());
+    final StringBuffer buffer = StringBuffer(super.toString());
     if (localVersion != null) {
       buffer.write('\nLocal Version: $localVersion');
     }
@@ -274,7 +274,7 @@ class ValidationError extends SyncException {
 
   @override
   String toString() {
-    final buffer = StringBuffer(super.toString());
+    final StringBuffer buffer = StringBuffer(super.toString());
     if (field != null) {
       buffer.write('\nField: $field');
     }
@@ -331,7 +331,7 @@ class RateLimitError extends SyncException {
 
   @override
   String toString() {
-    final buffer = StringBuffer(super.toString());
+    final StringBuffer buffer = StringBuffer(super.toString());
     buffer.write('\nRetry After: ${retryAfter.inSeconds}s');
     if (limit != null) {
       buffer.write('\nLimit: $limit');
@@ -408,7 +408,7 @@ class ConsistencyError extends SyncException {
 
   @override
   String toString() {
-    final buffer = StringBuffer(super.toString());
+    final StringBuffer buffer = StringBuffer(super.toString());
     buffer.write('\nIssue Type: $issueType');
     if (affectedIds != null && affectedIds!.isNotEmpty) {
       buffer.write('\nAffected IDs: ${affectedIds!.join(", ")}');
@@ -467,7 +467,7 @@ class SyncOperationError extends SyncException {
 
   @override
   String toString() {
-    final buffer = StringBuffer(super.toString());
+    final StringBuffer buffer = StringBuffer(super.toString());
     buffer.write('\nOperation ID: $operationId');
     buffer.write('\nEntity Type: $entityType');
     buffer.write('\nOperation Type: $operationType');
@@ -498,7 +498,7 @@ class CircuitBreakerOpenError extends SyncException {
 
   @override
   Duration get retryDelay {
-    final now = DateTime.now();
+    final DateTime now = DateTime.now();
     if (resetTime.isAfter(now)) {
       return resetTime.difference(now);
     }
@@ -516,7 +516,7 @@ class CircuitBreakerOpenError extends SyncException {
 
   @override
   String toString() {
-    final buffer = StringBuffer(super.toString());
+    final StringBuffer buffer = StringBuffer(super.toString());
     buffer.write('\nFailure Count: $failureCount');
     buffer.write('\nReset Time: $resetTime');
     return buffer.toString();

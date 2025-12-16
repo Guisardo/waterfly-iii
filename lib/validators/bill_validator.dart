@@ -1,6 +1,6 @@
 import 'package:logging/logging.dart';
 
-import 'transaction_validator.dart';
+import 'package:waterflyiii/validators/transaction_validator.dart';
 
 /// Validates bill data before storage or synchronization.
 class BillValidator {
@@ -10,7 +10,7 @@ class BillValidator {
   Future<ValidationResult> validate(Map<String, dynamic> data) async {
     _logger.fine('Validating bill data');
 
-    final errors = <String>[];
+    final List<String> errors = <String>[];
 
     // Required fields
     if (!data.containsKey('name') ||
@@ -18,7 +18,7 @@ class BillValidator {
         (data['name'] as String).trim().isEmpty) {
       errors.add('Bill name is required');
     } else {
-      final name = (data['name'] as String).trim();
+      final String name = (data['name'] as String).trim();
       if (name.length > 255) {
         errors.add('Bill name exceeds maximum length of 255 characters');
       }
@@ -28,7 +28,7 @@ class BillValidator {
     if (!data.containsKey('amount_min') || data['amount_min'] == null) {
       errors.add('Minimum amount is required');
     } else {
-      final amountMin = _parseAmount(data['amount_min']);
+      final double? amountMin = _parseAmount(data['amount_min']);
       if (amountMin == null) {
         errors.add('Minimum amount must be a valid number');
       } else if (amountMin < 0) {
@@ -36,7 +36,7 @@ class BillValidator {
       }
 
       if (data.containsKey('amount_max') && data['amount_max'] != null) {
-        final amountMax = _parseAmount(data['amount_max']);
+        final double? amountMax = _parseAmount(data['amount_max']);
         if (amountMax == null) {
           errors.add('Maximum amount must be a valid number');
         } else if (amountMin != null && amountMax < amountMin) {
@@ -49,7 +49,7 @@ class BillValidator {
     if (!data.containsKey('date') || data['date'] == null) {
       errors.add('Bill date is required');
     } else {
-      final date = _parseDate(data['date']);
+      final DateTime? date = _parseDate(data['date']);
       if (date == null) {
         errors.add('Invalid date format');
       }
@@ -57,8 +57,8 @@ class BillValidator {
 
     // Repeat frequency validation
     if (data.containsKey('repeat_freq') && data['repeat_freq'] != null) {
-      final repeatFreq = data['repeat_freq'] as String;
-      const validFrequencies = [
+      final String repeatFreq = data['repeat_freq'] as String;
+      const List<String> validFrequencies = <String>[
         'daily', 'weekly', 'monthly', 'quarterly', 'half-year', 'yearly'
       ];
       if (!validFrequencies.contains(repeatFreq.toLowerCase())) {
@@ -76,13 +76,13 @@ class BillValidator {
 
     // Currency validation
     if (data.containsKey('currency_code') && data['currency_code'] != null) {
-      final currencyCode = data['currency_code'] as String;
+      final String currencyCode = data['currency_code'] as String;
       if (currencyCode.length != 3 || currencyCode != currencyCode.toUpperCase()) {
         errors.add('Invalid currency code format');
       }
     }
 
-    final isValid = errors.isEmpty;
+    final bool isValid = errors.isEmpty;
     if (!isValid) {
       _logger.warning('Bill validation failed: ${errors.join(', ')}');
     }

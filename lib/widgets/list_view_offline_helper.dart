@@ -25,7 +25,7 @@ class ListViewOfflineHelper {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
-        children: [
+        children: <Widget>[
           _buildFilterChip(
             context: context,
             label: 'All',
@@ -73,13 +73,13 @@ class ListViewOfflineHelper {
     required Function(String) onSelected,
     IconData? icon,
   }) {
-    final isSelected = currentFilter == value;
+    final bool isSelected = currentFilter == value;
 
     return FilterChip(
       label: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
+        children: <Widget>[
+          if (icon != null) ...<Widget>[
             Icon(icon, size: 16),
             const SizedBox(width: 4),
           ],
@@ -87,7 +87,7 @@ class ListViewOfflineHelper {
         ],
       ),
       selected: isSelected,
-      onSelected: (selected) {
+      onSelected: (bool selected) {
         if (selected) {
           onSelected(value);
         }
@@ -128,7 +128,7 @@ class ListViewOfflineHelper {
           padding: const EdgeInsets.all(12),
           color: Theme.of(context).colorScheme.primaryContainer,
           child: Row(
-            children: [
+            children: <Widget>[
               SizedBox(
                 width: 16,
                 height: 16,
@@ -163,7 +163,7 @@ class ListViewOfflineHelper {
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             Icon(
               Icons.cloud_off,
               size: 64,
@@ -223,14 +223,14 @@ class ListViewOfflineHelper {
     required BuildContext context,
     required DateTime lastUpdated,
   }) {
-    final age = DateTime.now().difference(lastUpdated);
-    final ageText = _formatAge(age);
+    final Duration age = DateTime.now().difference(lastUpdated);
+    final String ageText = _formatAge(age);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Icon(
             Icons.access_time,
             size: 12,
@@ -253,7 +253,7 @@ class ListViewOfflineHelper {
     _logger.info('Pull-to-refresh triggered');
 
     try {
-      final syncStatusProvider = Provider.of<SyncStatusProvider>(
+      final SyncStatusProvider syncStatusProvider = Provider.of<SyncStatusProvider>(
         context,
         listen: false,
       );

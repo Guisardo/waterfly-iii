@@ -104,10 +104,10 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
   @override
   Widget build(BuildContext context) {
     return Consumer<SyncStatusProvider>(
-      builder: (context, provider, child) {
-        final progress = provider.currentProgress;
-        final isSyncing = provider.isSyncing;
-        final error = provider.currentError;
+      builder: (BuildContext context, SyncStatusProvider provider, Widget? child) {
+        final SyncProgress? progress = provider.currentProgress;
+        final bool isSyncing = provider.isSyncing;
+        final String? error = provider.currentError;
 
         // Auto-dismiss on completion
         if (widget.autoDismissOnComplete &&
@@ -147,11 +147,11 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+        children: <Widget>[
           _buildHeader(context, progress, isSyncing, error),
           const SizedBox(height: 24),
           _buildContent(context, progress, isSyncing, error),
-          if (widget.allowCancel && isSyncing) ...[
+          if (widget.allowCancel && isSyncing) ...<Widget>[
             const SizedBox(height: 24),
             _buildCancelButton(context),
           ],
@@ -171,7 +171,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
       title: _buildHeader(context, progress, isSyncing, error),
       content: _buildContent(context, progress, isSyncing, error),
       actions: widget.allowCancel && isSyncing
-          ? [
+          ? <Widget>[
               TextButton(
                 onPressed: () => _handleCancel(context),
                 child: const Text('Cancel'),
@@ -211,7 +211,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
     }
 
     return Row(
-      children: [
+      children: <Widget>[
         if (isSyncing && error == null && (progress == null || !progress.isComplete))
           SizedBox(
             width: 32,
@@ -269,7 +269,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           Icon(Icons.error_outline, color: Colors.red[700], size: 48),
           const SizedBox(height: 12),
           Text(
@@ -286,7 +286,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
   Widget _buildPreparingContent(BuildContext context) {
     return const Column(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         CircularProgressIndicator(),
         SizedBox(height: 16),
         Text('Preparing sync...'),
@@ -298,7 +298,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
   Widget _buildCompleteContent(BuildContext context, SyncProgress progress) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         Icon(
           Icons.check_circle_outline,
           color: Colors.green[600],
@@ -310,14 +310,14 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
           style: Theme.of(context).textTheme.bodyLarge,
           textAlign: TextAlign.center,
         ),
-        if (progress.conflictsDetected > 0) ...[
+        if (progress.conflictsDetected > 0) ...<Widget>[
           const SizedBox(height: 8),
           Text(
             '${progress.conflictsDetected} conflicts detected',
             style: TextStyle(color: Colors.orange[700]),
           ),
         ],
-        if (progress.failedOperations > 0) ...[
+        if (progress.failedOperations > 0) ...<Widget>[
           const SizedBox(height: 8),
           Text(
             '${progress.failedOperations} operations failed',
@@ -333,7 +333,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+      children: <Widget>[
         // Progress bar
         LinearProgressIndicator(
           value: progress.percentage / 100,
@@ -346,7 +346,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
         // Progress percentage and count
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+          children: <Widget>[
             Text(
               '${progress.completedOperations}/${progress.totalOperations} operations',
               style: Theme.of(context).textTheme.bodyMedium,
@@ -361,7 +361,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
         ),
 
         // Current operation
-        if (progress.currentOperation != null) ...[
+        if (progress.currentOperation != null) ...<Widget>[
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
@@ -371,7 +371,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 Text(
                   'Current operation:',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -385,10 +385,10 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (progress.currentEntityType != null) ...[
+                if (progress.currentEntityType != null) ...<Widget>[
                   const SizedBox(height: 4),
                   Row(
-                    children: [
+                    children: <Widget>[
                       Icon(
                         _getEntityIcon(progress.currentEntityType!),
                         size: 16,
@@ -411,7 +411,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
+          children: <Widget>[
             _buildStatChip(
               context,
               Icons.check_circle,
@@ -447,11 +447,11 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
 
         // ETA and throughput
         if (progress.estimatedTimeRemaining != null ||
-            progress.throughput > 0) ...[
+            progress.throughput > 0) ...<Widget>[
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
+            children: <Widget>[
               if (progress.estimatedTimeRemaining != null)
                 _buildInfoRow(
                   context,
@@ -492,7 +492,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
     Color color,
   ) {
     return Column(
-      children: [
+      children: <Widget>[
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -521,7 +521,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
   Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         Icon(icon, size: 16, color: Colors.grey[600]),
         const SizedBox(width: 4),
         Text(
@@ -550,13 +550,13 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
   void _handleCancel(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Cancel Sync'),
         content: const Text(
           'Are you sure you want to cancel the sync? '
           'Progress will be lost and you may need to sync again.',
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Continue Syncing'),
@@ -569,7 +569,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
               } else {
                 try {
                   // Get SyncManager from provider and cancel sync
-                  final syncStatusProvider = Provider.of<SyncStatusProvider>(
+                  final SyncStatusProvider syncStatusProvider = Provider.of<SyncStatusProvider>(
                     context,
                     listen: false,
                   );
@@ -665,7 +665,7 @@ Future<void> showSyncProgressSheet(
     context: context,
     isDismissible: false,
     enableDrag: false,
-    builder: (context) => SyncProgressWidget(
+    builder: (BuildContext context) => SyncProgressWidget(
       displayMode: SyncProgressDisplayMode.sheet,
       allowCancel: allowCancel,
       onCancel: onCancel,
@@ -684,7 +684,7 @@ Future<void> showSyncProgressDialog(
   return showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (context) => SyncProgressWidget(
+    builder: (BuildContext context) => SyncProgressWidget(
       displayMode: SyncProgressDisplayMode.dialog,
       allowCancel: allowCancel,
       onCancel: onCancel,

@@ -102,7 +102,7 @@ class SyncProgress extends Equatable {
       percentage: 0.0,
       startTime: startTime,
       phase: SyncPhase.preparing,
-      errors: const [],
+      errors: const <String>[],
       conflictsDetected: 0,
       throughput: 0.0,
     );
@@ -144,7 +144,7 @@ class SyncProgress extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
+  List<Object?> get props => <Object?>[
         totalOperations,
         completedOperations,
         failedOperations,
@@ -260,7 +260,7 @@ class SyncResult extends Equatable {
 
   /// Throughput (operations per second)
   double get throughput {
-    final seconds = duration.inSeconds;
+    final int seconds = duration.inSeconds;
     if (seconds == 0) return 0.0;
     return totalOperations / seconds;
   }
@@ -279,7 +279,7 @@ class SyncResult extends Equatable {
     required DateTime startTime,
     required DateTime endTime,
     required Map<String, EntitySyncStats> statsByEntity,
-    List<String> errors = const [],
+    List<String> errors = const <String>[],
   }) {
     return SyncResult(
       success: true,
@@ -304,7 +304,7 @@ class SyncResult extends Equatable {
     required int failedOperations,
     required DateTime startTime,
     required DateTime endTime,
-    List<String> errors = const [],
+    List<String> errors = const <String>[],
   }) {
     return SyncResult(
       success: false,
@@ -317,13 +317,13 @@ class SyncResult extends Equatable {
       startTime: startTime,
       endTime: endTime,
       errors: errors,
-      statsByEntity: const {},
+      statsByEntity: const <String, EntitySyncStats>{},
       errorMessage: errorMessage,
     );
   }
 
   @override
-  List<Object?> get props => [
+  List<Object?> get props => <Object?>[
         success,
         totalOperations,
         successfulOperations,
@@ -388,7 +388,7 @@ class EntitySyncStats extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
+  List<Object?> get props => <Object?>[
         entityType,
         creates,
         updates,
@@ -413,7 +413,7 @@ abstract class SyncEvent extends Equatable {
   const SyncEvent({required this.timestamp});
 
   @override
-  List<Object?> get props => [timestamp];
+  List<Object?> get props => <Object?>[timestamp];
 }
 
 /// Sync started event
@@ -427,7 +427,7 @@ class SyncStartedEvent extends SyncEvent {
   });
 
   @override
-  List<Object?> get props => [...super.props, totalOperations];
+  List<Object?> get props => <Object?>[...super.props, totalOperations];
 
   @override
   String toString() => 'SyncStartedEvent($totalOperations operations)';
@@ -444,7 +444,7 @@ class SyncProgressEvent extends SyncEvent {
   });
 
   @override
-  List<Object?> get props => [...super.props, progress];
+  List<Object?> get props => <Object?>[...super.props, progress];
 
   @override
   String toString() => 'SyncProgressEvent(${progress.percentage}%)';
@@ -461,7 +461,7 @@ class SyncCompletedEvent extends SyncEvent {
   });
 
   @override
-  List<Object?> get props => [...super.props, result];
+  List<Object?> get props => <Object?>[...super.props, result];
 
   @override
   String toString() => 'SyncCompletedEvent(success: ${result.success})';
@@ -482,7 +482,7 @@ class SyncFailedEvent extends SyncEvent {
   });
 
   @override
-  List<Object?> get props => [...super.props, error, exception];
+  List<Object?> get props => <Object?>[...super.props, error, exception];
 
   @override
   String toString() => 'SyncFailedEvent($error)';
@@ -499,7 +499,7 @@ class ConflictDetectedEvent extends SyncEvent {
   });
 
   @override
-  List<Object?> get props => [...super.props, conflict];
+  List<Object?> get props => <Object?>[...super.props, conflict];
 
   @override
   String toString() => 'ConflictDetectedEvent($conflict)';
@@ -520,7 +520,7 @@ class ConflictResolvedEvent extends SyncEvent {
   });
 
   @override
-  List<Object?> get props => [...super.props, conflictId, strategy];
+  List<Object?> get props => <Object?>[...super.props, conflictId, strategy];
 
   @override
   String toString() => 'ConflictResolvedEvent($conflictId, strategy: $strategy)';

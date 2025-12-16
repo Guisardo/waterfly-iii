@@ -23,8 +23,8 @@ class PaginationHelper {
   ///
   /// Returns PaginationInfo with current page, total pages, and hasMore flag.
   PaginationInfo parsePagination(Map<String, dynamic> responseData) {
-    final meta = responseData['meta'] as Map<String, dynamic>?;
-    final pagination = meta?['pagination'] as Map<String, dynamic>?;
+    final Map<String, dynamic>? meta = responseData['meta'] as Map<String, dynamic>?;
+    final Map<String, dynamic>? pagination = meta?['pagination'] as Map<String, dynamic>?;
 
     if (pagination == null) {
       return PaginationInfo(
@@ -34,9 +34,9 @@ class PaginationHelper {
       );
     }
 
-    final currentPage = pagination['current_page'] as int? ?? 1;
-    final totalPages = pagination['total_pages'] as int? ?? 1;
-    final hasMore = currentPage < totalPages;
+    final int currentPage = pagination['current_page'] as int? ?? 1;
+    final int totalPages = pagination['total_pages'] as int? ?? 1;
+    final bool hasMore = currentPage < totalPages;
 
     return PaginationInfo(
       currentPage: currentPage,
@@ -86,18 +86,18 @@ class PaginationHelper {
     required List<T> Function(Map<String, dynamic> response) dataExtractor,
     void Function(PaginationInfo info, int totalFetched)? onProgress,
   }) async {
-    final allItems = <T>[];
+    final List<T> allItems = <T>[];
     int page = 1;
     bool hasMore = true;
 
     while (hasMore) {
       _logger.fine('Fetching page $page of $entityType');
 
-      final response = await fetcher(page);
-      final items = dataExtractor(response);
+      final Map<String, dynamic> response = await fetcher(page);
+      final List<T> items = dataExtractor(response);
       allItems.addAll(items);
 
-      final paginationInfo = parsePagination(response);
+      final PaginationInfo paginationInfo = parsePagination(response);
       hasMore = paginationInfo.hasMore;
 
       logProgress(paginationInfo, entityType, items.length, allItems.length);
@@ -141,8 +141,8 @@ class PaginationHelper {
     while (hasMore) {
       _logger.fine('Fetching page $page of $entityType');
 
-      final response = await onPage(page);
-      final paginationInfo = parsePagination(response);
+      final Map<String, dynamic> response = await onPage(page);
+      final PaginationInfo paginationInfo = parsePagination(response);
       hasMore = paginationInfo.hasMore;
 
       if (shouldContinue != null && !shouldContinue(paginationInfo)) {

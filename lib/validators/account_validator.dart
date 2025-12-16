@@ -1,6 +1,6 @@
 import 'package:logging/logging.dart';
 
-import 'transaction_validator.dart';
+import 'package:waterflyiii/validators/transaction_validator.dart';
 
 /// Validates account data before storage or synchronization.
 ///
@@ -20,7 +20,7 @@ class AccountValidator {
   final Logger _logger = Logger('AccountValidator');
 
   /// Valid account types in Firefly III
-  static const List<String> validAccountTypes = [
+  static const List<String> validAccountTypes = <String>[
     'asset',
     'expense',
     'revenue',
@@ -33,7 +33,7 @@ class AccountValidator {
   ];
 
   /// Valid account roles
-  static const List<String> validAccountRoles = [
+  static const List<String> validAccountRoles = <String>[
     'defaultAsset',
     'sharedAsset',
     'savingAsset',
@@ -54,7 +54,7 @@ class AccountValidator {
   }) async {
     _logger.fine('Validating account data');
 
-    final errors = <String>[];
+    final List<String> errors = <String>[];
 
     // Required fields validation
     if (!data.containsKey('name') ||
@@ -62,9 +62,9 @@ class AccountValidator {
         (data['name'] as String).trim().isEmpty) {
       errors.add('Account name is required');
     } else {
-      final name = (data['name'] as String).trim();
+      final String name = (data['name'] as String).trim();
 
-      if (name.length < 1) {
+      if (name.isEmpty) {
         errors.add('Account name cannot be empty');
       } else if (name.length > 255) {
         errors.add('Account name exceeds maximum length of 255 characters');
@@ -72,7 +72,7 @@ class AccountValidator {
 
       // Check for duplicate names
       if (nameExists != null) {
-        final exists = await nameExists(name);
+        final bool exists = await nameExists(name);
         if (exists) {
           errors.add('An account with name "$name" already exists');
         }
@@ -82,7 +82,7 @@ class AccountValidator {
     if (!data.containsKey('type') || data['type'] == null) {
       errors.add('Account type is required');
     } else {
-      final type = (data['type'] as String).toLowerCase();
+      final String type = (data['type'] as String).toLowerCase();
       if (!validAccountTypes.contains(type)) {
         errors.add('Invalid account type: $type. '
             'Must be one of: ${validAccountTypes.join(', ')}');
@@ -91,13 +91,13 @@ class AccountValidator {
 
     // Currency validation
     if (data.containsKey('currency_code') && data['currency_code'] != null) {
-      final currencyCode = data['currency_code'] as String;
+      final String currencyCode = data['currency_code'] as String;
       if (!_isValidCurrencyCode(currencyCode)) {
         errors.add('Invalid currency code: $currencyCode');
       }
     } else {
       // Currency is required for asset accounts
-      final type = data['type'] as String?;
+      final String? type = data['type'] as String?;
       if (type != null && type.toLowerCase() == 'asset') {
         errors.add('Currency code is required for asset accounts');
       }
@@ -105,7 +105,7 @@ class AccountValidator {
 
     // Opening balance validation
     if (data.containsKey('opening_balance') && data['opening_balance'] != null) {
-      final openingBalance = _parseAmount(data['opening_balance']);
+      final double? openingBalance = _parseAmount(data['opening_balance']);
       if (openingBalance == null) {
         errors.add('Opening balance must be a valid number');
       } else if (openingBalance.abs() > 999999999.99) {
@@ -117,7 +117,7 @@ class AccountValidator {
           data['opening_balance_date'] == null) {
         errors.add('Opening balance date is required when opening balance is set');
       } else {
-        final date = _parseDate(data['opening_balance_date']);
+        final DateTime? date = _parseDate(data['opening_balance_date']);
         if (date == null) {
           errors.add('Invalid opening balance date format');
         } else if (date.isAfter(DateTime.now())) {
@@ -128,7 +128,7 @@ class AccountValidator {
 
     // Account role validation
     if (data.containsKey('account_role') && data['account_role'] != null) {
-      final role = data['account_role'] as String;
+      final String role = data['account_role'] as String;
       if (!validAccountRoles.contains(role)) {
         errors.add('Invalid account role: $role. '
             'Must be one of: ${validAccountRoles.join(', ')}');
@@ -136,9 +136,9 @@ class AccountValidator {
     }
 
     // Credit card specific validations
-    final type = data['type'] as String?;
+    final String? type = data['type'] as String?;
     if (type != null && type.toLowerCase() == 'asset') {
-      final role = data['account_role'] as String?;
+      final String? role = data['account_role'] as String?;
       if (role == 'ccAsset') {
         // Credit card accounts should have monthly payment date
         if (data.containsKey('monthly_payment_date') &&
@@ -152,8 +152,8 @@ class AccountValidator {
         // Credit card accounts should have credit card type
         if (data.containsKey('credit_card_type') &&
             data['credit_card_type'] != null) {
-          final ccType = data['credit_card_type'] as String;
-          if (!['monthlyFull'].contains(ccType)) {
+          final String ccType = data['credit_card_type'] as String;
+          if (!<String>['monthlyFull'].contains(ccType)) {
             errors.add('Invalid credit card type: $ccType');
           }
         }
@@ -162,7 +162,7 @@ class AccountValidator {
 
     // IBAN validation (if provided)
     if (data.containsKey('iban') && data['iban'] != null) {
-      final iban = (data['iban'] as String).replaceAll(' ', '');
+      final String iban = (data['iban'] as String).replaceAll(' ', '');
       if (iban.isNotEmpty && !_isValidIBAN(iban)) {
         errors.add('Invalid IBAN format');
       }
@@ -170,7 +170,7 @@ class AccountValidator {
 
     // Account number validation
     if (data.containsKey('account_number') && data['account_number'] != null) {
-      final accountNumber = data['account_number'] as String;
+      final String accountNumber = data['account_number'] as String;
       if (accountNumber.length > 255) {
         errors.add('Account number exceeds maximum length of 255 characters');
       }
@@ -178,7 +178,7 @@ class AccountValidator {
 
     // Notes validation
     if (data.containsKey('notes') && data['notes'] != null) {
-      final notes = data['notes'] as String;
+      final String notes = data['notes'] as String;
       if (notes.length > 65535) {
         errors.add('Notes exceed maximum length of 65535 characters');
       }
@@ -198,7 +198,7 @@ class AccountValidator {
       }
     }
 
-    final isValid = errors.isEmpty;
+    final bool isValid = errors.isEmpty;
 
     if (!isValid) {
       _logger.warning('Account validation failed: ${errors.join(', ')}');
@@ -218,12 +218,12 @@ class AccountValidator {
   ) {
     _logger.fine('Validating balance update');
 
-    final errors = <String>[];
+    final List<String> errors = <String>[];
 
     if (!data.containsKey('balance') || data['balance'] == null) {
       errors.add('New balance is required');
     } else {
-      final newBalance = _parseAmount(data['balance']);
+      final double? newBalance = _parseAmount(data['balance']);
       if (newBalance == null) {
         errors.add('Balance must be a valid number');
       } else if (newBalance.abs() > 999999999.99) {
@@ -231,14 +231,14 @@ class AccountValidator {
       }
 
       // Check for unrealistic balance changes
-      final difference = ((newBalance ?? 0) - currentBalance).abs();
+      final double difference = ((newBalance ?? 0) - currentBalance).abs();
       if (difference > 1000000) {
         _logger.warning('Large balance change detected: $difference');
         // Don't error, just log warning
       }
     }
 
-    final isValid = errors.isEmpty;
+    final bool isValid = errors.isEmpty;
 
     if (!isValid) {
       _logger.warning('Balance update validation failed: ${errors.join(', ')}');
@@ -273,7 +273,7 @@ class AccountValidator {
     if (!RegExp(r'^[A-Z]{3}$').hasMatch(code)) return false;
 
     // Common currency codes
-    const commonCurrencies = {
+    const Set<String> commonCurrencies = <String>{
       'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD',
       'CNY', 'INR', 'BRL', 'RUB', 'KRW', 'MXN', 'ZAR', 'SEK',
       'NOK', 'DKK', 'PLN', 'THB', 'IDR', 'HUF', 'CZK', 'ILS',

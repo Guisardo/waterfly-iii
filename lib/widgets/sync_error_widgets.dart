@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
-import '../exceptions/sync_exceptions.dart';
+import 'package:waterflyiii/exceptions/sync_exceptions.dart';
 
 /// Widgets for displaying sync errors with user-friendly messages.
 ///
@@ -25,7 +25,7 @@ class SyncErrorWidgets {
     VoidCallback? onRetry,
     VoidCallback? onViewDetails,
   }) {
-    final errorInfo = _getErrorInfo(error);
+    final Map<String, dynamic> errorInfo = _getErrorInfo(error);
 
     return Card(
       color: Theme.of(context).colorScheme.errorContainer,
@@ -33,9 +33,9 @@ class SyncErrorWidgets {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Row(
-              children: [
+              children: <Widget>[
                 Icon(
                   errorInfo['icon'] as IconData,
                   color: Theme.of(context).colorScheme.onErrorContainer,
@@ -68,7 +68,7 @@ class SyncErrorWidgets {
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
-              children: [
+              children: <Widget>[
                 if (onViewDetails != null)
                   TextButton(
                     onPressed: onViewDetails,
@@ -77,7 +77,7 @@ class SyncErrorWidgets {
                     ),
                     child: const Text('View Details'),
                   ),
-                if (onRetry != null) ...[
+                if (onRetry != null) ...<Widget>[
                   const SizedBox(width: 8),
                   FilledButton(
                     onPressed: onRetry,
@@ -102,11 +102,11 @@ class SyncErrorWidgets {
     required Exception error,
     VoidCallback? onRetry,
   }) async {
-    final errorInfo = _getErrorInfo(error);
+    final Map<String, dynamic> errorInfo = _getErrorInfo(error);
 
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         icon: Icon(
           errorInfo['icon'] as IconData,
           color: Theme.of(context).colorScheme.error,
@@ -115,9 +115,9 @@ class SyncErrorWidgets {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Text(errorInfo['message'] as String),
-            if (errorInfo['suggestion'] != null) ...[
+            if (errorInfo['suggestion'] != null) ...<Widget>[
               const SizedBox(height: 16),
               Text(
                 'Suggestion:',
@@ -128,7 +128,7 @@ class SyncErrorWidgets {
             ],
           ],
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
@@ -152,12 +152,12 @@ class SyncErrorWidgets {
     required Exception error,
     VoidCallback? onRetry,
   }) {
-    final errorInfo = _getErrorInfo(error);
+    final Map<String, dynamic> errorInfo = _getErrorInfo(error);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
-          children: [
+          children: <Widget>[
             Icon(
               errorInfo['icon'] as IconData,
               color: Theme.of(context).colorScheme.onError,
@@ -185,7 +185,7 @@ class SyncErrorWidgets {
   /// Get error information
   static Map<String, dynamic> _getErrorInfo(Exception error) {
     if (error is NetworkError) {
-      return {
+      return <String, dynamic>{
         'icon': Icons.wifi_off,
         'title': 'Network Error',
         'message': 'Unable to connect to the server. Please check your internet connection.',
@@ -194,7 +194,7 @@ class SyncErrorWidgets {
     }
 
     if (error is ServerError) {
-      return {
+      return <String, dynamic>{
         'icon': Icons.cloud_off,
         'title': 'Server Error',
         'message': 'The server encountered an error. Please try again later.',
@@ -203,7 +203,7 @@ class SyncErrorWidgets {
     }
 
     if (error is AuthenticationError) {
-      return {
+      return <String, dynamic>{
         'icon': Icons.lock_outline,
         'title': 'Authentication Error',
         'message': 'Your session has expired. Please log in again.',
@@ -212,7 +212,7 @@ class SyncErrorWidgets {
     }
 
     if (error is ValidationError) {
-      return {
+      return <String, dynamic>{
         'icon': Icons.error_outline,
         'title': 'Validation Error',
         'message': error.message,
@@ -221,7 +221,7 @@ class SyncErrorWidgets {
     }
 
     if (error is ConflictError) {
-      return {
+      return <String, dynamic>{
         'icon': Icons.warning_amber,
         'title': 'Conflict Detected',
         'message': 'This data has been modified on the server.',
@@ -230,7 +230,7 @@ class SyncErrorWidgets {
     }
 
     if (error is RateLimitError) {
-      return {
+      return <String, dynamic>{
         'icon': Icons.speed,
         'title': 'Too Many Requests',
         'message': 'You are making too many requests. Please wait a moment.',
@@ -239,7 +239,7 @@ class SyncErrorWidgets {
     }
 
     if (error is TimeoutError) {
-      return {
+      return <String, dynamic>{
         'icon': Icons.access_time,
         'title': 'Request Timeout',
         'message': 'The request took too long to complete.',
@@ -248,7 +248,7 @@ class SyncErrorWidgets {
     }
 
     if (error is CircuitBreakerOpenError) {
-      return {
+      return <String, dynamic>{
         'icon': Icons.block,
         'title': 'Service Temporarily Unavailable',
         'message': 'Too many errors occurred. Service is temporarily disabled.',
@@ -257,7 +257,7 @@ class SyncErrorWidgets {
     }
 
     // Generic error
-    return {
+    return <String, dynamic>{
       'icon': Icons.error,
       'title': 'Sync Error',
       'message': error.toString(),
@@ -266,8 +266,8 @@ class SyncErrorWidgets {
   }
 
   static String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final diff = now.difference(timestamp);
+    final DateTime now = DateTime.now();
+    final Duration diff = now.difference(timestamp);
 
     if (diff.inMinutes < 1) return 'Just now';
     if (diff.inHours < 1) return '${diff.inMinutes}m ago';
@@ -297,11 +297,11 @@ class ErrorDetailsDialog extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             _buildDetailRow(context, 'Type', error.runtimeType.toString()),
             _buildDetailRow(context, 'Time', timestamp.toString()),
             _buildDetailRow(context, 'Message', error.toString()),
-            if (stackTrace != null) ...[
+            if (stackTrace != null) ...<Widget>[
               const SizedBox(height: 16),
               Text(
                 'Stack Trace:',
@@ -325,7 +325,7 @@ class ErrorDetailsDialog extends StatelessWidget {
           ],
         ),
       ),
-      actions: [
+      actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: const Text('Close'),
@@ -339,7 +339,7 @@ class ErrorDetailsDialog extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(

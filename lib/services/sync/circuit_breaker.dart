@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:synchronized/synchronized.dart';
 
-import '../../exceptions/sync_exceptions.dart';
+import 'package:waterflyiii/exceptions/sync_exceptions.dart';
 
 /// Circuit breaker states
 enum CircuitState {
@@ -110,9 +110,9 @@ class CircuitBreaker {
     Future<T> Function() operation, {
     String? operationName,
   }) async {
-    final name = operationName ?? 'operation';
+    final String name = operationName ?? 'operation';
 
-    return await _lock.synchronized(() async {
+    return _lock.synchronized(() async {
       // Check if circuit should transition to half-open
       _checkStateTransition();
 
@@ -134,7 +134,7 @@ class CircuitBreaker {
       try {
         _logger.fine('Executing $name through circuit breaker (state: $_state)');
 
-        final result = await operation().timeout(
+        final T result = await operation().timeout(
           operationTimeout,
           onTimeout: () {
             throw TimeoutError(
@@ -202,7 +202,7 @@ class CircuitBreaker {
   /// Check if circuit should transition from open to half-open.
   void _checkStateTransition() {
     if (_state == CircuitState.open && _openedAt != null) {
-      final timeSinceOpen = DateTime.now().difference(_openedAt!);
+      final Duration timeSinceOpen = DateTime.now().difference(_openedAt!);
 
       if (timeSinceOpen >= resetTimeout) {
         _transitionToHalfOpen();
@@ -297,13 +297,13 @@ class CircuitBreaker {
 
   /// Calculate success rate.
   double _calculateSuccessRate() {
-    final total = _totalSuccesses + _totalFailures;
+    final int total = _totalSuccesses + _totalFailures;
     return total > 0 ? _totalSuccesses / total : 0.0;
   }
 
   /// Calculate rejection rate.
   double _calculateRejectionRate() {
-    final total = _totalSuccesses + _totalFailures + _totalRejected;
+    final int total = _totalSuccesses + _totalFailures + _totalRejected;
     return total > 0 ? _totalRejected / total : 0.0;
   }
 

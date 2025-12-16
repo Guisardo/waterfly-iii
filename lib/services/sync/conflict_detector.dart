@@ -1,8 +1,8 @@
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../models/conflict.dart';
-import '../../models/sync_operation.dart';
+import 'package:waterflyiii/models/conflict.dart';
+import 'package:waterflyiii/models/sync_operation.dart';
 
 /// Service for detecting conflicts during synchronization.
 ///
@@ -23,7 +23,7 @@ class ConflictDetector {
   final Uuid _uuid = const Uuid();
 
   /// Critical fields that always result in HIGH severity conflicts
-  static const Set<String> _criticalFields = {
+  static const Set<String> _criticalFields = <String>{
     'amount',
     'date',
     'type',
@@ -34,7 +34,7 @@ class ConflictDetector {
   };
 
   /// Important fields that result in MEDIUM severity conflicts
-  static const Set<String> _importantFields = {
+  static const Set<String> _importantFields = <String>{
     'description',
     'category_id',
     'budget_id',
@@ -74,7 +74,7 @@ class ConflictDetector {
       }
 
       // Determine conflict type
-      final conflictType = _determineConflictType(operation, remoteData);
+      final ConflictType? conflictType = _determineConflictType(operation, remoteData);
 
       // No conflict if types don't indicate one
       if (conflictType == null) {
@@ -83,7 +83,7 @@ class ConflictDetector {
       }
 
       // Get conflicting fields
-      final conflictingFields = getConflictingFields(
+      final List<String> conflictingFields = getConflictingFields(
         operation.payload,
         remoteData,
       );
@@ -95,10 +95,10 @@ class ConflictDetector {
       }
 
       // Calculate severity
-      final severity = _calculateSeverity(conflictingFields, operation.entityType);
+      final ConflictSeverity severity = _calculateSeverity(conflictingFields, operation.entityType);
 
       // Create conflict object
-      final conflict = Conflict(
+      final Conflict conflict = Conflict(
         id: _uuid.v4(),
         operationId: operation.id,
         entityType: operation.entityType,
@@ -151,8 +151,8 @@ class ConflictDetector {
       entityId: operation.entityId,
       conflictType: ConflictType.updateDelete,
       localData: operation.payload,
-      remoteData: const {},
-      conflictingFields: const ['_deleted'],
+      remoteData: const <String, dynamic>{},
+      conflictingFields: const <String>['_deleted'],
       severity: ConflictSeverity.high,
       detectedAt: DateTime.now(),
     );
@@ -163,7 +163,7 @@ class ConflictDetector {
     SyncOperation operation,
     Map<String, dynamic> remoteData,
   ) {
-    final isRemoteDeleted = remoteData['deleted_at'] != null ||
+    final bool isRemoteDeleted = remoteData['deleted_at'] != null ||
         remoteData['is_deleted'] == true;
 
     switch (operation.operation) {
@@ -197,8 +197,8 @@ class ConflictDetector {
     Map<String, dynamic> remoteData,
   ) {
     try {
-      final localUpdated = _parseDateTime(localData['updated_at']);
-      final remoteUpdated = _parseDateTime(remoteData['updated_at']);
+      final DateTime? localUpdated = _parseDateTime(localData['updated_at']);
+      final DateTime? remoteUpdated = _parseDateTime(remoteData['updated_at']);
 
       if (localUpdated == null || remoteUpdated == null) {
         // Can't determine, assume modified
@@ -241,12 +241,12 @@ class ConflictDetector {
     Map<String, dynamic> localData,
     Map<String, dynamic> remoteData,
   ) {
-    final conflicting = <String>[];
+    final List<String> conflicting = <String>[];
 
     // Get all unique keys from both maps
-    final allKeys = {...localData.keys, ...remoteData.keys};
+    final Set<String> allKeys = <String>{...localData.keys, ...remoteData.keys};
 
-    for (final key in allKeys) {
+    for (final String key in allKeys) {
       // Skip internal fields
       if (key.startsWith('_') || key == 'id' || key == 'created_at') {
         continue;
@@ -303,7 +303,7 @@ class ConflictDetector {
   bool _listsEqual(List a, List b) {
     if (a.length != b.length) return false;
 
-    for (var i = 0; i < a.length; i++) {
+    for (int i = 0; i < a.length; i++) {
       if (!_valuesEqual(a[i], b[i])) return false;
     }
 
@@ -344,7 +344,7 @@ class ConflictDetector {
     }
 
     // Check for critical fields
-    for (final field in conflictingFields) {
+    for (final String field in conflictingFields) {
       if (_criticalFields.contains(field)) {
         _logger.fine('Critical field "$field" in conflict - HIGH severity');
         return ConflictSeverity.high;
@@ -352,7 +352,7 @@ class ConflictDetector {
     }
 
     // Check for important fields
-    for (final field in conflictingFields) {
+    for (final String field in conflictingFields) {
       if (_importantFields.contains(field)) {
         _logger.fine('Important field "$field" in conflict - MEDIUM severity');
         return ConflictSeverity.medium;
@@ -361,13 +361,13 @@ class ConflictDetector {
 
     // Entity-specific severity rules
     if (entityType == 'account') {
-      if (conflictingFields.any((f) => f.contains('balance') || f == 'iban')) {
+      if (conflictingFields.any((String f) => f.contains('balance') || f == 'iban')) {
         return ConflictSeverity.high;
       }
     }
 
     if (entityType == 'budget') {
-      if (conflictingFields.any((f) => f.contains('amount') || f == 'period')) {
+      if (conflictingFields.any((String f) => f.contains('amount') || f == 'period')) {
         return ConflictSeverity.high;
       }
     }
@@ -396,33 +396,33 @@ class ConflictDetector {
       _logger.info('Detecting conflicts for ${operations.length} operations');
 
       // Group operations by entity type
-      final byType = <String, List<SyncOperation>>{};
-      for (final op in operations) {
-        byType.putIfAbsent(op.entityType, () => []).add(op);
+      final Map<String, List<SyncOperation>> byType = <String, List<SyncOperation>>{};
+      for (final SyncOperation op in operations) {
+        byType.putIfAbsent(op.entityType, () => <SyncOperation>[]).add(op);
       }
 
-      final results = <String, Conflict?>{};
+      final Map<String, Conflict?> results = <String, Conflict?>{};
 
       // Process each entity type
-      for (final entry in byType.entries) {
-        final entityType = entry.key;
-        final ops = entry.value;
+      for (final MapEntry<String, List<SyncOperation>> entry in byType.entries) {
+        final String entityType = entry.key;
+        final List<SyncOperation> ops = entry.value;
 
         _logger.fine('Fetching remote data for ${ops.length} $entityType entities');
 
         // Fetch remote data for all entities of this type
-        final entityIds = ops.map((op) => op.entityId).toList();
-        final remoteDataMap = await fetchRemoteData(entityIds);
+        final List<String> entityIds = ops.map((SyncOperation op) => op.entityId).toList();
+        final Map<String, Map<String, dynamic>?> remoteDataMap = await fetchRemoteData(entityIds);
 
         // Detect conflicts for each operation
-        for (final op in ops) {
-          final remoteData = remoteDataMap[op.entityId];
-          final conflict = await detectConflict(op, remoteData);
+        for (final SyncOperation op in ops) {
+          final Map<String, dynamic>? remoteData = remoteDataMap[op.entityId];
+          final Conflict? conflict = await detectConflict(op, remoteData);
           results[op.id] = conflict;
         }
       }
 
-      final conflictCount = results.values.where((c) => c != null).length;
+      final int conflictCount = results.values.where((Conflict? c) => c != null).length;
       _logger.info(
         'Detected $conflictCount conflicts out of ${operations.length} operations',
       );

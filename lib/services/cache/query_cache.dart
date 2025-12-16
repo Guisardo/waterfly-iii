@@ -45,7 +45,7 @@ class QueryCache {
   /// Returns null if key not found or entry expired.
   /// Updates access time for LRU ordering.
   T? get<T>(String key) {
-    final entry = _cache[key];
+    final _CacheEntry? entry = _cache[key];
 
     if (entry == null) {
       _missCount++;
@@ -84,7 +84,7 @@ class QueryCache {
     _logger.fine('Caching: $key');
 
     // Estimate size (simplified - actual size calculation would be more complex)
-    final estimatedSize = _estimateSize(value);
+    final int estimatedSize = _estimateSize(value);
 
     // Remove existing entry if present
     if (_cache.containsKey(key)) {
@@ -97,7 +97,7 @@ class QueryCache {
     }
 
     // Add new entry
-    final entry = _CacheEntry(
+    final _CacheEntry entry = _CacheEntry(
       value: value,
       sizeBytes: estimatedSize,
       createdAt: DateTime.now(),
@@ -114,7 +114,7 @@ class QueryCache {
 
   /// Removes an entry from the cache
   void remove(String key) {
-    final entry = _cache.remove(key);
+    final _CacheEntry? entry = _cache.remove(key);
 
     if (entry != null) {
       _currentSizeBytes -= entry.sizeBytes;
@@ -140,11 +140,11 @@ class QueryCache {
   void invalidatePattern(String pattern) {
     _logger.fine('Invalidating cache pattern: $pattern');
 
-    final keysToRemove = _cache.keys
-        .where((key) => key.contains(pattern))
+    final List<String> keysToRemove = _cache.keys
+        .where((String key) => key.contains(pattern))
         .toList();
 
-    for (final key in keysToRemove) {
+    for (final String key in keysToRemove) {
       remove(key);
     }
 
@@ -153,8 +153,8 @@ class QueryCache {
 
   /// Gets cache statistics
   CacheStatistics getStatistics() {
-    final totalRequests = _hitCount + _missCount;
-    final hitRate = totalRequests > 0 ? (_hitCount / totalRequests * 100) : 0.0;
+    final int totalRequests = _hitCount + _missCount;
+    final double hitRate = totalRequests > 0 ? (_hitCount / totalRequests * 100) : 0.0;
 
     return CacheStatistics(
       entryCount: _cache.length,
@@ -171,15 +171,15 @@ class QueryCache {
   void cleanupExpired() {
     _logger.fine('Cleaning up expired cache entries');
 
-    final keysToRemove = <String>[];
+    final List<String> keysToRemove = <String>[];
 
-    for (final entry in _cache.entries) {
+    for (final MapEntry<String, _CacheEntry> entry in _cache.entries) {
       if (entry.value.isExpired) {
         keysToRemove.add(entry.key);
       }
     }
 
-    for (final key in keysToRemove) {
+    for (final String key in keysToRemove) {
       remove(key);
     }
 
@@ -194,8 +194,8 @@ class QueryCache {
     if (_cache.isEmpty) return;
 
     // Remove first entry (least recently used)
-    final firstKey = _cache.keys.first;
-    final entry = _cache.remove(firstKey);
+    final String firstKey = _cache.keys.first;
+    final _CacheEntry? entry = _cache.remove(firstKey);
 
     if (entry != null) {
       _currentSizeBytes -= entry.sizeBytes;

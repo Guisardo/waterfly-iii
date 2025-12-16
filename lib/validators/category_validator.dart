@@ -1,6 +1,6 @@
 import 'package:logging/logging.dart';
 
-import 'transaction_validator.dart';
+import 'package:waterflyiii/validators/transaction_validator.dart';
 
 /// Validates category data before storage or synchronization.
 ///
@@ -15,7 +15,7 @@ class CategoryValidator {
   }) async {
     _logger.fine('Validating category data');
 
-    final errors = <String>[];
+    final List<String> errors = <String>[];
 
     // Required fields
     if (!data.containsKey('name') ||
@@ -23,7 +23,7 @@ class CategoryValidator {
         (data['name'] as String).trim().isEmpty) {
       errors.add('Category name is required');
     } else {
-      final name = (data['name'] as String).trim();
+      final String name = (data['name'] as String).trim();
 
       if (name.length > 255) {
         errors.add('Category name exceeds maximum length of 255 characters');
@@ -37,13 +37,13 @@ class CategoryValidator {
 
     // Notes validation
     if (data.containsKey('notes') && data['notes'] != null) {
-      final notes = data['notes'] as String;
+      final String notes = data['notes'] as String;
       if (notes.length > 65535) {
         errors.add('Notes exceed maximum length');
       }
     }
 
-    final isValid = errors.isEmpty;
+    final bool isValid = errors.isEmpty;
     if (!isValid) {
       _logger.warning('Category validation failed: ${errors.join(', ')}');
     }

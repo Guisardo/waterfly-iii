@@ -68,7 +68,7 @@ class AppDatabase extends _$AppDatabase {
   /// final database = AppDatabase.forTesting(NativeDatabase.memory());
   /// ```
   @visibleForTesting
-  AppDatabase.forTesting(QueryExecutor executor) : super(executor);
+  AppDatabase.forTesting(super.executor);
 
   /// Database schema version.
   ///

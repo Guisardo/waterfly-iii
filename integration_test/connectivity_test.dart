@@ -12,7 +12,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Connectivity Detection Tests', () {
-    testWidgets('Detect offline state when connectivity is disabled', (tester) async {
+    testWidgets('Detect offline state when connectivity is disabled', (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
 
@@ -20,8 +20,8 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
 
       // Look for offline indicator
-      final offlineIndicator = find.byKey(const Key('offlineIndicator'));
-      final connectivityBar = find.byKey(const Key('connectivityStatusBar'));
+      final Finder offlineIndicator = find.byKey(const Key('offlineIndicator'));
+      final Finder connectivityBar = find.byKey(const Key('connectivityStatusBar'));
       
       // Check if offline mode is detected
       expect(
@@ -31,7 +31,7 @@ void main() {
       );
     });
 
-    testWidgets('Detect online state when connectivity is enabled', (tester) async {
+    testWidgets('Detect online state when connectivity is enabled', (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
 
@@ -39,8 +39,8 @@ void main() {
       await tester.pump(const Duration(seconds: 3));
 
       // Verify online state (no offline indicator or shows online)
-      final offlineIndicator = find.byKey(const Key('offlineIndicator'));
-      final onlineIndicator = find.text('Online');
+      final Finder offlineIndicator = find.byKey(const Key('offlineIndicator'));
+      final Finder onlineIndicator = find.text('Online');
       
       expect(
         offlineIndicator.evaluate().isEmpty || onlineIndicator.evaluate().isNotEmpty,
@@ -49,7 +49,7 @@ void main() {
       );
     });
 
-    testWidgets('React to connectivity changes during runtime', (tester) async {
+    testWidgets('React to connectivity changes during runtime', (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
 
@@ -69,7 +69,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check for offline indicator
-      final offlineIndicator = find.byKey(const Key('offlineIndicator'));
+      final Finder offlineIndicator = find.byKey(const Key('offlineIndicator'));
       expect(offlineIndicator.evaluate().isNotEmpty, isTrue);
 
       print('=== TEST INSTRUCTION ===');

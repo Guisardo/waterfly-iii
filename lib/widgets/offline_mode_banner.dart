@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logging/logging.dart';
 
-import '../providers/connectivity_provider.dart';
-import '../services/connectivity/connectivity_status.dart';
+import 'package:waterflyiii/providers/connectivity_provider.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
 
 /// Prominent banner displayed when the app is offline.
 ///
@@ -45,8 +45,8 @@ class _OfflineModeBannerState extends State<OfflineModeBanner> {
   /// Load dismissal state from shared preferences
   Future<void> _loadDismissalState() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final dismissed = prefs.getBool(_dismissalKey) ?? false;
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final bool dismissed = prefs.getBool(_dismissalKey) ?? false;
 
       if (mounted) {
         setState(() {
@@ -73,7 +73,7 @@ class _OfflineModeBannerState extends State<OfflineModeBanner> {
   /// Save dismissal state to shared preferences
   Future<void> _saveDismissalState(bool dismissed) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_dismissalKey, dismissed);
       _logger.info('Saved banner dismissal state: dismissed=$dismissed');
     } catch (e, stackTrace) {
@@ -112,8 +112,8 @@ class _OfflineModeBannerState extends State<OfflineModeBanner> {
     }
 
     return Consumer<ConnectivityProvider>(
-      builder: (context, connectivityProvider, child) {
-        final status = connectivityProvider.status;
+      builder: (BuildContext context, ConnectivityProvider connectivityProvider, Widget? child) {
+        final ConnectivityStatus status = connectivityProvider.status;
 
         // Reset dismissal when going back online
         if (status == ConnectivityStatus.online && _isDismissed) {
@@ -134,11 +134,11 @@ class _OfflineModeBannerState extends State<OfflineModeBanner> {
             child: Dismissible(
               key: const Key('offline_mode_banner'),
               direction: DismissDirection.horizontal,
-              onDismissed: (direction) => _handleDismiss(),
+              onDismissed: (DismissDirection direction) => _handleDismiss(),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     // Warning icon
                     Icon(
                       Icons.cloud_off,
@@ -152,7 +152,7 @@ class _OfflineModeBannerState extends State<OfflineModeBanner> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
-                        children: [
+                        children: <Widget>[
                           Text(
                             'You\'re offline',
                             style: Theme.of(context)
@@ -182,7 +182,7 @@ class _OfflineModeBannerState extends State<OfflineModeBanner> {
                     ),
 
                     // Learn More button
-                    if (widget.onLearnMore != null) ...[
+                    if (widget.onLearnMore != null) ...<Widget>[
                       const SizedBox(width: 8),
                       TextButton(
                         onPressed: widget.onLearnMore,

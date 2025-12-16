@@ -19,7 +19,7 @@ class KeyboardNavigationService {
   KeyboardNavigationService._internal();
 
   /// Focus nodes for navigation
-  final Map<String, FocusNode> _focusNodes = {};
+  final Map<String, FocusNode> _focusNodes = <String, FocusNode>{};
 
   /// Register a focus node for accessibility navigation
   void registerFocusNode(String id, FocusNode node) {
@@ -29,7 +29,7 @@ class KeyboardNavigationService {
 
   /// Unregister a focus node
   void unregisterFocusNode(String id) {
-    final node = _focusNodes.remove(id);
+    final FocusNode? node = _focusNodes.remove(id);
     if (node != null) {
       _logger.fine('Unregistered focus node: $id');
     }
@@ -37,7 +37,7 @@ class KeyboardNavigationService {
 
   /// Request focus for a specific node (for screen readers)
   void requestFocus(String id) {
-    final node = _focusNodes[id];
+    final FocusNode? node = _focusNodes[id];
     if (node != null) {
       node.requestFocus();
       _logger.fine('Focus requested for: $id');
@@ -70,7 +70,7 @@ class KeyboardNavigationService {
   void dispose() {
     _logger.info('Disposing KeyboardNavigationService');
     
-    for (final node in _focusNodes.values) {
+    for (final FocusNode node in _focusNodes.values) {
       node.dispose();
     }
     
@@ -129,7 +129,7 @@ class _FocusIndicatorWidgetState extends State<FocusIndicatorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final keyboardService = KeyboardNavigationService();
+    final KeyboardNavigationService keyboardService = KeyboardNavigationService();
     
     Widget child = Container(
       decoration: keyboardService.buildFocusIndicator(

@@ -1462,16 +1462,266 @@ Future<List<T>> processInParallel<T>({
 **Estimated Time:** 3-4 days
 **Dependencies:** Phase 3 complete
 
-*Note: Due to length constraints, Phase 4 and Phase 5 details are available in separate documents or can be added upon request.*
+### Task 4.1: Extend OfflineSettingsProvider
 
-### Quick Checklist:
-- [ ] Create sync settings page
-- [ ] Add incremental sync toggle
-- [ ] Add force sync buttons
-- [ ] Add statistics display
-- [ ] Update progress indicator
-- [ ] Create dashboard widget
-- [ ] Write widget tests
+**File:** `lib/providers/offline_settings_provider.dart`
+
+**Added Settings:**
+- `incrementalSyncEnabled` - Toggle for incremental sync
+- `syncWindow` - Sync window configuration (7-90 days)
+- `cacheTtl` - Cache TTL for Tier 2 entities (1-48 hours)
+- Statistics tracking (items fetched/updated/skipped, bandwidth saved, API calls saved)
+- Timestamps for last incremental and full sync
+
+**Added Methods:**
+- `setIncrementalSyncEnabled(bool)` - Toggle incremental sync
+- `setSyncWindow(SyncWindow)` - Set sync window duration
+- `setCacheTtl(CacheTtl)` - Set cache TTL
+- `updateIncrementalSyncStatistics(...)` - Update cumulative statistics
+- `recordFullSyncCompleted()` - Record full sync timestamp
+- `resetIncrementalSyncStatistics()` - Clear statistics
+
+**Checklist:**
+- [x] Add incremental sync settings keys
+- [x] Add settings values and getters
+- [x] Implement setter methods with persistence
+- [x] Add statistics tracking
+- [x] Add `needsFullSync` computed property
+- [x] Add `formattedBandwidthSaved` getter
+- [x] Update `_loadSettings()` to load new settings
+- [x] Update `clearAllData()` to clear incremental statistics
+
+### Task 4.2: Create IncrementalSyncSettingsSection Widget
+
+**File:** `lib/widgets/incremental_sync_settings.dart` (NEW)
+
+**Features:**
+- Header with icon and description
+- Incremental sync enable/disable toggle
+- Sync window dropdown selector
+- Cache TTL selector (advanced, expandable)
+- Sync timestamps display with relative time
+- Full sync warning banner when needed
+- Force sync buttons (incremental and full)
+- Reset statistics button with confirmation dialog
+
+**Also includes:**
+- `IncrementalSyncSettingsCompact` - Compact version for embedding
+
+**Checklist:**
+- [x] Create `IncrementalSyncSettingsSection` widget
+- [x] Implement incremental sync toggle
+- [x] Implement sync window selector
+- [x] Implement cache TTL selector (expandable)
+- [x] Implement sync timestamps display
+- [x] Implement full sync warning banner
+- [x] Implement force sync buttons
+- [x] Implement reset statistics with confirmation
+- [x] Create `IncrementalSyncSettingsCompact` variant
+- [x] Add comprehensive error handling
+- [x] Add snackbar notifications for user feedback
+
+### Task 4.3: Create IncrementalSyncStatisticsWidget
+
+**File:** `lib/widgets/incremental_sync_statistics.dart` (NEW)
+
+**Display Modes:**
+- **Card Mode:** Full statistics with efficiency gauge, main stats grid, secondary stats
+- **Compact Mode:** Horizontal row of key metrics
+- **Summary Mode:** Single-line efficiency summary
+
+**Features:**
+- Empty state when no data
+- Efficiency indicator with circular progress gauge
+- Main stats (fetched, updated, skipped)
+- Secondary stats (bandwidth saved, API calls saved, update rate)
+- Live result display with per-entity breakdown
+- Color-coded efficiency levels (Excellent/Good/Moderate/Low/Very Low)
+- Number formatting (K/M suffixes)
+- Bandwidth formatting (B/KB/MB/GB)
+
+**Checklist:**
+- [x] Create `IncrementalSyncStatisticsWidget`
+- [x] Implement card display mode
+- [x] Implement compact display mode
+- [x] Implement summary display mode
+- [x] Implement efficiency indicator with gauge
+- [x] Implement main stats grid
+- [x] Implement secondary stats section
+- [x] Implement live result details
+- [x] Add efficiency color coding
+- [x] Add number formatting utilities
+- [x] Add bandwidth formatting utilities
+- [x] Handle empty state gracefully
+
+### Task 4.4: Update OfflineSettingsScreen
+
+**File:** `lib/pages/settings/offline_settings_screen.dart`
+
+**Changes:**
+- Import new widgets
+- Add `_buildIncrementalSyncSection()` method
+- Add `_buildIncrementalSyncStatisticsSection()` method
+- Add `_triggerIncrementalSync()` method
+- Update ListView to include new sections
+
+**Checklist:**
+- [x] Import incremental sync widgets
+- [x] Add incremental sync settings section
+- [x] Add incremental sync statistics section
+- [x] Implement incremental sync trigger method
+- [x] Position sections appropriately in settings list
+
+### Task 4.5: Create IncrementalSyncProgressWidget
+
+**File:** `lib/widgets/incremental_sync_progress.dart` (NEW)
+
+**Display Modes:**
+- **Dialog Mode:** Alert dialog with progress
+- **Sheet Mode:** Bottom sheet with progress
+- **Embedded Mode:** Card for embedding in other views
+
+**Features:**
+- Real-time progress updates via stream subscription
+- Entity-level progress list with icons
+- Tier 1/Tier 2 visual differentiation
+- Live statistics (fetched, updated, skipped)
+- Retry attempt indicator
+- Cache hit indicator
+- Error state display
+- Completion state with summary
+- Cancel button with confirmation dialog
+- Auto-dismiss on completion (configurable)
+- Pulse animation on sync icon
+
+**Helper Functions:**
+- `showIncrementalSyncProgressDialog()` - Show as dialog
+- `showIncrementalSyncProgressSheet()` - Show as bottom sheet
+
+**Checklist:**
+- [x] Create `IncrementalSyncProgressWidget`
+- [x] Implement dialog display mode
+- [x] Implement sheet display mode
+- [x] Implement embedded display mode
+- [x] Implement progress stream subscription
+- [x] Implement entity progress list with icons
+- [x] Implement live stats display
+- [x] Implement retry indicator
+- [x] Implement cache hit indicator
+- [x] Implement error state
+- [x] Implement completion state with summary
+- [x] Implement cancel button with confirmation
+- [x] Implement auto-dismiss on completion
+- [x] Add helper functions for showing widget
+- [x] Add animations (pulse, fade)
+
+### Task 4.6: Create IncrementalSyncDashboardCard
+
+**File:** `lib/widgets/incremental_sync_dashboard_card.dart` (NEW)
+
+**Display Modes:**
+- **Standard Mode:** Full card with header, stats, and sync button
+- **Compact Mode:** Horizontal card with status badge
+- **Mini Mode:** Icon-only with tooltip
+
+**Features:**
+- Status icon with animation when syncing
+- Status badge (OK/OUTDATED/DISABLED/SYNCING)
+- Quick stats (efficiency, bandwidth saved, sync count)
+- Full sync warning banner
+- Sync button with appropriate label
+- Progress indicator during sync
+- Settings access via tap or long press
+- Progress stream subscription for live updates
+- Relative time formatting for last sync
+
+**Checklist:**
+- [x] Create `IncrementalSyncDashboardCard`
+- [x] Implement standard display mode
+- [x] Implement compact display mode
+- [x] Implement mini display mode
+- [x] Implement status icon with animation
+- [x] Implement status badges
+- [x] Implement quick stats display
+- [x] Implement full sync warning
+- [x] Implement sync button
+- [x] Implement progress indicator
+- [x] Implement progress stream subscription
+- [x] Add settings callback (tap and long press)
+- [x] Add relative time formatting
+
+### Task 4.7: Write Widget Tests
+
+**Test Files:**
+- `test/widgets/incremental_sync_settings_test.dart` (NEW)
+- `test/widgets/incremental_sync_statistics_test.dart` (NEW)
+- `test/widgets/incremental_sync_dashboard_card_test.dart` (NEW)
+- `test/widgets/incremental_sync_progress_test.dart` (NEW)
+
+**Test Coverage:**
+- Settings toggle functionality
+- Dropdown selectors (sync window, cache TTL)
+- Statistics display modes
+- Efficiency indicators
+- Dashboard card states
+- Progress updates
+- Callbacks and interactions
+- Error states
+- Empty states
+- Progress stream events
+
+**Checklist:**
+- [x] Write tests for `IncrementalSyncSettingsSection`
+  - [x] Header rendering
+  - [x] Toggle functionality
+  - [x] Sync window selector
+  - [x] Cache TTL selector (advanced settings)
+  - [x] Timestamps display
+  - [x] Action buttons
+  - [x] Reset statistics dialog
+- [x] Write tests for `IncrementalSyncStatisticsWidget`
+  - [x] Empty state
+  - [x] Card mode with data
+  - [x] Compact mode
+  - [x] Summary mode
+  - [x] Efficiency indicators
+  - [x] Bandwidth formatting
+  - [x] Live result display
+- [x] Write tests for `IncrementalSyncDashboardCard`
+  - [x] Standard mode
+  - [x] Compact mode
+  - [x] Mini mode
+  - [x] Syncing state
+  - [x] Status badges
+  - [x] Callbacks
+  - [x] Progress updates
+- [x] Write tests for `IncrementalSyncProgressWidget`
+  - [x] Embedded display mode
+  - [x] Dialog display mode
+  - [x] Sheet display mode
+  - [x] Progress stream events (started, entityStarted, progress, entityCompleted, retry, cacheHit, completed, failed)
+  - [x] Entity progress indicators (CACHED badge, spinner, update counts, Tier 2 labels)
+  - [x] Completion state UI and callbacks
+  - [x] Error state UI
+  - [x] Cancel functionality with confirmation dialog
+  - [x] Auto-dismiss behavior
+  - [x] Efficiency calculations
+  - [x] Entity type formatting and icons
+  - [x] Stream error handling
+  - [x] Helper functions (showIncrementalSyncProgressDialog, showIncrementalSyncProgressSheet)
+
+### Phase 4 Completion Checklist
+
+- [x] Task 4.1: OfflineSettingsProvider extended
+- [x] Task 4.2: IncrementalSyncSettingsSection created
+- [x] Task 4.3: IncrementalSyncStatisticsWidget created
+- [x] Task 4.4: OfflineSettingsScreen updated
+- [x] Task 4.5: IncrementalSyncProgressWidget created
+- [x] Task 4.6: IncrementalSyncDashboardCard created
+- [x] Task 4.7: Widget tests written
+- [x] All widgets properly documented
+- [x] No linter errors
+- [x] Code follows project conventions
 
 ---
 
@@ -1497,12 +1747,13 @@ Future<List<T>> processInParallel<T>({
 
 Before considering implementation complete:
 
-- [ ] All 5 phases completed
+- [x] Phases 1-4 completed
+- [ ] Phase 5 completed
 - [ ] Database migration tested on real data
 - [ ] Full sync still works
 - [ ] Incremental sync works correctly
-- [ ] Statistics tracking accurate
-- [ ] UI components functional
+- [x] Statistics tracking accurate
+- [x] UI components functional
 - [ ] All tests pass (unit, integration, widget)
 - [ ] Performance targets met (70% bandwidth, 60% speed)
 - [ ] Documentation complete

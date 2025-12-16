@@ -7,7 +7,6 @@ import 'package:waterflyiii/exceptions/offline_exceptions.dart';
 import 'package:waterflyiii/models/cache/cache_result.dart';
 import 'package:waterflyiii/models/sync_operation.dart';
 import 'package:waterflyiii/services/cache/cache_invalidation_rules.dart';
-import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 import 'package:waterflyiii/validators/bill_validator.dart';
@@ -85,15 +84,14 @@ class BillRepository extends BaseRepository<BillEntity, String> {
   /// );
   /// ```
   BillRepository({
-    required AppDatabase database,
-    CacheService? cacheService,
+    required super.database,
+    super.cacheService,
     UuidService? uuidService,
     SyncQueueManager? syncQueueManager,
     BillValidator? validator,
   })  : _uuidService = uuidService ?? UuidService(),
         _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
-        _validator = validator ?? BillValidator(),
-        super(database: database, cacheService: cacheService);
+        _validator = validator ?? BillValidator();
 
   final UuidService _uuidService;
   final SyncQueueManager _syncQueueManager;
@@ -316,7 +314,7 @@ class BillRepository extends BaseRepository<BillEntity, String> {
       logger.info('Creating bill: ${entity.name}');
 
       // Validate bill data
-      final ValidationResult validationResult = await _validator.validate({
+      final ValidationResult validationResult = await _validator.validate(<String, dynamic>{
         'name': entity.name,
         'amount_min': entity.amountMin,
         'amount_max': entity.amountMax,
@@ -463,7 +461,7 @@ class BillRepository extends BaseRepository<BillEntity, String> {
       }
 
       // Validate bill data
-      final ValidationResult validationResult = await _validator.validate({
+      final ValidationResult validationResult = await _validator.validate(<String, dynamic>{
         'name': entity.name,
         'amount_min': entity.amountMin,
         'amount_max': entity.amountMax,

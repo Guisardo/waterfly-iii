@@ -429,7 +429,7 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
       });
 
       // Fetch data (uses cache-first strategy in repository)
-      final data = await widget.fetcher();
+      final T? data = await widget.fetcher();
 
       _log.fine(
         'Data loaded for ${widget.entityType}:${widget.entityId}: '
@@ -490,7 +490,7 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
   /// - Rebuilds UI via setState
   void _subscribeToUpdates() {
     try {
-      final cacheService = context.read<CacheService>();
+      final CacheService cacheService = context.read<CacheService>();
 
       _log.fine(
         'Subscribing to cache updates for ${widget.entityType}:${widget.entityId}',
@@ -498,13 +498,13 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
 
       // Subscribe to invalidation stream with filtering
       _subscription = cacheService.invalidationStream
-          .where((event) {
+          .where((CacheInvalidationEvent event) {
             // Match specific entity OR type-level invalidation
-            final matchesEntity = event.entityType == widget.entityType &&
+            final bool matchesEntity = event.entityType == widget.entityType &&
                 (event.entityId == widget.entityId || event.entityId == '*');
 
             // Only interested in refresh events (not just invalidations)
-            final isRefresh = event.eventType == CacheEventType.refreshed;
+            final bool isRefresh = event.eventType == CacheEventType.refreshed;
 
             return matchesEntity && isRefresh;
           })
@@ -593,7 +593,7 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
     }
 
     // Data state: show builder with data
-    final isFresh = widget.showStaleIndicator ? _isFresh : true;
+    final bool isFresh = widget.showStaleIndicator ? _isFresh : true;
     return widget.builder(context, _data, isFresh);
   }
 
@@ -613,7 +613,7 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           const Icon(
             Icons.error_outline,
             size: 64,

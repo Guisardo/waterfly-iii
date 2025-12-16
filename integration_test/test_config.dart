@@ -20,13 +20,13 @@ class TestConfig {
   static const Duration longTimeout = Duration(seconds: 30);
 
   /// Test user credentials
-  static const Map<String, String> testCredentials = {
+  static const Map<String, String> testCredentials = <String, String>{
     'serverUrl': demoServerUrl,
     'token': demoToken,
   };
 
   /// Mock transaction data
-  static const Map<String, dynamic> mockTransaction = {
+  static const Map<String, dynamic> mockTransaction = <String, dynamic>{
     'description': 'E2E Test Transaction',
     'amount': '100.00',
     'type': 'withdrawal',
@@ -34,7 +34,7 @@ class TestConfig {
   };
 
   /// Mock account data
-  static const Map<String, dynamic> mockAccount = {
+  static const Map<String, dynamic> mockAccount = <String, dynamic>{
     'name': 'Test Account',
     'type': 'asset',
     'currency': 'USD',
@@ -61,7 +61,7 @@ class TestHelpers {
     Duration timeout = const Duration(seconds: 10),
     Duration pollInterval = const Duration(milliseconds: 100),
   }) async {
-    final endTime = DateTime.now().add(timeout);
+    final DateTime endTime = DateTime.now().add(timeout);
 
     while (DateTime.now().isBefore(endTime)) {
       if (await condition()) {

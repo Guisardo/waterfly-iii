@@ -41,20 +41,20 @@ class SyncStatusProvider extends ChangeNotifier {
   String? _currentError;
 
   // Sync history (last 20 syncs)
-  final List<SyncResult> _syncHistory = [];
+  final List<SyncResult> _syncHistory = <SyncResult>[];
   static const int _maxHistorySize = 20;
 
   // Statistics
   SyncStatistics? _statistics;
 
   // Entity-specific stats
-  final Map<String, EntitySyncStats> _entityStats = {};
+  final Map<String, EntitySyncStats> _entityStats = <String, EntitySyncStats>{};
 
   // Conflicts
-  final List<dynamic> _unresolvedConflicts = [];
+  final List<dynamic> _unresolvedConflicts = <dynamic>[];
 
   // Errors
-  final List<SyncError> _recentErrors = [];
+  final List<SyncError> _recentErrors = <SyncError>[];
   static const int _maxErrorsSize = 50;
 
   // Loading state
@@ -252,7 +252,7 @@ class SyncStatusProvider extends ChangeNotifier {
 
   /// Get sync history for a specific date range.
   List<SyncResult> getHistoryForDateRange(DateTime start, DateTime end) {
-    return _syncHistory.where((result) {
+    return _syncHistory.where((SyncResult result) {
       return result.startTime.isAfter(start) && result.startTime.isBefore(end);
     }).toList();
   }
@@ -264,22 +264,22 @@ class SyncStatusProvider extends ChangeNotifier {
 
   /// Get total operations for all entity types.
   int get totalOperations {
-    return _entityStats.values.fold(0, (sum, stats) => sum + stats.total);
+    return _entityStats.values.fold(0, (int sum, EntitySyncStats stats) => sum + stats.total);
   }
 
   /// Get total successful operations for all entity types.
   int get totalSuccessful {
-    return _entityStats.values.fold(0, (sum, stats) => sum + stats.successful);
+    return _entityStats.values.fold(0, (int sum, EntitySyncStats stats) => sum + stats.successful);
   }
 
   /// Get total failed operations for all entity types.
   int get totalFailed {
-    return _entityStats.values.fold(0, (sum, stats) => sum + stats.failed);
+    return _entityStats.values.fold(0, (int sum, EntitySyncStats stats) => sum + stats.failed);
   }
 
   /// Get total conflicts for all entity types.
   int get totalConflicts {
-    return _entityStats.values.fold(0, (sum, stats) => sum + stats.conflicts);
+    return _entityStats.values.fold(0, (int sum, EntitySyncStats stats) => sum + stats.conflicts);
   }
 
   /// Get overall success rate.
@@ -291,9 +291,9 @@ class SyncStatusProvider extends ChangeNotifier {
   /// Load conflicts from database.
   Future<void> _loadConflicts() async {
     try {
-      final conflicts = await (_database.select(_database.conflicts)
-            ..where((tbl) => tbl.status.equals('pending'))
-            ..orderBy([(tbl) => OrderingTerm.desc(tbl.detectedAt)]))
+      final List<ConflictEntity> conflicts = await (_database.select(_database.conflicts)
+            ..where(($ConflictsTable tbl) => tbl.status.equals('pending'))
+            ..orderBy(<OrderClauseGenerator<$ConflictsTable>>[($ConflictsTable tbl) => OrderingTerm.desc(tbl.detectedAt)]))
           .get();
       
       _unresolvedConflicts.clear();
@@ -308,15 +308,15 @@ class SyncStatusProvider extends ChangeNotifier {
   /// Load recent errors from database.
   Future<void> _loadRecentErrors() async {
     try {
-      final errors = await (_database.select(_database.errorLog)
-            ..where((tbl) => tbl.resolved.equals(false))
-            ..orderBy([(tbl) => OrderingTerm.desc(tbl.occurredAt)])
+      final List<ErrorLogEntity> errors = await (_database.select(_database.errorLog)
+            ..where(($ErrorLogTable tbl) => tbl.resolved.equals(false))
+            ..orderBy(<OrderClauseGenerator<$ErrorLogTable>>[($ErrorLogTable tbl) => OrderingTerm.desc(tbl.occurredAt)])
             ..limit(_maxErrorsSize))
           .get();
       
       _recentErrors.clear();
       _recentErrors.addAll(
-        errors.map((e) => SyncError(
+        errors.map((ErrorLogEntity e) => SyncError(
           message: e.errorMessage,
           timestamp: e.occurredAt,
         )),

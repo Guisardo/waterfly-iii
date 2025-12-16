@@ -95,7 +95,7 @@ class MockCurrency {
 
 /// Spy CacheService for tracking invalidation calls
 class SpyCacheService extends CacheService {
-  final List<InvalidationCall> invalidationCalls = [];
+  final List<InvalidationCall> invalidationCalls = <InvalidationCall>[];
 
   SpyCacheService(AppDatabase database) : super(database: database);
 
@@ -182,14 +182,14 @@ void main() {
     group('onTransactionMutation() - Transaction invalidation', () {
       test('should invalidate all related caches on transaction create', () async {
         // Arrange: Transaction affecting multiple entities
-        final transaction = MockTransaction(
+        final MockTransaction transaction = MockTransaction(
           id: 'txn_123',
           sourceAccountId: 'acc_src',
           destinationAccountId: 'acc_dest',
           budgetId: 'budget_1',
           categoryId: 'cat_1',
           billId: 'bill_1',
-          tags: ['tag1', 'tag2'],
+          tags: <String>['tag1', 'tag2'],
         );
 
         cacheService.clearInvalidationCalls();
@@ -202,14 +202,14 @@ void main() {
         );
 
         // Wait for async invalidations
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: All affected caches invalidated
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         // Transaction itself
         expect(
-          calls.where((c) =>
+          calls.where((InvalidationCall c) =>
               c.entityType == 'transaction' &&
               c.entityId == 'txn_123' &&
               c.type == InvalidationType.single),
@@ -218,14 +218,14 @@ void main() {
 
         // All transaction lists
         expect(
-          calls.where((c) =>
+          calls.where((InvalidationCall c) =>
               c.entityType == 'transaction_list' && c.type == InvalidationType.typeLevel),
           hasLength(1),
         );
 
         // Source account
         expect(
-          calls.where((c) =>
+          calls.where((InvalidationCall c) =>
               c.entityType == 'account' &&
               c.entityId == 'acc_src' &&
               c.type == InvalidationType.single),
@@ -234,7 +234,7 @@ void main() {
 
         // Destination account
         expect(
-          calls.where((c) =>
+          calls.where((InvalidationCall c) =>
               c.entityType == 'account' &&
               c.entityId == 'acc_dest' &&
               c.type == InvalidationType.single),
@@ -243,14 +243,14 @@ void main() {
 
         // All account lists
         expect(
-          calls.where((c) =>
+          calls.where((InvalidationCall c) =>
               c.entityType == 'account_list' && c.type == InvalidationType.typeLevel),
           hasLength(1),
         );
 
         // Budget
         expect(
-          calls.where((c) =>
+          calls.where((InvalidationCall c) =>
               c.entityType == 'budget' &&
               c.entityId == 'budget_1' &&
               c.type == InvalidationType.single),
@@ -259,7 +259,7 @@ void main() {
 
         // Category
         expect(
-          calls.where((c) =>
+          calls.where((InvalidationCall c) =>
               c.entityType == 'category' &&
               c.entityId == 'cat_1' &&
               c.type == InvalidationType.single),
@@ -268,7 +268,7 @@ void main() {
 
         // Bill
         expect(
-          calls.where((c) =>
+          calls.where((InvalidationCall c) =>
               c.entityType == 'bill' &&
               c.entityId == 'bill_1' &&
               c.type == InvalidationType.single),
@@ -277,7 +277,7 @@ void main() {
 
         // Dashboard
         expect(
-          calls.where((c) =>
+          calls.where((InvalidationCall c) =>
               c.entityType == 'dashboard' && c.type == InvalidationType.typeLevel),
           hasLength(greaterThanOrEqualTo(1)),
         );
@@ -285,14 +285,14 @@ void main() {
         // Charts
         expect(
           calls
-              .where((c) => c.entityType == 'chart' && c.type == InvalidationType.typeLevel),
+              .where((InvalidationCall c) => c.entityType == 'chart' && c.type == InvalidationType.typeLevel),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
 
       test('should handle transaction with minimal fields', () async {
         // Arrange: Transaction with only required fields
-        final transaction = MockTransaction(
+        final MockTransaction transaction = MockTransaction(
           id: 'txn_min',
         );
 
@@ -305,31 +305,31 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: Basic invalidations still occur
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         expect(
-          calls.where((c) => c.entityType == 'transaction' && c.entityId == 'txn_min'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction' && c.entityId == 'txn_min'),
           hasLength(1),
         );
 
         expect(
-          calls.where((c) => c.entityType == 'transaction_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction_list'),
           hasLength(1),
         );
 
         // No account/budget/category invalidations (fields null)
         expect(
-          calls.where((c) => c.entityType == 'account' && c.type == InvalidationType.single),
+          calls.where((InvalidationCall c) => c.entityType == 'account' && c.type == InvalidationType.single),
           isEmpty,
         );
       });
 
       test('should invalidate for transaction update', () async {
         // Arrange
-        final transaction = MockTransaction(
+        final MockTransaction transaction = MockTransaction(
           id: 'txn_update',
           sourceAccountId: 'acc_1',
           budgetId: 'budget_1',
@@ -344,20 +344,20 @@ void main() {
           MutationType.update,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: Same invalidation as create
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
         expect(calls, isNotEmpty);
         expect(
-          calls.where((c) => c.entityType == 'transaction' && c.entityId == 'txn_update'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction' && c.entityId == 'txn_update'),
           hasLength(1),
         );
       });
 
       test('should invalidate for transaction delete', () async {
         // Arrange
-        final transaction = MockTransaction(
+        final MockTransaction transaction = MockTransaction(
           id: 'txn_delete',
           sourceAccountId: 'acc_1',
           categoryId: 'cat_1',
@@ -372,22 +372,22 @@ void main() {
           MutationType.delete,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: Same cascade as create/update
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
         expect(calls, isNotEmpty);
         expect(
-          calls.where((c) => c.entityType == 'transaction' && c.entityId == 'txn_delete'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction' && c.entityId == 'txn_delete'),
           hasLength(1),
         );
       });
 
       test('should invalidate tags when present', () async {
         // Arrange: Transaction with tags
-        final transaction = MockTransaction(
+        final MockTransaction transaction = MockTransaction(
           id: 'txn_tags',
-          tags: ['groceries', 'food', 'walmart'],
+          tags: <String>['groceries', 'food', 'walmart'],
         );
 
         cacheService.clearInvalidationCalls();
@@ -399,18 +399,18 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: Tag-related invalidations
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         expect(
-          calls.where((c) => c.entityType == 'tag' && c.entityId == 'groceries'),
+          calls.where((InvalidationCall c) => c.entityType == 'tag' && c.entityId == 'groceries'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         expect(
-          calls.where((c) => c.entityType == 'tag_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'tag_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
@@ -419,7 +419,7 @@ void main() {
     group('onAccountMutation() - Account invalidation', () {
       test('should invalidate account and related caches', () async {
         // Arrange
-        final account = MockAccount(id: 'acc_123', name: 'Checking');
+        final MockAccount account = MockAccount(id: 'acc_123', name: 'Checking');
 
         cacheService.clearInvalidationCalls();
 
@@ -430,33 +430,33 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         // Account itself
         expect(
-          calls.where((c) => c.entityType == 'account' && c.entityId == 'acc_123'),
+          calls.where((InvalidationCall c) => c.entityType == 'account' && c.entityId == 'acc_123'),
           hasLength(1),
         );
 
         // Account lists
         expect(
-          calls.where((c) => c.entityType == 'account_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'account_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         // Dashboard
         expect(
-          calls.where((c) => c.entityType == 'dashboard'),
+          calls.where((InvalidationCall c) => c.entityType == 'dashboard'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
 
       test('should invalidate all transactions on account delete', () async {
         // Arrange
-        final account = MockAccount(id: 'acc_del', name: 'Old Account');
+        final MockAccount account = MockAccount(id: 'acc_del', name: 'Old Account');
 
         cacheService.clearInvalidationCalls();
 
@@ -467,25 +467,25 @@ void main() {
           MutationType.delete,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: All transactions invalidated
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         expect(
-          calls.where((c) => c.entityType == 'transaction'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         expect(
-          calls.where((c) => c.entityType == 'transaction_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
 
       test('should not invalidate transactions on account create/update', () async {
         // Arrange
-        final account = MockAccount(id: 'acc_new', name: 'New Account');
+        final MockAccount account = MockAccount(id: 'acc_new', name: 'New Account');
 
         cacheService.clearInvalidationCalls();
 
@@ -496,14 +496,14 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: Transactions NOT invalidated (only on delete)
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         expect(
           calls
-              .where((c) =>
+              .where((InvalidationCall c) =>
                   c.entityType == 'transaction' && c.type == InvalidationType.typeLevel)
               .length,
           equals(0),
@@ -514,7 +514,7 @@ void main() {
     group('onBudgetMutation() - Budget invalidation', () {
       test('should invalidate budget and related caches', () async {
         // Arrange
-        final budget = MockBudget(id: 'budget_123', name: 'Monthly Budget');
+        final MockBudget budget = MockBudget(id: 'budget_123', name: 'Monthly Budget');
 
         cacheService.clearInvalidationCalls();
 
@@ -525,33 +525,33 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         // Budget itself
         expect(
-          calls.where((c) => c.entityType == 'budget' && c.entityId == 'budget_123'),
+          calls.where((InvalidationCall c) => c.entityType == 'budget' && c.entityId == 'budget_123'),
           hasLength(1),
         );
 
         // Budget lists
         expect(
-          calls.where((c) => c.entityType == 'budget_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'budget_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         // Dashboard
         expect(
-          calls.where((c) => c.entityType == 'dashboard'),
+          calls.where((InvalidationCall c) => c.entityType == 'dashboard'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
 
       test('should invalidate transaction lists on budget delete', () async {
         // Arrange
-        final budget = MockBudget(id: 'budget_del', name: 'Old Budget');
+        final MockBudget budget = MockBudget(id: 'budget_del', name: 'Old Budget');
 
         cacheService.clearInvalidationCalls();
 
@@ -562,13 +562,13 @@ void main() {
           MutationType.delete,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: Transaction lists invalidated
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         expect(
-          calls.where((c) => c.entityType == 'transaction_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
@@ -577,7 +577,7 @@ void main() {
     group('onCategoryMutation() - Category invalidation', () {
       test('should invalidate category and related caches', () async {
         // Arrange
-        final category = MockCategory(id: 'cat_123', name: 'Groceries');
+        final MockCategory category = MockCategory(id: 'cat_123', name: 'Groceries');
 
         cacheService.clearInvalidationCalls();
 
@@ -588,33 +588,33 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         // Category itself
         expect(
-          calls.where((c) => c.entityType == 'category' && c.entityId == 'cat_123'),
+          calls.where((InvalidationCall c) => c.entityType == 'category' && c.entityId == 'cat_123'),
           hasLength(1),
         );
 
         // Category lists
         expect(
-          calls.where((c) => c.entityType == 'category_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'category_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         // Transaction lists (category display in transactions)
         expect(
-          calls.where((c) => c.entityType == 'transaction_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
 
       test('should invalidate transactions on category delete', () async {
         // Arrange
-        final category = MockCategory(id: 'cat_del', name: 'Old Category');
+        final MockCategory category = MockCategory(id: 'cat_del', name: 'Old Category');
 
         cacheService.clearInvalidationCalls();
 
@@ -625,13 +625,13 @@ void main() {
           MutationType.delete,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: All transactions invalidated
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         expect(
-          calls.where((c) => c.entityType == 'transaction'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
@@ -640,7 +640,7 @@ void main() {
     group('onBillMutation() - Bill invalidation', () {
       test('should invalidate bill and related caches', () async {
         // Arrange
-        final bill = MockBill(id: 'bill_123', name: 'Electric Bill');
+        final MockBill bill = MockBill(id: 'bill_123', name: 'Electric Bill');
 
         cacheService.clearInvalidationCalls();
 
@@ -651,33 +651,33 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         // Bill itself
         expect(
-          calls.where((c) => c.entityType == 'bill' && c.entityId == 'bill_123'),
+          calls.where((InvalidationCall c) => c.entityType == 'bill' && c.entityId == 'bill_123'),
           hasLength(1),
         );
 
         // Bill lists
         expect(
-          calls.where((c) => c.entityType == 'bill_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'bill_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         // Dashboard (upcoming bills widget)
         expect(
-          calls.where((c) => c.entityType == 'dashboard'),
+          calls.where((InvalidationCall c) => c.entityType == 'dashboard'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
 
       test('should invalidate transaction lists on bill mutation', () async {
         // Arrange
-        final bill = MockBill(id: 'bill_456', name: 'Internet Bill');
+        final MockBill bill = MockBill(id: 'bill_456', name: 'Internet Bill');
 
         cacheService.clearInvalidationCalls();
 
@@ -688,13 +688,13 @@ void main() {
           MutationType.update,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: Transaction lists invalidated
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         expect(
-          calls.where((c) => c.entityType == 'transaction_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
@@ -703,7 +703,7 @@ void main() {
     group('onPiggyBankMutation() - Piggy bank invalidation', () {
       test('should invalidate piggy bank and related caches', () async {
         // Arrange
-        final piggyBank = MockPiggyBank(
+        final MockPiggyBank piggyBank = MockPiggyBank(
           id: 'piggy_123',
           name: 'Vacation Fund',
           accountId: 'acc_1',
@@ -718,39 +718,39 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         // Piggy bank itself
         expect(
-          calls.where((c) => c.entityType == 'piggy_bank' && c.entityId == 'piggy_123'),
+          calls.where((InvalidationCall c) => c.entityType == 'piggy_bank' && c.entityId == 'piggy_123'),
           hasLength(1),
         );
 
         // Piggy bank lists
         expect(
-          calls.where((c) => c.entityType == 'piggy_bank_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'piggy_bank_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         // Linked account
         expect(
-          calls.where((c) => c.entityType == 'account' && c.entityId == 'acc_1'),
+          calls.where((InvalidationCall c) => c.entityType == 'account' && c.entityId == 'acc_1'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         // Dashboard
         expect(
-          calls.where((c) => c.entityType == 'dashboard'),
+          calls.where((InvalidationCall c) => c.entityType == 'dashboard'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
 
       test('should handle piggy bank without linked account', () async {
         // Arrange: Piggy bank with no account
-        final piggyBank = MockPiggyBank(
+        final MockPiggyBank piggyBank = MockPiggyBank(
           id: 'piggy_noacc',
           name: 'Vacation Fund',
           accountId: null,
@@ -765,15 +765,15 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: No account invalidation
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         expect(
           calls
               .where(
-                  (c) => c.entityType == 'account' && c.type == InvalidationType.single)
+                  (InvalidationCall c) => c.entityType == 'account' && c.type == InvalidationType.single)
               .length,
           equals(0),
         );
@@ -783,7 +783,7 @@ void main() {
     group('onCurrencyMutation() - Currency invalidation (nuclear)', () {
       test('should invalidate EVERYTHING on currency mutation', () async {
         // Arrange
-        final currency = MockCurrency(code: 'USD', name: 'US Dollar');
+        final MockCurrency currency = MockCurrency(code: 'USD', name: 'US Dollar');
 
         cacheService.clearInvalidationCalls();
 
@@ -794,40 +794,40 @@ void main() {
           MutationType.update,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: Nuclear invalidation
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         // Currency itself
         expect(
-          calls.where((c) => c.entityType == 'currency' && c.entityId == 'USD'),
+          calls.where((InvalidationCall c) => c.entityType == 'currency' && c.entityId == 'USD'),
           hasLength(1),
         );
 
         // All entity types with amounts invalidated
         expect(
-          calls.where((c) => c.entityType == 'transaction'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         expect(
-          calls.where((c) => c.entityType == 'account'),
+          calls.where((InvalidationCall c) => c.entityType == 'account'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         expect(
-          calls.where((c) => c.entityType == 'budget'),
+          calls.where((InvalidationCall c) => c.entityType == 'budget'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         expect(
-          calls.where((c) => c.entityType == 'dashboard'),
+          calls.where((InvalidationCall c) => c.entityType == 'dashboard'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         expect(
-          calls.where((c) => c.entityType == 'chart'),
+          calls.where((InvalidationCall c) => c.entityType == 'chart'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
@@ -836,7 +836,7 @@ void main() {
     group('onTagMutation() - Tag invalidation', () {
       test('should invalidate tag and related caches', () async {
         // Arrange
-        const tagName = 'groceries';
+        const String tagName = 'groceries';
 
         cacheService.clearInvalidationCalls();
 
@@ -847,26 +847,26 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         // Tag itself
         expect(
-          calls.where((c) => c.entityType == 'tag' && c.entityId == tagName),
+          calls.where((InvalidationCall c) => c.entityType == 'tag' && c.entityId == tagName),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         // Tag lists
         expect(
-          calls.where((c) => c.entityType == 'tag_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'tag_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
 
         // Transaction lists (tags affect transaction display)
         expect(
-          calls.where((c) => c.entityType == 'transaction_list'),
+          calls.where((InvalidationCall c) => c.entityType == 'transaction_list'),
           hasLength(greaterThanOrEqualTo(1)),
         );
       });
@@ -875,14 +875,14 @@ void main() {
     group('Cascade Behavior', () {
       test('should cascade invalidations for complex transaction', () async {
         // Arrange: Complex transaction touching many entities
-        final transaction = MockTransaction(
+        final MockTransaction transaction = MockTransaction(
           id: 'txn_complex',
           sourceAccountId: 'acc_src',
           destinationAccountId: 'acc_dest',
           budgetId: 'budget_1',
           categoryId: 'cat_1',
           billId: 'bill_1',
-          tags: ['tag1', 'tag2', 'tag3'],
+          tags: <String>['tag1', 'tag2', 'tag3'],
         );
 
         cacheService.clearInvalidationCalls();
@@ -894,14 +894,14 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: Comprehensive cascade
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
 
         // Count unique entity types affected
-        final affectedEntityTypes =
-            calls.map((c) => c.entityType).toSet();
+        final Set<String> affectedEntityTypes =
+            calls.map((InvalidationCall c) => c.entityType).toSet();
 
         // Should affect at least: transaction, account, budget, category, bill, tag, dashboard, chart
         expect(affectedEntityTypes.length, greaterThanOrEqualTo(8));
@@ -911,7 +911,7 @@ void main() {
     group('Edge Cases', () {
       test('should handle null entity fields gracefully', () async {
         // Arrange: Transaction with all optional fields null
-        final transaction = MockTransaction(
+        final MockTransaction transaction = MockTransaction(
           id: 'txn_null',
           sourceAccountId: null,
           destinationAccountId: null,
@@ -930,16 +930,16 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Minimal invalidations still occur
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
         expect(calls, isNotEmpty);
       });
 
       test('should handle empty string entity IDs', () async {
         // Arrange: Transaction with empty string IDs
-        final transaction = MockTransaction(
+        final MockTransaction transaction = MockTransaction(
           id: 'txn_empty',
           sourceAccountId: '',
           destinationAccountId: '',
@@ -954,21 +954,21 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Should not invalidate accounts with empty IDs
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
         expect(
-          calls.where((c) => c.entityType == 'account' && c.entityId == ''),
+          calls.where((InvalidationCall c) => c.entityType == 'account' && c.entityId == ''),
           isEmpty,
         );
       });
 
       test('should handle empty tags list', () async {
         // Arrange: Transaction with empty tags list
-        final transaction = MockTransaction(
+        final MockTransaction transaction = MockTransaction(
           id: 'txn_notags',
-          tags: [],
+          tags: <String>[],
         );
 
         cacheService.clearInvalidationCalls();
@@ -980,13 +980,13 @@ void main() {
           MutationType.create,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Assert: No tag invalidations
-        final calls = cacheService.invalidationCalls;
+        final List<InvalidationCall> calls = cacheService.invalidationCalls;
         expect(
           calls
-              .where((c) => c.entityType == 'tag' && c.type == InvalidationType.single)
+              .where((InvalidationCall c) => c.entityType == 'tag' && c.type == InvalidationType.single)
               .length,
           equals(0),
         );

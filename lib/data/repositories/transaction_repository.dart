@@ -1,18 +1,17 @@
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 
-import '../../config/cache_ttl_config.dart';
-import '../../exceptions/offline_exceptions.dart';
-import '../../models/cache/cache_result.dart';
-import '../../models/sync_operation.dart';
-import '../../services/cache/cache_invalidation_rules.dart';
-import '../../services/cache/cache_service.dart';
-import '../../services/cache/query_cache.dart';
-import '../../services/sync/sync_queue_manager.dart';
-import '../../services/uuid/uuid_service.dart';
-import '../../validators/transaction_validator.dart';
-import '../local/database/app_database.dart';
-import 'base_repository.dart';
+import 'package:waterflyiii/config/cache_ttl_config.dart';
+import 'package:waterflyiii/exceptions/offline_exceptions.dart';
+import 'package:waterflyiii/models/cache/cache_result.dart';
+import 'package:waterflyiii/models/sync_operation.dart';
+import 'package:waterflyiii/services/cache/cache_invalidation_rules.dart';
+import 'package:waterflyiii/services/cache/query_cache.dart';
+import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
+import 'package:waterflyiii/services/uuid/uuid_service.dart';
+import 'package:waterflyiii/validators/transaction_validator.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/base_repository.dart';
 
 /// Repository for managing transaction data with cache-first architecture.
 ///
@@ -92,8 +91,8 @@ class TransactionRepository
   /// );
   /// ```
   TransactionRepository({
-    required AppDatabase database,
-    CacheService? cacheService,
+    required super.database,
+    super.cacheService,
     SyncQueueManager? syncQueueManager,
     QueryCache? queryCache,
     UuidService? uuidService,
@@ -101,8 +100,7 @@ class TransactionRepository
   })  : _syncQueueManager = syncQueueManager,
         _queryCache = queryCache,
         _uuidService = uuidService ?? UuidService(),
-        _validator = validator ?? TransactionValidator(),
-        super(database: database, cacheService: cacheService);
+        _validator = validator ?? TransactionValidator();
 
   final SyncQueueManager? _syncQueueManager;
   final QueryCache? _queryCache;
@@ -378,7 +376,7 @@ class TransactionRepository
       // Retrieve created transaction (bypassing cache to get fresh data)
       final TransactionEntity? created = await _fetchTransactionFromDb(id);
       if (created == null) {
-        final errorMsg = 'Failed to retrieve created transaction: $id';
+        final String errorMsg = 'Failed to retrieve created transaction: $id';
         logger.severe(errorMsg);
         throw DatabaseException(errorMsg);
       }
@@ -481,7 +479,7 @@ class TransactionRepository
       // Step 1: Verify exists (bypassing cache for current data)
       final TransactionEntity? existing = await _fetchTransactionFromDb(id);
       if (existing == null) {
-        final errorMsg = 'Transaction not found: $id';
+        final String errorMsg = 'Transaction not found: $id';
         logger.severe(errorMsg);
         throw DatabaseException(errorMsg);
       }
@@ -517,7 +515,7 @@ class TransactionRepository
       // Retrieve updated transaction
       final TransactionEntity? updated = await _fetchTransactionFromDb(id);
       if (updated == null) {
-        final errorMsg = 'Failed to retrieve updated transaction: $id';
+        final String errorMsg = 'Failed to retrieve updated transaction: $id';
         logger.severe(errorMsg);
         throw DatabaseException(errorMsg);
       }
@@ -830,10 +828,10 @@ class TransactionRepository
   Future<List<TransactionEntity>> getByCategory(String categoryId) async {
     try {
       logger.fine('Fetching transactions for category: $categoryId');
-      final query = database.select(database.transactions)
-        ..where((t) => t.categoryId.equals(categoryId))
-        ..orderBy([(t) => OrderingTerm.desc(t.date)]);
-      final transactions = await query.get();
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions)
+        ..where(($TransactionsTable t) => t.categoryId.equals(categoryId))
+        ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[($TransactionsTable t) => OrderingTerm.desc(t.date)]);
+      final List<TransactionEntity> transactions = await query.get();
       logger.info('Found ${transactions.length} transactions for category');
       return transactions;
     } catch (error, stackTrace) {
@@ -873,17 +871,17 @@ class TransactionRepository
 
     try {
       // Step 1: Validate data
-      final validationResult = _validator.validate(data);
+      final ValidationResult validationResult = _validator.validate(data);
       validationResult.throwIfInvalid();
 
       // Validate account references if provided
       if (data.containsKey('source_id') || data.containsKey('destination_id')) {
-        final accountValidation = await _validator.validateAccountReferences(
+        final ValidationResult accountValidation = await _validator.validateAccountReferences(
           data,
-          (accountId) async {
-            final results = await (database
+          (String accountId) async {
+            final List<AccountEntity> results = await (database
                 .select(database.accounts)
-                ..where((t) => t.id.equals(accountId))).get();
+                ..where(($AccountsTable t) => t.id.equals(accountId))).get();
             return results.isNotEmpty;
           },
         );
@@ -891,11 +889,11 @@ class TransactionRepository
       }
 
       // Step 2: Generate UUID
-      final id = _uuidService.generateTransactionId();
-      final now = DateTime.now();
+      final String id = _uuidService.generateTransactionId();
+      final DateTime now = DateTime.now();
 
       // Step 3 & 4: Insert with sync flags
-      final companion = TransactionEntityCompanion.insert(
+      final TransactionEntityCompanion companion = TransactionEntityCompanion.insert(
         id: id,
         type: data['type'] as String,
         date: data['date'] is DateTime
@@ -926,7 +924,7 @@ class TransactionRepository
 
       // Step 5: Add to sync queue
       if (_syncQueueManager != null) {
-        final operation = SyncOperation(
+        final SyncOperation operation = SyncOperation(
           id: _uuidService.generateOperationId(),
           entityType: 'transaction',
           entityId: id,
@@ -944,7 +942,7 @@ class TransactionRepository
       _queryCache?.invalidatePattern('transactions_');
 
       // Retrieve and return created transaction
-      final created = await getById(id);
+      final TransactionEntity? created = await getById(id);
       if (created == null) {
         throw const DatabaseException('Failed to retrieve created transaction');
       }
@@ -956,7 +954,7 @@ class TransactionRepository
       if (e is ValidationException || e is DatabaseException) rethrow;
       throw DatabaseException(
         'Failed to create transaction offline',
-        {"error": e.toString()},
+        <String, dynamic>{"error": e.toString()},
       );
     }
   }
@@ -981,23 +979,23 @@ class TransactionRepository
 
     try {
       // Step 1: Verify exists
-      final existing = await getById(id);
+      final TransactionEntity? existing = await getById(id);
       if (existing == null) {
         throw DatabaseException('Transaction not found: $id');
       }
 
       // Step 2: Validate data
-      final validationResult = _validator.validate(data);
+      final ValidationResult validationResult = _validator.validate(data);
       validationResult.throwIfInvalid();
 
       // Validate account references if changed
       if (data.containsKey('source_id') || data.containsKey('destination_id')) {
-        final accountValidation = await _validator.validateAccountReferences(
+        final ValidationResult accountValidation = await _validator.validateAccountReferences(
           data,
-          (accountId) async {
-            final results = await (database
+          (String accountId) async {
+            final List<AccountEntity> results = await (database
                 .select(database.accounts)
-                ..where((t) => t.id.equals(accountId))).get();
+                ..where(($AccountsTable t) => t.id.equals(accountId))).get();
             return results.isNotEmpty;
           },
         );
@@ -1005,7 +1003,7 @@ class TransactionRepository
       }
 
       // Step 3 & 4: Update with sync flags
-      final companion = TransactionEntityCompanion(
+      final TransactionEntityCompanion companion = TransactionEntityCompanion(
         type: Value(data['type'] as String),
         date: Value(data['date'] is DateTime
             ? data['date'] as DateTime
@@ -1028,15 +1026,15 @@ class TransactionRepository
         syncStatus: const Value('pending'),
       );
 
-      final updateQuery = database.update(database.transactions)
-        ..where((t) => t.id.equals(id));
+      final UpdateStatement<$TransactionsTable, TransactionEntity> updateQuery = database.update(database.transactions)
+        ..where(($TransactionsTable t) => t.id.equals(id));
       await updateQuery.write(companion);
 
       logger.info('Transaction updated in database: $id');
 
       // Step 5: Add to sync queue
       if (_syncQueueManager != null) {
-        final operation = SyncOperation(
+        final SyncOperation operation = SyncOperation(
           id: _uuidService.generateOperationId(),
           entityType: 'transaction',
           entityId: id,
@@ -1054,7 +1052,7 @@ class TransactionRepository
       _queryCache?.invalidatePattern('transactions_');
 
       // Retrieve and return updated transaction
-      final updated = await getById(id);
+      final TransactionEntity? updated = await getById(id);
       if (updated == null) {
         throw const DatabaseException('Failed to retrieve updated transaction');
       }
@@ -1066,7 +1064,7 @@ class TransactionRepository
       if (e is ValidationException || e is DatabaseException) rethrow;
       throw DatabaseException(
         'Failed to update transaction offline',
-        {"error": e.toString()},
+        <String, dynamic>{"error": e.toString()},
       );
     }
   }
@@ -1086,37 +1084,37 @@ class TransactionRepository
 
     try {
       // Step 1: Verify exists
-      final existing = await getById(id);
+      final TransactionEntity? existing = await getById(id);
       if (existing == null) {
         logger.warning('Transaction not found for deletion: $id');
         return;
       }
 
       // Step 2 & 3: Check sync status
-      final wasSynced = existing.serverId != null && existing.serverId!.isNotEmpty;
+      final bool wasSynced = existing.serverId != null && existing.serverId!.isNotEmpty;
 
       if (wasSynced) {
         // Mark as deleted, will be synced later
         logger.info('Transaction was synced, marking as deleted: $id');
 
-        final companion = TransactionEntityCompanion(
+        final TransactionEntityCompanion companion = TransactionEntityCompanion(
           syncStatus: const Value('deleted'),
           isSynced: const Value(false),
           updatedAt: Value(DateTime.now()),
         );
 
-        final updateQuery = database.update(database.transactions)
-          ..where((t) => t.id.equals(id));
+        final UpdateStatement<$TransactionsTable, TransactionEntity> updateQuery = database.update(database.transactions)
+          ..where(($TransactionsTable t) => t.id.equals(id));
         await updateQuery.write(companion);
 
         // Add delete operation to sync queue
         if (_syncQueueManager != null) {
-          final operation = SyncOperation(
+          final SyncOperation operation = SyncOperation(
             id: _uuidService.generateOperationId(),
             entityType: 'transaction',
             entityId: id,
             operation: SyncOperationType.delete,
-            payload: {'server_id': existing.serverId},
+            payload: <String, dynamic>{'server_id': existing.serverId},
             priority: SyncPriority.high, // DELETE has high priority
             createdAt: DateTime.now(),
           );
@@ -1128,8 +1126,8 @@ class TransactionRepository
         // Step 4: Not synced, remove completely
         logger.info('Transaction not synced, removing from database: $id');
 
-        final deleteQuery = database.delete(database.transactions)
-          ..where((t) => t.id.equals(id));
+        final DeleteStatement<$TransactionsTable, TransactionEntity> deleteQuery = database.delete(database.transactions)
+          ..where(($TransactionsTable t) => t.id.equals(id));
         await deleteQuery.go();
 
         // Remove from sync queue if present
@@ -1147,7 +1145,7 @@ class TransactionRepository
       logger.severe('Failed to delete transaction offline: $id', e, stackTrace);
       throw DatabaseException(
         'Failed to delete transaction offline',
-        {"error": e.toString()},
+        <String, dynamic>{"error": e.toString()},
       );
     }
   }
@@ -1176,7 +1174,7 @@ class TransactionRepository
 
     try {
       // Build cache key
-      final cacheKey = 'transactions_'
+      final String cacheKey = 'transactions_'
           '${startDate?.toIso8601String() ?? 'all'}_'
           '${endDate?.toIso8601String() ?? 'all'}_'
           '${accountId ?? 'all'}_'
@@ -1185,52 +1183,52 @@ class TransactionRepository
           '${limit}_$offset';
 
       // Check cache
-      final cached = _queryCache?.get<List<TransactionEntity>>(cacheKey);
+      final List<TransactionEntity>? cached = _queryCache?.get<List<TransactionEntity>>(cacheKey);
       if (cached != null) {
         logger.fine('Returning cached transactions');
         return cached;
       }
 
       // Build query
-      var query = database.select(database.transactions);
+      SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions);
 
       // Apply filters
       if (startDate != null) {
-        query = query..where((t) => t.date.isBiggerOrEqualValue(startDate));
+        query = query..where(($TransactionsTable t) => t.date.isBiggerOrEqualValue(startDate));
       }
 
       if (endDate != null) {
-        query = query..where((t) => t.date.isSmallerOrEqualValue(endDate));
+        query = query..where(($TransactionsTable t) => t.date.isSmallerOrEqualValue(endDate));
       }
 
       if (accountId != null) {
         query = query
-          ..where((t) =>
+          ..where(($TransactionsTable t) =>
               t.sourceAccountId.equals(accountId) |
               t.destinationAccountId.equals(accountId));
       }
 
       if (categoryId != null) {
-        query = query..where((t) => t.categoryId.equals(categoryId));
+        query = query..where(($TransactionsTable t) => t.categoryId.equals(categoryId));
       }
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
         query = query
-          ..where((t) => t.description.contains(searchQuery) |
+          ..where(($TransactionsTable t) => t.description.contains(searchQuery) |
               (t.notes.isNotNull() & t.notes.contains(searchQuery)));
       }
 
       // Exclude deleted transactions
-      query = query..where((t) => t.syncStatus.equals('deleted').not());
+      query = query..where(($TransactionsTable t) => t.syncStatus.equals('deleted').not());
 
       // Order by date (newest first)
-      query = query..orderBy([(t) => OrderingTerm.desc(t.date)]);
+      query = query..orderBy(<OrderClauseGenerator<$TransactionsTable>>[($TransactionsTable t) => OrderingTerm.desc(t.date)]);
 
       // Apply pagination
       query = query
         ..limit(limit, offset: offset);
 
-      final transactions = await query.get();
+      final List<TransactionEntity> transactions = await query.get();
 
       logger.info('Found ${transactions.length} transactions with filters');
 
@@ -1242,7 +1240,7 @@ class TransactionRepository
       logger.severe('Failed to fetch transactions offline', e, stackTrace);
       throw DatabaseException(
         'Failed to fetch transactions offline',
-        {"error": e.toString()},
+        <String, dynamic>{"error": e.toString()},
       );
     }
   }
@@ -1253,8 +1251,8 @@ class TransactionRepository
   Future<List<TransactionEntity>> getRecentTransactions({
     int limit = 50,
   }) async {
-    final endDate = DateTime.now();
-    final startDate = endDate.subtract(const Duration(days: 30));
+    final DateTime endDate = DateTime.now();
+    final DateTime startDate = endDate.subtract(const Duration(days: 30));
 
     return getTransactionsOffline(
       startDate: startDate,
@@ -1271,7 +1269,7 @@ class TransactionRepository
     int limit = 50,
   }) async {
     if (query.trim().isEmpty) {
-      return [];
+      return <TransactionEntity>[];
     }
 
     return getTransactionsOffline(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/services/cache/cache_service.dart';
@@ -58,7 +59,7 @@ void main() {
     /// Helper to wrap widget with providers
     Widget createTestWidget(Widget child) {
       return MultiProvider(
-        providers: [
+        providers: <SingleChildWidget>[
           Provider<AppDatabase>.value(value: database),
           Provider<CacheService>.value(value: cacheService),
         ],
@@ -72,17 +73,17 @@ void main() {
 
     testWidgets('should show loading indicator initially', (WidgetTester tester) async {
       // Arrange
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '1',
         fetcher: () async {
           // Simulate slow loading
-          await Future.delayed(Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 100));
           return TestData(id: '1', value: 'Test Value');
         },
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           if (data == null) {
-            return Text('No Data');
+            return const Text('No Data');
           }
           return Text(data.value);
         },
@@ -102,15 +103,15 @@ void main() {
 
     testWidgets('should display data after successful load', (WidgetTester tester) async {
       // Arrange
-      final testData = TestData(id: '2', value: 'Loaded Data');
+      final TestData testData = TestData(id: '2', value: 'Loaded Data');
 
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '2',
         fetcher: () async => testData,
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           if (data == null) {
-            return Text('No Data');
+            return const Text('No Data');
           }
           return Text(data.value);
         },
@@ -120,7 +121,7 @@ void main() {
       await tester.pumpWidget(createTestWidget(widget));
 
       // Wait for data to load
-      await tester.pump(Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
 
       // Assert: Data displayed
@@ -130,14 +131,14 @@ void main() {
 
     testWidgets('should display error using errorBuilder', (WidgetTester tester) async {
       // Arrange
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '3',
         fetcher: () async => throw Exception('Load failed'),
-        builder: (context, data, isFresh) {
-          return Text('Should not show');
+        builder: (BuildContext context, TestData? data, bool isFresh) {
+          return const Text('Should not show');
         },
-        errorBuilder: (context, error) {
+        errorBuilder: (BuildContext context, Object error) {
           return Text('Error: ${error.toString()}');
         },
       );
@@ -146,7 +147,7 @@ void main() {
       await tester.pumpWidget(createTestWidget(widget));
 
       // Wait for error
-      await tester.pump(Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
 
       // Assert: Error displayed
@@ -157,12 +158,12 @@ void main() {
     testWidgets('should use default error display when errorBuilder not provided',
         (WidgetTester tester) async {
       // Arrange
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '4',
         fetcher: () async => throw Exception('Load failed'),
-        builder: (context, data, isFresh) {
-          return Text('Should not show');
+        builder: (BuildContext context, TestData? data, bool isFresh) {
+          return const Text('Should not show');
         },
       );
 
@@ -181,25 +182,25 @@ void main() {
 
     testWidgets('should indicate fresh vs stale data', (WidgetTester tester) async {
       // Arrange: Cache fresh data
-      final testData = TestData(id: '5', value: 'Fresh Data');
+      final TestData testData = TestData(id: '5', value: 'Fresh Data');
 
       await cacheService.set(
         entityType: 'test',
         entityId: '5',
         data: testData,
-        ttl: Duration(hours: 1),
+        ttl: const Duration(hours: 1),
       );
 
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '5',
         fetcher: () async => testData,
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           if (data == null) {
-            return Text('No Data');
+            return const Text('No Data');
           }
           return Column(
-            children: [
+            children: <Widget>[
               Text(data.value),
               Text('Fresh: $isFresh'),
             ],
@@ -209,7 +210,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(createTestWidget(widget));
-      await tester.pump(Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
 
       // Assert: Shows fresh indicator
@@ -218,23 +219,23 @@ void main() {
 
     testWidgets('should rebuild on cache refresh event', (WidgetTester tester) async {
       // Arrange: Cache initial data
-      final initialData = TestData(id: '6', value: 'Initial');
-      final updatedData = TestData(id: '6', value: 'Updated');
+      final TestData initialData = TestData(id: '6', value: 'Initial');
+      final TestData updatedData = TestData(id: '6', value: 'Updated');
 
       await cacheService.set(
         entityType: 'test',
         entityId: '6',
         data: initialData,
-        ttl: Duration(hours: 1),
+        ttl: const Duration(hours: 1),
       );
 
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '6',
         fetcher: () async => initialData,
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           if (data == null) {
-            return Text('No Data');
+            return const Text('No Data');
           }
           return Text(data.value);
         },
@@ -242,7 +243,7 @@ void main() {
 
       // Act: Build widget with initial data
       await tester.pumpWidget(createTestWidget(widget));
-      await tester.pump(Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
 
       // Assert: Initial data shown
@@ -253,7 +254,7 @@ void main() {
         entityType: 'test',
         entityId: '6',
         data: updatedData,
-        ttl: Duration(hours: 1),
+        ttl: const Duration(hours: 1),
       );
 
       // Manually emit refresh event (simulating background refresh)
@@ -261,7 +262,7 @@ void main() {
       // For testing, we need to trigger it manually or wait for background refresh
 
       // Wait for any potential updates
-      await tester.pump(Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.pump();
 
       // Note: Widget rebuild depends on stream event from CacheService
@@ -271,18 +272,18 @@ void main() {
     testWidgets('should use custom loadingBuilder when provided',
         (WidgetTester tester) async {
       // Arrange
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '7',
         fetcher: () async {
-          await Future.delayed(Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 100));
           return TestData(id: '7', value: 'Data');
         },
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           return Text(data?.value ?? 'No Data');
         },
-        loadingBuilder: (context) {
-          return Text('Custom Loading...');
+        loadingBuilder: (BuildContext context) {
+          return const Text('Custom Loading...');
         },
       );
 
@@ -300,13 +301,13 @@ void main() {
 
     testWidgets('should handle null data gracefully', (WidgetTester tester) async {
       // Arrange
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '8',
         fetcher: () async => Future.value(null),
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           if (data == null) {
-            return Text('No Data Available');
+            return const Text('No Data Available');
           }
           return Text(data.value);
         },
@@ -314,7 +315,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(createTestWidget(widget));
-      await tester.pump(Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
 
       // Assert: Null data handled
@@ -323,20 +324,20 @@ void main() {
 
     testWidgets('should unsubscribe from stream on dispose', (WidgetTester tester) async {
       // Arrange
-      final testData = TestData(id: '9', value: 'Data');
+      final TestData testData = TestData(id: '9', value: 'Data');
 
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '9',
         fetcher: () async => testData,
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           return Text(data?.value ?? 'No Data');
         },
       );
 
       // Act: Build widget
       await tester.pumpWidget(createTestWidget(widget));
-      await tester.pump(Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
 
       // Assert: Widget built successfully
@@ -352,35 +353,35 @@ void main() {
     testWidgets('should handle widget updates (didUpdateWidget)',
         (WidgetTester tester) async {
       // Arrange: Initial widget
-      final widget1 = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget1 = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '10',
         fetcher: () async => TestData(id: '10', value: 'Data 1'),
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           return Text(data?.value ?? 'No Data');
         },
       );
 
       // Act: Build initial widget
       await tester.pumpWidget(createTestWidget(widget1));
-      await tester.pump(Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
 
       // Assert: Initial data shown
       expect(find.text('Data 1'), findsOneWidget);
 
       // Act: Update widget with different entityId
-      final widget2 = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget2 = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '11', // Different ID
         fetcher: () async => TestData(id: '11', value: 'Data 2'),
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           return Text(data?.value ?? 'No Data');
         },
       );
 
       await tester.pumpWidget(createTestWidget(widget2));
-      await tester.pump(Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
 
       // Assert: New data shown (widget updated and refetched)
@@ -394,30 +395,30 @@ void main() {
     testWidgets('should show staleness indicator when data is stale',
         (WidgetTester tester) async {
       // Arrange: Cache data with very short TTL
-      final staleData = TestData(id: '12', value: 'Stale Data');
+      final TestData staleData = TestData(id: '12', value: 'Stale Data');
 
       await cacheService.set(
         entityType: 'test',
         entityId: '12',
         data: staleData,
-        ttl: Duration(milliseconds: 1),
+        ttl: const Duration(milliseconds: 1),
       );
 
       // Wait for data to become stale
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
 
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '12',
         fetcher: () async => staleData,
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           if (data == null) {
-            return Text('No Data');
+            return const Text('No Data');
           }
           return Column(
-            children: [
+            children: <Widget>[
               Text(data.value),
-              if (!isFresh) Icon(Icons.refresh, key: Key('stale-icon')),
+              if (!isFresh) const Icon(Icons.refresh, key: Key('stale-icon')),
             ],
           );
         },
@@ -428,19 +429,19 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert: Staleness indicator shown
-      expect(find.byKey(Key('stale-icon')), findsOneWidget);
+      expect(find.byKey(const Key('stale-icon')), findsOneWidget);
       expect(find.text('Stale Data'), findsOneWidget);
     }, skip: true);
 
     testWidgets('should handle rapid widget rebuilds', (WidgetTester tester) async {
       // Arrange
-      final testData = TestData(id: '13', value: 'Rapid Data');
+      final TestData testData = TestData(id: '13', value: 'Rapid Data');
 
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '13',
         fetcher: () async => testData,
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           return Text(data?.value ?? 'No Data');
         },
       );
@@ -448,10 +449,10 @@ void main() {
       // Act: Trigger multiple rapid rebuilds
       for (int i = 0; i < 5; i++) {
         await tester.pumpWidget(createTestWidget(widget));
-        await tester.pump(Duration(milliseconds: 10));
+        await tester.pump(const Duration(milliseconds: 10));
       }
 
-      await tester.pump(Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
 
       // Assert: Should handle gracefully without errors
       expect(find.text('Rapid Data'), findsOneWidget);
@@ -459,28 +460,28 @@ void main() {
 
     testWidgets('should work with complex data types', (WidgetTester tester) async {
       // Arrange: Complex data structure
-      final complexData = {
+      final Map<String, Object> complexData = <String, Object>{
         'id': '14',
-        'nested': {'value': 'Complex', 'count': 42},
-        'list': [1, 2, 3],
+        'nested': <String, Object>{'value': 'Complex', 'count': 42},
+        'list': <int>[1, 2, 3],
       };
 
-      final widget = CacheStreamBuilder<Map<String, dynamic>>(
+      final CacheStreamBuilder<Map<String, dynamic>> widget = CacheStreamBuilder<Map<String, dynamic>>(
         entityType: 'test',
         entityId: '14',
         fetcher: () async => complexData,
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, Map<String, dynamic>? data, bool isFresh) {
           if (data == null) {
-            return Text('No Data');
+            return const Text('No Data');
           }
-          final nested = data['nested'] as Map<String, dynamic>;
+          final Map<String, dynamic> nested = data['nested'] as Map<String, dynamic>;
           return Text('${nested['value']} - ${nested['count']}');
         },
       );
 
       // Act
       await tester.pumpWidget(createTestWidget(widget));
-      await tester.pump(Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
 
       // Assert: Complex data rendered
@@ -491,29 +492,29 @@ void main() {
         (WidgetTester tester) async {
       // Arrange
       int fetchCount = 0;
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '15',
         fetcher: () async {
           fetchCount++;
-          await Future.delayed(Duration(milliseconds: 50));
+          await Future.delayed(const Duration(milliseconds: 50));
           return TestData(id: '15', value: 'Concurrent $fetchCount');
         },
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           return Text(data?.value ?? 'No Data');
         },
       );
 
       // Act: Rapidly rebuild to trigger multiple fetches
       await tester.pumpWidget(createTestWidget(widget));
-      await tester.pump(Duration(milliseconds: 10));
+      await tester.pump(const Duration(milliseconds: 10));
 
       // Rebuild during fetch
       await tester.pumpWidget(createTestWidget(widget));
-      await tester.pump(Duration(milliseconds: 10));
+      await tester.pump(const Duration(milliseconds: 10));
 
       // Wait for completion
-      await tester.pump(Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 100));
       await tester.pump();
 
       // Assert: Should handle gracefully (may fetch multiple times, but renders correctly)
@@ -522,20 +523,20 @@ void main() {
 
     testWidgets('should properly mount/unmount widget', (WidgetTester tester) async {
       // Arrange
-      final testData = TestData(id: '16', value: 'Mount Test');
+      final TestData testData = TestData(id: '16', value: 'Mount Test');
 
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '16',
         fetcher: () async => testData,
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           return Text(data?.value ?? 'No Data');
         },
       );
 
       // Act: Mount widget
       await tester.pumpWidget(createTestWidget(widget));
-      await tester.pump(Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.pump();
 
       // Assert: Mounted and showing data
@@ -551,13 +552,13 @@ void main() {
     testWidgets('should handle fetcher that returns immediately',
         (WidgetTester tester) async {
       // Arrange: Synchronous-like fetcher
-      final testData = TestData(id: '17', value: 'Immediate');
+      final TestData testData = TestData(id: '17', value: 'Immediate');
 
-      final widget = CacheStreamBuilder<TestData>(
+      final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '17',
         fetcher: () async => testData, // Returns immediately
-        builder: (context, data, isFresh) {
+        builder: (BuildContext context, TestData? data, bool isFresh) {
           return Text(data?.value ?? 'No Data');
         },
       );

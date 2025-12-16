@@ -1,12 +1,8 @@
 import 'package:logging/logging.dart';
-import '../../data/local/database/app_database.dart';
-import '../../models/sync_operation.dart';
-import '../connectivity/connectivity_service.dart';
-import '../id_mapping/id_mapping_service.dart';
-import 'sync_manager.dart';
-import 'sync_queue_manager.dart';
-import 'firefly_api_adapter.dart';
-import 'database_adapter.dart';
+import 'package:waterflyiii/models/sync_operation.dart';
+import 'package:waterflyiii/services/sync/sync_manager.dart';
+import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/sync/database_adapter.dart';
 
 /// Sync manager with real Firefly III API and database integration.
 class SyncManagerWithApi extends SyncManager {
@@ -18,21 +14,17 @@ class SyncManagerWithApi extends SyncManager {
   SyncManagerWithApi({
     required this.apiAdapter,
     required this.databaseAdapter,
-    required SyncQueueManager queueManager,
-    required AppDatabase database,
-    required ConnectivityService connectivity,
-    required IdMappingService idMapping,
+    required super.queueManager,
+    required super.database,
+    required super.connectivity,
+    required super.idMapping,
     super.progressTracker,
     super.conflictDetector,
     super.conflictResolver,
     super.retryStrategy,
     super.circuitBreaker,
   }) : super(
-          queueManager: queueManager,
           apiClient: apiAdapter,
-          database: database,
-          connectivity: connectivity,
-          idMapping: idMapping,
         );
   
   /// Sync transaction with real Firefly III API and database
@@ -42,17 +34,17 @@ class SyncManagerWithApi extends SyncManager {
     try {
       switch (operation.operation) {
         case SyncOperationType.create:
-          final response = await apiAdapter.createTransaction(operation.payload);
+          final Map<String, dynamic> response = await apiAdapter.createTransaction(operation.payload);
           await databaseAdapter.upsertTransaction(response);
           _logger.info('Created transaction: ${response['id']}');
           break;
           
         case SyncOperationType.update:
-          final serverId = operation.payload['server_id'] as String?;
+          final String? serverId = operation.payload['server_id'] as String?;
           if (serverId == null) {
             throw Exception('Missing server_id for update');
           }
-          final response = await apiAdapter.updateTransaction(
+          final Map<String, dynamic> response = await apiAdapter.updateTransaction(
             serverId,
             operation.payload,
           );
@@ -61,7 +53,7 @@ class SyncManagerWithApi extends SyncManager {
           break;
           
         case SyncOperationType.delete:
-          final serverId = operation.payload['server_id'] as String?;
+          final String? serverId = operation.payload['server_id'] as String?;
           if (serverId == null) {
             throw Exception('Missing server_id for delete');
           }

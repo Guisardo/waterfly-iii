@@ -75,7 +75,7 @@ class _CacheStalenessManualTestPageState
   Timer? _countdownTimer;
 
   // Logs
-  final List<String> _logMessages = [];
+  final List<String> _logMessages = <String>[];
 
   @override
   void dispose() {
@@ -95,15 +95,15 @@ class _CacheStalenessManualTestPageState
     });
 
     try {
-      final cacheService = context.read<CacheService>();
+      final CacheService cacheService = context.read<CacheService>();
 
       // Clear any existing cache for this test entity
       _addLog('Clearing existing cache...');
       await cacheService.invalidate(testEntityType, testEntityId);
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Cache test data with short TTL
-      final testData = 'Test Data - ${DateTime.now().toIso8601String()}';
+      final String testData = 'Test Data - ${DateTime.now().toIso8601String()}';
       _addLog('Caching test data: $testData');
       _addLog('TTL: ${testTtl.inSeconds} seconds');
 
@@ -138,10 +138,10 @@ class _CacheStalenessManualTestPageState
     if (!mounted) return;
 
     try {
-      final cacheService = context.read<CacheService>();
+      final CacheService cacheService = context.read<CacheService>();
 
       // Check if cache exists and is fresh using public API
-      final isFresh =
+      final bool isFresh =
           await cacheService.isFresh(testEntityType, testEntityId);
 
       // Calculate time remaining based on local tracking
@@ -171,7 +171,7 @@ class _CacheStalenessManualTestPageState
   /// Start countdown timer
   void _startCountdownTimer() {
     _countdownTimer?.cancel();
-    _countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) async {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) async {
       if (!mounted) {
         timer.cancel();
         return;
@@ -192,20 +192,20 @@ class _CacheStalenessManualTestPageState
     _addLog('⚡ Forcing cache to become stale...');
 
     try {
-      final cacheService = context.read<CacheService>();
+      final CacheService cacheService = context.read<CacheService>();
 
       // Re-cache with 1ms TTL (will be stale immediately)
       await cacheService.set(
         entityType: testEntityType,
         entityId: testEntityId,
         data: _testData,
-        ttl: Duration(milliseconds: 1),
+        ttl: const Duration(milliseconds: 1),
       );
 
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
 
       // Update local tracking to reflect stale state
-      _cachedAt = DateTime.now().subtract(testTtl).subtract(Duration(seconds: 1));
+      _cachedAt = DateTime.now().subtract(testTtl).subtract(const Duration(seconds: 1));
       
       _addLog('✅ Cache forced to stale state');
       await _checkFreshness();
@@ -219,10 +219,10 @@ class _CacheStalenessManualTestPageState
     _addLog('🔄 Triggering background refresh...');
 
     try {
-      final cacheService = context.read<CacheService>();
+      final CacheService cacheService = context.read<CacheService>();
 
       // Simulate background refresh by re-caching with fresh TTL
-      final newData = 'Refreshed Data - ${DateTime.now().toIso8601String()}';
+      final String newData = 'Refreshed Data - ${DateTime.now().toIso8601String()}';
       await cacheService.set(
         entityType: testEntityType,
         entityId: testEntityId,
@@ -248,7 +248,7 @@ class _CacheStalenessManualTestPageState
     _addLog('🗑️  Clearing test cache...');
 
     try {
-      final cacheService = context.read<CacheService>();
+      final CacheService cacheService = context.read<CacheService>();
       await cacheService.invalidate(testEntityType, testEntityId);
 
       _countdownTimer?.cancel();
@@ -272,8 +272,8 @@ class _CacheStalenessManualTestPageState
 
   /// Add log message
   void _addLog(String message) {
-    final timestamp = DateTime.now().toIso8601String().split('T')[1];
-    final logMessage = '[$timestamp] $message';
+    final String timestamp = DateTime.now().toIso8601String().split('T')[1];
+    final String logMessage = '[$timestamp] $message';
 
     setState(() {
       _logMessages.add(logMessage);
@@ -298,16 +298,16 @@ class _CacheStalenessManualTestPageState
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             // Test Instructions
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Row(
-                      children: [
+                      children: <Widget>[
                         Icon(Icons.info_outline,
                             color: Theme.of(context).colorScheme.primary),
                         const SizedBox(width: 8),
@@ -339,7 +339,7 @@ class _CacheStalenessManualTestPageState
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Text(
                       'Test Controls',
                       style: Theme.of(context).textTheme.titleMedium,
@@ -348,7 +348,7 @@ class _CacheStalenessManualTestPageState
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: [
+                      children: <Widget>[
                         ElevatedButton.icon(
                           onPressed: _testRunning ? null : _startTest,
                           icon: const Icon(Icons.play_arrow),
@@ -382,7 +382,7 @@ class _CacheStalenessManualTestPageState
             const SizedBox(height: 16),
 
             // Cache Status Display
-            if (_testRunning) ...[
+            if (_testRunning) ...<Widget>[
               Card(
                 color: _isFresh
                     ? Colors.green.shade50
@@ -393,9 +393,9 @@ class _CacheStalenessManualTestPageState
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Row(
-                        children: [
+                        children: <Widget>[
                           Icon(
                             _isFresh ? Icons.check_circle : Icons.refresh,
                             color: _isFresh ? Colors.green : Colors.orange,
@@ -405,7 +405,7 @@ class _CacheStalenessManualTestPageState
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                              children: <Widget>[
                                 Text(
                                   _isFresh ? 'FRESH ✅' : 'STALE ⚠️',
                                   style: Theme.of(context)
@@ -481,9 +481,9 @@ class _CacheStalenessManualTestPageState
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Row(
-                      children: [
+                      children: <Widget>[
                         Icon(Icons.terminal,
                             color: Theme.of(context).colorScheme.primary),
                         const SizedBox(width: 8),
@@ -525,8 +525,8 @@ class _CacheStalenessManualTestPageState
                           : ListView.builder(
                               reverse: true,
                               itemCount: _logMessages.length,
-                              itemBuilder: (context, index) {
-                                final message =
+                              itemBuilder: (BuildContext context, int index) {
+                                final String message =
                                     _logMessages[_logMessages.length - 1 - index];
                                 return Padding(
                                   padding:
@@ -557,7 +557,7 @@ class _CacheStalenessManualTestPageState
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        children: [
+        children: <Widget>[
           Icon(icon, size: 16, color: Colors.grey.shade700),
           const SizedBox(width: 8),
           Text(

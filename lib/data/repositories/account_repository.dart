@@ -7,10 +7,10 @@ import 'package:waterflyiii/exceptions/offline_exceptions.dart';
 import 'package:waterflyiii/models/cache/cache_result.dart';
 import 'package:waterflyiii/models/sync_operation.dart';
 import 'package:waterflyiii/services/cache/cache_invalidation_rules.dart';
-import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 import 'package:waterflyiii/validators/account_validator.dart';
+import 'package:waterflyiii/validators/transaction_validator.dart';
 
 /// Repository for managing account data with cache-first architecture.
 ///
@@ -84,15 +84,14 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
   /// );
   /// ```
   AccountRepository({
-    required AppDatabase database,
-    CacheService? cacheService,
+    required super.database,
+    super.cacheService,
     UuidService? uuidService,
     SyncQueueManager? syncQueueManager,
     AccountValidator? validator,
   })  : _uuidService = uuidService ?? UuidService(),
         _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
-        _validator = validator ?? AccountValidator(),
-        super(database: database, cacheService: cacheService);
+        _validator = validator ?? AccountValidator();
 
   final UuidService _uuidService;
   final SyncQueueManager _syncQueueManager;
@@ -349,7 +348,7 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
         'active': entity.active,
       };
 
-      final validationResult = await _validator.validate(validationData);
+      final ValidationResult validationResult = await _validator.validate(validationData);
 
       if (!validationResult.isValid) {
         final String errorMsg =
@@ -516,7 +515,7 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
         'active': entity.active,
       };
 
-      final validationResult = await _validator.validate(validationData);
+      final ValidationResult validationResult = await _validator.validate(validationData);
 
       if (!validationResult.isValid) {
         final String errorMsg =

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/models/sync_progress.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
+import 'package:waterflyiii/services/sync/sync_statistics.dart';
 
 /// Comprehensive sync status screen with real-time updates.
 ///
@@ -46,14 +47,14 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
         title: const Text('Sync Status'),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
+          tabs: const <Widget>[
             Tab(text: 'Overview', icon: Icon(Icons.dashboard, size: 20)),
             Tab(text: 'History', icon: Icon(Icons.history, size: 20)),
             Tab(text: 'Conflicts', icon: Icon(Icons.warning_amber, size: 20)),
             Tab(text: 'Errors', icon: Icon(Icons.error, size: 20)),
           ],
         ),
-        actions: [
+        actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => _refresh(context),
@@ -62,7 +63,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
         ],
       ),
       body: Consumer<SyncStatusProvider>(
-        builder: (context, provider, child) {
+        builder: (BuildContext context, SyncStatusProvider provider, Widget? child) {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -71,7 +72,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
             onRefresh: () => provider.refresh(),
             child: TabBarView(
               controller: _tabController,
-              children: [
+              children: <Widget>[
                 _buildOverviewTab(context, provider),
                 _buildHistoryTab(context, provider),
                 _buildConflictsTab(context, provider),
@@ -91,7 +92,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
   ) {
     return ListView(
       padding: const EdgeInsets.all(16.0),
-      children: [
+      children: <Widget>[
         _buildCurrentStatusCard(context, provider),
         const SizedBox(height: 16),
         _buildStatisticsCard(context, provider),
@@ -106,18 +107,18 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
     BuildContext context,
     SyncStatusProvider provider,
   ) {
-    final progress = provider.currentProgress;
-    final isSyncing = provider.isSyncing;
-    final error = provider.currentError;
+    final SyncProgress? progress = provider.currentProgress;
+    final bool isSyncing = provider.isSyncing;
+    final String? error = provider.currentError;
 
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Row(
-              children: [
+              children: <Widget>[
                 Icon(
                   _getSyncStatusIcon(isSyncing, error),
                   color: _getSyncStatusColor(isSyncing, error),
@@ -127,7 +128,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Text(
                         _getSyncStatusText(isSyncing, error),
                         style: Theme.of(context).textTheme.titleLarge,
@@ -142,7 +143,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
                 ),
               ],
             ),
-            if (progress != null) ...[
+            if (progress != null) ...<Widget>[
               const SizedBox(height: 16),
               LinearProgressIndicator(
                 value: progress.percentage / 100,
@@ -151,7 +152,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Text(
                     '${progress.completedOperations}/${progress.totalOperations}',
                     style: Theme.of(context).textTheme.bodySmall,
@@ -162,14 +163,14 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
                   ),
                 ],
               ),
-              if (progress.estimatedTimeRemaining != null) ...[
+              if (progress.estimatedTimeRemaining != null) ...<Widget>[
                 const SizedBox(height: 8),
                 Text(
                   'ETA: ${_formatDuration(progress.estimatedTimeRemaining!)}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
-              if (progress.currentOperation != null) ...[
+              if (progress.currentOperation != null) ...<Widget>[
                 const SizedBox(height: 8),
                 Text(
                   'Current: ${progress.currentOperation}',
@@ -179,7 +180,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
                 ),
               ],
             ],
-            if (error != null) ...[
+            if (error != null) ...<Widget>[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -189,7 +190,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
                   border: Border.all(color: Colors.red[300]!),
                 ),
                 child: Row(
-                  children: [
+                  children: <Widget>[
                     Icon(Icons.error, color: Colors.red[700], size: 20),
                     const SizedBox(width: 8),
                     Expanded(
@@ -213,7 +214,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
     BuildContext context,
     SyncStatusProvider provider,
   ) {
-    final stats = provider.statistics;
+    final SyncStatistics? stats = provider.statistics;
 
     if (stats == null) {
       return const Card(
@@ -229,7 +230,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Text(
               'Statistics',
               style: Theme.of(context).textTheme.titleLarge,
@@ -281,14 +282,14 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
               Icons.warning_amber,
               color: stats.conflictsDetected > 0 ? Colors.orange : null,
             ),
-            if (stats.lastSyncTime != null) ...[
+            if (stats.lastSyncTime != null) ...<Widget>[
               const Divider(height: 24),
               Text(
                 'Last sync: ${_formatDateTime(stats.lastSyncTime!)}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
-            if (stats.nextScheduledSync != null) ...[
+            if (stats.nextScheduledSync != null) ...<Widget>[
               Text(
                 'Next sync: ${_formatDateTime(stats.nextScheduledSync!)}',
                 style: Theme.of(context).textTheme.bodySmall,
@@ -305,7 +306,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
     BuildContext context,
     SyncStatusProvider provider,
   ) {
-    final entityStats = provider.entityStats;
+    final Map<String, EntitySyncStats> entityStats = provider.entityStats;
 
     if (entityStats.isEmpty) {
       return const Card(
@@ -321,22 +322,22 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Text(
               'Entity Statistics',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
-            ...entityStats.entries.map((entry) {
-              final stats = entry.value;
+            ...entityStats.entries.map((MapEntry<String, EntitySyncStats> entry) {
+              final EntitySyncStats stats = entry.value;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                      children: <Widget>[
                         Text(
                           _formatEntityType(stats.entityType),
                           style: Theme.of(context).textTheme.titleMedium,
@@ -352,13 +353,13 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
                     ),
                     const SizedBox(height: 4),
                     Row(
-                      children: [
+                      children: <Widget>[
                         _buildEntityStatChip('C: ${stats.creates}', Colors.blue),
                         const SizedBox(width: 4),
                         _buildEntityStatChip('U: ${stats.updates}', Colors.orange),
                         const SizedBox(width: 4),
                         _buildEntityStatChip('D: ${stats.deletes}', Colors.red),
-                        if (stats.conflicts > 0) ...[
+                        if (stats.conflicts > 0) ...<Widget>[
                           const SizedBox(width: 4),
                           _buildEntityStatChip(
                             'Conflicts: ${stats.conflicts}',
@@ -382,13 +383,13 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
     BuildContext context,
     SyncStatusProvider provider,
   ) {
-    final history = provider.syncHistory;
+    final List<SyncResult> history = provider.syncHistory;
 
     if (history.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Icon(Icons.history, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
@@ -412,8 +413,8 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
     return ListView.builder(
       padding: const EdgeInsets.all(16.0),
       itemCount: history.length,
-      itemBuilder: (context, index) {
-        final result = history[index];
+      itemBuilder: (BuildContext context, int index) {
+        final SyncResult result = history[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12.0),
           child: ListTile(
@@ -428,7 +429,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 Text(_formatDateTime(result.startTime)),
                 Text(
                   '${result.successfulOperations}/${result.totalOperations} operations • '
@@ -454,13 +455,13 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
     BuildContext context,
     SyncStatusProvider provider,
   ) {
-    final conflicts = provider.unresolvedConflicts;
+    final List<dynamic> conflicts = provider.unresolvedConflicts;
 
     if (conflicts.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Icon(Icons.check_circle, size: 64, color: Colors.green[400]),
             const SizedBox(height: 16),
             Text(
@@ -484,7 +485,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
     return ListView.builder(
       padding: const EdgeInsets.all(16.0),
       itemCount: conflicts.length,
-      itemBuilder: (context, index) {
+      itemBuilder: (BuildContext context, int index) {
         final conflict = conflicts[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12.0),
@@ -511,13 +512,13 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
     BuildContext context,
     SyncStatusProvider provider,
   ) {
-    final errors = provider.recentErrors;
+    final List<SyncError> errors = provider.recentErrors;
 
     if (errors.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             Icon(Icons.check_circle, size: 64, color: Colors.green[400]),
             const SizedBox(height: 16),
             Text(
@@ -539,12 +540,12 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
     }
 
     return Column(
-      children: [
+      children: <Widget>[
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               Text(
                 '${errors.length} errors',
                 style: Theme.of(context).textTheme.titleMedium,
@@ -566,8 +567,8 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             itemCount: errors.length,
-            itemBuilder: (context, index) {
-              final error = errors[index];
+            itemBuilder: (BuildContext context, int index) {
+              final SyncError error = errors[index];
               return Card(
                 margin: const EdgeInsets.only(bottom: 12.0),
                 child: ListTile(
@@ -602,7 +603,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        children: [
+        children: <Widget>[
           Icon(icon, size: 20, color: color),
           const SizedBox(width: 12),
           Expanded(
@@ -647,13 +648,13 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
   void _showSyncResultDetails(BuildContext context, SyncResult result) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: Text(result.success ? 'Sync Successful' : 'Sync Failed'),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               _buildDetailRow('Started', _formatDateTime(result.startTime)),
               _buildDetailRow('Ended', _formatDateTime(result.endTime)),
               _buildDetailRow('Duration', _formatDuration(result.duration)),
@@ -668,7 +669,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
               const Divider(),
               _buildDetailRow('Success rate', '${(result.successRate * 100).toStringAsFixed(1)}%'),
               _buildDetailRow('Throughput', '${result.throughput.toStringAsFixed(2)} ops/s'),
-              if (result.errorMessage != null) ...[
+              if (result.errorMessage != null) ...<Widget>[
                 const Divider(),
                 const Text('Error:', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
@@ -677,7 +678,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
             ],
           ),
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
@@ -691,19 +692,19 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
   void _showErrorDetails(BuildContext context, SyncError error) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Error Details'),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               _buildDetailRow('Time', _formatDateTime(error.timestamp)),
               const Divider(),
               const Text('Message:', style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
               Text(error.message),
-              if (error.exception != null) ...[
+              if (error.exception != null) ...<Widget>[
                 const SizedBox(height: 12),
                 const Text('Exception:', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
@@ -712,7 +713,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
             ],
           ),
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
@@ -728,7 +729,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           SizedBox(
             width: 120,
             child: Text(
@@ -744,7 +745,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
 
   /// Refresh data.
   Future<void> _refresh(BuildContext context) async {
-    final provider = context.read<SyncStatusProvider>();
+    final SyncStatusProvider provider = context.read<SyncStatusProvider>();
     await provider.refresh();
   }
 
@@ -787,8 +788,8 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
 
   /// Format DateTime for display.
   String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
+    final DateTime now = DateTime.now();
+    final Duration difference = now.difference(dateTime);
 
     if (difference.inMinutes < 1) {
       return 'Just now';

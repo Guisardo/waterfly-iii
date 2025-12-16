@@ -1,6 +1,6 @@
 import 'package:logging/logging.dart';
 
-import '../exceptions/offline_exceptions.dart';
+import 'package:waterflyiii/exceptions/offline_exceptions.dart';
 
 /// Validates transaction data before storage or synchronization.
 ///
@@ -25,14 +25,14 @@ class TransactionValidator {
   ValidationResult validate(Map<String, dynamic> data) {
     _logger.fine('Validating transaction data');
 
-    final errors = <String>[];
+    final List<String> errors = <String>[];
 
     // Required fields validation
     if (!data.containsKey('type') || data['type'] == null) {
       errors.add('Transaction type is required');
     } else {
-      final type = data['type'] as String;
-      if (!['withdrawal', 'deposit', 'transfer'].contains(type.toLowerCase())) {
+      final String type = data['type'] as String;
+      if (!<String>['withdrawal', 'deposit', 'transfer'].contains(type.toLowerCase())) {
         errors.add('Invalid transaction type: $type. '
             'Must be withdrawal, deposit, or transfer');
       }
@@ -41,7 +41,7 @@ class TransactionValidator {
     if (!data.containsKey('amount') || data['amount'] == null) {
       errors.add('Amount is required');
     } else {
-      final amount = _parseAmount(data['amount']);
+      final double? amount = _parseAmount(data['amount']);
       if (amount == null) {
         errors.add('Amount must be a valid number');
       } else if (amount <= 0) {
@@ -54,10 +54,10 @@ class TransactionValidator {
     if (!data.containsKey('date') || data['date'] == null) {
       errors.add('Transaction date is required');
     } else {
-      final date = _parseDate(data['date']);
+      final DateTime? date = _parseDate(data['date']);
       if (date == null) {
         errors.add('Invalid date format');
-      } else if (date.isAfter(DateTime.now().add(Duration(days: 1)))) {
+      } else if (date.isAfter(DateTime.now().add(const Duration(days: 1)))) {
         errors.add('Transaction date cannot be in the future');
       }
     }
@@ -67,14 +67,14 @@ class TransactionValidator {
         (data['description'] as String).trim().isEmpty) {
       errors.add('Description is required');
     } else {
-      final description = data['description'] as String;
+      final String description = data['description'] as String;
       if (description.length > 1000) {
         errors.add('Description exceeds maximum length of 1000 characters');
       }
     }
 
     // Account validation
-    final type = data['type'] as String?;
+    final String? type = data['type'] as String?;
     if (type != null) {
       if (type.toLowerCase() == 'withdrawal' || type.toLowerCase() == 'transfer') {
         if (!data.containsKey('source_id') || data['source_id'] == null) {
@@ -97,7 +97,7 @@ class TransactionValidator {
 
     // Currency validation
     if (data.containsKey('currency_code') && data['currency_code'] != null) {
-      final currencyCode = data['currency_code'] as String;
+      final String currencyCode = data['currency_code'] as String;
       if (!_isValidCurrencyCode(currencyCode)) {
         errors.add('Invalid currency code: $currencyCode');
       }
@@ -105,7 +105,7 @@ class TransactionValidator {
 
     // Foreign amount validation (for multi-currency transactions)
     if (data.containsKey('foreign_amount') && data['foreign_amount'] != null) {
-      final foreignAmount = _parseAmount(data['foreign_amount']);
+      final double? foreignAmount = _parseAmount(data['foreign_amount']);
       if (foreignAmount == null) {
         errors.add('Foreign amount must be a valid number');
       } else if (foreignAmount <= 0) {
@@ -139,7 +139,7 @@ class TransactionValidator {
       if (data['tags'] is! List) {
         errors.add('Tags must be a list');
       } else {
-        final tags = data['tags'] as List;
+        final List<dynamic> tags = data['tags'] as List;
         if (tags.length > 50) {
           errors.add('Maximum 50 tags allowed');
         }
@@ -152,7 +152,7 @@ class TransactionValidator {
       }
     }
 
-    final isValid = errors.isEmpty;
+    final bool isValid = errors.isEmpty;
 
     if (!isValid) {
       _logger.warning('Transaction validation failed: ${errors.join(', ')}');
@@ -173,23 +173,23 @@ class TransactionValidator {
   ) async {
     _logger.fine('Validating account references');
 
-    final errors = <String>[];
+    final List<String> errors = <String>[];
 
     if (data.containsKey('source_id') && data['source_id'] != null) {
-      final sourceId = data['source_id'] as String;
+      final String sourceId = data['source_id'] as String;
       if (!await accountExists(sourceId)) {
         errors.add('Source account not found: $sourceId');
       }
     }
 
     if (data.containsKey('destination_id') && data['destination_id'] != null) {
-      final destinationId = data['destination_id'] as String;
+      final String destinationId = data['destination_id'] as String;
       if (!await accountExists(destinationId)) {
         errors.add('Destination account not found: $destinationId');
       }
     }
 
-    final isValid = errors.isEmpty;
+    final bool isValid = errors.isEmpty;
 
     if (!isValid) {
       _logger.warning('Account reference validation failed: ${errors.join(', ')}');
@@ -224,7 +224,7 @@ class TransactionValidator {
     if (!RegExp(r'^[A-Z]{3}$').hasMatch(code)) return false;
 
     // Common currency codes (not exhaustive, but covers most cases)
-    const commonCurrencies = {
+    const Set<String> commonCurrencies = <String>{
       'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD',
       'CNY', 'INR', 'BRL', 'RUB', 'KRW', 'MXN', 'ZAR', 'SEK',
       'NOK', 'DKK', 'PLN', 'THB', 'IDR', 'HUF', 'CZK', 'ILS',

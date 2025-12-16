@@ -27,7 +27,7 @@ void main() {
       });
 
       test('emits started event', () async {
-        final events = <SyncEvent>[];
+        final List<SyncEvent> events = <SyncEvent>[];
         tracker.watchEvents().listen(events.add);
 
         tracker.start(totalOperations: 50);
@@ -40,7 +40,7 @@ void main() {
       });
 
       test('emits initial progress', () async {
-        final progressUpdates = <SyncProgress>[];
+        final List<SyncProgress> progressUpdates = <SyncProgress>[];
         tracker.watchProgress().listen(progressUpdates.add);
 
         tracker.start(totalOperations: 100);
@@ -62,7 +62,7 @@ void main() {
       });
 
       test('emits progress update', () async {
-        final progressUpdates = <SyncProgress>[];
+        final List<SyncProgress> progressUpdates = <SyncProgress>[];
         tracker.watchProgress().listen(progressUpdates.add);
 
         tracker.start(totalOperations: 100);
@@ -104,7 +104,7 @@ void main() {
         tracker.start(totalOperations: 100);
 
         for (int i = 0; i < 10; i++) {
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           tracker.incrementCompleted();
         }
 
@@ -116,7 +116,7 @@ void main() {
 
         // Complete some operations to establish throughput
         for (int i = 0; i < 10; i++) {
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           tracker.incrementCompleted();
         }
 
@@ -169,7 +169,7 @@ void main() {
       });
 
       test('emits conflict detected event', () async {
-        final events = <SyncEvent>[];
+        final List<SyncEvent> events = <SyncEvent>[];
         tracker.watchEvents().listen(events.add);
 
         tracker.start(totalOperations: 100);
@@ -178,7 +178,7 @@ void main() {
         tracker.incrementConflicts(conflictId: 'conflict_1');
         await Future.delayed(const Duration(milliseconds: 10));
 
-        final conflictEvents = events.whereType<ConflictDetectedEvent>().toList();
+        final List<ConflictDetectedEvent> conflictEvents = events.whereType<ConflictDetectedEvent>().toList();
         expect(conflictEvents, hasLength(1));
         expect(conflictEvents.first.conflict, 'conflict_1');
       });
@@ -209,7 +209,7 @@ void main() {
           tracker.incrementSkipped();
         }
 
-        final result = tracker.complete(success: true);
+        final SyncResult result = tracker.complete(success: true);
 
         expect(result.success, true);
         expect(result.totalOperations, 100);
@@ -221,7 +221,7 @@ void main() {
       });
 
       test('emits completed event', () async {
-        final events = <SyncEvent>[];
+        final List<SyncEvent> events = <SyncEvent>[];
         tracker.watchEvents().listen(events.add);
 
         tracker.start(totalOperations: 10);
@@ -230,13 +230,13 @@ void main() {
         tracker.complete(success: true);
         await Future.delayed(const Duration(milliseconds: 10));
 
-        final completedEvents = events.whereType<SyncCompletedEvent>().toList();
+        final List<SyncCompletedEvent> completedEvents = events.whereType<SyncCompletedEvent>().toList();
         expect(completedEvents, hasLength(1));
         expect(completedEvents.first.result.success, true);
       });
 
       test('emits failed event on failure', () async {
-        final events = <SyncEvent>[];
+        final List<SyncEvent> events = <SyncEvent>[];
         tracker.watchEvents().listen(events.add);
 
         tracker.start(totalOperations: 10);
@@ -245,7 +245,7 @@ void main() {
         tracker.complete(success: false);
         await Future.delayed(const Duration(milliseconds: 10));
 
-        final failedEvents = events.whereType<SyncFailedEvent>().toList();
+        final List<SyncFailedEvent> failedEvents = events.whereType<SyncFailedEvent>().toList();
         expect(failedEvents, hasLength(1));
       });
 
@@ -257,7 +257,7 @@ void main() {
           tracker.incrementCompleted();
         }
 
-        final result = tracker.complete(success: true);
+        final SyncResult result = tracker.complete(success: true);
 
         expect(result.duration, greaterThan(Duration.zero));
       });
@@ -280,7 +280,7 @@ void main() {
       });
 
       test('emits failed event', () async {
-        final events = <SyncEvent>[];
+        final List<SyncEvent> events = <SyncEvent>[];
         tracker.watchEvents().listen(events.add);
 
         tracker.start(totalOperations: 100);
@@ -289,7 +289,7 @@ void main() {
         tracker.cancel();
         await Future.delayed(const Duration(milliseconds: 10));
 
-        final failedEvents = events.whereType<SyncFailedEvent>().toList();
+        final List<SyncFailedEvent> failedEvents = events.whereType<SyncFailedEvent>().toList();
         expect(failedEvents, hasLength(1));
         expect(failedEvents.first.error, contains('cancelled'));
       });
@@ -325,7 +325,7 @@ void main() {
           tracker.incrementFailed();
         }
 
-        final result = tracker.complete(success: true);
+        final SyncResult result = tracker.complete(success: true);
 
         expect(result.successRate, 0.8);
       });
@@ -333,7 +333,7 @@ void main() {
       test('handles zero operations for success rate', () {
         tracker.start(totalOperations: 100);
 
-        final result = tracker.complete(success: true);
+        final SyncResult result = tracker.complete(success: true);
 
         expect(result.successRate, 0.0);
       });
@@ -341,7 +341,7 @@ void main() {
 
     group('stream behavior', () {
       test('progress stream emits updates', () async {
-        final progressUpdates = <SyncProgress>[];
+        final List<SyncProgress> progressUpdates = <SyncProgress>[];
         tracker.watchProgress().listen(progressUpdates.add);
 
         tracker.start(totalOperations: 10);
@@ -357,7 +357,7 @@ void main() {
       });
 
       test('event stream emits all event types', () async {
-        final events = <SyncEvent>[];
+        final List<SyncEvent> events = <SyncEvent>[];
         tracker.watchEvents().listen(events.add);
 
         tracker.start(totalOperations: 10);

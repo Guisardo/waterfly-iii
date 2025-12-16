@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 
-import '../data/local/database/app_database.dart';
-import '../models/conflict.dart';
-import '../services/sync/conflict_resolver.dart';
-import '../services/sync/firefly_api_adapter.dart';
-import '../services/sync/sync_queue_manager.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/models/conflict.dart';
+import 'package:waterflyiii/services/sync/conflict_resolver.dart';
+import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 
 /// Dialog for resolving data conflicts.
 ///
@@ -40,8 +40,8 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_resolver == null) {
-      final database = Provider.of<AppDatabase>(context, listen: false);
-      final apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
+      final AppDatabase database = Provider.of<AppDatabase>(context, listen: false);
+      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
       _resolver = ConflictResolver(
         apiAdapter: apiAdapter,
         database: database,
@@ -56,7 +56,7 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
       child: Container(
         constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
         child: Column(
-          children: [
+          children: <Widget>[
             // Header
             Container(
               padding: const EdgeInsets.all(16),
@@ -67,7 +67,7 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
                 ),
               ),
               child: Row(
-                children: [
+                children: <Widget>[
                   Icon(
                     Icons.warning_amber_rounded,
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -76,7 +76,7 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: <Widget>[
                         Text(
                           'Resolve Conflict',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -106,7 +106,7 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     _buildComparisonSection(),
                     const SizedBox(height: 24),
                     _buildStrategySection(),
@@ -127,7 +127,7 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [
+                children: <Widget>[
                   TextButton(
                     onPressed: _isResolving ? null : () => Navigator.pop(context, false),
                     child: const Text('Cancel'),
@@ -157,14 +157,14 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
   Widget _buildComparisonSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'Conflicting Fields',
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 12),
         Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: _buildVersionCard(
                 'Local Version',
@@ -193,19 +193,19 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Text(
               title,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
-            ...widget.conflict.conflictingFields.map((field) {
+            ...widget.conflict.conflictingFields.map((String field) {
               final value = data[field];
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Text(
                       field,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -229,7 +229,7 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
   Widget _buildStrategySection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'Resolution Strategy',
           style: Theme.of(context).textTheme.titleMedium,
@@ -272,7 +272,7 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
     String description,
     IconData icon,
   ) {
-    final isSelected = _selectedStrategy == strategy;
+    final bool isSelected = _selectedStrategy == strategy;
 
     return InkWell(
       onTap: () {
@@ -296,7 +296,7 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
               : null,
         ),
         child: Row(
-          children: [
+          children: <Widget>[
             Icon(
               icon,
               color: isSelected
@@ -307,7 +307,7 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(

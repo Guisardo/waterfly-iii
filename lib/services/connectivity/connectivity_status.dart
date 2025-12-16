@@ -61,7 +61,7 @@ class ConnectivityInfo {
     }
 
     // Multiple connections
-    final types = networkTypes.map(_getNetworkTypeName).join(' + ');
+    final String types = networkTypes.map(_getNetworkTypeName).join(' + ');
     return types;
   }
 

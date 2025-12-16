@@ -40,7 +40,7 @@ class AnimationService {
       duration: medium2,
       switchInCurve: emphasizedDecelerate,
       switchOutCurve: emphasizedAccelerate,
-      transitionBuilder: (child, animation) {
+      transitionBuilder: (Widget child, Animation<double> animation) {
         return FadeTransition(
           opacity: animation,
           child: SlideTransition(
@@ -89,22 +89,22 @@ class AnimationService {
   }) {
     return AnimatedBuilder(
       animation: controller,
-      builder: (context, child) {
+      builder: (BuildContext context, Widget? child) {
         return ShaderMask(
-          shaderCallback: (bounds) {
+          shaderCallback: (Rect bounds) {
             return LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
+              colors: <Color>[
                 Colors.white.withOpacity(0.0),
                 Colors.white.withOpacity(0.3),
                 Colors.white.withOpacity(0.0),
               ],
-              stops: [
+              stops: <double>[
                 controller.value - 0.3,
                 controller.value,
                 controller.value + 0.3,
-              ].map((e) => e.clamp(0.0, 1.0)).toList(),
+              ].map((double e) => e.clamp(0.0, 1.0)).toList(),
             ).createShader(bounds);
           },
           child: child,
@@ -139,7 +139,7 @@ class AnimationService {
     required Widget child,
     required AnimationController controller,
   }) {
-    final animation = Tween<double>(begin: 0, end: 10).animate(
+    final Animation<double> animation = Tween<double>(begin: 0, end: 10).animate(
       CurvedAnimation(
         parent: controller,
         curve: Curves.elasticIn,
@@ -148,7 +148,7 @@ class AnimationService {
 
     return AnimatedBuilder(
       animation: animation,
-      builder: (context, child) {
+      builder: (BuildContext context, Widget? child) {
         return Transform.translate(
           offset: Offset(
             animation.value * (controller.value < 0.5 ? 1 : -1),
@@ -276,7 +276,7 @@ mixin AnimationMixin<T extends StatefulWidget> on State<T>, TickerProviderStateM
   // Reserved for future centralized animation management
   // ignore: unused_field
   final AnimationService _animationService = AnimationService();
-  final Map<String, AnimationController> _controllers = {};
+  final Map<String, AnimationController> _controllers = <String, AnimationController>{};
 
   /// Create and register an animation controller
   AnimationController createController({
@@ -284,7 +284,7 @@ mixin AnimationMixin<T extends StatefulWidget> on State<T>, TickerProviderStateM
     required Duration duration,
     Duration? reverseDuration,
   }) {
-    final controller = AnimationController(
+    final AnimationController controller = AnimationController(
       vsync: this,
       duration: duration,
       reverseDuration: reverseDuration,
@@ -298,7 +298,7 @@ mixin AnimationMixin<T extends StatefulWidget> on State<T>, TickerProviderStateM
 
   @override
   void dispose() {
-    for (final controller in _controllers.values) {
+    for (final AnimationController controller in _controllers.values) {
       controller.dispose();
     }
     _controllers.clear();

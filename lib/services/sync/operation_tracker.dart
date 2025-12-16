@@ -3,9 +3,9 @@ import 'dart:convert';
 
 import 'package:logging/logging.dart';
 
-import '../../data/local/database/app_database.dart';
-import '../../exceptions/offline_exceptions.dart';
-import 'metadata_service.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/exceptions/offline_exceptions.dart';
+import 'package:waterflyiii/services/sync/metadata_service.dart';
 
 /// Tracks the lifecycle and statistics of synchronization operations.
 ///
@@ -48,19 +48,19 @@ class OperationTracker {
     _logger.fine('Tracking operation: $operationId -> $status');
 
     try {
-      final timestamp = DateTime.now();
-      final historyKey = MetadataKeys.operationHistory(operationId);
+      final DateTime timestamp = DateTime.now();
+      final String historyKey = MetadataKeys.operationHistory(operationId);
 
       // Get existing history
-      final existingHistory = await _metadata.get(historyKey);
-      final history = existingHistory != null
+      final String? existingHistory = await _metadata.get(historyKey);
+      final List<Map<String, dynamic>> history = existingHistory != null
           ? List<Map<String, dynamic>>.from(
               jsonDecode(existingHistory) as List,
             )
           : <Map<String, dynamic>>[];
 
       // Add new entry
-      history.add({
+      history.add(<String, dynamic>{
         'status': status,
         'timestamp': timestamp.toIso8601String(),
       });
@@ -77,7 +77,7 @@ class OperationTracker {
       );
       throw SyncException(
         'Failed to track operation',
-        {"error": e.toString()},
+        <String, dynamic>{"error": e.toString()},
       );
     }
   }
@@ -92,19 +92,19 @@ class OperationTracker {
     _logger.fine('Fetching operation history: $operationId');
 
     try {
-      final historyKey = MetadataKeys.operationHistory(operationId);
-      final historyJson = await _metadata.get(historyKey);
+      final String historyKey = MetadataKeys.operationHistory(operationId);
+      final String? historyJson = await _metadata.get(historyKey);
 
       if (historyJson == null) {
-        return [];
+        return <OperationHistoryEntry>[];
       }
 
-      final history = List<Map<String, dynamic>>.from(
+      final List<Map<String, dynamic>> history = List<Map<String, dynamic>>.from(
         jsonDecode(historyJson) as List,
       );
 
       return history
-          .map((entry) => OperationHistoryEntry(
+          .map((Map<String, dynamic> entry) => OperationHistoryEntry(
                 status: entry['status'] as String,
                 timestamp: DateTime.parse(entry['timestamp'] as String),
               ))
@@ -117,7 +117,7 @@ class OperationTracker {
       );
       throw SyncException(
         'Failed to fetch operation history',
-        {"error": e.toString()},
+        <String, dynamic>{"error": e.toString()},
       );
     }
   }
@@ -137,10 +137,10 @@ class OperationTracker {
 
     try {
       // Get all operation histories
-      final allMetadata = await _metadata.getAll(
+      final Map<String, String> allMetadata = await _metadata.getAll(
         prefix: MetadataKeys.operationHistoryPrefix,
       );
-      final historyEntries = allMetadata.entries.toList();
+      final List<MapEntry<String, String>> historyEntries = allMetadata.entries.toList();
 
       if (historyEntries.isEmpty) {
         return OperationStatistics.empty();
@@ -150,10 +150,10 @@ class OperationTracker {
       int successfulOperations = 0;
       int failedOperations = 0;
       int retriedOperations = 0;
-      final List<Duration> processingTimes = [];
+      final List<Duration> processingTimes = <Duration>[];
 
-      for (final entry in historyEntries) {
-        final history = List<Map<String, dynamic>>.from(
+      for (final MapEntry<String, String> entry in historyEntries) {
+        final List<Map<String, dynamic>> history = List<Map<String, dynamic>>.from(
           jsonDecode(entry.value) as List,
         );
 
@@ -162,7 +162,7 @@ class OperationTracker {
         totalOperations++;
 
         // Check final status
-        final lastStatus = history.last['status'] as String;
+        final String lastStatus = history.last['status'] as String;
         if (lastStatus == 'completed') {
           successfulOperations++;
         } else if (lastStatus == 'failed') {
@@ -170,45 +170,45 @@ class OperationTracker {
         }
 
         // Check for retries
-        final processingCount =
-            history.where((h) => h['status'] == 'processing').length;
+        final int processingCount =
+            history.where((Map<String, dynamic> h) => h['status'] == 'processing').length;
         if (processingCount > 1) {
           retriedOperations++;
         }
 
         // Calculate processing time
-        final createdEntry = history.firstWhere(
-          (h) => h['status'] == 'created' || h['status'] == 'queued',
+        final Map<String, dynamic> createdEntry = history.firstWhere(
+          (Map<String, dynamic> h) => h['status'] == 'created' || h['status'] == 'queued',
           orElse: () => history.first,
         );
-        final completedEntry = history.lastWhere(
-          (h) => h['status'] == 'completed' || h['status'] == 'failed',
+        final Map<String, dynamic> completedEntry = history.lastWhere(
+          (Map<String, dynamic> h) => h['status'] == 'completed' || h['status'] == 'failed',
           orElse: () => history.last,
         );
 
-        final startTime = DateTime.parse(createdEntry['timestamp'] as String);
-        final endTime = DateTime.parse(completedEntry['timestamp'] as String);
+        final DateTime startTime = DateTime.parse(createdEntry['timestamp'] as String);
+        final DateTime endTime = DateTime.parse(completedEntry['timestamp'] as String);
         processingTimes.add(endTime.difference(startTime));
       }
 
       // Calculate averages
-      final successRate = totalOperations > 0
+      final double successRate = totalOperations > 0
           ? (successfulOperations / totalOperations * 100)
           : 0.0;
 
-      final failureRate = totalOperations > 0
+      final double failureRate = totalOperations > 0
           ? (failedOperations / totalOperations * 100)
           : 0.0;
 
-      final retryRate = totalOperations > 0
+      final double retryRate = totalOperations > 0
           ? (retriedOperations / totalOperations * 100)
           : 0.0;
 
-      final avgProcessingTime = processingTimes.isNotEmpty
-          ? processingTimes.reduce((a, b) => a + b) ~/ processingTimes.length
+      final Duration avgProcessingTime = processingTimes.isNotEmpty
+          ? processingTimes.reduce((Duration a, Duration b) => a + b) ~/ processingTimes.length
           : Duration.zero;
 
-      final stats = OperationStatistics(
+      final OperationStatistics stats = OperationStatistics(
         totalOperations: totalOperations,
         successfulOperations: successfulOperations,
         failedOperations: failedOperations,
@@ -225,7 +225,7 @@ class OperationTracker {
       _logger.severe('Failed to calculate operation statistics', e, stackTrace);
       throw SyncException(
         'Failed to calculate operation statistics',
-        {"error": e.toString()},
+        <String, dynamic>{"error": e.toString()},
       );
     }
   }
@@ -238,21 +238,21 @@ class OperationTracker {
     _logger.info('Clearing operation history older than $retentionDays days');
 
     try {
-      final cutoffDate = DateTime.now().subtract(Duration(days: retentionDays));
-      final allMetadata = await _metadata.getAll(
+      final DateTime cutoffDate = DateTime.now().subtract(Duration(days: retentionDays));
+      final Map<String, String> allMetadata = await _metadata.getAll(
         prefix: MetadataKeys.operationHistoryPrefix,
       );
       int clearedCount = 0;
 
-      for (final entry in allMetadata.entries) {
-        final history = List<Map<String, dynamic>>.from(
+      for (final MapEntry<String, String> entry in allMetadata.entries) {
+        final List<Map<String, dynamic>> history = List<Map<String, dynamic>>.from(
           jsonDecode(entry.value) as List,
         );
 
         if (history.isEmpty) continue;
 
         // Check if last entry is older than cutoff
-        final lastTimestamp = DateTime.parse(
+        final DateTime lastTimestamp = DateTime.parse(
           history.last['timestamp'] as String,
         );
 
@@ -267,7 +267,7 @@ class OperationTracker {
       _logger.severe('Failed to clear old history', e, stackTrace);
       throw SyncException(
         'Failed to clear old history',
-        {"error": e.toString()},
+        <String, dynamic>{"error": e.toString()},
       );
     }
   }

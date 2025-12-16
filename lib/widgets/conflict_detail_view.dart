@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
-import '../models/conflict.dart';
+import 'package:waterflyiii/models/conflict.dart';
 
 /// Detailed view of a conflict showing full entity details.
 ///
@@ -29,14 +29,14 @@ class ConflictDetailView extends StatefulWidget {
 class _ConflictDetailViewState extends State<ConflictDetailView> {
   static final Logger _logger = Logger('ConflictDetailView');
 
-  final Map<String, String> _mergeSelection = {}; // field -> 'local' or 'remote'
-  final Set<String> _expandedFields = {};
+  final Map<String, String> _mergeSelection = <String, String>{}; // field -> 'local' or 'remote'
+  final Set<String> _expandedFields = <String>{};
 
   @override
   void initState() {
     super.initState();
     // Initialize merge selection with local values by default
-    for (final field in widget.conflict.conflictingFields) {
+    for (final String field in widget.conflict.conflictingFields) {
       _mergeSelection[field] = 'local';
     }
   }
@@ -45,7 +45,7 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         _buildMetadataSection(),
         const SizedBox(height: 16),
         _buildFieldsSection(),
@@ -59,7 +59,7 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Text(
               'Conflict Information',
               style: Theme.of(context).textTheme.titleMedium,
@@ -80,7 +80,7 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+        children: <Widget>[
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -99,7 +99,7 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
   }
 
   Widget _buildFieldsSection() {
-    final allFields = <String>{
+    final List<String> allFields = <String>{
       ...widget.conflict.localData.keys,
       ...widget.conflict.remoteData.keys,
     }.toList()
@@ -107,23 +107,23 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Text(
           'Field Comparison',
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 12),
-        ...allFields.map((field) => _buildFieldCard(field)),
+        ...allFields.map((String field) => _buildFieldCard(field)),
       ],
     );
   }
 
   Widget _buildFieldCard(String field) {
-    final isConflicting = widget.conflict.conflictingFields.contains(field);
-    final isExpanded = _expandedFields.contains(field);
+    final bool isConflicting = widget.conflict.conflictingFields.contains(field);
+    final bool isExpanded = _expandedFields.contains(field);
     final localValue = widget.conflict.localData[field];
     final remoteValue = widget.conflict.remoteData[field];
-    final selectedSource = _mergeSelection[field];
+    final String? selectedSource = _mergeSelection[field];
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -131,7 +131,7 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
           ? Theme.of(context).colorScheme.errorContainer.withOpacity(0.3)
           : null,
       child: Column(
-        children: [
+        children: <Widget>[
           ListTile(
             leading: Icon(
               isConflicting ? Icons.warning_amber : Icons.check_circle_outline,
@@ -164,12 +164,12 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
               },
             ),
           ),
-          if (isExpanded) ...[
+          if (isExpanded) ...<Widget>[
             const Divider(height: 1),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
-                children: [
+                children: <Widget>[
                   _buildValueComparison(
                     'Local',
                     localValue,
@@ -230,11 +230,11 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
               : null,
         ),
         child: Row(
-          children: [
+          children: <Widget>[
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   Text(
                     source,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
@@ -282,13 +282,13 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
   void _notifyMergeSelectionChanged() {
     if (widget.onMergeSelectionChanged == null) return;
 
-    final mergedData = <String, dynamic>{};
+    final Map<String, dynamic> mergedData = <String, dynamic>{};
 
     // Start with all local data
     mergedData.addAll(widget.conflict.localData);
 
     // Override with selected remote values
-    for (final entry in _mergeSelection.entries) {
+    for (final MapEntry<String, String> entry in _mergeSelection.entries) {
       if (entry.value == 'remote') {
         mergedData[entry.key] = widget.conflict.remoteData[entry.key];
       }

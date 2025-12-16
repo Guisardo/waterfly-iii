@@ -98,7 +98,7 @@ void main() {
         // Verify serverUpdatedAt column exists (should be null initially)
         final TransactionEntity transaction =
             await (database.select(database.transactions)
-                  ..where((t) => t.id.equals('test-tx-123')))
+                  ..where(($TransactionsTable t) => t.id.equals('test-tx-123')))
                 .getSingle();
 
         expect(transaction.serverUpdatedAt, isNull); // Nullable column
@@ -124,7 +124,7 @@ void main() {
         // Verify serverUpdatedAt column exists
         final AccountEntity account =
             await (database.select(database.accounts)
-                  ..where((a) => a.id.equals('test-acc-123')))
+                  ..where(($AccountsTable a) => a.id.equals('test-acc-123')))
                 .getSingle();
 
         expect(account.serverUpdatedAt, isNull);
@@ -144,7 +144,7 @@ void main() {
             );
 
         final BudgetEntity budget = await (database.select(database.budgets)
-              ..where((b) => b.id.equals('test-bgt-123')))
+              ..where(($BudgetsTable b) => b.id.equals('test-bgt-123')))
             .getSingle();
 
         expect(budget.serverUpdatedAt, isNull);
@@ -165,7 +165,7 @@ void main() {
 
         final CategoryEntity category =
             await (database.select(database.categories)
-                  ..where((c) => c.id.equals('test-cat-123')))
+                  ..where(($CategoriesTable c) => c.id.equals('test-cat-123')))
                 .getSingle();
 
         expect(category.serverUpdatedAt, isNull);
@@ -190,7 +190,7 @@ void main() {
             );
 
         final BillEntity bill = await (database.select(database.bills)
-              ..where((b) => b.id.equals('test-bill-123')))
+              ..where(($BillsTable b) => b.id.equals('test-bill-123')))
             .getSingle();
 
         expect(bill.serverUpdatedAt, isNull);
@@ -228,7 +228,7 @@ void main() {
 
         final PiggyBankEntity piggyBank =
             await (database.select(database.piggyBanks)
-                  ..where((p) => p.id.equals('test-piggy-123')))
+                  ..where(($PiggyBanksTable p) => p.id.equals('test-piggy-123')))
                 .getSingle();
 
         expect(piggyBank.serverUpdatedAt, isNull);
@@ -339,7 +339,7 @@ void main() {
         // Verify backfilled
         final TransactionEntity transaction =
             await (database.select(database.transactions)
-                  ..where((t) => t.id.equals('backfill-tx-123')))
+                  ..where(($TransactionsTable t) => t.id.equals('backfill-tx-123')))
                 .getSingle();
 
         expect(transaction.serverUpdatedAt, isNotNull);
@@ -405,7 +405,7 @@ void main() {
         // Verify server_updated_at was NOT overwritten
         final TransactionEntity transaction =
             await (database.select(database.transactions)
-                  ..where((t) => t.id.equals('nooverwrite-tx-456')))
+                  ..where(($TransactionsTable t) => t.id.equals('nooverwrite-tx-456')))
                 .getSingle();
 
         expect(
@@ -439,7 +439,7 @@ void main() {
       test('should have default values for statistics', () async {
         final SyncStatisticsEntity? transactionStats =
             await (database.select(database.syncStatistics)
-                  ..where((s) => s.entityType.equals('transaction')))
+                  ..where(($SyncStatisticsTable s) => s.entityType.equals('transaction')))
                 .getSingleOrNull();
 
         expect(transactionStats, isNotNull);
@@ -466,7 +466,7 @@ void main() {
       test('should update sync statistics', () async {
         // Update statistics for transactions
         await (database.update(database.syncStatistics)
-              ..where((s) => s.entityType.equals('transaction')))
+              ..where(($SyncStatisticsTable s) => s.entityType.equals('transaction')))
             .write(
           const SyncStatisticsEntityCompanion(
             itemsFetchedTotal: Value<int>(100),
@@ -478,7 +478,7 @@ void main() {
         // Verify update
         final SyncStatisticsEntity? stats =
             await (database.select(database.syncStatistics)
-                  ..where((s) => s.entityType.equals('transaction')))
+                  ..where(($SyncStatisticsTable s) => s.entityType.equals('transaction')))
                 .getSingleOrNull();
 
         expect(stats!.itemsFetchedTotal, equals(100));
@@ -575,7 +575,7 @@ void main() {
         final DateTime cutoff = now.subtract(const Duration(days: 3));
         final List<TransactionEntity> recentTransactions =
             await (database.select(database.transactions)
-                  ..where((t) => t.serverUpdatedAt.isBiggerThanValue(cutoff)))
+                  ..where(($TransactionsTable t) => t.serverUpdatedAt.isBiggerThanValue(cutoff)))
                 .get();
 
         expect(recentTransactions.length, equals(1));
@@ -629,11 +629,11 @@ void main() {
         // Query transactions with null server_updated_at using Drift's isNull()
         final List<TransactionEntity> nullTimestampTransactions =
             await (database.select(database.transactions)
-                  ..where((t) => t.serverUpdatedAt.isNull()))
+                  ..where(($TransactionsTable t) => t.serverUpdatedAt.isNull()))
                 .get();
 
         expect(
-          nullTimestampTransactions.any((t) => t.serverId == 'null-server-1'),
+          nullTimestampTransactions.any((TransactionEntity t) => t.serverId == 'null-server-1'),
           isTrue,
         );
       });

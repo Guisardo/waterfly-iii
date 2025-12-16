@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/animation_service.dart';
+import 'package:waterflyiii/services/animation_service.dart';
 
 /// Skeleton loader for smooth loading states.
 ///
@@ -65,13 +65,13 @@ class SkeletonListTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
-        children: [
+        children: <Widget>[
           const SkeletonLoader(width: 40, height: 40, borderRadius: BorderRadius.all(Radius.circular(20))),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 SkeletonLoader(
                   width: double.infinity,
                   height: 16,

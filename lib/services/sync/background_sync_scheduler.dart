@@ -132,7 +132,7 @@ class BackgroundSyncScheduler {
   /// Record failed sync execution and adjust interval if needed.
   Future<void> recordFailure() async {
     try {
-      final failureCount = (_prefs.getInt(_keyFailureCount) ?? 0) + 1;
+      final int failureCount = (_prefs.getInt(_keyFailureCount) ?? 0) + 1;
       await _prefs.setInt(_keyFailureCount, failureCount);
       _logger.warning('Recorded sync failure (count: $failureCount)');
 
@@ -148,7 +148,7 @@ class BackgroundSyncScheduler {
 
   /// Get last successful sync time.
   DateTime? getLastSyncTime() {
-    final timestamp = _prefs.getInt(_keyLastSyncTime);
+    final int? timestamp = _prefs.getInt(_keyLastSyncTime);
     return timestamp != null
         ? DateTime.fromMillisecondsSinceEpoch(timestamp)
         : null;
@@ -161,10 +161,10 @@ class BackgroundSyncScheduler {
 
   /// Check if sync is needed based on last sync time and interval.
   bool isSyncNeeded(Duration interval) {
-    final lastSync = getLastSyncTime();
+    final DateTime? lastSync = getLastSyncTime();
     if (lastSync == null) return true;
 
-    final nextSync = lastSync.add(interval);
+    final DateTime nextSync = lastSync.add(interval);
     return DateTime.now().isAfter(nextSync);
   }
 }
@@ -175,8 +175,8 @@ class BackgroundSyncScheduler {
 /// It must be a top-level function or static method.
 @pragma('vm:entry-point')
 void backgroundSyncCallback() {
-  Workmanager().executeTask((task, inputData) async {
-    final logger = Logger('BackgroundSyncCallback');
+  Workmanager().executeTask((String task, Map<String, dynamic>? inputData) async {
+    final Logger logger = Logger('BackgroundSyncCallback');
     logger.info('Background sync task started: $task');
 
     try {

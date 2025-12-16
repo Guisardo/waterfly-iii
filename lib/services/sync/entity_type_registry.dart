@@ -11,7 +11,7 @@ class EntityTypeRegistry {
   EntityTypeRegistry._();
 
   /// All supported entity types.
-  static const List<EntityTypeInfo> allTypes = [
+  static const List<EntityTypeInfo> allTypes = <EntityTypeInfo>[
     EntityTypeInfo(
       type: 'transactions',
       endpoint: '/api/v1/transactions',
@@ -53,7 +53,7 @@ class EntityTypeRegistry {
   /// Get entity type info by type name.
   static EntityTypeInfo? getByType(String type) {
     try {
-      return allTypes.firstWhere((info) => info.type == type);
+      return allTypes.firstWhere((EntityTypeInfo info) => info.type == type);
     } catch (e) {
       return null;
     }
@@ -62,7 +62,7 @@ class EntityTypeRegistry {
   /// Get entity type info by endpoint.
   static EntityTypeInfo? getByEndpoint(String endpoint) {
     try {
-      return allTypes.firstWhere((info) => info.endpoint == endpoint);
+      return allTypes.firstWhere((EntityTypeInfo info) => info.endpoint == endpoint);
     } catch (e) {
       return null;
     }
@@ -70,34 +70,34 @@ class EntityTypeRegistry {
 
   /// Check if entity type is valid.
   static bool isValidType(String type) {
-    return allTypes.any((info) => info.type == type);
+    return allTypes.any((EntityTypeInfo info) => info.type == type);
   }
 
   /// Get all entity type names.
   static List<String> get allTypeNames {
-    return allTypes.map((info) => info.type).toList();
+    return allTypes.map((EntityTypeInfo info) => info.type).toList();
   }
 
   /// Get all endpoints.
   static List<String> get allEndpoints {
-    return allTypes.map((info) => info.endpoint).toList();
+    return allTypes.map((EntityTypeInfo info) => info.endpoint).toList();
   }
 
   /// Get display name for entity type.
   static String getDisplayName(String type) {
-    final info = getByType(type);
+    final EntityTypeInfo? info = getByType(type);
     return info?.displayName ?? type;
   }
 
   /// Get plural name for entity type.
   static String getPluralName(String type) {
-    final info = getByType(type);
+    final EntityTypeInfo? info = getByType(type);
     return info?.pluralName ?? type;
   }
 
   /// Get endpoint for entity type.
   static String? getEndpoint(String type) {
-    final info = getByType(type);
+    final EntityTypeInfo? info = getByType(type);
     return info?.endpoint;
   }
 }

@@ -86,7 +86,7 @@ class IncrementalSyncStats {
 
   /// Duration of the sync operation.
   Duration get duration {
-    final end = endTime ?? DateTime.now();
+    final DateTime end = endTime ?? DateTime.now();
     return end.difference(startTime);
   }
 
@@ -232,19 +232,19 @@ class IncrementalSyncResult {
 
   /// Total items fetched across all entities.
   int get totalFetched =>
-      statsByEntity.values.fold(0, (sum, s) => sum + s.itemsFetched);
+      statsByEntity.values.fold(0, (int sum, IncrementalSyncStats s) => sum + s.itemsFetched);
 
   /// Total items updated across all entities.
   int get totalUpdated =>
-      statsByEntity.values.fold(0, (sum, s) => sum + s.itemsUpdated);
+      statsByEntity.values.fold(0, (int sum, IncrementalSyncStats s) => sum + s.itemsUpdated);
 
   /// Total items skipped across all entities.
   int get totalSkipped =>
-      statsByEntity.values.fold(0, (sum, s) => sum + s.itemsSkipped);
+      statsByEntity.values.fold(0, (int sum, IncrementalSyncStats s) => sum + s.itemsSkipped);
 
   /// Total bandwidth saved across all entities.
   int get totalBandwidthSaved =>
-      statsByEntity.values.fold(0, (sum, s) => sum + s.bandwidthSavedBytes);
+      statsByEntity.values.fold(0, (int sum, IncrementalSyncStats s) => sum + s.bandwidthSavedBytes);
 
   /// Overall skip rate across all entities.
   double get overallSkipRate =>
@@ -273,7 +273,7 @@ class IncrementalSyncResult {
         'overallSkipRate': overallSkipRate,
         'error': error,
         'statsByEntity':
-            statsByEntity.map((k, v) => MapEntry(k, v.toJson())),
+            statsByEntity.map((String k, IncrementalSyncStats v) => MapEntry(k, v.toJson())),
       };
 
   @override

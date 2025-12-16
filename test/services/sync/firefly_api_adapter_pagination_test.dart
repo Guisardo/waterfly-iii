@@ -18,7 +18,7 @@ void main() {
   group('PaginatedResult', () {
     group('hasMore', () {
       test('should return true when more pages exist', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['item1', 'item2'],
           total: 100,
           currentPage: 1,
@@ -30,7 +30,7 @@ void main() {
       });
 
       test('should return false when on last page', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['item1'],
           total: 100,
           currentPage: 5,
@@ -42,7 +42,7 @@ void main() {
       });
 
       test('should return false when current page equals total pages', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['only-item'],
           total: 1,
           currentPage: 1,
@@ -55,7 +55,7 @@ void main() {
       });
 
       test('should return false when current page exceeds total pages', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>[],
           total: 0,
           currentPage: 2,
@@ -69,7 +69,7 @@ void main() {
 
     group('progressPercent', () {
       test('should calculate 50% when on page 2 of 4', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['item1'],
           total: 100,
           currentPage: 2,
@@ -81,7 +81,7 @@ void main() {
       });
 
       test('should calculate 100% when on last page', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['item1'],
           total: 100,
           currentPage: 4,
@@ -93,7 +93,7 @@ void main() {
       });
 
       test('should calculate 25% when on page 1 of 4', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['item1'],
           total: 100,
           currentPage: 1,
@@ -105,7 +105,7 @@ void main() {
       });
 
       test('should return 100% when total is 0', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>[],
           total: 0,
           currentPage: 1,
@@ -117,7 +117,7 @@ void main() {
       });
 
       test('should handle single page result', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['only-item'],
           total: 1,
           currentPage: 1,
@@ -145,7 +145,7 @@ void main() {
       });
 
       test('should handle empty data', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>[],
           total: 0,
           currentPage: 1,
@@ -158,7 +158,7 @@ void main() {
 
       test('should work with different generic types', () {
         // Test with int
-        final PaginatedResult<int> intResult = PaginatedResult<int>(
+        final PaginatedResult<int> intResult = const PaginatedResult<int>(
           data: <int>[1, 2, 3],
           total: 3,
           currentPage: 1,
@@ -169,7 +169,7 @@ void main() {
 
         // Test with Map
         final PaginatedResult<Map<String, dynamic>> mapResult =
-            PaginatedResult<Map<String, dynamic>>(
+            const PaginatedResult<Map<String, dynamic>>(
           data: <Map<String, dynamic>>[
             <String, dynamic>{'id': '1'},
             <String, dynamic>{'id': '2'},
@@ -186,7 +186,7 @@ void main() {
 
     group('pagination metadata', () {
       test('should store total correctly', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['item'],
           total: 1000,
           currentPage: 1,
@@ -198,7 +198,7 @@ void main() {
       });
 
       test('should store currentPage correctly', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['item'],
           total: 100,
           currentPage: 5,
@@ -210,7 +210,7 @@ void main() {
       });
 
       test('should store totalPages correctly', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['item'],
           total: 100,
           currentPage: 1,
@@ -222,7 +222,7 @@ void main() {
       });
 
       test('should store perPage correctly', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['item'],
           total: 100,
           currentPage: 1,
@@ -236,7 +236,7 @@ void main() {
 
     group('toString', () {
       test('should provide meaningful toString output', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['item1', 'item2'],
           total: 100,
           currentPage: 2,
@@ -252,7 +252,7 @@ void main() {
       });
 
       test('should handle edge cases in toString', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>[],
           total: 0,
           currentPage: 1,
@@ -270,7 +270,7 @@ void main() {
 
     group('edge cases', () {
       test('should handle large page numbers', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>['item'],
           total: 1000000,
           currentPage: 9999,
@@ -284,7 +284,7 @@ void main() {
       });
 
       test('should handle zero perPage', () {
-        final PaginatedResult<String> result = PaginatedResult<String>(
+        final PaginatedResult<String> result = const PaginatedResult<String>(
           data: <String>[],
           total: 0,
           currentPage: 1,
@@ -434,7 +434,7 @@ void main() {
   group('PaginatedResult with Map data (API simulation)', () {
     test('should work with transaction-like data', () {
       final PaginatedResult<Map<String, dynamic>> result =
-          PaginatedResult<Map<String, dynamic>>(
+          const PaginatedResult<Map<String, dynamic>>(
         data: <Map<String, dynamic>>[
           <String, dynamic>{
             'id': '123',
@@ -472,7 +472,7 @@ void main() {
 
     test('should work with account-like data', () {
       final PaginatedResult<Map<String, dynamic>> result =
-          PaginatedResult<Map<String, dynamic>>(
+          const PaginatedResult<Map<String, dynamic>>(
         data: <Map<String, dynamic>>[
           <String, dynamic>{
             'id': 'acc-1',
@@ -498,7 +498,7 @@ void main() {
 
     test('should support extracting server_updated_at for sync', () {
       final PaginatedResult<Map<String, dynamic>> result =
-          PaginatedResult<Map<String, dynamic>>(
+          const PaginatedResult<Map<String, dynamic>>(
         data: <Map<String, dynamic>>[
           <String, dynamic>{
             'id': '1',

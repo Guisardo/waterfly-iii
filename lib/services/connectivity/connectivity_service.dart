@@ -58,7 +58,7 @@ class ConnectivityService {
       BehaviorSubject<ConnectivityStatus>.seeded(ConnectivityStatus.unknown);
 
   /// Current network types (WiFi, mobile, ethernet, etc.)
-  List<ConnectivityResult> _currentNetworkTypes = [ConnectivityResult.none];
+  List<ConnectivityResult> _currentNetworkTypes = <ConnectivityResult>[ConnectivityResult.none];
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   StreamSubscription<InternetStatus>? _internetSubscription;

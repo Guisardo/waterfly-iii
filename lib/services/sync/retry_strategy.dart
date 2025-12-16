@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:logging/logging.dart';
 import 'package:retry/retry.dart';
 
-import '../../exceptions/sync_exceptions.dart';
+import 'package:waterflyiii/exceptions/sync_exceptions.dart';
 
 /// Service for handling retry logic with exponential backoff.
 ///
@@ -64,7 +64,7 @@ class RetryStrategy {
     String? operationName,
     void Function(Exception, int)? onRetry,
   }) async {
-    final name = operationName ?? 'operation';
+    final String name = operationName ?? 'operation';
     int attemptNumber = 0;
 
     try {
@@ -93,12 +93,12 @@ class RetryStrategy {
             rethrow;
           }
         },
-        retryIf: (e) => isRetryable(e),
+        retryIf: (Exception e) => isRetryable(e),
         maxAttempts: maxAttempts,
         delayFactor: initialDelay,
         maxDelay: maxDelay,
-        onRetry: (e) {
-          final delay = getRetryDelay(attemptNumber);
+        onRetry: (Exception e) {
+          final Duration delay = getRetryDelay(attemptNumber);
           _logger.info(
             'Retrying $name in ${delay.inMilliseconds}ms '
             '(attempt $attemptNumber/$maxAttempts)',
@@ -133,16 +133,16 @@ class RetryStrategy {
   }) async {
     _logger.info('Retrying batch of ${operations.length} operations');
 
-    final results = <String, T>{};
-    final errors = <String, Exception>{};
+    final Map<String, T> results = <String, T>{};
+    final Map<String, Exception> errors = <String, Exception>{};
     int completed = 0;
 
-    for (final entry in operations.entries) {
-      final operationId = entry.key;
-      final operation = entry.value;
+    for (final MapEntry<String, Future<T> Function()> entry in operations.entries) {
+      final String operationId = entry.key;
+      final Future<T> Function() operation = entry.value;
 
       try {
-        final result = await retryOperation(
+        final T result = await retryOperation(
           operation,
           operationName: operationId,
         );
@@ -209,16 +209,16 @@ class RetryStrategy {
   ///   Duration to wait before next retry
   Duration getRetryDelay(int attemptNumber) {
     // Calculate base delay with exponential backoff
-    final baseDelayMs = initialDelay.inMilliseconds *
+    final num baseDelayMs = initialDelay.inMilliseconds *
         pow(exponentialFactor, attemptNumber - 1);
 
     // Cap at max delay
-    final cappedDelayMs = min(baseDelayMs, maxDelay.inMilliseconds.toDouble());
+    final num cappedDelayMs = min(baseDelayMs, maxDelay.inMilliseconds.toDouble());
 
     // Add jitter (±jitter%)
-    final jitterAmount = cappedDelayMs * jitter;
-    final jitterOffset = (_random.nextDouble() * 2 - 1) * jitterAmount;
-    final finalDelayMs = cappedDelayMs + jitterOffset;
+    final double jitterAmount = cappedDelayMs * jitter;
+    final double jitterOffset = (_random.nextDouble() * 2 - 1) * jitterAmount;
+    final double finalDelayMs = cappedDelayMs + jitterOffset;
 
     return Duration(milliseconds: finalDelayMs.round());
   }

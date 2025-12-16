@@ -1,7 +1,7 @@
 import 'package:logging/logging.dart';
 import 'package:drift/drift.dart';
-import '../../data/local/database/app_database.dart';
-import '../../models/sync_operation.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/models/sync_operation.dart';
 
 /// Manager for sync queue operations.
 class SyncQueueManager {
@@ -30,23 +30,23 @@ class SyncQueueManager {
 
   /// Get all pending operations from queue.
   Future<List<SyncOperation>> getPendingOperations() async {
-    final query = database.select(database.syncQueue)
-      ..where((q) => q.status.equals('pending'))
-      ..orderBy([(q) => OrderingTerm(expression: q.priority, mode: OrderingMode.desc)]);
+    final SimpleSelectStatement<$SyncQueueTable, SyncQueueEntity> query = database.select(database.syncQueue)
+      ..where(($SyncQueueTable q) => q.status.equals('pending'))
+      ..orderBy(<OrderClauseGenerator<$SyncQueueTable>>[($SyncQueueTable q) => OrderingTerm(expression: q.priority, mode: OrderingMode.desc)]);
 
-    final results = await query.get();
+    final List<SyncQueueEntity> results = await query.get();
     
-    return results.map((q) => SyncOperation(
+    return results.map((SyncQueueEntity q) => SyncOperation(
       id: q.id,
       entityType: q.entityType,
       entityId: q.entityId,
       operation: SyncOperationType.values.firstWhere(
-        (t) => t.name == q.operation,
+        (SyncOperationType t) => t.name == q.operation,
         orElse: () => SyncOperationType.create,
       ),
-      payload: {}, // Would parse from q.payload JSON
+      payload: <String, dynamic>{}, // Would parse from q.payload JSON
       status: SyncOperationStatus.values.firstWhere(
-        (s) => s.name == q.status,
+        (SyncOperationStatus s) => s.name == q.status,
         orElse: () => SyncOperationStatus.pending,
       ),
       attempts: q.attempts,
@@ -61,12 +61,12 @@ class SyncQueueManager {
   /// This is more efficient than calling getPendingOperations().length
   /// as it only counts without loading all data.
   Future<int> getPendingCount() async {
-    final query = database.selectOnly(database.syncQueue)
-      ..addColumns([database.syncQueue.id.count()])
+    final JoinedSelectStatement<$SyncQueueTable, SyncQueueEntity> query = database.selectOnly(database.syncQueue)
+      ..addColumns(<Expression<Object>>[database.syncQueue.id.count()])
       ..where(database.syncQueue.status.equals('pending'));
 
-    final result = await query.getSingle();
-    final count = result.read(database.syncQueue.id.count()) ?? 0;
+    final TypedResult result = await query.getSingle();
+    final int count = result.read(database.syncQueue.id.count()) ?? 0;
     
     _logger.fine('Pending operations count: $count');
     return count;
@@ -75,14 +75,14 @@ class SyncQueueManager {
   /// Remove operation from queue.
   Future<void> removeOperation(String operationId) async {
     await (database.delete(database.syncQueue)
-      ..where((q) => q.id.equals(operationId))).go();
+      ..where(($SyncQueueTable q) => q.id.equals(operationId))).go();
     _logger.fine('Removed operation from queue: $operationId');
   }
 
   /// Mark operation as completed.
   Future<void> markCompleted(String operationId) async {
     await (database.update(database.syncQueue)
-      ..where((q) => q.id.equals(operationId)))
+      ..where(($SyncQueueTable q) => q.id.equals(operationId)))
       .write(const SyncQueueEntityCompanion(status: Value('completed')));
     _logger.fine('Marked operation as completed: $operationId');
   }
@@ -90,7 +90,7 @@ class SyncQueueManager {
   /// Mark operation as failed.
   Future<void> markFailed(String operationId, String error) async {
     await (database.update(database.syncQueue)
-      ..where((q) => q.id.equals(operationId)))
+      ..where(($SyncQueueTable q) => q.id.equals(operationId)))
       .write(SyncQueueEntityCompanion(
         status: const Value('failed'),
         errorMessage: Value(error),
@@ -100,8 +100,8 @@ class SyncQueueManager {
 
   /// Remove operations by entity ID.
   Future<void> removeByEntityId(String entityType, String entityId) async {
-    final deleted = await (database.delete(database.syncQueue)
-      ..where((q) => q.entityType.equals(entityType) & q.entityId.equals(entityId))).go();
+    final int deleted = await (database.delete(database.syncQueue)
+      ..where(($SyncQueueTable q) => q.entityType.equals(entityType) & q.entityId.equals(entityId))).go();
     _logger.fine('Removed $deleted operations for $entityType:$entityId');
   }
 }

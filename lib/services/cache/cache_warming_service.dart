@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:logging/logging.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
 
 import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/data/repositories/budget_repository.dart';
@@ -277,12 +278,12 @@ class CacheWarmingService {
         _log.info('Starting cache warming on app startup');
         _isWarming = true;
         _isCancelled = false;
-        final startTime = DateTime.now();
+        final DateTime startTime = DateTime.now();
 
         // Check network connectivity
-        final connectivityResult = await _connectivity.checkConnectivity();
-        final isOffline = connectivityResult.contains(ConnectivityResult.none);
-        final isWifi = connectivityResult.contains(ConnectivityResult.wifi);
+        final List<ConnectivityResult> connectivityResult = await _connectivity.checkConnectivity();
+        final bool isOffline = connectivityResult.contains(ConnectivityResult.none);
+        final bool isWifi = connectivityResult.contains(ConnectivityResult.wifi);
 
         if (isOffline) {
           _log.info('Offline, skipping cache warming');
@@ -294,7 +295,7 @@ class CacheWarmingService {
         );
 
         // Determine batch size based on network
-        final batchSize = isWifi ? 50 : 20;
+        final int batchSize = isWifi ? 50 : 20;
 
         // Warm accounts (high priority)
         await _warmAccounts(batchSize: batchSize);
@@ -335,8 +336,8 @@ class CacheWarmingService {
         // Warm categories (low priority)
         await _warmCategories(batchSize: batchSize);
 
-        final endTime = DateTime.now();
-        final durationMs = endTime.difference(startTime).inMilliseconds;
+        final DateTime endTime = DateTime.now();
+        final int durationMs = endTime.difference(startTime).inMilliseconds;
         _totalWarmingTimeMs += durationMs;
         _lastWarmingTime = endTime;
 
@@ -394,8 +395,8 @@ class CacheWarmingService {
       _log.fine('Warming related data for $entityType:$entityId');
 
       // Check network connectivity
-      final connectivityResult = await _connectivity.checkConnectivity();
-      final isOffline = connectivityResult.contains(ConnectivityResult.none);
+      final List<ConnectivityResult> connectivityResult = await _connectivity.checkConnectivity();
+      final bool isOffline = connectivityResult.contains(ConnectivityResult.none);
 
       if (isOffline) {
         _log.fine('Offline, skipping related warming');
@@ -471,8 +472,8 @@ class CacheWarmingService {
       _log.fine('Starting idle cache warming');
 
       // Check network connectivity (WiFi only for idle warming)
-      final connectivityResult = await _connectivity.checkConnectivity();
-      final isWifi = connectivityResult.contains(ConnectivityResult.wifi);
+      final List<ConnectivityResult> connectivityResult = await _connectivity.checkConnectivity();
+      final bool isWifi = connectivityResult.contains(ConnectivityResult.wifi);
 
       if (!isWifi) {
         _log.fine('Not on WiFi, skipping idle warming');
@@ -565,7 +566,7 @@ class CacheWarmingService {
       final DateTime startTime = DateTime.now();
 
       // Fetch accounts (uses cache-first strategy)
-      final accounts = await accountRepository.getAll();
+      final List<AccountEntity> accounts = await accountRepository.getAll();
 
       final int duration = DateTime.now().difference(startTime).inMilliseconds;
       _itemsWarmed += accounts.length;
@@ -591,7 +592,7 @@ class CacheWarmingService {
       // Fetch all transactions (uses cache-first strategy)
       // Note: Repository currently doesn't support date filtering
       // This fetches all transactions and warms the cache
-      final transactions = await transactionRepository.getAll();
+      final List<TransactionEntity> transactions = await transactionRepository.getAll();
 
       final int duration = DateTime.now().difference(startTime).inMilliseconds;
       _itemsWarmed += transactions.length;
@@ -632,7 +633,7 @@ class CacheWarmingService {
       final DateTime startTime = DateTime.now();
 
       // Fetch budgets (uses cache-first strategy)
-      final budgets = await budgetRepository.getAll();
+      final List<BudgetEntity> budgets = await budgetRepository.getAll();
 
       final int duration = DateTime.now().difference(startTime).inMilliseconds;
       _itemsWarmed += budgets.length;
@@ -653,7 +654,7 @@ class CacheWarmingService {
       final DateTime startTime = DateTime.now();
 
       // Fetch categories (uses cache-first strategy)
-      final categories = await categoryRepository.getAll();
+      final List<CategoryEntity> categories = await categoryRepository.getAll();
 
       final int duration = DateTime.now().difference(startTime).inMilliseconds;
       _itemsWarmed += categories.length;
@@ -692,7 +693,7 @@ class CacheWarmingService {
       _log.fine('Warming related data for transaction: $transactionId');
 
       // Get transaction to find related entities
-      final transaction = await transactionRepository.getById(transactionId);
+      final TransactionEntity? transaction = await transactionRepository.getById(transactionId);
 
       if (transaction == null) {
         _log.fine('Transaction not found: $transactionId');
@@ -794,7 +795,7 @@ class WarmingStats {
   ///
   /// Returns percentage of successful warming operations.
   double get successRate {
-    final total = itemsWarmed + warmingFailures;
+    final int total = itemsWarmed + warmingFailures;
     if (total == 0) return 0.0;
     return (itemsWarmed / total) * 100;
   }
@@ -823,7 +824,7 @@ class WarmingStats {
 
   /// Convert to map for serialization
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
       'itemsWarmed': itemsWarmed,
       'warmingFailures': warmingFailures,
       'totalWarmingTimeMs': totalWarmingTimeMs,

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 
-import '../data/local/database/app_database.dart';
-import '../models/conflict.dart';
-import '../services/sync/conflict_resolver.dart';
-import '../services/sync/firefly_api_adapter.dart';
-import '../services/sync/sync_queue_manager.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/models/conflict.dart';
+import 'package:waterflyiii/services/sync/conflict_resolver.dart';
+import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 
 /// Dialog for manually editing conflict resolution.
 ///
@@ -35,15 +35,15 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
   static final Logger _logger = Logger('ConflictManualEditDialog');
 
   ConflictResolver? _resolver;
-  final _formKey = GlobalKey<FormState>();
-  final Map<String, TextEditingController> _controllers = {};
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final Map<String, TextEditingController> _controllers = <String, TextEditingController>{};
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_resolver == null) {
-      final database = Provider.of<AppDatabase>(context, listen: false);
-      final apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
+      final AppDatabase database = Provider.of<AppDatabase>(context, listen: false);
+      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
       _resolver = ConflictResolver(
         apiAdapter: apiAdapter,
         database: database,
@@ -51,7 +51,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
       );
     }
   }
-  final Map<String, bool> _fieldChanged = {};
+  final Map<String, bool> _fieldChanged = <String, bool>{};
   bool _isSaving = false;
 
   @override
@@ -62,15 +62,15 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
 
   @override
   void dispose() {
-    for (final controller in _controllers.values) {
+    for (final TextEditingController controller in _controllers.values) {
       controller.dispose();
     }
     super.dispose();
   }
 
   void _initializeControllers() {
-    for (final entry in widget.initialData.entries) {
-      final controller = TextEditingController(
+    for (final MapEntry<String, dynamic> entry in widget.initialData.entries) {
+      final TextEditingController controller = TextEditingController(
         text: _formatValueForEditing(entry.value),
       );
       
@@ -91,7 +91,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
       child: Container(
         constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
         child: Column(
-          children: [
+          children: <Widget>[
             // Header
             Container(
               padding: const EdgeInsets.all(16),
@@ -102,7 +102,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                 ),
               ),
               child: Row(
-                children: [
+                children: <Widget>[
                   Icon(
                     Icons.edit,
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -111,7 +111,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: <Widget>[
                         Text(
                           'Manual Edit',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -141,14 +141,14 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                 key: _formKey,
                 child: ListView(
                   padding: const EdgeInsets.all(16),
-                  children: [
+                  children: <Widget>[
                     if (_getChangedFieldsCount() > 0)
                       Card(
                         color: Theme.of(context).colorScheme.tertiaryContainer,
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Row(
-                            children: [
+                            children: <Widget>[
                               Icon(
                                 Icons.info_outline,
                                 size: 20,
@@ -184,7 +184,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [
+                children: <Widget>[
                   TextButton(
                     onPressed: _isSaving ? null : () => Navigator.pop(context, false),
                     child: const Text('Cancel'),
@@ -210,19 +210,19 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
   }
 
   List<Widget> _buildFieldEditors() {
-    final fields = widget.initialData.keys.toList()..sort();
+    final List<String> fields = widget.initialData.keys.toList()..sort();
     
-    return fields.map((field) {
-      final isConflicting = widget.conflict.conflictingFields.contains(field);
-      final isChanged = _fieldChanged[field] ?? false;
+    return fields.map((String field) {
+      final bool isConflicting = widget.conflict.conflictingFields.contains(field);
+      final bool isChanged = _fieldChanged[field] ?? false;
 
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Row(
-              children: [
+              children: <Widget>[
                 if (isConflicting)
                   Icon(
                     Icons.warning_amber,
@@ -238,7 +238,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                             : null,
                       ),
                 ),
-                if (isChanged) ...[
+                if (isChanged) ...<Widget>[
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -267,7 +267,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                     ? Theme.of(context).colorScheme.errorContainer.withOpacity(0.1)
                     : null,
               ),
-              validator: (value) => _validateField(field, value),
+              validator: (String? value) => _validateField(field, value),
               maxLines: _isMultilineField(field) ? 3 : 1,
             ),
           ],
@@ -304,7 +304,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
 
     // Type-specific validation
     if (field.toLowerCase().contains('amount') || field.toLowerCase().contains('price')) {
-      final number = num.tryParse(value);
+      final num? number = num.tryParse(value);
       if (number == null) {
         return 'Must be a valid number';
       }
@@ -320,12 +320,12 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
   }
 
   bool _isRequiredField(String field) {
-    const requiredFields = ['name', 'title', 'amount', 'date'];
-    return requiredFields.any((req) => field.toLowerCase().contains(req));
+    const List<String> requiredFields = <String>['name', 'title', 'amount', 'date'];
+    return requiredFields.any((String req) => field.toLowerCase().contains(req));
   }
 
   int _getChangedFieldsCount() {
-    return _fieldChanged.values.where((changed) => changed).length;
+    return _fieldChanged.values.where((bool changed) => changed).length;
   }
 
   Future<void> _saveChanges() async {
@@ -333,7 +333,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
       return;
     }
 
-    final changedCount = _getChangedFieldsCount();
+    final int changedCount = _getChangedFieldsCount();
     if (changedCount == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No changes to save')),
@@ -341,15 +341,15 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
       return;
     }
 
-    final confirmed = await showDialog<bool>(
+    final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Save Changes?'),
         content: Text(
           'You have modified $changedCount field${changedCount == 1 ? '' : 's'}. '
           'This will resolve the conflict with your custom values.',
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
@@ -369,8 +369,8 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
     });
 
     try {
-      final customData = <String, dynamic>{};
-      for (final entry in _controllers.entries) {
+      final Map<String, dynamic> customData = <String, dynamic>{};
+      for (final MapEntry<String, TextEditingController> entry in _controllers.entries) {
         customData[entry.key] = _parseValue(entry.key, entry.value.text);
       }
 
@@ -416,7 +416,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
 
     // Try to parse as date
     if (field.toLowerCase().contains('date')) {
-      final date = DateTime.tryParse(value);
+      final DateTime? date = DateTime.tryParse(value);
       if (date != null) return date;
     }
 

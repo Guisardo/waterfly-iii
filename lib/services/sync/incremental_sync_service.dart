@@ -981,41 +981,41 @@ class IncrementalSyncService {
       case 'transaction':
         final TransactionEntity? entity = await (_database
                 .select(_database.transactions)
-              ..where((t) => t.serverId.equals(serverId)))
+              ..where(($TransactionsTable t) => t.serverId.equals(serverId)))
             .getSingleOrNull();
         return entity?.serverUpdatedAt;
 
       case 'account':
         final AccountEntity? entity =
             await (_database.select(_database.accounts)
-                  ..where((a) => a.serverId.equals(serverId)))
+                  ..where(($AccountsTable a) => a.serverId.equals(serverId)))
                 .getSingleOrNull();
         return entity?.serverUpdatedAt;
 
       case 'budget':
         final BudgetEntity? entity =
             await (_database.select(_database.budgets)
-                  ..where((b) => b.serverId.equals(serverId)))
+                  ..where(($BudgetsTable b) => b.serverId.equals(serverId)))
                 .getSingleOrNull();
         return entity?.serverUpdatedAt;
 
       case 'category':
         final CategoryEntity? entity =
             await (_database.select(_database.categories)
-                  ..where((c) => c.serverId.equals(serverId)))
+                  ..where(($CategoriesTable c) => c.serverId.equals(serverId)))
                 .getSingleOrNull();
         return entity?.serverUpdatedAt;
 
       case 'bill':
         final BillEntity? entity = await (_database.select(_database.bills)
-              ..where((b) => b.serverId.equals(serverId)))
+              ..where(($BillsTable b) => b.serverId.equals(serverId)))
             .getSingleOrNull();
         return entity?.serverUpdatedAt;
 
       case 'piggy_bank':
         final PiggyBankEntity? entity =
             await (_database.select(_database.piggyBanks)
-                  ..where((p) => p.serverId.equals(serverId)))
+                  ..where(($PiggyBanksTable p) => p.serverId.equals(serverId)))
                 .getSingleOrNull();
         return entity?.serverUpdatedAt;
 
@@ -1264,7 +1264,7 @@ class IncrementalSyncService {
   Future<DateTime?> _getLastFullSyncTime() async {
     final SyncMetadataEntity? metadata = await (_database
             .select(_database.syncMetadata)
-          ..where((m) => m.key.equals('last_full_sync')))
+          ..where(($SyncMetadataTable m) => m.key.equals('last_full_sync')))
         .getSingleOrNull();
 
     if (metadata == null || metadata.value.isEmpty) {
@@ -1278,7 +1278,7 @@ class IncrementalSyncService {
   Future<DateTime?> _getLastIncrementalSyncTime() async {
     final SyncMetadataEntity? metadata = await (_database
             .select(_database.syncMetadata)
-          ..where((m) => m.key.equals('last_incremental_sync')))
+          ..where(($SyncMetadataTable m) => m.key.equals('last_incremental_sync')))
         .getSingleOrNull();
 
     if (metadata == null || metadata.value.isEmpty) {
@@ -1373,13 +1373,13 @@ class IncrementalSyncService {
         // Get existing statistics
         final SyncStatisticsEntity? existing =
             await (_database.select(_database.syncStatistics)
-                  ..where((s) => s.entityType.equals(entityType)))
+                  ..where(($SyncStatisticsTable s) => s.entityType.equals(entityType)))
                 .getSingleOrNull();
 
         if (existing != null) {
           // Update cumulative statistics
           await (_database.update(_database.syncStatistics)
-                ..where((s) => s.entityType.equals(entityType)))
+                ..where(($SyncStatisticsTable s) => s.entityType.equals(entityType)))
               .write(
             SyncStatisticsEntityCompanion(
               lastIncrementalSync: Value<DateTime>(DateTime.now()),

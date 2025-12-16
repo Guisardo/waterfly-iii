@@ -83,7 +83,7 @@ class SyncStatisticsService {
   int _totalSyncs = 0;
   int _successfulSyncs = 0;
   int _failedSyncs = 0;
-  final List<Duration> _syncDurations = [];
+  final List<Duration> _syncDurations = <Duration>[];
   int _totalOperations = 0;
   int _conflictsDetected = 0;
   int _conflictsResolved = 0;
@@ -91,7 +91,7 @@ class SyncStatisticsService {
   DateTime? _lastFullSyncTime;
   DateTime? _nextScheduledSync;
   int _totalDataTransferred = 0;
-  final List<double> _throughputSamples = [];
+  final List<double> _throughputSamples = <double>[];
 
   static const int _maxSamples = 100;
 
@@ -200,9 +200,9 @@ class SyncStatisticsService {
   Duration _calculateAverageDuration() {
     if (_syncDurations.isEmpty) return Duration.zero;
     
-    final totalMs = _syncDurations.fold<int>(
+    final int totalMs = _syncDurations.fold<int>(
       0,
-      (sum, duration) => sum + duration.inMilliseconds,
+      (int sum, Duration duration) => sum + duration.inMilliseconds,
     );
     
     return Duration(milliseconds: totalMs ~/ _syncDurations.length);
@@ -212,14 +212,14 @@ class SyncStatisticsService {
   double _calculateAverageThroughput() {
     if (_throughputSamples.isEmpty) return 0.0;
     
-    final sum = _throughputSamples.fold<double>(0.0, (a, b) => a + b);
+    final double sum = _throughputSamples.fold<double>(0.0, (double a, double b) => a + b);
     return sum / _throughputSamples.length;
   }
 
   /// Persist statistics to database using syncMetadata table.
   Future<void> _persistStatistics() async {
     try {
-      final now = DateTime.now();
+      final DateTime now = DateTime.now();
       await _database.into(_database.syncMetadata).insertOnConflictUpdate(
         SyncMetadataEntityCompanion.insert(
           key: 'stats_total_syncs',
@@ -268,16 +268,16 @@ class SyncStatisticsService {
   Future<void> _clearFromDatabase() async {
     try {
       // Delete stats-related keys from syncMetadata
-      final keysToDelete = [
+      final List<String> keysToDelete = <String>[
         'stats_total_syncs',
         'stats_successful_syncs',
         'stats_failed_syncs',
         'stats_last_sync_time',
         'stats_last_full_sync_time',
       ];
-      for (final key in keysToDelete) {
+      for (final String key in keysToDelete) {
         await (_database.delete(_database.syncMetadata)
-              ..where((t) => t.key.equals(key)))
+              ..where(($SyncMetadataTable t) => t.key.equals(key)))
             .go();
       }
     } catch (e, stackTrace) {

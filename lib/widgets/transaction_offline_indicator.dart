@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 
-import '../providers/connectivity_provider.dart';
-import '../services/connectivity/connectivity_status.dart';
+import 'package:waterflyiii/providers/connectivity_provider.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
 
 /// Offline mode indicator for transaction forms.
 ///
@@ -33,8 +33,8 @@ class TransactionOfflineIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<ConnectivityProvider>(
-      builder: (context, connectivityProvider, child) {
-        final status = connectivityProvider.status;
+      builder: (BuildContext context, ConnectivityProvider connectivityProvider, Widget? child) {
+        final ConnectivityStatus status = connectivityProvider.status;
 
         if (status == ConnectivityStatus.online) {
           return const SizedBox.shrink();
@@ -46,7 +46,7 @@ class TransactionOfflineIndicator extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
-              children: [
+              children: <Widget>[
                 Icon(
                   Icons.cloud_off,
                   color: Theme.of(context).colorScheme.onTertiaryContainer,
@@ -57,7 +57,7 @@ class TransactionOfflineIndicator extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
-                    children: [
+                    children: <Widget>[
                       Text(
                         'Offline Mode',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -148,7 +148,7 @@ class TransactionSaveSuccessMessage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       color: backgroundColor,
       child: Row(
-        children: [
+        children: <Widget>[
           Icon(
             icon,
             color: Theme.of(context).colorScheme.onPrimaryContainer,

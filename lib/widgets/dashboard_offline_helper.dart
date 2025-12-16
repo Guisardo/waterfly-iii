@@ -20,8 +20,8 @@ class DashboardOfflineHelper {
     required DateTime lastUpdate,
     required bool hasUnsyncedData,
   }) {
-    final age = DateTime.now().difference(lastUpdate);
-    final ageText = _formatAge(age);
+    final Duration age = DateTime.now().difference(lastUpdate);
+    final String ageText = _formatAge(age);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -33,7 +33,7 @@ class DashboardOfflineHelper {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           Icon(
             hasUnsyncedData ? Icons.cloud_queue : Icons.access_time,
             size: 12,
@@ -59,7 +59,7 @@ class DashboardOfflineHelper {
   static Widget buildUnsyncedLegendItem(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         Container(
           width: 12,
           height: 12,
@@ -101,7 +101,7 @@ class DashboardOfflineHelper {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
-        children: [
+        children: <Widget>[
           Icon(
             Icons.cloud_off,
             color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -131,7 +131,7 @@ class DashboardOfflineHelper {
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             Icon(
               Icons.cloud_off,
               size: 48,
@@ -167,7 +167,7 @@ class DashboardOfflineHelper {
 
   /// Check if data is stale (older than 1 hour)
   static bool isDataStale(DateTime lastUpdate) {
-    final age = DateTime.now().difference(lastUpdate);
+    final Duration age = DateTime.now().difference(lastUpdate);
     return age.inHours >= 1;
   }
 
@@ -188,7 +188,7 @@ class DashboardOfflineHelper {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
-        children: [
+        children: <Widget>[
           Icon(
             Icons.info_outline,
             size: 16,

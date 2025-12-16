@@ -73,7 +73,7 @@ class DatabaseAdapter {
       if (!validation.isValid) {
         throw ValidationException(
           'Transaction validation failed: ${validation.errors.join(', ')}',
-          {'errors': validation.errors},
+          <String, dynamic>{'errors': validation.errors},
         );
       }
 
@@ -173,7 +173,7 @@ class DatabaseAdapter {
       if (!validation.isValid) {
         throw ValidationException(
           'Account validation failed: ${validation.errors.join(', ')}',
-          {'errors': validation.errors},
+          <String, dynamic>{'errors': validation.errors},
         );
       }
 
@@ -246,7 +246,7 @@ class DatabaseAdapter {
       if (!validation.isValid) {
         throw ValidationException(
           'Category validation failed: ${validation.errors.join(', ')}',
-          {'errors': validation.errors},
+          <String, dynamic>{'errors': validation.errors},
         );
       }
 
@@ -295,7 +295,7 @@ class DatabaseAdapter {
       if (!validation.isValid) {
         throw ValidationException(
           'Budget validation failed: ${validation.errors.join(', ')}',
-          {'errors': validation.errors},
+          <String, dynamic>{'errors': validation.errors},
         );
       }
 
@@ -329,7 +329,7 @@ class DatabaseAdapter {
       if (!validation.isValid) {
         throw ValidationException(
           'Bill validation failed: ${validation.errors.join(', ')}',
-          {'errors': validation.errors},
+          <String, dynamic>{'errors': validation.errors},
         );
       }
 
@@ -370,7 +370,7 @@ class DatabaseAdapter {
       if (!validation.isValid) {
         throw ValidationException(
           'Piggy bank validation failed: ${validation.errors.join(', ')}',
-          {'errors': validation.errors},
+          <String, dynamic>{'errors': validation.errors},
         );
       }
 

@@ -16,7 +16,7 @@ import 'package:logging/logging.dart';
 class AccessibilityService {
   final Logger _logger = Logger('AccessibilityService');
 
-  final _announcementQueue = <String>[];
+  final List<String> _announcementQueue = <String>[];
   Timer? _announcementTimer;
   bool _isAnnouncing = false;
 
@@ -40,7 +40,7 @@ class AccessibilityService {
   void setFocusOrder(List<FocusNode> nodes) {
     _logger.fine('Setting focus order: ${nodes.length} elements');
 
-    for (var i = 0; i < nodes.length; i++) {
+    for (int i = 0; i < nodes.length; i++) {
       if (i < nodes.length - 1) {
         nodes[i].nextFocus();
       }
@@ -62,7 +62,7 @@ class AccessibilityService {
 
     if (isSyncing) {
       if (progress != null) {
-        final percentage = (progress * 100).toInt();
+        final int percentage = (progress * 100).toInt();
         return 'Synchronizing, $percentage percent complete';
       }
       return 'Synchronization in progress';
@@ -185,7 +185,7 @@ class AccessibilityService {
     if (_isAnnouncing || _announcementQueue.isEmpty) return;
 
     _isAnnouncing = true;
-    final message = _announcementQueue.removeAt(0);
+    final String message = _announcementQueue.removeAt(0);
 
     // Use SemanticsService to announce
     SemanticsService.announce(message, TextDirection.ltr);

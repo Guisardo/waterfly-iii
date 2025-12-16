@@ -78,20 +78,20 @@ class SyncOperation extends Equatable {
       entityType: json['entity_type'] as String,
       entityId: json['entity_id'] as String,
       operation: SyncOperationType.values.firstWhere(
-        (e) => e.name == json['operation'],
+        (SyncOperationType e) => e.name == json['operation'],
         orElse: () => SyncOperationType.create,
       ),
       payload: json['payload'] is String
           ? jsonDecode(json['payload'] as String) as Map<String, dynamic>
           : json['payload'] as Map<String, dynamic>,
       status: SyncOperationStatus.values.firstWhere(
-        (e) => e.name == json['status'],
+        (SyncOperationStatus e) => e.name == json['status'],
         orElse: () => SyncOperationStatus.pending,
       ),
       attempts: json['attempts'] as int? ?? 0,
       errorMessage: json['error_message'] as String?,
       priority: SyncPriority.values.firstWhere(
-        (e) => e.value == json['priority'],
+        (SyncPriority e) => e.value == json['priority'],
         orElse: () => SyncPriority.normal,
       ),
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -106,7 +106,7 @@ class SyncOperation extends Equatable {
 
   /// Converts this SyncOperation to JSON
   Map<String, dynamic> toJson() {
-    return {
+    return <String, dynamic>{
       'id': id,
       'entity_type': entityType,
       'entity_id': entityId,
@@ -175,12 +175,12 @@ class SyncOperation extends Equatable {
   /// Gets the effective priority considering operation age
   /// Older operations get higher priority
   int getEffectivePriority() {
-    final ageBonus = (getAgeInMinutes() / 60).floor(); // +1 priority per hour
+    final int ageBonus = (getAgeInMinutes() / 60).floor(); // +1 priority per hour
     return (priority.value - ageBonus).clamp(0, 10);
   }
 
   @override
-  List<Object?> get props => [
+  List<Object?> get props => <Object?>[
         id,
         entityType,
         entityId,

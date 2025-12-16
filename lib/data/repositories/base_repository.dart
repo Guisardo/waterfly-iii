@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
@@ -423,19 +424,19 @@ abstract class BaseRepository<T, ID> {
     }
 
     // Sort keys alphabetically for consistent hashing
-    final sortedKeys = filters.keys.toList()..sort();
+    final List<String> sortedKeys = filters.keys.toList()..sort();
 
     // Build canonical string representation
-    final buffer = StringBuffer();
-    for (final key in sortedKeys) {
+    final StringBuffer buffer = StringBuffer();
+    for (final String key in sortedKeys) {
       final value = filters[key];
       buffer.write('$key=$value;');
     }
 
     // Generate SHA-256 hash
-    final bytes = utf8.encode(buffer.toString());
-    final digest = sha256.convert(bytes);
-    final hash = digest.toString().substring(0, 16); // First 16 chars
+    final Uint8List bytes = utf8.encode(buffer.toString());
+    final Digest digest = sha256.convert(bytes);
+    final String hash = digest.toString().substring(0, 16); // First 16 chars
 
     return 'collection_$hash';
   }

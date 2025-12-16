@@ -1,6 +1,6 @@
 import 'package:logging/logging.dart';
 
-import 'transaction_validator.dart';
+import 'package:waterflyiii/validators/transaction_validator.dart';
 
 /// Validates piggy bank data before storage or synchronization.
 class PiggyBankValidator {
@@ -13,7 +13,7 @@ class PiggyBankValidator {
   }) async {
     _logger.fine('Validating piggy bank data');
 
-    final errors = <String>[];
+    final List<String> errors = <String>[];
 
     // Required fields
     if (!data.containsKey('name') ||
@@ -21,7 +21,7 @@ class PiggyBankValidator {
         (data['name'] as String).trim().isEmpty) {
       errors.add('Piggy bank name is required');
     } else {
-      final name = (data['name'] as String).trim();
+      final String name = (data['name'] as String).trim();
       if (name.length > 255) {
         errors.add('Piggy bank name exceeds maximum length of 255 characters');
       }
@@ -31,7 +31,7 @@ class PiggyBankValidator {
     if (!data.containsKey('account_id') || data['account_id'] == null) {
       errors.add('Account ID is required');
     } else {
-      final accountId = data['account_id'] as String;
+      final String accountId = data['account_id'] as String;
       if (accountExists != null && !await accountExists(accountId)) {
         errors.add('Associated account not found: $accountId');
       }
@@ -39,7 +39,7 @@ class PiggyBankValidator {
 
     // Target amount validation
     if (data.containsKey('target_amount') && data['target_amount'] != null) {
-      final targetAmount = _parseAmount(data['target_amount']);
+      final double? targetAmount = _parseAmount(data['target_amount']);
       if (targetAmount == null) {
         errors.add('Target amount must be a valid number');
       } else if (targetAmount <= 0) {
@@ -51,7 +51,7 @@ class PiggyBankValidator {
 
     // Current amount validation
     if (data.containsKey('current_amount') && data['current_amount'] != null) {
-      final currentAmount = _parseAmount(data['current_amount']);
+      final double? currentAmount = _parseAmount(data['current_amount']);
       if (currentAmount == null) {
         errors.add('Current amount must be a valid number');
       } else if (currentAmount < 0) {
@@ -60,7 +60,7 @@ class PiggyBankValidator {
 
       // Check if current exceeds target
       if (data.containsKey('target_amount') && data['target_amount'] != null) {
-        final targetAmount = _parseAmount(data['target_amount']);
+        final double? targetAmount = _parseAmount(data['target_amount']);
         if (targetAmount != null && (currentAmount ?? 0) > targetAmount) {
           _logger.warning('Current amount exceeds target amount');
           // Don't error - this is allowed
@@ -70,27 +70,27 @@ class PiggyBankValidator {
 
     // Date validation
     if (data.containsKey('start_date') && data['start_date'] != null) {
-      final startDate = _parseDate(data['start_date']);
+      final DateTime? startDate = _parseDate(data['start_date']);
       if (startDate == null) {
         errors.add('Invalid start date format');
       }
     }
 
     if (data.containsKey('target_date') && data['target_date'] != null) {
-      final targetDate = _parseDate(data['target_date']);
+      final DateTime? targetDate = _parseDate(data['target_date']);
       if (targetDate == null) {
         errors.add('Invalid target date format');
       }
 
       if (data.containsKey('start_date') && data['start_date'] != null) {
-        final startDate = _parseDate(data['start_date']);
-        if (startDate != null && targetDate?.isBefore(startDate) == true) {
+        final DateTime? startDate = _parseDate(data['start_date']);
+        if (startDate != null && (targetDate?.isBefore(startDate) ?? false)) {
           errors.add('Target date must be after start date');
         }
       }
     }
 
-    final isValid = errors.isEmpty;
+    final bool isValid = errors.isEmpty;
     if (!isValid) {
       _logger.warning('Piggy bank validation failed: ${errors.join(', ')}');
     }
@@ -106,7 +106,7 @@ class PiggyBankValidator {
   ) {
     _logger.fine('Validating add money operation');
 
-    final errors = <String>[];
+    final List<String> errors = <String>[];
 
     if (amount <= 0) {
       errors.add('Amount must be greater than zero');
@@ -116,13 +116,13 @@ class PiggyBankValidator {
       errors.add('Amount exceeds maximum allowed value');
     }
 
-    final newAmount = currentAmount + amount;
+    final double newAmount = currentAmount + amount;
     if (targetAmount != null && newAmount > targetAmount) {
       _logger.warning('Adding money will exceed target amount');
       // Don't error - this is allowed
     }
 
-    final isValid = errors.isEmpty;
+    final bool isValid = errors.isEmpty;
     return ValidationResult(isValid: isValid, errors: errors);
   }
 
@@ -133,7 +133,7 @@ class PiggyBankValidator {
   ) {
     _logger.fine('Validating remove money operation');
 
-    final errors = <String>[];
+    final List<String> errors = <String>[];
 
     if (amount <= 0) {
       errors.add('Amount must be greater than zero');
@@ -143,7 +143,7 @@ class PiggyBankValidator {
       errors.add('Cannot remove more than current amount');
     }
 
-    final isValid = errors.isEmpty;
+    final bool isValid = errors.isEmpty;
     return ValidationResult(isValid: isValid, errors: errors);
   }
 

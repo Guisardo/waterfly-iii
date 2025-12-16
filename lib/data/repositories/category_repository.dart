@@ -6,7 +6,6 @@ import 'package:waterflyiii/data/repositories/base_repository.dart';
 import 'package:waterflyiii/exceptions/offline_exceptions.dart';
 import 'package:waterflyiii/models/cache/cache_result.dart';
 import 'package:waterflyiii/services/cache/cache_invalidation_rules.dart';
-import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/services/uuid/uuid_service.dart';
 
 /// Repository for managing category data with cache-first architecture.
@@ -48,11 +47,10 @@ import 'package:waterflyiii/services/uuid/uuid_service.dart';
 class CategoryRepository extends BaseRepository<CategoryEntity, String> {
   /// Creates a category repository with comprehensive cache integration.
   CategoryRepository({
-    required AppDatabase database,
-    CacheService? cacheService,
+    required super.database,
+    super.cacheService,
     UuidService? uuidService,
-  })  : _uuidService = uuidService ?? UuidService(),
-        super(database: database, cacheService: cacheService);
+  })  : _uuidService = uuidService ?? UuidService();
 
   final UuidService _uuidService;
 

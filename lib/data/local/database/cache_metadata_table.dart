@@ -222,7 +222,7 @@ class CacheMetadataTable extends Table {
   /// );
   /// ```
   @override
-  Set<Column> get primaryKey => {entityType, entityId};
+  Set<Column> get primaryKey => <Column<Object>>{entityType, entityId};
 
   /// Custom indexes for query performance optimization.
   ///

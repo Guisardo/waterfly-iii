@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/animation_service.dart';
+import 'package:waterflyiii/services/animation_service.dart';
 
 /// Animated feedback widget for success/error states.
 class AnimatedFeedback extends StatefulWidget {
@@ -49,7 +49,7 @@ class _AnimatedFeedbackState extends State<AnimatedFeedback>
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           if (widget.isSuccess)
             _animationService.buildSuccessAnimation(
               controller: _controller,
@@ -84,7 +84,7 @@ void showSuccessSnackbar(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Row(
-        children: [
+        children: <Widget>[
           Icon(
             Icons.check_circle,
             color: Theme.of(context).colorScheme.onTertiary,
@@ -105,7 +105,7 @@ void showErrorSnackbar(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Row(
-        children: [
+        children: <Widget>[
           Icon(
             Icons.error,
             color: Theme.of(context).colorScheme.onError,

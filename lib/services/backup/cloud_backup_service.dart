@@ -50,7 +50,7 @@ class CloudBackupService {
       final File dbFile = File(p.join(dbFolder.path, 'waterfly_offline.db'));
 
       if (!await dbFile.exists()) {
-        throw DatabaseException('Database file not found');
+        throw const DatabaseException('Database file not found');
       }
 
       // Create backup metadata
@@ -128,7 +128,7 @@ class CloudBackupService {
 
       // Verify data integrity
       if (!await _verifyBackupData(data)) {
-        throw DatabaseException('Backup data verification failed');
+        throw const DatabaseException('Backup data verification failed');
       }
 
       // Get database file path
@@ -227,14 +227,14 @@ class CloudBackupService {
   Future<List<int>> _encryptData(List<int> data) async {
     try {
       // Use AES-256 encryption
-      final key = encrypt_pkg.Key.fromSecureRandom(32);
-      final iv = encrypt_pkg.IV.fromSecureRandom(16);
-      final encrypter = encrypt_pkg.Encrypter(encrypt_pkg.AES(key));
+      final encrypt_pkg.Key key = encrypt_pkg.Key.fromSecureRandom(32);
+      final encrypt_pkg.IV iv = encrypt_pkg.IV.fromSecureRandom(16);
+      final encrypt_pkg.Encrypter encrypter = encrypt_pkg.Encrypter(encrypt_pkg.AES(key));
       
-      final encrypted = encrypter.encryptBytes(Uint8List.fromList(data), iv: iv);
+      final encrypt_pkg.Encrypted encrypted = encrypter.encryptBytes(Uint8List.fromList(data), iv: iv);
       
       // Prepend IV and key for decryption (in production, store key securely)
-      final result = <int>[];
+      final List<int> result = <int>[];
       result.addAll(iv.bytes);
       result.addAll(key.bytes);
       result.addAll(encrypted.bytes);
@@ -254,12 +254,12 @@ class CloudBackupService {
         throw const StorageException('Invalid encrypted data format');
       }
       
-      final iv = encrypt_pkg.IV(Uint8List.fromList(data.sublist(0, 16)));
-      final key = encrypt_pkg.Key(Uint8List.fromList(data.sublist(16, 48)));
-      final encryptedData = Uint8List.fromList(data.sublist(48));
+      final encrypt_pkg.IV iv = encrypt_pkg.IV(Uint8List.fromList(data.sublist(0, 16)));
+      final encrypt_pkg.Key key = encrypt_pkg.Key(Uint8List.fromList(data.sublist(16, 48)));
+      final Uint8List encryptedData = Uint8List.fromList(data.sublist(48));
       
-      final encrypter = encrypt_pkg.Encrypter(encrypt_pkg.AES(key));
-      final decrypted = encrypter.decryptBytes(
+      final encrypt_pkg.Encrypter encrypter = encrypt_pkg.Encrypter(encrypt_pkg.AES(key));
+      final List<int> decrypted = encrypter.decryptBytes(
         encrypt_pkg.Encrypted(encryptedData),
         iv: iv,
       );
@@ -410,7 +410,7 @@ class CloudBackupMetadata {
   final bool encrypted;
 
   String toJson() {
-    return jsonEncode({
+    return jsonEncode(<String, Object>{
       'id': id,
       'timestamp': timestamp.toIso8601String(),
       'description': description,

@@ -269,12 +269,12 @@ class ETagResponse<T> {
   /// print(response.maxAge); // 3600
   /// ```
   int? get maxAge {
-    final cc = cacheControl;
+    final String? cc = cacheControl;
     if (cc == null) return null;
 
     // Parse: max-age=3600
-    final regex = RegExp(r'max-age=(\d+)');
-    final match = regex.firstMatch(cc);
+    final RegExp regex = RegExp(r'max-age=(\d+)');
+    final RegExpMatch? match = regex.firstMatch(cc);
     if (match == null) return null;
 
     return int.tryParse(match.group(1)!);
@@ -282,13 +282,13 @@ class ETagResponse<T> {
 
   /// Whether response has no-cache directive
   bool get hasNoCache {
-    final cc = cacheControl;
+    final String? cc = cacheControl;
     return cc?.contains('no-cache') ?? false;
   }
 
   /// Whether response has no-store directive (don't cache at all)
   bool get hasNoStore {
-    final cc = cacheControl;
+    final String? cc = cacheControl;
     return cc?.contains('no-store') ?? false;
   }
 
@@ -313,7 +313,7 @@ class ETagResponse<T> {
   /// // {statusCode: 200, hasData: true, etag: "abc123", isNotModified: false}
   /// ```
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
       'statusCode': statusCode,
       'hasData': hasData,
       'etag': etag,

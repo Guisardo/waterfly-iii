@@ -173,7 +173,7 @@ class CacheInvalidationRules {
       }
 
       // Invalidate bill if present
-      final billId = _getTransactionBillId(transaction);
+      final String? billId = _getTransactionBillId(transaction);
       if (billId != null && billId.isNotEmpty) {
         await cache.invalidate('bill', billId);
         _log.fine('Invalidated bill: $billId');
@@ -186,9 +186,9 @@ class CacheInvalidationRules {
       }
 
       // Invalidate tags if present
-      final tags = _getTransactionTags(transaction);
+      final List<String>? tags = _getTransactionTags(transaction);
       if (tags != null && tags.isNotEmpty) {
-        for (final tag in tags) {
+        for (final String tag in tags) {
           await cache.invalidate('tag', tag);
           await cache.invalidate('tag_transactions', tag);
           _log.fine('Invalidated tag: $tag');
@@ -515,7 +515,7 @@ class CacheInvalidationRules {
       await cache.invalidateType('piggy_bank_list');
 
       // Invalidate linked account (piggy bank affects account display)
-      final accountId = _getPiggyBankAccountId(piggyBank);
+      final String? accountId = _getPiggyBankAccountId(piggyBank);
       if (accountId != null && accountId.isNotEmpty) {
         await cache.invalidate('account', accountId);
         _log.fine('Invalidated linked account: $accountId');
@@ -690,22 +690,22 @@ class CacheInvalidationRules {
 
     try {
       // Group operations by entity type
-      final byType = <String, Set<String>>{};
+      final Map<String, Set<String>> byType = <String, Set<String>>{};
       for (final op in operations) {
-        final entityType = _getOperationEntityType(op);
-        final entityId = _getOperationEntityId(op);
+        final String entityType = _getOperationEntityType(op);
+        final String entityId = _getOperationEntityId(op);
         byType.putIfAbsent(entityType, () => <String>{}).add(entityId);
       }
 
       // Invalidate per entity type
-      for (final entry in byType.entries) {
-        final entityType = entry.key;
-        final entityIds = entry.value;
+      for (final MapEntry<String, Set<String>> entry in byType.entries) {
+        final String entityType = entry.key;
+        final Set<String> entityIds = entry.value;
 
         _log.fine('Invalidating $entityType: ${entityIds.length} entities');
 
         // Invalidate individual entities
-        for (final id in entityIds) {
+        for (final String id in entityIds) {
           await cache.invalidate(entityType, id);
         }
 

@@ -9,6 +9,7 @@ import 'package:notifications_listener_service/notifications_listener_service.da
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:waterflyiii/app.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/services/localization_helper.dart';
@@ -223,7 +224,7 @@ void nlCallback() {
       final String notificationSource = evt.title ?? evt.packageName ?? "unknown source";
       
       // Load localized strings without context
-      final l10n = await LocalizationHelper.getLocalizations();
+      final S l10n = await LocalizationHelper.getLocalizations();
       
       unawaited(
         FlutterLocalNotificationsPlugin().show(

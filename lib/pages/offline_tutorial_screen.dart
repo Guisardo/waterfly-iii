@@ -26,7 +26,7 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
   int _currentPage = 0;
   bool _dontShowAgain = false;
 
-  final List<_TutorialPage> _pages = [
+  final List<_TutorialPage> _pages = <_TutorialPage>[
     _TutorialPage(
       icon: Icons.cloud_off,
       title: 'Work Offline',
@@ -63,7 +63,7 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
     return Scaffold(
       body: SafeArea(
         child: Column(
-          children: [
+          children: <Widget>[
             // Skip button
             Align(
               alignment: Alignment.topRight,
@@ -77,13 +77,13 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                onPageChanged: (index) {
+                onPageChanged: (int index) {
                   setState(() {
                     _currentPage = index;
                   });
                 },
                 itemCount: _pages.length,
-                itemBuilder: (context, index) {
+                itemBuilder: (BuildContext context, int index) {
                   return _buildPage(_pages[index]);
                 },
               ),
@@ -94,7 +94,7 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 _pages.length,
-                (index) => _buildPageIndicator(index),
+                (int index) => _buildPageIndicator(index),
               ),
             ),
             const SizedBox(height: 24),
@@ -102,7 +102,7 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
             // Don't show again checkbox
             CheckboxListTile(
               value: _dontShowAgain,
-              onChanged: (value) {
+              onChanged: (bool? value) {
                 setState(() {
                   _dontShowAgain = value ?? false;
                 });
@@ -116,7 +116,7 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   if (_currentPage > 0)
                     TextButton(
                       onPressed: _previousPage,
@@ -146,7 +146,7 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
       padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Icon(
             page.icon,
             size: 120,
@@ -209,7 +209,7 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
 
   Future<void> _saveTutorialShown() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_tutorialShownKey, true);
       _logger.info('Tutorial marked as shown');
     } catch (e, stackTrace) {
@@ -221,7 +221,7 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
   // ignore: unused_element
   static Future<bool> shouldShow() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
       return !(prefs.getBool(_tutorialShownKey) ?? false);
     } catch (e) {
       return true;

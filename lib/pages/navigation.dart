@@ -153,7 +153,7 @@ class NavPageState extends State<NavPage> with TickerProviderStateMixin {
           (BuildContext context, _) => Scaffold(
             appBar: AppBar(
               title: context.select((NavPageElements n) => n.appBarTitle),
-              actions: [
+              actions: <Widget>[
                 const SyncIndicator(),
                 ...?context.select((NavPageElements n) => n.appBarActions),
               ],
@@ -238,7 +238,7 @@ class NavPageState extends State<NavPage> with TickerProviderStateMixin {
               ],
             ),
             body: Column(
-              children: [
+              children: <Widget>[
                 const ConnectivityStatusBar(),
                 Expanded(
                   child: AnimatedSwitcher(

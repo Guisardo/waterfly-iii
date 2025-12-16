@@ -30,7 +30,7 @@ class AccountSelectionOffline {
       subtitle: Text(accountType),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           if (!isSynced)
             Icon(
               Icons.cloud_off,
@@ -82,15 +82,15 @@ class AccountSelectionOffline {
 
   /// Show warning dialog for offline account creation
   static Future<bool> showOfflineAccountWarning(BuildContext context) async {
-    final result = await showDialog<bool>(
+    final bool? result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Create Account Offline?'),
         content: const Text(
           'This account will be created locally and synced with the server '
           'when you are back online. You can use it immediately for transactions.',
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
@@ -143,7 +143,7 @@ class CategorySelectionOffline {
       title: Text(categoryName),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           if (!isSynced)
             Icon(
               Icons.cloud_off,
@@ -195,15 +195,15 @@ class CategorySelectionOffline {
 
   /// Show warning dialog for offline category creation
   static Future<bool> showOfflineCategoryWarning(BuildContext context) async {
-    final result = await showDialog<bool>(
+    final bool? result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Create Category Offline?'),
         content: const Text(
           'This category will be created locally and synced with the server '
           'when you are back online. You can use it immediately for transactions.',
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),

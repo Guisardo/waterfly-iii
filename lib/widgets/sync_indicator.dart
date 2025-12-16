@@ -10,16 +10,16 @@ class SyncIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<SyncProvider>(
-      builder: (context, syncProvider, child) {
+      builder: (BuildContext context, SyncProvider syncProvider, Widget? child) {
         if (!syncProvider.isSyncing) {
           return const SizedBox.shrink();
         }
 
-        final progress = syncProvider.progress;
-        final hasProgress = progress > 0;
-        final currentOp = syncProvider.currentOperation;
-        final theme = Theme.of(context);
-        final primaryColor = theme.colorScheme.primary;
+        final double progress = syncProvider.progress;
+        final bool hasProgress = progress > 0;
+        final String? currentOp = syncProvider.currentOperation;
+        final ThemeData theme = Theme.of(context);
+        final Color primaryColor = theme.colorScheme.primary;
 
         return Tooltip(
           message: currentOp ?? 'Syncing data...',
@@ -27,14 +27,14 @@ class SyncIndicator extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [
+              children: <Widget>[
                 // Progress indicator with percentage
                 SizedBox(
                   width: 20,
                   height: 20,
                   child: Stack(
                     alignment: Alignment.center,
-                    children: [
+                    children: <Widget>[
                       // Background circle
                       CircularProgressIndicator(
                         value: hasProgress ? progress : null,
@@ -60,10 +60,10 @@ class SyncIndicator extends StatelessWidget {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: [
+                      children: <Widget>[
                         Text(
                           hasProgress
                               ? 'Syncing ${syncProvider.progressPercent}%'
@@ -106,15 +106,15 @@ class SyncIndicatorCompact extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<SyncProvider>(
-      builder: (context, syncProvider, child) {
+      builder: (BuildContext context, SyncProvider syncProvider, Widget? child) {
         if (!syncProvider.isSyncing) {
           return const SizedBox.shrink();
         }
 
-        final progress = syncProvider.progress;
-        final hasProgress = progress > 0;
-        final theme = Theme.of(context);
-        final primaryColor = theme.colorScheme.primary;
+        final double progress = syncProvider.progress;
+        final bool hasProgress = progress > 0;
+        final ThemeData theme = Theme.of(context);
+        final Color primaryColor = theme.colorScheme.primary;
 
         return Tooltip(
           message: syncProvider.currentOperation ?? 
@@ -126,7 +126,7 @@ class SyncIndicatorCompact extends StatelessWidget {
               height: 24,
               child: Stack(
                 alignment: Alignment.center,
-                children: [
+                children: <Widget>[
                   CircularProgressIndicator(
                     value: hasProgress ? progress : null,
                     strokeWidth: 2,

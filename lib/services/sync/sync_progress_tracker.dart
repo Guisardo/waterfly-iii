@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../../models/sync_progress.dart';
+import 'package:waterflyiii/models/sync_progress.dart';
 
 /// Service for tracking and reporting synchronization progress.
 ///
@@ -33,10 +33,10 @@ class SyncProgressTracker {
   final Logger _logger = Logger('SyncProgressTracker');
 
   /// Progress stream controller
-  final _progressController = BehaviorSubject<SyncProgress>();
+  final BehaviorSubject<SyncProgress> _progressController = BehaviorSubject<SyncProgress>();
 
   /// Event stream controller
-  final _eventController = BehaviorSubject<SyncEvent>();
+  final BehaviorSubject<SyncEvent> _eventController = BehaviorSubject<SyncEvent>();
 
   /// Current progress state
   SyncProgress? _currentProgress;
@@ -45,7 +45,7 @@ class SyncProgressTracker {
   DateTime? _startTime;
 
   /// Completed operation timestamps for throughput calculation
-  final List<DateTime> _completionTimestamps = [];
+  final List<DateTime> _completionTimestamps = <DateTime>[];
 
   /// Maximum timestamps to keep for throughput calculation
   static const int _maxTimestamps = 100;
@@ -92,7 +92,7 @@ class SyncProgressTracker {
       estimatedTimeRemaining: null,
       startTime: _startTime!,
       phase: phase,
-      errors: const [],
+      errors: const <String>[],
       conflictsDetected: 0,
       throughput: 0.0,
     );
@@ -143,7 +143,7 @@ class SyncProgressTracker {
   void incrementFailed({String? operationId, String? error}) {
     if (_currentProgress == null) return;
 
-    final errors = List<String>.from(_currentProgress!.errors);
+    final List<String> errors = List<String>.from(_currentProgress!.errors);
     if (error != null) {
       errors.add(error);
     }
@@ -191,7 +191,7 @@ class SyncProgressTracker {
   void addCompleted(int count) {
     if (_currentProgress == null || count <= 0) return;
 
-    final now = DateTime.now();
+    final DateTime now = DateTime.now();
     for (int i = 0; i < count; i++) {
       _completionTimestamps.add(now);
     }
@@ -212,20 +212,20 @@ class SyncProgressTracker {
   void _updateCalculatedFields() {
     if (_currentProgress == null || _startTime == null) return;
 
-    final total = _currentProgress!.totalOperations;
-    final completed = _currentProgress!.completedOperations;
-    final failed = _currentProgress!.failedOperations;
-    final skipped = _currentProgress!.skippedOperations;
-    final processed = completed + failed + skipped;
+    final int total = _currentProgress!.totalOperations;
+    final int completed = _currentProgress!.completedOperations;
+    final int failed = _currentProgress!.failedOperations;
+    final int skipped = _currentProgress!.skippedOperations;
+    final int processed = completed + failed + skipped;
 
     // Calculate percentage
-    final percentage = total > 0 ? (processed / total) * 100 : 0.0;
+    final double percentage = total > 0 ? (processed / total) * 100 : 0.0;
 
     // Calculate throughput (operations per second)
-    final throughput = _calculateThroughput();
+    final double throughput = _calculateThroughput();
 
     // Calculate ETA
-    final eta = _calculateETA(total, processed, throughput);
+    final Duration? eta = _calculateETA(total, processed, throughput);
 
     _currentProgress = _currentProgress!.copyWith(
       percentage: percentage,
@@ -239,12 +239,12 @@ class SyncProgressTracker {
     if (_completionTimestamps.isEmpty) return 0.0;
 
     // Use recent timestamps for more accurate throughput
-    final recentCount = _completionTimestamps.length;
+    final int recentCount = _completionTimestamps.length;
     if (recentCount < 2) return 0.0;
 
-    final firstTimestamp = _completionTimestamps.first;
-    final lastTimestamp = _completionTimestamps.last;
-    final duration = lastTimestamp.difference(firstTimestamp);
+    final DateTime firstTimestamp = _completionTimestamps.first;
+    final DateTime lastTimestamp = _completionTimestamps.last;
+    final Duration duration = lastTimestamp.difference(firstTimestamp);
 
     if (duration.inMilliseconds == 0) return 0.0;
 
@@ -255,8 +255,8 @@ class SyncProgressTracker {
   Duration? _calculateETA(int total, int processed, double throughput) {
     if (throughput <= 0 || processed >= total) return null;
 
-    final remaining = total - processed;
-    final secondsRemaining = remaining / throughput;
+    final int remaining = total - processed;
+    final double secondsRemaining = remaining / throughput;
 
     return Duration(seconds: secondsRemaining.round());
   }
@@ -279,11 +279,11 @@ class SyncProgressTracker {
 
     _logger.info('Completing sync progress tracking');
 
-    final endTime = DateTime.now();
+    final DateTime endTime = DateTime.now();
     // ignore: unused_local_variable
-    final duration = endTime.difference(_startTime!);
+    final Duration duration = endTime.difference(_startTime!);
 
-    final result = SyncResult(
+    final SyncResult result = SyncResult(
       success: success,
       totalOperations: _currentProgress!.totalOperations,
       successfulOperations: _currentProgress!.completedOperations,
@@ -294,7 +294,7 @@ class SyncProgressTracker {
       startTime: _startTime!,
       endTime: endTime,
       errors: _currentProgress!.errors,
-      statsByEntity: entityStats ?? {},
+      statsByEntity: entityStats ?? <String, EntitySyncStats>{},
     );
 
     // Update phase
@@ -329,9 +329,9 @@ class SyncProgressTracker {
   double _calculateSuccessRate() {
     if (_currentProgress == null) return 0.0;
 
-    final completed = _currentProgress!.completedOperations;
-    final failed = _currentProgress!.failedOperations;
-    final total = completed + failed;
+    final int completed = _currentProgress!.completedOperations;
+    final int failed = _currentProgress!.failedOperations;
+    final int total = completed + failed;
 
     return total > 0 ? completed / total : 0.0;
   }

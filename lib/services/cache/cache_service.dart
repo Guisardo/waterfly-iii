@@ -263,11 +263,11 @@ class CacheService {
     // Force refresh bypasses cache completely
     if (forceRefresh) {
       _log.fine('Force refresh requested, bypassing cache');
-      return await _fetchAndCache(entityType, entityId, fetcher, ttl);
+      return _fetchAndCache(entityType, entityId, fetcher, ttl);
     }
 
     // Check cache freshness
-    final fresh = await isFresh(entityType, entityId);
+    final bool fresh = await isFresh(entityType, entityId);
 
     if (fresh) {
       // Cache hit (fresh): Call fetcher to get data from repository DB
@@ -276,7 +276,7 @@ class CacheService {
       _hitsByEntityType[entityType] = (_hitsByEntityType[entityType] ?? 0) + 1;
       _log.info('Cache hit (fresh): $entityType:$entityId');
 
-      final data = await fetcher();
+      final T data = await fetcher();
       await _updateLastAccessed(entityType, entityId);
 
       return CacheResult<T>(
@@ -288,7 +288,7 @@ class CacheService {
     }
 
     // Check if cache metadata exists (stale)
-    final metadataExists = await _getCachedAt(entityType, entityId) != null;
+    final bool metadataExists = await _getCachedAt(entityType, entityId) != null;
 
     if (metadataExists) {
       // Cache hit (stale): Call fetcher to get data, optionally refresh in background
@@ -296,7 +296,7 @@ class CacheService {
       _staleServed++;
       _log.info('Cache hit (stale): $entityType:$entityId');
 
-      final data = await fetcher();
+      final T data = await fetcher();
 
       if (backgroundRefresh) {
         // Start background refresh (fire-and-forget)
@@ -315,7 +315,7 @@ class CacheService {
     // Cache miss: Fetch from API
     _cacheMisses++;
     _log.info('Cache miss: $entityType:$entityId');
-    return await _fetchAndCache(entityType, entityId, fetcher, ttl);
+    return _fetchAndCache(entityType, entityId, fetcher, ttl);
   }
 
   /// Get data with cache-first strategy and ETag support
@@ -404,7 +404,7 @@ class CacheService {
     // Force refresh bypasses cache completely
     if (forceRefresh) {
       _log.fine('Force refresh requested, bypassing cache');
-      return await _fetchAndCacheWithETag(
+      return _fetchAndCacheWithETag(
         entityType,
         entityId,
         fetcher,
@@ -466,7 +466,7 @@ class CacheService {
     // Cache miss: Fetch from API (no cached ETag available)
     _cacheMisses++;
     _log.info('Cache miss: $entityType:$entityId');
-    return await _fetchAndCacheWithETag(
+    return _fetchAndCacheWithETag(
       entityType,
       entityId,
       fetcher,
@@ -505,7 +505,7 @@ class CacheService {
       final ETagResponse<T> etagResponse = await retry(
         () => fetcher(cachedETag),
         maxAttempts: 2,
-        onRetry: (e) =>
+        onRetry: (Exception e) =>
             _log.warning('Retry background ETag fetch: $entityType:$entityId', e),
       );
 
@@ -539,7 +539,7 @@ class CacheService {
         await set(
           entityType: entityType,
           entityId: entityId,
-          data: etagResponse.data!,
+          data: etagResponse.data as T,
           ttl: ttl,
           etag: etagResponse.normalizedETag,
         );
@@ -613,7 +613,7 @@ class CacheService {
         await set(
           entityType: entityType,
           entityId: entityId,
-          data: etagResponse.data!,
+          data: etagResponse.data as T,
           ttl: ttl,
           etag: etagResponse.normalizedETag,
         );
@@ -676,10 +676,10 @@ class CacheService {
 
       // Use retry package for resilient API calls
       // Exponential backoff: 400ms, 800ms
-      final data = await retry(
+      final T data = await retry(
         () => fetcher(),
         maxAttempts: 2,
-        onRetry: (e) =>
+        onRetry: (Exception e) =>
             _log.warning('Retry background fetch: $entityType:$entityId', e),
       );
 
@@ -736,7 +736,7 @@ class CacheService {
   ) async {
     try {
       _log.fine('Fetching from API: $entityType:$entityId');
-      final data = await fetcher();
+      final T data = await fetcher();
 
       // Cache the result
       await set(
@@ -790,14 +790,14 @@ class CacheService {
     Duration? ttl,
     String? etag,
   }) async {
-    final effectiveTtl = ttl ?? CacheTtlConfig.getTtl(entityType);
+    final Duration effectiveTtl = ttl ?? CacheTtlConfig.getTtl(entityType);
 
     await _lock.synchronized(() async {
       _log.fine(
         'Caching: $entityType:$entityId (ttl: ${effectiveTtl.inSeconds}s)',
       );
 
-      final now = DateTime.now();
+      final DateTime now = DateTime.now();
 
       await database.into(database.cacheMetadataTable).insertOnConflictUpdate(
             CacheMetadataEntityCompanion(
@@ -839,9 +839,9 @@ class CacheService {
   /// }
   /// ```
   Future<bool> isFresh(String entityType, String entityId) async {
-    final metadata = await (database.select(database.cacheMetadataTable)
+    final CacheMetadataEntity? metadata = await (database.select(database.cacheMetadataTable)
           ..where(
-            (tbl) =>
+            ($CacheMetadataTableTable tbl) =>
                 tbl.entityType.equals(entityType) &
                 tbl.entityId.equals(entityId),
           ))
@@ -857,10 +857,10 @@ class CacheService {
       return false;
     }
 
-    final now = DateTime.now();
-    final expiresAt =
+    final DateTime now = DateTime.now();
+    final DateTime expiresAt =
         metadata.cachedAt.add(Duration(seconds: metadata.ttlSeconds));
-    final fresh = now.isBefore(expiresAt);
+    final bool fresh = now.isBefore(expiresAt);
 
     _log.finest(() =>
         'Cache freshness: $entityType:$entityId fresh=$fresh '
@@ -895,9 +895,9 @@ class CacheService {
     await _lock.synchronized(() async {
       _log.info('Invalidating cache: $entityType:$entityId');
 
-      final result = await (database.update(database.cacheMetadataTable)
+      final int result = await (database.update(database.cacheMetadataTable)
             ..where(
-              (tbl) =>
+              ($CacheMetadataTableTable tbl) =>
                   tbl.entityType.equals(entityType) &
                   tbl.entityId.equals(entityId),
             ))
@@ -943,8 +943,8 @@ class CacheService {
     await _lock.synchronized(() async {
       _log.info('Invalidating all cache entries of type: $entityType');
 
-      final result = await (database.update(database.cacheMetadataTable)
-            ..where((tbl) => tbl.entityType.equals(entityType)))
+      final int result = await (database.update(database.cacheMetadataTable)
+            ..where(($CacheMetadataTableTable tbl) => tbl.entityType.equals(entityType)))
           .write(const CacheMetadataEntityCompanion(
         isInvalidated: Value(true),
       ));
@@ -981,7 +981,7 @@ class CacheService {
     await _lock.synchronized(() async {
       _log.warning('Clearing all cache metadata');
 
-      final result = await database.delete(database.cacheMetadataTable).go();
+      final int result = await database.delete(database.cacheMetadataTable).go();
 
       _log.warning('Cleared $result cache metadata entries');
 
@@ -1020,28 +1020,28 @@ class CacheService {
   /// print('Cache size: ${stats.totalCacheSizeMB} MB');
   /// ```
   Future<CacheStats> getStats() async {
-    final totalEntries = await database
+    final int totalEntries = await database
         .select(database.cacheMetadataTable)
         .get()
-        .then((l) => l.length);
+        .then((List<CacheMetadataEntity> l) => l.length);
 
-    final invalidatedEntries = await (database
+    final int invalidatedEntries = await (database
             .select(database.cacheMetadataTable)
-          ..where((tbl) => tbl.isInvalidated.equals(true)))
+          ..where(($CacheMetadataTableTable tbl) => tbl.isInvalidated.equals(true)))
         .get()
-        .then((l) => l.length);
+        .then((List<CacheMetadataEntity> l) => l.length);
 
     // Calculate hit rate
-    final hitRate = _totalRequests > 0 ? _cacheHits / _totalRequests : 0.0;
+    final double hitRate = _totalRequests > 0 ? _cacheHits / _totalRequests : 0.0;
 
     // Calculate average age
     int averageAgeSeconds = 0;
     if (totalEntries > 0) {
-      final allEntries =
+      final List<CacheMetadataEntity> allEntries =
           await database.select(database.cacheMetadataTable).get();
-      final totalAge = allEntries.fold<int>(
+      final int totalAge = allEntries.fold<int>(
         0,
-        (sum, entry) =>
+        (int sum, CacheMetadataEntity entry) =>
             sum + DateTime.now().difference(entry.cachedAt).inSeconds,
       );
       averageAgeSeconds = totalAge ~/ totalEntries;
@@ -1050,7 +1050,7 @@ class CacheService {
     // Estimate cache size (rough approximation)
     // Each cache_metadata entry: ~200 bytes
     // Entity data varies, estimate ~2KB average per entry
-    final estimatedSizeMB = ((totalEntries * 2200) / (1024 * 1024)).round();
+    final int estimatedSizeMB = ((totalEntries * 2200) / (1024 * 1024)).round();
 
     // Calculate ETag statistics
     final double etagHitRate =
@@ -1093,20 +1093,20 @@ class CacheService {
     await _lock.synchronized(() async {
       _log.info('Cleaning expired cache entries');
 
-      final now = DateTime.now();
+      final DateTime now = DateTime.now();
 
       // Find expired entries
-      final expired =
+      final List<CacheMetadataEntity> expired =
           await database.select(database.cacheMetadataTable).get();
       int deletedCount = 0;
 
-      for (final entry in expired) {
-        final expiresAt =
+      for (final CacheMetadataEntity entry in expired) {
+        final DateTime expiresAt =
             entry.cachedAt.add(Duration(seconds: entry.ttlSeconds));
         if (now.isAfter(expiresAt)) {
           await (database.delete(database.cacheMetadataTable)
                 ..where(
-                  (tbl) =>
+                  ($CacheMetadataTableTable tbl) =>
                       tbl.entityType.equals(entry.entityType) &
                       tbl.entityId.equals(entry.entityId),
                 ))
@@ -1140,14 +1140,14 @@ class CacheService {
   /// print('Cache size: ${sizeMB}MB');
   /// ```
   Future<int> calculateCacheSizeMB() async {
-    final totalEntries = await database
+    final int totalEntries = await database
         .select(database.cacheMetadataTable)
         .get()
-        .then((l) => l.length);
+        .then((List<CacheMetadataEntity> l) => l.length);
 
     // Estimate: 200 bytes metadata + 2KB entity data per entry
-    final estimatedBytes = totalEntries * 2200;
-    final estimatedMB = (estimatedBytes / (1024 * 1024)).round();
+    final int estimatedBytes = totalEntries * 2200;
+    final int estimatedMB = (estimatedBytes / (1024 * 1024)).round();
 
     _log.finest('Cache size estimate: ${estimatedMB}MB ($totalEntries entries)');
 
@@ -1218,7 +1218,7 @@ class CacheService {
   /// ```
   Future<void> evictLruIfNeeded() async {
     await _lock.synchronized(() async {
-      final currentSizeMB = await calculateCacheSizeMB();
+      final int currentSizeMB = await calculateCacheSizeMB();
 
       if (currentSizeMB <= _maxCacheSizeMB) {
         _log.finest(
@@ -1232,9 +1232,9 @@ class CacheService {
       );
 
       // Get all entries sorted by last access (oldest first)
-      final entries = await (database.select(database.cacheMetadataTable)
-            ..orderBy([
-              (tbl) => OrderingTerm.asc(tbl.lastAccessedAt),
+      final List<CacheMetadataEntity> entries = await (database.select(database.cacheMetadataTable)
+            ..orderBy(<OrderClauseGenerator<$CacheMetadataTableTable>>[
+              ($CacheMetadataTableTable tbl) => OrderingTerm.asc(tbl.lastAccessedAt),
             ]))
           .get();
 
@@ -1242,9 +1242,9 @@ class CacheService {
       int freedMB = 0;
 
       // Evict entries until under limit
-      for (final entry in entries) {
+      for (final CacheMetadataEntity entry in entries) {
         // Recalculate current size
-        final newSizeMB = await calculateCacheSizeMB();
+        final int newSizeMB = await calculateCacheSizeMB();
         if (newSizeMB <= _maxCacheSizeMB) {
           _log.info(
             'LRU eviction target reached: ${newSizeMB}MB / ${_maxCacheSizeMB}MB',
@@ -1253,13 +1253,13 @@ class CacheService {
         }
 
         // Estimate entry size (metadata + data)
-        final entrySizeKB = 2.2; // 2.2KB average per entry
-        final entrySizeMB = entrySizeKB / 1024;
+        final double entrySizeKB = 2.2; // 2.2KB average per entry
+        final double entrySizeMB = entrySizeKB / 1024;
 
         // Delete cache metadata entry
-        final deleted = await (database.delete(database.cacheMetadataTable)
+        final int deleted = await (database.delete(database.cacheMetadataTable)
               ..where(
-                (tbl) =>
+                ($CacheMetadataTableTable tbl) =>
                     tbl.entityType.equals(entry.entityType) &
                     tbl.entityId.equals(entry.entityId),
               ))
@@ -1279,7 +1279,7 @@ class CacheService {
       // Update eviction counter
       _evictions += evictedCount;
 
-      final finalSizeMB = await calculateCacheSizeMB();
+      final int finalSizeMB = await calculateCacheSizeMB();
       _log.warning(
         'LRU eviction complete: evicted $evictedCount entries, '
         'freed ~${freedMB}MB, final size: ${finalSizeMB}MB',
@@ -1301,22 +1301,22 @@ class CacheService {
   /// print('Cache evicted down to 50MB');
   /// ```
   Future<void> evictLru({int? targetSizeMB}) async {
-    final target = targetSizeMB ?? (_maxCacheSizeMB ~/ 2);
+    final int target = targetSizeMB ?? (_maxCacheSizeMB ~/ 2);
 
     await _lock.synchronized(() async {
       _log.info('Manual LRU eviction to ${target}MB');
 
       // Get all entries sorted by last access (oldest first)
-      final entries = await (database.select(database.cacheMetadataTable)
-            ..orderBy([
-              (tbl) => OrderingTerm.asc(tbl.lastAccessedAt),
+      final List<CacheMetadataEntity> entries = await (database.select(database.cacheMetadataTable)
+            ..orderBy(<OrderClauseGenerator<$CacheMetadataTableTable>>[
+              ($CacheMetadataTableTable tbl) => OrderingTerm.asc(tbl.lastAccessedAt),
             ]))
           .get();
 
       int evictedCount = 0;
 
-      for (final entry in entries) {
-        final currentSizeMB = await calculateCacheSizeMB();
+      for (final CacheMetadataEntity entry in entries) {
+        final int currentSizeMB = await calculateCacheSizeMB();
         if (currentSizeMB <= target) {
           break;
         }
@@ -1324,7 +1324,7 @@ class CacheService {
         // Delete entry
         await (database.delete(database.cacheMetadataTable)
               ..where(
-                (tbl) =>
+                ($CacheMetadataTableTable tbl) =>
                     tbl.entityType.equals(entry.entityType) &
                     tbl.entityId.equals(entry.entityId),
               ))
@@ -1335,7 +1335,7 @@ class CacheService {
 
       _evictions += evictedCount;
 
-      final finalSizeMB = await calculateCacheSizeMB();
+      final int finalSizeMB = await calculateCacheSizeMB();
       _log.info('Manual LRU eviction complete: evicted $evictedCount entries, final size: ${finalSizeMB}MB');
     });
   }
@@ -1348,7 +1348,7 @@ class CacheService {
   ///
   /// Both operations are thread-safe and non-blocking.
   void _startPeriodicCleanup() {
-    _cleanupTimer = Timer.periodic(const Duration(minutes: 30), (timer) {
+    _cleanupTimer = Timer.periodic(const Duration(minutes: 30), (Timer timer) {
       _log.fine('Running periodic cache maintenance');
       unawaited(cleanExpired());
       unawaited(evictLruIfNeeded());
@@ -1386,7 +1386,7 @@ class CacheService {
   Future<void> _updateLastAccessed(String entityType, String entityId) async {
     await (database.update(database.cacheMetadataTable)
           ..where(
-            (tbl) =>
+            ($CacheMetadataTableTable tbl) =>
                 tbl.entityType.equals(entityType) &
                 tbl.entityId.equals(entityId),
           ))
@@ -1399,9 +1399,9 @@ class CacheService {
   ///
   /// Returns when the entry was cached.
   Future<DateTime?> _getCachedAt(String entityType, String entityId) async {
-    final metadata = await (database.select(database.cacheMetadataTable)
+    final CacheMetadataEntity? metadata = await (database.select(database.cacheMetadataTable)
           ..where(
-            (tbl) =>
+            ($CacheMetadataTableTable tbl) =>
                 tbl.entityType.equals(entityType) &
                 tbl.entityId.equals(entityId),
           ))
@@ -1429,9 +1429,9 @@ class CacheService {
   /// }
   /// ```
   Future<String?> _getCachedETag(String entityType, String entityId) async {
-    final metadata = await (database.select(database.cacheMetadataTable)
+    final CacheMetadataEntity? metadata = await (database.select(database.cacheMetadataTable)
           ..where(
-            (tbl) =>
+            ($CacheMetadataTableTable tbl) =>
                 tbl.entityType.equals(entityType) &
                 tbl.entityId.equals(entityId),
           ))
@@ -1479,16 +1479,16 @@ class CacheService {
     }
 
     // Sort parameters for consistent hashing
-    final sortedKeys = filters.keys.toList()..sort();
-    final normalized = <String, dynamic>{};
-    for (final key in sortedKeys) {
+    final List<String> sortedKeys = filters.keys.toList()..sort();
+    final Map<String, dynamic> normalized = <String, dynamic>{};
+    for (final String key in sortedKeys) {
       normalized[key] = filters[key];
     }
 
     // Generate SHA-256 hash
-    final jsonString = jsonEncode(normalized);
-    final bytes = utf8.encode(jsonString);
-    final hash = sha256.convert(bytes);
+    final String jsonString = jsonEncode(normalized);
+    final Uint8List bytes = utf8.encode(jsonString);
+    final Digest hash = sha256.convert(bytes);
 
     // Use first 16 characters of hash for compact cache key
     return 'collection_${hash.toString().substring(0, 16)}';

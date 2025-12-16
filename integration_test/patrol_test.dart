@@ -13,7 +13,7 @@ import 'package:waterflyiii/main.dart' as app;
 void main() {
   patrolTest(
     'Complete user journey - Login to Transaction Creation',
-    ($) async {
+    (PatrolIntegrationTester $) async {
       // Launch app
       app.main();
       await $.pumpAndSettle();
@@ -37,7 +37,7 @@ void main() {
 
   patrolTest(
     'Test app navigation and screen transitions',
-    ($) async {
+    (PatrolIntegrationTester $) async {
       app.main();
       await $.pumpAndSettle();
 
@@ -51,12 +51,12 @@ void main() {
 
   patrolTest(
     'Test transaction CRUD operations',
-    ($) async {
+    (PatrolIntegrationTester $) async {
       app.main();
       await $.pumpAndSettle();
 
       // Create transaction
-      final transactionId = await _createTransaction($);
+      final String transactionId = await _createTransaction($);
 
       // Edit transaction
       await _editTransaction($, transactionId);
@@ -68,7 +68,7 @@ void main() {
 
   patrolTest(
     'Test offline mode with sync',
-    ($) async {
+    (PatrolIntegrationTester $) async {
       app.main();
       await $.pumpAndSettle();
 
@@ -88,7 +88,7 @@ void main() {
 
   patrolTest(
     'Test notification listener functionality',
-    ($) async {
+    (PatrolIntegrationTester $) async {
       app.main();
       await $.pumpAndSettle();
 
@@ -110,22 +110,22 @@ void main() {
 /// Helper function to perform login
 Future<void> _performLogin(PatrolIntegrationTester $) async {
   // Find server URL field
-  final serverUrlField = $(Key('serverUrlField'));
-  if (await serverUrlField.exists) {
+  final PatrolFinder serverUrlField = $(const Key('serverUrlField'));
+  if (serverUrlField.exists) {
     await serverUrlField.enterText('https://demo.firefly-iii.org');
     await $.pumpAndSettle();
   }
 
   // Find token field
-  final tokenField = $(Key('tokenField'));
-  if (await tokenField.exists) {
+  final PatrolFinder tokenField = $(const Key('tokenField'));
+  if (tokenField.exists) {
     await tokenField.enterText('demo-token');
     await $.pumpAndSettle();
   }
 
   // Tap login button
-  final loginButton = $(Key('loginButton'));
-  if (await loginButton.exists) {
+  final PatrolFinder loginButton = $(const Key('loginButton'));
+  if (loginButton.exists) {
     await loginButton.tap();
     await $.pumpAndSettle(timeout: const Duration(seconds: 10));
   }
@@ -134,42 +134,42 @@ Future<void> _performLogin(PatrolIntegrationTester $) async {
 /// Helper function to create a transaction
 Future<String> _createTransaction(PatrolIntegrationTester $) async {
   // Tap FAB
-  final fab = $(FloatingActionButton);
-  if (await fab.exists) {
+  final PatrolFinder fab = $(FloatingActionButton);
+  if (fab.exists) {
     await fab.tap();
     await $.pumpAndSettle();
   }
 
   // Fill transaction details
-  final descriptionField = $(Key('transactionDescription'));
-  if (await descriptionField.exists) {
+  final PatrolFinder descriptionField = $(const Key('transactionDescription'));
+  if (descriptionField.exists) {
     await descriptionField.enterText('E2E Test Transaction');
     await $.pumpAndSettle();
   }
 
-  final amountField = $(Key('transactionAmount'));
-  if (await amountField.exists) {
+  final PatrolFinder amountField = $(const Key('transactionAmount'));
+  if (amountField.exists) {
     await amountField.enterText('150.00');
     await $.pumpAndSettle();
   }
 
   // Select source account
-  final sourceAccountField = $(Key('sourceAccount'));
-  if (await sourceAccountField.exists) {
+  final PatrolFinder sourceAccountField = $(const Key('sourceAccount'));
+  if (sourceAccountField.exists) {
     await sourceAccountField.tap();
     await $.pumpAndSettle();
 
     // Select first account from list
-    final firstAccount = $(Key('account_0'));
-    if (await firstAccount.exists) {
+    final PatrolFinder firstAccount = $(const Key('account_0'));
+    if (firstAccount.exists) {
       await firstAccount.tap();
       await $.pumpAndSettle();
     }
   }
 
   // Save transaction
-  final saveButton = $(Key('saveTransaction'));
-  if (await saveButton.exists) {
+  final PatrolFinder saveButton = $(const Key('saveTransaction'));
+  if (saveButton.exists) {
     await saveButton.tap();
     await $.pumpAndSettle(timeout: const Duration(seconds: 5));
   }
@@ -180,27 +180,27 @@ Future<String> _createTransaction(PatrolIntegrationTester $) async {
 /// Helper function to edit a transaction
 Future<void> _editTransaction(PatrolIntegrationTester $, String transactionId) async {
   // Find transaction in list
-  final transaction = $(Key('transaction_$transactionId'));
-  if (await transaction.exists) {
+  final PatrolFinder transaction = $(Key('transaction_$transactionId'));
+  if (transaction.exists) {
     await transaction.tap();
     await $.pumpAndSettle();
 
     // Tap edit button
-    final editButton = $(Key('editTransaction'));
-    if (await editButton.exists) {
+    final PatrolFinder editButton = $(const Key('editTransaction'));
+    if (editButton.exists) {
       await editButton.tap();
       await $.pumpAndSettle();
 
       // Modify amount
-      final amountField = $(Key('transactionAmount'));
-      if (await amountField.exists) {
+      final PatrolFinder amountField = $(const Key('transactionAmount'));
+      if (amountField.exists) {
         await amountField.enterText('200.00');
         await $.pumpAndSettle();
       }
 
       // Save changes
-      final saveButton = $(Key('saveTransaction'));
-      if (await saveButton.exists) {
+      final PatrolFinder saveButton = $(const Key('saveTransaction'));
+      if (saveButton.exists) {
         await saveButton.tap();
         await $.pumpAndSettle();
       }
@@ -211,20 +211,20 @@ Future<void> _editTransaction(PatrolIntegrationTester $, String transactionId) a
 /// Helper function to delete a transaction
 Future<void> _deleteTransaction(PatrolIntegrationTester $, String transactionId) async {
   // Find transaction in list
-  final transaction = $(Key('transaction_$transactionId'));
-  if (await transaction.exists) {
+  final PatrolFinder transaction = $(Key('transaction_$transactionId'));
+  if (transaction.exists) {
     await transaction.tap();
     await $.pumpAndSettle();
 
     // Tap delete button
-    final deleteButton = $(Key('deleteTransaction'));
-    if (await deleteButton.exists) {
+    final PatrolFinder deleteButton = $(const Key('deleteTransaction'));
+    if (deleteButton.exists) {
       await deleteButton.tap();
       await $.pumpAndSettle();
 
       // Confirm deletion
-      final confirmButton = $(Key('confirmDelete'));
-      if (await confirmButton.exists) {
+      final PatrolFinder confirmButton = $(const Key('confirmDelete'));
+      if (confirmButton.exists) {
         await confirmButton.tap();
         await $.pumpAndSettle();
       }
@@ -235,29 +235,29 @@ Future<void> _deleteTransaction(PatrolIntegrationTester $, String transactionId)
 /// Helper function to test bottom navigation
 Future<void> _testBottomNavigation(PatrolIntegrationTester $) async {
   // Navigate to Transactions
-  final transactionsTab = $(Icons.receipt_long);
-  if (await transactionsTab.exists) {
+  final PatrolFinder transactionsTab = $(Icons.receipt_long);
+  if (transactionsTab.exists) {
     await transactionsTab.tap();
     await $.pumpAndSettle();
   }
 
   // Navigate to Accounts
-  final accountsTab = $(Icons.account_balance);
-  if (await accountsTab.exists) {
+  final PatrolFinder accountsTab = $(Icons.account_balance);
+  if (accountsTab.exists) {
     await accountsTab.tap();
     await $.pumpAndSettle();
   }
 
   // Navigate to Settings
-  final settingsTab = $(Icons.settings);
-  if (await settingsTab.exists) {
+  final PatrolFinder settingsTab = $(Icons.settings);
+  if (settingsTab.exists) {
     await settingsTab.tap();
     await $.pumpAndSettle();
   }
 
   // Return to Dashboard
-  final dashboardTab = $(Icons.dashboard);
-  if (await dashboardTab.exists) {
+  final PatrolFinder dashboardTab = $(Icons.dashboard);
+  if (dashboardTab.exists) {
     await dashboardTab.tap();
     await $.pumpAndSettle();
   }
@@ -266,14 +266,14 @@ Future<void> _testBottomNavigation(PatrolIntegrationTester $) async {
 /// Helper function to test drawer navigation
 Future<void> _testDrawerNavigation(PatrolIntegrationTester $) async {
   // Open drawer
-  final drawerButton = $(Icons.menu);
-  if (await drawerButton.exists) {
+  final PatrolFinder drawerButton = $(Icons.menu);
+  if (drawerButton.exists) {
     await drawerButton.tap();
     await $.pumpAndSettle();
 
     // Test drawer items
-    final billsItem = $(Key('drawer_bills'));
-    if (await billsItem.exists) {
+    final PatrolFinder billsItem = $(const Key('drawer_bills'));
+    if (billsItem.exists) {
       await billsItem.tap();
       await $.pumpAndSettle();
     }
@@ -283,15 +283,15 @@ Future<void> _testDrawerNavigation(PatrolIntegrationTester $) async {
 /// Helper function to enable offline mode
 Future<void> _enableOfflineMode(PatrolIntegrationTester $) async {
   // Navigate to settings
-  final settingsTab = $(Icons.settings);
-  if (await settingsTab.exists) {
+  final PatrolFinder settingsTab = $(Icons.settings);
+  if (settingsTab.exists) {
     await settingsTab.tap();
     await $.pumpAndSettle();
   }
 
   // Find and toggle offline mode
-  final offlineToggle = $(Key('offlineModeToggle'));
-  if (await offlineToggle.exists) {
+  final PatrolFinder offlineToggle = $(const Key('offlineModeToggle'));
+  if (offlineToggle.exists) {
     await offlineToggle.tap();
     await $.pumpAndSettle();
   }
@@ -300,15 +300,15 @@ Future<void> _enableOfflineMode(PatrolIntegrationTester $) async {
 /// Helper function to disable offline mode
 Future<void> _disableOfflineMode(PatrolIntegrationTester $) async {
   // Navigate to settings
-  final settingsTab = $(Icons.settings);
-  if (await settingsTab.exists) {
+  final PatrolFinder settingsTab = $(Icons.settings);
+  if (settingsTab.exists) {
     await settingsTab.tap();
     await $.pumpAndSettle();
   }
 
   // Find and toggle offline mode
-  final offlineToggle = $(Key('offlineModeToggle'));
-  if (await offlineToggle.exists) {
+  final PatrolFinder offlineToggle = $(const Key('offlineModeToggle'));
+  if (offlineToggle.exists) {
     await offlineToggle.tap();
     await $.pumpAndSettle();
   }
@@ -319,8 +319,8 @@ Future<void> _testOfflineMode(PatrolIntegrationTester $) async {
   await _enableOfflineMode($);
 
   // Verify offline indicator
-  final offlineIndicator = $(Key('offlineIndicator'));
-  expect(await offlineIndicator.exists, true, reason: 'Offline indicator should be visible');
+  final PatrolFinder offlineIndicator = $(const Key('offlineIndicator'));
+  expect(offlineIndicator.exists, true, reason: 'Offline indicator should be visible');
 
   await _disableOfflineMode($);
 }
@@ -328,29 +328,29 @@ Future<void> _testOfflineMode(PatrolIntegrationTester $) async {
 /// Helper function to verify sync functionality
 Future<void> _verifySyncFunctionality(PatrolIntegrationTester $) async {
   // Find sync button
-  final syncButton = $(Key('syncButton'));
-  if (await syncButton.exists) {
+  final PatrolFinder syncButton = $(const Key('syncButton'));
+  if (syncButton.exists) {
     await syncButton.tap();
     await $.pumpAndSettle(timeout: const Duration(seconds: 10));
 
     // Verify sync progress
-    final syncProgress = $(CircularProgressIndicator);
-    expect(await syncProgress.exists, true, reason: 'Sync progress should be visible');
+    final PatrolFinder syncProgress = $(CircularProgressIndicator);
+    expect(syncProgress.exists, true, reason: 'Sync progress should be visible');
   }
 }
 
 /// Helper function to navigate to notification settings
 Future<void> _navigateToNotificationSettings(PatrolIntegrationTester $) async {
   // Navigate to settings
-  final settingsTab = $(Icons.settings);
-  if (await settingsTab.exists) {
+  final PatrolFinder settingsTab = $(Icons.settings);
+  if (settingsTab.exists) {
     await settingsTab.tap();
     await $.pumpAndSettle();
   }
 
   // Find notification settings
-  final notificationSettings = $(Key('notificationSettings'));
-  if (await notificationSettings.exists) {
+  final PatrolFinder notificationSettings = $(const Key('notificationSettings'));
+  if (notificationSettings.exists) {
     await notificationSettings.tap();
     await $.pumpAndSettle();
   }
@@ -358,8 +358,8 @@ Future<void> _navigateToNotificationSettings(PatrolIntegrationTester $) async {
 
 /// Helper function to enable notification listener
 Future<void> _enableNotificationListener(PatrolIntegrationTester $) async {
-  final notificationToggle = $(Key('notificationListenerToggle'));
-  if (await notificationToggle.exists) {
+  final PatrolFinder notificationToggle = $(const Key('notificationListenerToggle'));
+  if (notificationToggle.exists) {
     await notificationToggle.tap();
     await $.pumpAndSettle();
 
