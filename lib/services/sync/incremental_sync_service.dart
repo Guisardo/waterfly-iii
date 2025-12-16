@@ -375,23 +375,43 @@ class IncrementalSyncService {
       statsByEntity['piggy_bank'] =
           await _syncEntityWithRetry('piggy_bank', () => _syncPiggyBanksIncremental());
 
+      // Check if any entity failed
+      final bool anyEntityFailed = statsByEntity.values.any(
+        (IncrementalSyncStats stats) => stats.success != true,
+      );
+      final List<String> failedEntities = statsByEntity.entries
+          .where((MapEntry<String, IncrementalSyncStats> e) => e.value.success != true)
+          .map((MapEntry<String, IncrementalSyncStats> e) => e.key)
+          .toList();
+
       // Update sync statistics in database
       await _updateSyncStatistics(statsByEntity);
 
-      // Update last incremental sync timestamp
-      await _updateLastIncrementalSyncTime(DateTime.now());
+      // Update last incremental sync timestamp (only if all entities succeeded)
+      if (!anyEntityFailed) {
+        await _updateLastIncrementalSyncTime(DateTime.now());
+      }
 
       final Duration duration = DateTime.now().difference(startTime);
       _logger.info('Incremental sync completed in ${duration.inSeconds}s');
 
+      if (anyEntityFailed) {
+        _logger.warning('Some entities failed to sync: $failedEntities');
+      }
+
       final IncrementalSyncResult result = IncrementalSyncResult(
         isIncremental: true,
-        success: true,
+        success: !anyEntityFailed,
         duration: duration,
         statsByEntity: statsByEntity,
+        error: anyEntityFailed
+            ? 'Some entities failed to sync: ${failedEntities.join(", ")}'
+            : null,
       );
 
-      _emitProgress(SyncProgressEvent.completed(result));
+      _emitProgress(anyEntityFailed
+          ? SyncProgressEvent.failed(result.error!)
+          : SyncProgressEvent.completed(result));
 
       return result;
     } catch (e, stackTrace) {
@@ -412,6 +432,11 @@ class IncrementalSyncService {
   ///
   /// Wraps the sync operation with exponential backoff retry.
   /// Emits progress events for retry attempts.
+  ///
+  /// Returns [IncrementalSyncStats] indicating success or failure.
+  /// On failure, the stats will have `success: false` and contain the error
+  /// message, but will NOT throw - this allows other entities to continue
+  /// syncing and allows the failed stats to be recorded.
   Future<IncrementalSyncStats> _syncEntityWithRetry(
     String entityType,
     Future<IncrementalSyncStats> Function() syncOperation,
@@ -442,13 +467,15 @@ class IncrementalSyncService {
       _emitProgress(SyncProgressEvent.entityCompleted(entityType, stats));
       return stats;
     } catch (e) {
-      // Return stats indicating failure
+      // Return stats indicating failure - don't rethrow so other entities
+      // can still be synced and so the failed stats can be recorded
+      _logger.severe('Sync failed for $entityType after $attemptCount attempts', e);
       final IncrementalSyncStats failedStats = IncrementalSyncStats(
         entityType: entityType,
       )..complete(success: false, error: e.toString());
 
       _emitProgress(SyncProgressEvent.entityCompleted(entityType, failedStats));
-      rethrow;
+      return failedStats;
     }
   }
 

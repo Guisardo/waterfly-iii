@@ -219,6 +219,8 @@ void main() {
           database,
           DateTime.now().subtract(const Duration(days: 1)),
         );
+        // Insert reference accounts required by transaction foreign keys
+        await _insertReferenceAccounts(database);
       });
 
       test('should fetch transactions with date filter', () async {
@@ -236,7 +238,7 @@ void main() {
 
         final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
-        expect(result.success, isTrue);
+        expect(result.success, isTrue, reason: 'Error: ${result.error}');
         expect(result.statsByEntity['transaction'], matcher.isNotNull);
         expect(result.statsByEntity['transaction']!.itemsFetched, equals(2));
         expect(result.statsByEntity['transaction']!.itemsUpdated, equals(2));
@@ -534,6 +536,8 @@ void main() {
           database,
           DateTime.now().subtract(const Duration(days: 1)),
         );
+        // Insert reference accounts required by piggy bank foreign keys
+        await _insertReferenceAccounts(database);
       });
 
       test('should skip sync when cache is fresh', () async {
@@ -581,6 +585,8 @@ void main() {
           database,
           DateTime.now().subtract(const Duration(days: 1)),
         );
+        // Insert reference accounts required by transaction foreign keys
+        await _insertReferenceAccounts(database);
       });
 
       test('should calculate bandwidth saved correctly', () async {
@@ -657,6 +663,8 @@ void main() {
           database,
           DateTime.now().subtract(const Duration(days: 1)),
         );
+        // Insert reference accounts required by transaction foreign keys
+        await _insertReferenceAccounts(database);
       });
 
       test('should force sync transactions bypassing cache', () async {
@@ -688,7 +696,7 @@ void main() {
         verify(() => mockCacheService.invalidate('category_list', 'all')).called(1);
       });
 
-      test('should throw error for unknown entity type', () async {
+      test('should throw error for unknown entity type', () {
         expect(
           () => syncService.forceSyncEntityType('unknown'),
           throwsA(isA<ArgumentError>()),
@@ -704,6 +712,8 @@ void main() {
           database,
           DateTime.now().subtract(const Duration(days: 1)),
         );
+        // Insert reference accounts required by transaction foreign keys
+        await _insertReferenceAccounts(database);
       });
 
       test('should handle API errors gracefully', () async {
@@ -717,8 +727,12 @@ void main() {
 
         final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
+        // Sync fails overall when any entity fails
         expect(result.success, isFalse);
-        expect(result.error, contains('API Error'));
+        // The aggregate error message indicates which entities failed
+        expect(result.error, contains('transaction'));
+        // The individual entity stats contain the specific error
+        expect(result.statsByEntity['transaction']?.error, contains('API Error'));
       });
 
       test('should include error details in stats', () async {
@@ -779,16 +793,20 @@ void main() {
           database,
           DateTime.now().subtract(const Duration(days: 1)),
         );
+        // Insert reference accounts required by transaction foreign keys
+        await _insertReferenceAccounts(database);
       });
 
       test('should sync all entity types in order', () async {
         final DateTime serverTimestamp = DateTime.now();
 
+        // Use account 'acc-new' which doesn't conflict with the reference accounts
+        // (acc-1, acc-2 are created by _insertReferenceAccounts for transaction FK constraints)
         _setupTransactionResponse(mockApiAdapter, <Map<String, dynamic>>[
           _createServerTransaction('tx-1', 'Transaction', 100.0, serverTimestamp),
         ]);
         _setupAccountResponse(mockApiAdapter, <Map<String, dynamic>>[
-          _createServerAccount('acc-1', 'Account', 'asset', 1000.0, serverTimestamp),
+          _createServerAccount('acc-new', 'New Account', 'asset', 1000.0, serverTimestamp),
         ]);
         _setupBudgetResponse(mockApiAdapter, <Map<String, dynamic>>[
           _createServerBudget('bud-1', 'Budget', serverTimestamp),
@@ -805,8 +823,8 @@ void main() {
 
         final IncrementalSyncResult result = await syncService.performIncrementalSync();
 
-        expect(result.success, isTrue);
-        expect(result.statsByEntity.length, equals(6));
+        expect(result.success, isTrue, reason: 'Error: ${result.error}');
+        expect(result.statsByEntity.length, equals(6), reason: 'Entities: ${result.statsByEntity.keys.toList()}');
         expect(result.totalFetched, equals(6));
         expect(result.totalUpdated, equals(6));
       });
@@ -995,6 +1013,45 @@ Future<void> _setLastFullSyncTime(AppDatabase database, DateTime time) async {
       key: 'last_full_sync',
       value: time.toIso8601String(),
       updatedAt: DateTime.now(),
+    ),
+  );
+}
+
+/// Insert required reference accounts used by transactions in tests.
+///
+/// Creates accounts 'acc-1' and 'acc-2' which are referenced by test transactions.
+/// This is needed because the transactions table has foreign key constraints
+/// referencing the accounts table.
+Future<void> _insertReferenceAccounts(AppDatabase database) async {
+  final DateTime now = DateTime.now();
+  await database.into(database.accounts).insertOnConflictUpdate(
+    AccountEntityCompanion.insert(
+      id: 'acc-1',
+      serverId: const Value<String?>('acc-1'),
+      name: 'Test Source Account',
+      type: 'asset',
+      currencyCode: 'USD',
+      currentBalance: 1000.0,
+      createdAt: now,
+      updatedAt: now,
+      serverUpdatedAt: Value<DateTime?>(now),
+      isSynced: const Value<bool>(true),
+      syncStatus: const Value<String>('synced'),
+    ),
+  );
+  await database.into(database.accounts).insertOnConflictUpdate(
+    AccountEntityCompanion.insert(
+      id: 'acc-2',
+      serverId: const Value<String?>('acc-2'),
+      name: 'Test Destination Account',
+      type: 'expense',
+      currencyCode: 'USD',
+      currentBalance: 0.0,
+      createdAt: now,
+      updatedAt: now,
+      serverUpdatedAt: Value<DateTime?>(now),
+      isSynced: const Value<bool>(true),
+      syncStatus: const Value<String>('synced'),
     ),
   );
 }
