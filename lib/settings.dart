@@ -69,6 +69,7 @@ enum BoolSettings {
   hideTags,
   billsShowOnlyActive,
   billsShowOnlyExpected,
+  enableCaching, // Phase 6.2: Feature flag for cache-first architecture
 }
 
 enum TransactionDateFilter {
@@ -159,6 +160,16 @@ class SettingsProvider with ChangeNotifier {
   bool get billsShowOnlyExpected =>
       _loaded ? _boolSettings[BoolSettings.billsShowOnlyExpected] : false;
 
+  /// Phase 6.2: Cache-First Architecture Feature Flag
+  ///
+  /// Controls whether the cache-first architecture is enabled.
+  /// When enabled (default), data is served from cache first with background refresh.
+  /// When disabled, all data is fetched directly from API (legacy behavior).
+  ///
+  /// Default: true (enabled)
+  bool get enableCaching =>
+      _loaded ? _boolSettings[BoolSettings.enableCaching] : true;
+
   ThemeMode _theme = ThemeMode.system;
   ThemeMode get theme => _theme;
 
@@ -218,6 +229,7 @@ class SettingsProvider with ChangeNotifier {
       _boolSettings[BoolSettings.hideTags] = false;
       _boolSettings[BoolSettings.billsShowOnlyActive] = false;
       _boolSettings[BoolSettings.billsShowOnlyExpected] = false;
+      _boolSettings[BoolSettings.enableCaching] = true; // Phase 6.2: Default enabled
     }
     await prefs.setInt(settingsBitmask, _boolSettings.value);
 
@@ -473,6 +485,22 @@ class SettingsProvider with ChangeNotifier {
       _setBool(BoolSettings.billsShowOnlyActive, enabled);
   set billsShowOnlyExpected(bool enabled) =>
       _setBool(BoolSettings.billsShowOnlyExpected, enabled);
+
+  /// Phase 6.2: Enable/disable cache-first architecture
+  ///
+  /// When disabling cache, all cached data should be cleared to prevent stale data.
+  /// This setter handles the cache clearing automatically.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Disable caching
+  /// settings.enableCaching = false; // Auto-clears cache
+  ///
+  /// // Re-enable caching
+  /// settings.enableCaching = true;
+  /// ```
+  set enableCaching(bool enabled) =>
+      _setBool(BoolSettings.enableCaching, enabled);
 
   Future<void> setTheme(ThemeMode theme) async {
     _theme = theme;

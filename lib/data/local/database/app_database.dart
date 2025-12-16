@@ -60,10 +60,13 @@ class AppDatabase extends _$AppDatabase {
   /// Test constructor for creating database with custom executor.
   ///
   /// Used for testing with in-memory databases.
-  // ignore: invalid_visibility_annotation
+  ///
+  /// Example:
+  /// ```dart
+  /// final database = AppDatabase.forTesting(NativeDatabase.memory());
+  /// ```
   @visibleForTesting
-  // ignore: unused_element
-  AppDatabase._testConstructor(QueryExecutor executor) : super(executor);
+  AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   /// Database schema version.
   ///

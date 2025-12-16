@@ -62,6 +62,7 @@ dependencies:
   # Offline Mode Dependencies - Phase 1 (Added 2024-12-12)
   drift: ^2.14.0
   drift_sqflite: ^2.0.1
+  sqlite3_flutter_libs: ^0.5.28  # Native SQLite library for Android/iOS
   connectivity_plus: ^7.0.0
   internet_connection_checker_plus: ^2.9.1+1
   rxdart: ^0.28.0

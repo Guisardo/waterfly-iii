@@ -270,12 +270,13 @@ class CacheService {
     final fresh = await isFresh(entityType, entityId);
 
     if (fresh) {
-      // Cache hit (fresh): Return immediately without API call
+      // Cache hit (fresh): Call fetcher to get data from repository DB
+      // CacheService only manages metadata, not actual data
       _cacheHits++;
       _hitsByEntityType[entityType] = (_hitsByEntityType[entityType] ?? 0) + 1;
       _log.info('Cache hit (fresh): $entityType:$entityId');
 
-      final data = await _getFromLocalDb<T>(entityType, entityId);
+      final data = await fetcher();
       await _updateLastAccessed(entityType, entityId);
 
       return CacheResult<T>(
@@ -286,13 +287,16 @@ class CacheService {
       );
     }
 
-    // Check if cached but stale
-    final cachedData = await _getFromLocalDb<T>(entityType, entityId);
+    // Check if cache metadata exists (stale)
+    final metadataExists = await _getCachedAt(entityType, entityId) != null;
 
-    if (cachedData != null) {
-      // Cache hit (stale): Return cached data immediately, refresh in background
+    if (metadataExists) {
+      // Cache hit (stale): Call fetcher to get data, optionally refresh in background
+      // CacheService only manages metadata, actual data comes from repository
       _staleServed++;
       _log.info('Cache hit (stale): $entityType:$entityId');
+
+      final data = await fetcher();
 
       if (backgroundRefresh) {
         // Start background refresh (fire-and-forget)
@@ -301,7 +305,7 @@ class CacheService {
       }
 
       return CacheResult<T>(
-        data: cachedData,
+        data: data,
         source: CacheSource.cache,
         isFresh: false,
         cachedAt: await _getCachedAt(entityType, entityId),
