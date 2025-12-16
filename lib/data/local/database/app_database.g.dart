@@ -8637,6 +8637,683 @@ class SyncStatisticsEntityCompanion
   }
 }
 
+class $CacheMetadataTableTable extends CacheMetadataTable
+    with TableInfo<$CacheMetadataTableTable, CacheMetadataEntity> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CacheMetadataTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityIdMeta = const VerificationMeta(
+    'entityId',
+  );
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+    'entity_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
+    'cachedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> cachedAt = GeneratedColumn<DateTime>(
+    'cached_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastAccessedAtMeta = const VerificationMeta(
+    'lastAccessedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastAccessedAt =
+      GeneratedColumn<DateTime>(
+        'last_accessed_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _ttlSecondsMeta = const VerificationMeta(
+    'ttlSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> ttlSeconds = GeneratedColumn<int>(
+    'ttl_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isInvalidatedMeta = const VerificationMeta(
+    'isInvalidated',
+  );
+  @override
+  late final GeneratedColumn<bool> isInvalidated = GeneratedColumn<bool>(
+    'is_invalidated',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_invalidated" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _etagMeta = const VerificationMeta('etag');
+  @override
+  late final GeneratedColumn<String> etag = GeneratedColumn<String>(
+    'etag',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _queryHashMeta = const VerificationMeta(
+    'queryHash',
+  );
+  @override
+  late final GeneratedColumn<String> queryHash = GeneratedColumn<String>(
+    'query_hash',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    entityType,
+    entityId,
+    cachedAt,
+    lastAccessedAt,
+    ttlSeconds,
+    isInvalidated,
+    etag,
+    queryHash,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cache_metadata_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CacheMetadataEntity> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('entity_type')) {
+      context.handle(
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(
+        _entityIdMeta,
+        entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(
+        _cachedAtMeta,
+        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cachedAtMeta);
+    }
+    if (data.containsKey('last_accessed_at')) {
+      context.handle(
+        _lastAccessedAtMeta,
+        lastAccessedAt.isAcceptableOrUnknown(
+          data['last_accessed_at']!,
+          _lastAccessedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastAccessedAtMeta);
+    }
+    if (data.containsKey('ttl_seconds')) {
+      context.handle(
+        _ttlSecondsMeta,
+        ttlSeconds.isAcceptableOrUnknown(data['ttl_seconds']!, _ttlSecondsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ttlSecondsMeta);
+    }
+    if (data.containsKey('is_invalidated')) {
+      context.handle(
+        _isInvalidatedMeta,
+        isInvalidated.isAcceptableOrUnknown(
+          data['is_invalidated']!,
+          _isInvalidatedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('etag')) {
+      context.handle(
+        _etagMeta,
+        etag.isAcceptableOrUnknown(data['etag']!, _etagMeta),
+      );
+    }
+    if (data.containsKey('query_hash')) {
+      context.handle(
+        _queryHashMeta,
+        queryHash.isAcceptableOrUnknown(data['query_hash']!, _queryHashMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {entityType, entityId};
+  @override
+  CacheMetadataEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CacheMetadataEntity(
+      entityType:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}entity_type'],
+          )!,
+      entityId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}entity_id'],
+          )!,
+      cachedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}cached_at'],
+          )!,
+      lastAccessedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}last_accessed_at'],
+          )!,
+      ttlSeconds:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}ttl_seconds'],
+          )!,
+      isInvalidated:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_invalidated'],
+          )!,
+      etag: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}etag'],
+      ),
+      queryHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}query_hash'],
+      ),
+    );
+  }
+
+  @override
+  $CacheMetadataTableTable createAlias(String alias) {
+    return $CacheMetadataTableTable(attachedDatabase, alias);
+  }
+}
+
+class CacheMetadataEntity extends DataClass
+    implements Insertable<CacheMetadataEntity> {
+  /// Entity type identifier (e.g., 'transaction', 'account', 'budget').
+  ///
+  /// For single entities: use singular form ('transaction', 'account')
+  /// For collections: use suffixed form ('transaction_list', 'account_list')
+  ///
+  /// This allows distinguishing between individual entity cache and
+  /// collection query cache, which may have different TTLs and invalidation
+  /// rules.
+  ///
+  /// Part 1 of composite primary key.
+  final String entityType;
+
+  /// Entity identifier (server ID or cache key for collections).
+  ///
+  /// For single entities: use server ID ('123', '456', 'abc-def-ghi')
+  /// For collections: use generated cache key from query hash
+  ///   (e.g., 'collection_all', 'collection_abc123def456')
+  ///
+  /// Collection cache keys are generated by hashing query parameters
+  /// (filters, pagination, sorting) using SHA-256 to ensure identical
+  /// queries hit the same cache entry regardless of parameter order.
+  ///
+  /// Part 2 of composite primary key.
+  final String entityId;
+
+  /// Timestamp when the data was cached.
+  ///
+  /// Used in conjunction with ttlSeconds to determine cache staleness.
+  /// Formula: isStale = DateTime.now().isAfter(cachedAt + Duration(seconds: ttlSeconds))
+  ///
+  /// This timestamp is updated whenever the cache entry is refreshed
+  /// (either through explicit refresh or background revalidation).
+  ///
+  /// Critical for stale-while-revalidate pattern:
+  /// - Fresh: cachedAt + ttl > now → return immediately
+  /// - Stale: cachedAt + ttl < now → return cached + background refresh
+  final DateTime cachedAt;
+
+  /// Timestamp when the cache entry was last accessed.
+  ///
+  /// Updated on every cache hit (both fresh and stale reads).
+  /// Used for LRU (Least Recently Used) eviction when cache size exceeds limits.
+  ///
+  /// LRU eviction strategy:
+  /// 1. Sort all entries by lastAccessedAt (ascending)
+  /// 2. Evict oldest entries first until cache size under limit
+  /// 3. Preserves frequently accessed data, removes cold cache entries
+  ///
+  /// This enables automatic cache size management without manual intervention,
+  /// balancing memory usage with performance benefits of caching.
+  final DateTime lastAccessedAt;
+
+  /// Time-to-live in seconds defining cache freshness window.
+  ///
+  /// Determines how long cached data is considered fresh before becoming stale.
+  /// Different entity types have different TTL values based on volatility:
+  /// - Highly volatile (transactions): 300s (5 min)
+  /// - Moderately volatile (accounts, budgets): 900s (15 min)
+  /// - Low volatility (categories, currencies): 3600s (1 hour)
+  /// - Rarely changing (user profile): 43200s (12 hours)
+  ///
+  /// TTL values configured in CacheTtlConfig based on:
+  /// - Data volatility (how often it changes)
+  /// - User expectations (how fresh data needs to be)
+  /// - API cost (expensive queries get longer TTL)
+  ///
+  /// The TTL is stored as seconds for efficient database queries:
+  /// ```sql
+  /// SELECT * FROM cache_metadata
+  /// WHERE datetime(cached_at, '+' || ttl_seconds || ' seconds') > datetime('now')
+  /// ```
+  final int ttlSeconds;
+
+  /// Whether this cache entry has been explicitly invalidated.
+  ///
+  /// Set to true when:
+  /// - Related entity is created/updated/deleted (cascade invalidation)
+  /// - User performs pull-to-refresh
+  /// - Sync operation completes
+  /// - Manual cache clear requested
+  ///
+  /// Invalidated entries are treated as cache misses:
+  /// - isFresh() returns false
+  /// - Next get() will fetch from API
+  /// - Background refresh will update and clear flag
+  ///
+  /// Default value: false (new cache entries start valid)
+  ///
+  /// This flag allows immediate cache invalidation without deleting the entry,
+  /// preserving the cached data for potential stale-while-revalidate serving
+  /// if API fetch fails.
+  final bool isInvalidated;
+
+  /// Optional ETag from HTTP response headers for cache validation.
+  ///
+  /// ETags enable efficient HTTP conditional requests:
+  /// 1. Cache stores ETag from initial response
+  /// 2. Subsequent request includes If-None-Match: <etag>
+  /// 3. Server returns 304 Not Modified if unchanged (no body transfer)
+  /// 4. Client reuses cached data, updates lastAccessedAt
+  ///
+  /// Bandwidth savings:
+  /// - Full response: ~5-50 KB depending on entity
+  /// - 304 response: ~200 bytes (headers only)
+  /// - Reduction: 95-99% for unchanged data
+  ///
+  /// Nullable because:
+  /// - Not all API endpoints support ETags
+  /// - Legacy Firefly III versions may not return ETags
+  /// - Cache can function without ETags (just less efficient)
+  ///
+  /// Format: Typically a hash or version identifier
+  /// Example: "33a64df551425fcc55e4d42a148795d9f25f89d4"
+  final String? etag;
+
+  /// Optional query parameters hash for collection queries.
+  ///
+  /// Collection queries (e.g., "get all transactions") can have filters,
+  /// pagination, sorting parameters. This hash ensures identical queries
+  /// hit the same cache entry regardless of parameter order.
+  ///
+  /// Hash Generation Algorithm:
+  /// 1. Normalize parameters: sort keys alphabetically
+  /// 2. Serialize to JSON: {"account":"123","limit":50,"start":"2024-01-01"}
+  /// 3. Hash with SHA-256
+  /// 4. Truncate to 16 characters for efficiency
+  /// 5. Prefix with 'collection_': 'collection_abc123def456'
+  ///
+  /// Benefits:
+  /// - Query param order doesn't affect cache hit
+  ///   (?limit=50&account=123 === ?account=123&limit=50)
+  /// - Deterministic cache keys for testing
+  /// - Human-readable prefix for debugging
+  ///
+  /// Nullable because:
+  /// - Single entity queries don't need it (use server ID)
+  /// - Some collections have no parameters ('get all')
+  ///
+  /// Example:
+  /// ```dart
+  /// // Query: transactions?start=2024-01-01&end=2024-01-31&account=123
+  /// final hash = sha256('{"account":"123","end":"2024-01-31","start":"2024-01-01"}');
+  /// queryHash = 'collection_${hash.substring(0, 16)}';
+  /// ```
+  final String? queryHash;
+  const CacheMetadataEntity({
+    required this.entityType,
+    required this.entityId,
+    required this.cachedAt,
+    required this.lastAccessedAt,
+    required this.ttlSeconds,
+    required this.isInvalidated,
+    this.etag,
+    this.queryHash,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['entity_type'] = Variable<String>(entityType);
+    map['entity_id'] = Variable<String>(entityId);
+    map['cached_at'] = Variable<DateTime>(cachedAt);
+    map['last_accessed_at'] = Variable<DateTime>(lastAccessedAt);
+    map['ttl_seconds'] = Variable<int>(ttlSeconds);
+    map['is_invalidated'] = Variable<bool>(isInvalidated);
+    if (!nullToAbsent || etag != null) {
+      map['etag'] = Variable<String>(etag);
+    }
+    if (!nullToAbsent || queryHash != null) {
+      map['query_hash'] = Variable<String>(queryHash);
+    }
+    return map;
+  }
+
+  CacheMetadataEntityCompanion toCompanion(bool nullToAbsent) {
+    return CacheMetadataEntityCompanion(
+      entityType: Value(entityType),
+      entityId: Value(entityId),
+      cachedAt: Value(cachedAt),
+      lastAccessedAt: Value(lastAccessedAt),
+      ttlSeconds: Value(ttlSeconds),
+      isInvalidated: Value(isInvalidated),
+      etag: etag == null && nullToAbsent ? const Value.absent() : Value(etag),
+      queryHash:
+          queryHash == null && nullToAbsent
+              ? const Value.absent()
+              : Value(queryHash),
+    );
+  }
+
+  factory CacheMetadataEntity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CacheMetadataEntity(
+      entityType: serializer.fromJson<String>(json['entityType']),
+      entityId: serializer.fromJson<String>(json['entityId']),
+      cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
+      lastAccessedAt: serializer.fromJson<DateTime>(json['lastAccessedAt']),
+      ttlSeconds: serializer.fromJson<int>(json['ttlSeconds']),
+      isInvalidated: serializer.fromJson<bool>(json['isInvalidated']),
+      etag: serializer.fromJson<String?>(json['etag']),
+      queryHash: serializer.fromJson<String?>(json['queryHash']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'entityType': serializer.toJson<String>(entityType),
+      'entityId': serializer.toJson<String>(entityId),
+      'cachedAt': serializer.toJson<DateTime>(cachedAt),
+      'lastAccessedAt': serializer.toJson<DateTime>(lastAccessedAt),
+      'ttlSeconds': serializer.toJson<int>(ttlSeconds),
+      'isInvalidated': serializer.toJson<bool>(isInvalidated),
+      'etag': serializer.toJson<String?>(etag),
+      'queryHash': serializer.toJson<String?>(queryHash),
+    };
+  }
+
+  CacheMetadataEntity copyWith({
+    String? entityType,
+    String? entityId,
+    DateTime? cachedAt,
+    DateTime? lastAccessedAt,
+    int? ttlSeconds,
+    bool? isInvalidated,
+    Value<String?> etag = const Value.absent(),
+    Value<String?> queryHash = const Value.absent(),
+  }) => CacheMetadataEntity(
+    entityType: entityType ?? this.entityType,
+    entityId: entityId ?? this.entityId,
+    cachedAt: cachedAt ?? this.cachedAt,
+    lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
+    ttlSeconds: ttlSeconds ?? this.ttlSeconds,
+    isInvalidated: isInvalidated ?? this.isInvalidated,
+    etag: etag.present ? etag.value : this.etag,
+    queryHash: queryHash.present ? queryHash.value : this.queryHash,
+  );
+  CacheMetadataEntity copyWithCompanion(CacheMetadataEntityCompanion data) {
+    return CacheMetadataEntity(
+      entityType:
+          data.entityType.present ? data.entityType.value : this.entityType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+      lastAccessedAt:
+          data.lastAccessedAt.present
+              ? data.lastAccessedAt.value
+              : this.lastAccessedAt,
+      ttlSeconds:
+          data.ttlSeconds.present ? data.ttlSeconds.value : this.ttlSeconds,
+      isInvalidated:
+          data.isInvalidated.present
+              ? data.isInvalidated.value
+              : this.isInvalidated,
+      etag: data.etag.present ? data.etag.value : this.etag,
+      queryHash: data.queryHash.present ? data.queryHash.value : this.queryHash,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CacheMetadataEntity(')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('lastAccessedAt: $lastAccessedAt, ')
+          ..write('ttlSeconds: $ttlSeconds, ')
+          ..write('isInvalidated: $isInvalidated, ')
+          ..write('etag: $etag, ')
+          ..write('queryHash: $queryHash')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    entityType,
+    entityId,
+    cachedAt,
+    lastAccessedAt,
+    ttlSeconds,
+    isInvalidated,
+    etag,
+    queryHash,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CacheMetadataEntity &&
+          other.entityType == this.entityType &&
+          other.entityId == this.entityId &&
+          other.cachedAt == this.cachedAt &&
+          other.lastAccessedAt == this.lastAccessedAt &&
+          other.ttlSeconds == this.ttlSeconds &&
+          other.isInvalidated == this.isInvalidated &&
+          other.etag == this.etag &&
+          other.queryHash == this.queryHash);
+}
+
+class CacheMetadataEntityCompanion
+    extends UpdateCompanion<CacheMetadataEntity> {
+  final Value<String> entityType;
+  final Value<String> entityId;
+  final Value<DateTime> cachedAt;
+  final Value<DateTime> lastAccessedAt;
+  final Value<int> ttlSeconds;
+  final Value<bool> isInvalidated;
+  final Value<String?> etag;
+  final Value<String?> queryHash;
+  final Value<int> rowid;
+  const CacheMetadataEntityCompanion({
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.lastAccessedAt = const Value.absent(),
+    this.ttlSeconds = const Value.absent(),
+    this.isInvalidated = const Value.absent(),
+    this.etag = const Value.absent(),
+    this.queryHash = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CacheMetadataEntityCompanion.insert({
+    required String entityType,
+    required String entityId,
+    required DateTime cachedAt,
+    required DateTime lastAccessedAt,
+    required int ttlSeconds,
+    this.isInvalidated = const Value.absent(),
+    this.etag = const Value.absent(),
+    this.queryHash = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : entityType = Value(entityType),
+       entityId = Value(entityId),
+       cachedAt = Value(cachedAt),
+       lastAccessedAt = Value(lastAccessedAt),
+       ttlSeconds = Value(ttlSeconds);
+  static Insertable<CacheMetadataEntity> custom({
+    Expression<String>? entityType,
+    Expression<String>? entityId,
+    Expression<DateTime>? cachedAt,
+    Expression<DateTime>? lastAccessedAt,
+    Expression<int>? ttlSeconds,
+    Expression<bool>? isInvalidated,
+    Expression<String>? etag,
+    Expression<String>? queryHash,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (entityType != null) 'entity_type': entityType,
+      if (entityId != null) 'entity_id': entityId,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (lastAccessedAt != null) 'last_accessed_at': lastAccessedAt,
+      if (ttlSeconds != null) 'ttl_seconds': ttlSeconds,
+      if (isInvalidated != null) 'is_invalidated': isInvalidated,
+      if (etag != null) 'etag': etag,
+      if (queryHash != null) 'query_hash': queryHash,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CacheMetadataEntityCompanion copyWith({
+    Value<String>? entityType,
+    Value<String>? entityId,
+    Value<DateTime>? cachedAt,
+    Value<DateTime>? lastAccessedAt,
+    Value<int>? ttlSeconds,
+    Value<bool>? isInvalidated,
+    Value<String?>? etag,
+    Value<String?>? queryHash,
+    Value<int>? rowid,
+  }) {
+    return CacheMetadataEntityCompanion(
+      entityType: entityType ?? this.entityType,
+      entityId: entityId ?? this.entityId,
+      cachedAt: cachedAt ?? this.cachedAt,
+      lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
+      ttlSeconds: ttlSeconds ?? this.ttlSeconds,
+      isInvalidated: isInvalidated ?? this.isInvalidated,
+      etag: etag ?? this.etag,
+      queryHash: queryHash ?? this.queryHash,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<DateTime>(cachedAt.value);
+    }
+    if (lastAccessedAt.present) {
+      map['last_accessed_at'] = Variable<DateTime>(lastAccessedAt.value);
+    }
+    if (ttlSeconds.present) {
+      map['ttl_seconds'] = Variable<int>(ttlSeconds.value);
+    }
+    if (isInvalidated.present) {
+      map['is_invalidated'] = Variable<bool>(isInvalidated.value);
+    }
+    if (etag.present) {
+      map['etag'] = Variable<String>(etag.value);
+    }
+    if (queryHash.present) {
+      map['query_hash'] = Variable<String>(queryHash.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CacheMetadataEntityCompanion(')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('lastAccessedAt: $lastAccessedAt, ')
+          ..write('ttlSeconds: $ttlSeconds, ')
+          ..write('isInvalidated: $isInvalidated, ')
+          ..write('etag: $etag, ')
+          ..write('queryHash: $queryHash, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   _$AppDatabase.connect(DatabaseConnection c) : super.connect(c);
@@ -8654,6 +9331,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ErrorLogTable errorLog = $ErrorLogTable(this);
   late final $SyncStatisticsTableTable syncStatisticsTable =
       $SyncStatisticsTableTable(this);
+  late final $CacheMetadataTableTable cacheMetadataTable =
+      $CacheMetadataTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -8671,6 +9350,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     conflicts,
     errorLog,
     syncStatisticsTable,
+    cacheMetadataTable,
   ];
 }
 
@@ -12707,6 +13387,297 @@ typedef $$SyncStatisticsTableTableProcessedTableManager =
       SyncStatisticsEntity,
       PrefetchHooks Function()
     >;
+typedef $$CacheMetadataTableTableCreateCompanionBuilder =
+    CacheMetadataEntityCompanion Function({
+      required String entityType,
+      required String entityId,
+      required DateTime cachedAt,
+      required DateTime lastAccessedAt,
+      required int ttlSeconds,
+      Value<bool> isInvalidated,
+      Value<String?> etag,
+      Value<String?> queryHash,
+      Value<int> rowid,
+    });
+typedef $$CacheMetadataTableTableUpdateCompanionBuilder =
+    CacheMetadataEntityCompanion Function({
+      Value<String> entityType,
+      Value<String> entityId,
+      Value<DateTime> cachedAt,
+      Value<DateTime> lastAccessedAt,
+      Value<int> ttlSeconds,
+      Value<bool> isInvalidated,
+      Value<String?> etag,
+      Value<String?> queryHash,
+      Value<int> rowid,
+    });
+
+class $$CacheMetadataTableTableFilterComposer
+    extends Composer<_$AppDatabase, $CacheMetadataTableTable> {
+  $$CacheMetadataTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastAccessedAt => $composableBuilder(
+    column: $table.lastAccessedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get ttlSeconds => $composableBuilder(
+    column: $table.ttlSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isInvalidated => $composableBuilder(
+    column: $table.isInvalidated,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get etag => $composableBuilder(
+    column: $table.etag,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get queryHash => $composableBuilder(
+    column: $table.queryHash,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CacheMetadataTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $CacheMetadataTableTable> {
+  $$CacheMetadataTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastAccessedAt => $composableBuilder(
+    column: $table.lastAccessedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get ttlSeconds => $composableBuilder(
+    column: $table.ttlSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isInvalidated => $composableBuilder(
+    column: $table.isInvalidated,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get etag => $composableBuilder(
+    column: $table.etag,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get queryHash => $composableBuilder(
+    column: $table.queryHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CacheMetadataTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CacheMetadataTableTable> {
+  $$CacheMetadataTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get cachedAt =>
+      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastAccessedAt => $composableBuilder(
+    column: $table.lastAccessedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get ttlSeconds => $composableBuilder(
+    column: $table.ttlSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isInvalidated => $composableBuilder(
+    column: $table.isInvalidated,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get etag =>
+      $composableBuilder(column: $table.etag, builder: (column) => column);
+
+  GeneratedColumn<String> get queryHash =>
+      $composableBuilder(column: $table.queryHash, builder: (column) => column);
+}
+
+class $$CacheMetadataTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CacheMetadataTableTable,
+          CacheMetadataEntity,
+          $$CacheMetadataTableTableFilterComposer,
+          $$CacheMetadataTableTableOrderingComposer,
+          $$CacheMetadataTableTableAnnotationComposer,
+          $$CacheMetadataTableTableCreateCompanionBuilder,
+          $$CacheMetadataTableTableUpdateCompanionBuilder,
+          (
+            CacheMetadataEntity,
+            BaseReferences<
+              _$AppDatabase,
+              $CacheMetadataTableTable,
+              CacheMetadataEntity
+            >,
+          ),
+          CacheMetadataEntity,
+          PrefetchHooks Function()
+        > {
+  $$CacheMetadataTableTableTableManager(
+    _$AppDatabase db,
+    $CacheMetadataTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$CacheMetadataTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer:
+              () => $$CacheMetadataTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer:
+              () => $$CacheMetadataTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> entityType = const Value.absent(),
+                Value<String> entityId = const Value.absent(),
+                Value<DateTime> cachedAt = const Value.absent(),
+                Value<DateTime> lastAccessedAt = const Value.absent(),
+                Value<int> ttlSeconds = const Value.absent(),
+                Value<bool> isInvalidated = const Value.absent(),
+                Value<String?> etag = const Value.absent(),
+                Value<String?> queryHash = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CacheMetadataEntityCompanion(
+                entityType: entityType,
+                entityId: entityId,
+                cachedAt: cachedAt,
+                lastAccessedAt: lastAccessedAt,
+                ttlSeconds: ttlSeconds,
+                isInvalidated: isInvalidated,
+                etag: etag,
+                queryHash: queryHash,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String entityType,
+                required String entityId,
+                required DateTime cachedAt,
+                required DateTime lastAccessedAt,
+                required int ttlSeconds,
+                Value<bool> isInvalidated = const Value.absent(),
+                Value<String?> etag = const Value.absent(),
+                Value<String?> queryHash = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CacheMetadataEntityCompanion.insert(
+                entityType: entityType,
+                entityId: entityId,
+                cachedAt: cachedAt,
+                lastAccessedAt: lastAccessedAt,
+                ttlSeconds: ttlSeconds,
+                isInvalidated: isInvalidated,
+                etag: etag,
+                queryHash: queryHash,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CacheMetadataTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CacheMetadataTableTable,
+      CacheMetadataEntity,
+      $$CacheMetadataTableTableFilterComposer,
+      $$CacheMetadataTableTableOrderingComposer,
+      $$CacheMetadataTableTableAnnotationComposer,
+      $$CacheMetadataTableTableCreateCompanionBuilder,
+      $$CacheMetadataTableTableUpdateCompanionBuilder,
+      (
+        CacheMetadataEntity,
+        BaseReferences<
+          _$AppDatabase,
+          $CacheMetadataTableTable,
+          CacheMetadataEntity
+        >,
+      ),
+      CacheMetadataEntity,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12735,4 +13706,6 @@ class $AppDatabaseManager {
       $$ErrorLogTableTableManager(_db, _db.errorLog);
   $$SyncStatisticsTableTableTableManager get syncStatisticsTable =>
       $$SyncStatisticsTableTableTableManager(_db, _db.syncStatisticsTable);
+  $$CacheMetadataTableTableTableManager get cacheMetadataTable =>
+      $$CacheMetadataTableTableTableManager(_db, _db.cacheMetadataTable);
 }

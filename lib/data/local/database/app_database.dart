@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:waterflyiii/data/local/database/accounts_table.dart';
 import 'package:waterflyiii/data/local/database/bills_table.dart';
 import 'package:waterflyiii/data/local/database/budgets_table.dart';
+import 'package:waterflyiii/data/local/database/cache_metadata_table.dart';
 import 'package:waterflyiii/data/local/database/categories_table.dart';
 import 'package:waterflyiii/data/local/database/conflicts_table.dart';
 import 'package:waterflyiii/data/local/database/error_log_table.dart';
@@ -25,7 +26,7 @@ part 'app_database.g.dart';
 /// This database stores all Firefly III entities locally and manages
 /// synchronization state for offline operations.
 ///
-/// Database version: 3
+/// Database version: 5
 /// Schema includes:
 /// - Transactions, Accounts, Categories, Budgets, Bills, Piggy Banks
 /// - Sync queue for pending operations
@@ -33,6 +34,7 @@ part 'app_database.g.dart';
 /// - ID mapping for local-to-server ID resolution
 /// - Conflicts for storing sync conflicts
 /// - Error log for tracking sync errors
+/// - Cache metadata for cache-first architecture
 @DriftDatabase(tables: <Type>[
   Transactions,
   Accounts,
@@ -46,6 +48,7 @@ part 'app_database.g.dart';
   Conflicts,
   ErrorLog,
   SyncStatisticsTable,
+  CacheMetadataTable,
 ])
 class AppDatabase extends _$AppDatabase {
   /// Creates a new instance of the database.
@@ -68,8 +71,9 @@ class AppDatabase extends _$AppDatabase {
   /// Version 2: Added foreign key constraints for referential integrity
   /// Version 3: Added conflicts and error_log tables
   /// Version 4: Added sync_statistics table
+  /// Version 5: Added cache_metadata table for cache-first architecture
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   /// Database migration logic.
   ///
@@ -145,6 +149,29 @@ class AppDatabase extends _$AppDatabase {
         if (from < 4) {
           // Version 4: Add sync_statistics table
           await m.createTable(syncStatisticsTable);
+        }
+
+        if (from < 5) {
+          // Version 5: Add cache_metadata table for cache-first architecture
+          await m.createTable(cacheMetadataTable);
+
+          // Create performance indexes for cache operations
+          // These indexes dramatically improve cache performance:
+          // - Type invalidation: O(log n) instead of O(n) table scan
+          // - Staleness checks: Index-covered query for freshness
+          // - LRU eviction: Ordered access without full table sort
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS cache_by_type ON cache_metadata_table(entity_type)',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS cache_by_invalidation ON cache_metadata_table(is_invalidated, cached_at)',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS cache_by_staleness ON cache_metadata_table(cached_at, ttl_seconds)',
+          );
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS cache_by_lru ON cache_metadata_table(last_accessed_at)',
+          );
         }
       },
       beforeOpen: (OpeningDetails details) async {

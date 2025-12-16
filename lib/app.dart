@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/pages/login.dart';
@@ -20,6 +21,7 @@ import 'package:waterflyiii/pages/splash.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/providers/sync_provider.dart';
+import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/widgets/logo.dart';
 
@@ -212,6 +214,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
 
         return MultiProvider(
           providers: <SingleChildWidget>[
+            // Core Services
             ChangeNotifierProvider<FireflyService>(
               create: (_) => FireflyService(),
             ),
@@ -223,6 +226,18 @@ class _WaterflyAppState extends State<WaterflyApp> {
             ),
             ChangeNotifierProvider<SyncProvider>(
               create: (_) => SyncProvider(),
+            ),
+
+            // Database and Cache (Phase 2: Cache-First Architecture)
+            Provider<AppDatabase>(
+              create: (_) => AppDatabase(),
+              dispose: (_, AppDatabase db) => db.close(),
+            ),
+            Provider<CacheService>(
+              create: (BuildContext context) => CacheService(
+                database: context.read<AppDatabase>(),
+              ),
+              dispose: (_, CacheService cache) => cache.dispose(),
             ),
           ],
           builder: (BuildContext context, _) {
