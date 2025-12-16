@@ -93,8 +93,9 @@ class AppDatabase extends _$AppDatabase {
         // Create all tables
         await m.createAll();
         
-        // Create performance indexes
+        // Create performance indexes (includes server_updated_at indexes)
         await _createIndexes();
+        await _createServerUpdatedAtIndexes();
         
         // Initialize sync metadata with default values
         await into(syncMetadata).insert(
@@ -118,6 +119,9 @@ class AppDatabase extends _$AppDatabase {
             updatedAt: DateTime.now(),
           ),
         );
+        
+        // Initialize sync statistics for each entity type
+        await _initializeSyncStatistics();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         // Implement migration logic here when schema version changes
@@ -316,6 +320,37 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  /// Creates indexes on server_updated_at columns for incremental sync performance.
+  ///
+  /// These indexes are critical for efficiently querying entities that have
+  /// been updated since the last sync.
+  Future<void> _createServerUpdatedAtIndexes() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_transactions_server_updated_at '
+      'ON transactions(server_updated_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_accounts_server_updated_at '
+      'ON accounts(server_updated_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_budgets_server_updated_at '
+      'ON budgets(server_updated_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_categories_server_updated_at '
+      'ON categories(server_updated_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_bills_server_updated_at '
+      'ON bills(server_updated_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_piggy_banks_server_updated_at '
+      'ON piggy_banks(server_updated_at)',
+    );
+  }
+
   /// Migrate database from version 5 to version 6.
   ///
   /// Changes in v6:
@@ -360,31 +395,7 @@ class AppDatabase extends _$AppDatabase {
 
       // Step 3: Create indexes for performance on server_updated_at columns
       log.fine('Creating indexes on server_updated_at columns');
-
-      await customStatement(
-        'CREATE INDEX IF NOT EXISTS idx_transactions_server_updated_at '
-        'ON transactions(server_updated_at)',
-      );
-      await customStatement(
-        'CREATE INDEX IF NOT EXISTS idx_accounts_server_updated_at '
-        'ON accounts(server_updated_at)',
-      );
-      await customStatement(
-        'CREATE INDEX IF NOT EXISTS idx_budgets_server_updated_at '
-        'ON budgets(server_updated_at)',
-      );
-      await customStatement(
-        'CREATE INDEX IF NOT EXISTS idx_categories_server_updated_at '
-        'ON categories(server_updated_at)',
-      );
-      await customStatement(
-        'CREATE INDEX IF NOT EXISTS idx_bills_server_updated_at '
-        'ON bills(server_updated_at)',
-      );
-      await customStatement(
-        'CREATE INDEX IF NOT EXISTS idx_piggy_banks_server_updated_at '
-        'ON piggy_banks(server_updated_at)',
-      );
+      await _createServerUpdatedAtIndexes();
 
       // Step 4: Backfill server_updated_at from existing updated_at field
       log.fine('Backfilling server_updated_at fields from updated_at');

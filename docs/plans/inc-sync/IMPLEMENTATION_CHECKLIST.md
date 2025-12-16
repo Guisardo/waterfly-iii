@@ -350,7 +350,7 @@ dart run build_runner build --delete-conflicting-outputs
 - [x] Run build_runner to generate Drift code
 - [x] Verify `*.g.dart` files are generated correctly
 - [x] Fix any compilation errors
-- [ ] Verify database opens successfully with new schema
+- [x] Verify database opens successfully with new schema
 
 ### Task 1.5: Write Migration Tests
 
@@ -460,21 +460,21 @@ void main() {
 ```
 
 **Checklist:**
-- [ ] Create `test/data/database/migration_v6_test.dart`
-- [ ] Write test for table creation
-- [ ] Write test for column additions
-- [ ] Write test for index creation
-- [ ] Write test for backfill logic
-- [ ] Write test for statistics initialization
-- [ ] Run tests and verify all pass
+- [x] Create `test/data/database/migration_v6_test.dart`
+- [x] Write test for table creation
+- [x] Write test for column additions
+- [x] Write test for index creation
+- [x] Write test for backfill logic
+- [x] Write test for statistics initialization
+- [x] Run tests and verify all pass
 
 ### Phase 1 Completion Checklist
 
 - [x] All tasks 1.1 through 1.5 completed
 - [x] Code generated successfully
-- [ ] All tests pass
-- [ ] Database opens successfully with v6 schema
-- [ ] Migration from v5 to v6 tested
+- [x] All tests pass
+- [x] Database opens successfully with v6 schema
+- [x] Migration from v5 to v6 tested
 - [x] No compilation errors
 - [x] Code reviewed and documented
 
@@ -917,12 +917,12 @@ void main() {
 ```
 
 **Checklist:**
-- [ ] Create test file
-- [ ] Write tests for pagination methods
-- [ ] Write tests for date range filtering
-- [ ] Write tests for DateRangeIterator
-- [ ] Write tests for error handling
-- [ ] Run tests and verify all pass
+- [x] Create test file
+- [x] Write tests for pagination methods
+- [x] Write tests for date range filtering
+- [x] Write tests for DateRangeIterator
+- [x] Write tests for error handling
+- [x] Run tests and verify all pass
 
 ### Phase 2 Completion Checklist
 
@@ -930,7 +930,7 @@ void main() {
 - [x] Models created and documented
 - [x] API methods implemented
 - [x] Iterator created
-- [ ] All tests pass
+- [x] All tests pass
 - [x] Code reviewed
 
 ---
