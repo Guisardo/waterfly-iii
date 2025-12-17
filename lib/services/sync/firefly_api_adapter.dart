@@ -1,5 +1,4 @@
 import 'package:chopper/chopper.dart';
-import 'package:chopper/src/response.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/models/paginated_result.dart';
@@ -1028,10 +1027,24 @@ class FireflyApiAdapter {
     DateTime? start,
     DateTime? end,
     int limit = 50,
+    String? sort,
+    String? order,
   }) async {
     _logger.fine(
-      'Fetching transactions page $page (start: $start, end: $end, limit: $limit)',
+      'Fetching transactions page $page (start: $start, end: $end, limit: $limit, sort: $sort, order: $order)',
     );
+
+    // If sort/order are provided, use custom request with query parameters
+    if (sort != null || order != null) {
+      return _getTransactionsPaginatedWithSort(
+        page: page,
+        start: start,
+        end: end,
+        limit: limit,
+        sort: sort,
+        order: order,
+      );
+    }
 
     final Response<TransactionArray> response = await apiClient
         .v1TransactionsGet(
@@ -1082,6 +1095,81 @@ class FireflyApiAdapter {
     return result;
   }
 
+  /// Internal method to fetch transactions with sort/order parameters.
+  ///
+  /// Uses ChopperClient directly to add sort/order query parameters that
+  /// are not in the generated Swagger client.
+  Future<PaginatedResult<Map<String, dynamic>>>
+      _getTransactionsPaginatedWithSort({
+    required int page,
+    DateTime? start,
+    DateTime? end,
+    int limit = 50,
+    String? sort,
+    String? order,
+  }) async {
+    final Uri url = Uri.parse('/v1/transactions');
+    final Map<String, dynamic> params = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+      if (start != null) 'start': start.toIso8601String().split('T')[0],
+      if (end != null) 'end': end.toIso8601String().split('T')[0],
+      if (sort != null) 'sort': sort,
+      if (order != null) 'order': order,
+    };
+
+    final Request request = Request(
+      'GET',
+      url,
+      apiClient.client.baseUrl,
+      parameters: params,
+    );
+
+    final Response<TransactionArray> response =
+        await apiClient.client.send<TransactionArray, TransactionArray>(
+      request,
+    );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch transactions: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final TransactionArray body = response.body!;
+    final Meta meta = body.meta;
+
+    final int total = meta.pagination?.total ?? body.data.length;
+    final int currentPage = meta.pagination?.currentPage ?? page;
+    final int totalPages = meta.pagination?.totalPages ?? 1;
+    final int perPage = meta.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+          data:
+              body.data
+                  .map(
+                    (TransactionRead t) => <String, dynamic>{
+                      'id': t.id,
+                      'type': t.type,
+                      'attributes': t.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
+
+    _logger.fine(
+      'Fetched transactions page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
+
+    return result;
+  }
+
   /// Fetch accounts with pagination and optional date filtering.
   ///
   /// Similar to [getTransactionsPaginated] but for accounts.
@@ -1091,18 +1179,102 @@ class FireflyApiAdapter {
   /// - [page]: Page number (1-indexed)
   /// - [start]: Optional start date for balance calculation
   /// - [limit]: Items per page (default: 50)
+  /// - [sort]: Optional field to sort by (e.g., 'updated_at', 'name', 'created_at')
+  /// - [order]: Optional sort order ('asc' or 'desc', default: 'desc')
   Future<PaginatedResult<Map<String, dynamic>>> getAccountsPaginated({
     required int page,
     DateTime? start,
     int limit = 50,
+    String? sort,
+    String? order,
   }) async {
-    _logger.fine('Fetching accounts page $page (start: $start, limit: $limit)');
+    _logger.fine(
+      'Fetching accounts page $page (start: $start, limit: $limit, sort: $sort, order: $order)',
+    );
+
+    // If sort/order are provided, use custom request with query parameters
+    if (sort != null || order != null) {
+      return _getAccountsPaginatedWithSort(
+        page: page,
+        start: start,
+        limit: limit,
+        sort: sort,
+        order: order,
+      );
+    }
 
     final Response<AccountArray> response = await apiClient.v1AccountsGet(
       page: page,
       limit: limit,
       date: start?.toIso8601String().split('T')[0],
     );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch accounts: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final AccountArray body = response.body!;
+    final Meta meta = body.meta;
+
+    final int total = meta.pagination?.total ?? body.data.length;
+    final int currentPage = meta.pagination?.currentPage ?? page;
+    final int totalPages = meta.pagination?.totalPages ?? 1;
+    final int perPage = meta.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+          data:
+              body.data
+                  .map(
+                    (AccountRead a) => <String, dynamic>{
+                      'id': a.id,
+                      'type': a.type,
+                      'attributes': a.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
+
+    _logger.fine(
+      'Fetched accounts page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
+
+    return result;
+  }
+
+  /// Internal method to fetch accounts with sort/order parameters.
+  Future<PaginatedResult<Map<String, dynamic>>> _getAccountsPaginatedWithSort({
+    required int page,
+    DateTime? start,
+    int limit = 50,
+    String? sort,
+    String? order,
+  }) async {
+    final Uri url = Uri.parse('/v1/accounts');
+    final Map<String, dynamic> params = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+      if (start != null) 'date': start.toIso8601String().split('T')[0],
+      if (sort != null) 'sort': sort,
+      if (order != null) 'order': order,
+    };
+
+    final Request request = Request(
+      'GET',
+      url,
+      apiClient.client.baseUrl,
+      parameters: params,
+    );
+
+    final Response<AccountArray> response =
+        await apiClient.client.send<AccountArray, AccountArray>(request);
 
     if (!response.isSuccessful || response.body == null) {
       final String error = 'Failed to fetch accounts: ${response.error}';
@@ -1154,15 +1326,31 @@ class FireflyApiAdapter {
   /// - [start]: Optional start date for budget period
   /// - [end]: Optional end date for budget period
   /// - [limit]: Items per page (default: 50)
+  /// - [sort]: Optional field to sort by (e.g., 'updated_at', 'name', 'created_at')
+  /// - [order]: Optional sort order ('asc' or 'desc', default: 'desc')
   Future<PaginatedResult<Map<String, dynamic>>> getBudgetsPaginated({
     required int page,
     DateTime? start,
     DateTime? end,
     int limit = 50,
+    String? sort,
+    String? order,
   }) async {
     _logger.fine(
-      'Fetching budgets page $page (start: $start, end: $end, limit: $limit)',
+      'Fetching budgets page $page (start: $start, end: $end, limit: $limit, sort: $sort, order: $order)',
     );
+
+    // If sort/order are provided, use custom request with query parameters
+    if (sort != null || order != null) {
+      return _getBudgetsPaginatedWithSort(
+        page: page,
+        start: start,
+        end: end,
+        limit: limit,
+        sort: sort,
+        order: order,
+      );
+    }
 
     final Response<BudgetArray> response = await apiClient.v1BudgetsGet(
       page: page,
@@ -1170,6 +1358,75 @@ class FireflyApiAdapter {
       start: start?.toIso8601String().split('T')[0],
       end: end?.toIso8601String().split('T')[0],
     );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch budgets: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final BudgetArray body = response.body!;
+    final Meta meta = body.meta;
+
+    final int total = meta.pagination?.total ?? body.data.length;
+    final int currentPage = meta.pagination?.currentPage ?? page;
+    final int totalPages = meta.pagination?.totalPages ?? 1;
+    final int perPage = meta.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+          data:
+              body.data
+                  .map(
+                    (BudgetRead b) => <String, dynamic>{
+                      'id': b.id,
+                      'type': b.type,
+                      'attributes': b.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
+
+    _logger.fine(
+      'Fetched budgets page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
+
+    return result;
+  }
+
+  /// Internal method to fetch budgets with sort/order parameters.
+  Future<PaginatedResult<Map<String, dynamic>>> _getBudgetsPaginatedWithSort({
+    required int page,
+    DateTime? start,
+    DateTime? end,
+    int limit = 50,
+    String? sort,
+    String? order,
+  }) async {
+    final Uri url = Uri.parse('/v1/budgets');
+    final Map<String, dynamic> params = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+      if (start != null) 'start': start.toIso8601String().split('T')[0],
+      if (end != null) 'end': end.toIso8601String().split('T')[0],
+      if (sort != null) 'sort': sort,
+      if (order != null) 'order': order,
+    };
+
+    final Request request = Request(
+      'GET',
+      url,
+      apiClient.client.baseUrl,
+      parameters: params,
+    );
+
+    final Response<BudgetArray> response =
+        await apiClient.client.send<BudgetArray, BudgetArray>(request);
 
     if (!response.isSuccessful || response.body == null) {
       final String error = 'Failed to fetch budgets: ${response.error}';
@@ -1219,16 +1476,98 @@ class FireflyApiAdapter {
   /// Parameters:
   /// - [page]: Page number (1-indexed)
   /// - [limit]: Items per page (default: 50)
+  /// - [sort]: Optional field to sort by (e.g., 'updated_at', 'name', 'created_at')
+  /// - [order]: Optional sort order ('asc' or 'desc', default: 'desc')
   Future<PaginatedResult<Map<String, dynamic>>> getCategoriesPaginated({
     required int page,
     int limit = 50,
+    String? sort,
+    String? order,
   }) async {
-    _logger.fine('Fetching categories page $page (limit: $limit)');
+    _logger.fine(
+      'Fetching categories page $page (limit: $limit, sort: $sort, order: $order)',
+    );
+
+    // If sort/order are provided, use custom request with query parameters
+    if (sort != null || order != null) {
+      return _getCategoriesPaginatedWithSort(
+        page: page,
+        limit: limit,
+        sort: sort,
+        order: order,
+      );
+    }
 
     final Response<CategoryArray> response = await apiClient.v1CategoriesGet(
       page: page,
       limit: limit,
     );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch categories: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final CategoryArray body = response.body!;
+    final Meta meta = body.meta;
+
+    final int total = meta.pagination?.total ?? body.data.length;
+    final int currentPage = meta.pagination?.currentPage ?? page;
+    final int totalPages = meta.pagination?.totalPages ?? 1;
+    final int perPage = meta.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+          data:
+              body.data
+                  .map(
+                    (CategoryRead c) => <String, dynamic>{
+                      'id': c.id,
+                      'type': c.type,
+                      'attributes': c.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
+
+    _logger.fine(
+      'Fetched categories page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
+
+    return result;
+  }
+
+  /// Internal method to fetch categories with sort/order parameters.
+  Future<PaginatedResult<Map<String, dynamic>>>
+      _getCategoriesPaginatedWithSort({
+    required int page,
+    int limit = 50,
+    String? sort,
+    String? order,
+  }) async {
+    final Uri url = Uri.parse('/v1/categories');
+    final Map<String, dynamic> params = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+      if (sort != null) 'sort': sort,
+      if (order != null) 'order': order,
+    };
+
+    final Request request = Request(
+      'GET',
+      url,
+      apiClient.client.baseUrl,
+      parameters: params,
+    );
+
+    final Response<CategoryArray> response =
+        await apiClient.client.send<CategoryArray, CategoryArray>(request);
 
     if (!response.isSuccessful || response.body == null) {
       final String error = 'Failed to fetch categories: ${response.error}';
@@ -1278,16 +1617,97 @@ class FireflyApiAdapter {
   /// Parameters:
   /// - [page]: Page number (1-indexed)
   /// - [limit]: Items per page (default: 50)
+  /// - [sort]: Optional field to sort by (e.g., 'updated_at', 'name', 'created_at')
+  /// - [order]: Optional sort order ('asc' or 'desc', default: 'desc')
   Future<PaginatedResult<Map<String, dynamic>>> getBillsPaginated({
     required int page,
     int limit = 50,
+    String? sort,
+    String? order,
   }) async {
-    _logger.fine('Fetching bills page $page (limit: $limit)');
+    _logger.fine(
+      'Fetching bills page $page (limit: $limit, sort: $sort, order: $order)',
+    );
+
+    // If sort/order are provided, use custom request with query parameters
+    if (sort != null || order != null) {
+      return _getBillsPaginatedWithSort(
+        page: page,
+        limit: limit,
+        sort: sort,
+        order: order,
+      );
+    }
 
     final Response<BillArray> response = await apiClient.v1BillsGet(
       page: page,
       limit: limit,
     );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch bills: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final BillArray body = response.body!;
+    final Meta meta = body.meta;
+
+    final int total = meta.pagination?.total ?? body.data.length;
+    final int currentPage = meta.pagination?.currentPage ?? page;
+    final int totalPages = meta.pagination?.totalPages ?? 1;
+    final int perPage = meta.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+          data:
+              body.data
+                  .map(
+                    (BillRead b) => <String, dynamic>{
+                      'id': b.id,
+                      'type': b.type,
+                      'attributes': b.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
+
+    _logger.fine(
+      'Fetched bills page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
+
+    return result;
+  }
+
+  /// Internal method to fetch bills with sort/order parameters.
+  Future<PaginatedResult<Map<String, dynamic>>> _getBillsPaginatedWithSort({
+    required int page,
+    int limit = 50,
+    String? sort,
+    String? order,
+  }) async {
+    final Uri url = Uri.parse('/v1/bills');
+    final Map<String, dynamic> params = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+      if (sort != null) 'sort': sort,
+      if (order != null) 'order': order,
+    };
+
+    final Request request = Request(
+      'GET',
+      url,
+      apiClient.client.baseUrl,
+      parameters: params,
+    );
+
+    final Response<BillArray> response =
+        await apiClient.client.send<BillArray, BillArray>(request);
 
     if (!response.isSuccessful || response.body == null) {
       final String error = 'Failed to fetch bills: ${response.error}';
@@ -1337,16 +1757,98 @@ class FireflyApiAdapter {
   /// Parameters:
   /// - [page]: Page number (1-indexed)
   /// - [limit]: Items per page (default: 50)
+  /// - [sort]: Optional field to sort by (e.g., 'updated_at', 'name', 'created_at')
+  /// - [order]: Optional sort order ('asc' or 'desc', default: 'desc')
   Future<PaginatedResult<Map<String, dynamic>>> getPiggyBanksPaginated({
     required int page,
     int limit = 50,
+    String? sort,
+    String? order,
   }) async {
-    _logger.fine('Fetching piggy banks page $page (limit: $limit)');
+    _logger.fine(
+      'Fetching piggy banks page $page (limit: $limit, sort: $sort, order: $order)',
+    );
+
+    // If sort/order are provided, use custom request with query parameters
+    if (sort != null || order != null) {
+      return _getPiggyBanksPaginatedWithSort(
+        page: page,
+        limit: limit,
+        sort: sort,
+        order: order,
+      );
+    }
 
     final Response<PiggyBankArray> response = await apiClient.v1PiggyBanksGet(
       page: page,
       limit: limit,
     );
+
+    if (!response.isSuccessful || response.body == null) {
+      final String error = 'Failed to fetch piggy banks: ${response.error}';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: response.statusCode);
+    }
+
+    final PiggyBankArray body = response.body!;
+    final Meta meta = body.meta;
+
+    final int total = meta.pagination?.total ?? body.data.length;
+    final int currentPage = meta.pagination?.currentPage ?? page;
+    final int totalPages = meta.pagination?.totalPages ?? 1;
+    final int perPage = meta.pagination?.perPage ?? limit;
+
+    final PaginatedResult<Map<String, dynamic>> result =
+        PaginatedResult<Map<String, dynamic>>(
+          data:
+              body.data
+                  .map(
+                    (PiggyBankRead p) => <String, dynamic>{
+                      'id': p.id,
+                      'type': p.type,
+                      'attributes': p.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
+
+    _logger.fine(
+      'Fetched piggy banks page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
+
+    return result;
+  }
+
+  /// Internal method to fetch piggy banks with sort/order parameters.
+  Future<PaginatedResult<Map<String, dynamic>>>
+      _getPiggyBanksPaginatedWithSort({
+    required int page,
+    int limit = 50,
+    String? sort,
+    String? order,
+  }) async {
+    final Uri url = Uri.parse('/v1/piggy-banks');
+    final Map<String, dynamic> params = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+      if (sort != null) 'sort': sort,
+      if (order != null) 'order': order,
+    };
+
+    final Request request = Request(
+      'GET',
+      url,
+      apiClient.client.baseUrl,
+      parameters: params,
+    );
+
+    final Response<PiggyBankArray> response =
+        await apiClient.client.send<PiggyBankArray, PiggyBankArray>(request);
 
     if (!response.isSuccessful || response.body == null) {
       final String error = 'Failed to fetch piggy banks: ${response.error}';

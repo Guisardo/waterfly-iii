@@ -46,6 +46,12 @@ class IncrementalSyncStats {
   /// Number of API calls saved (for cached entities).
   int apiCallsSaved;
 
+  /// Whether iteration terminated early (due to finding already-processed items).
+  ///
+  /// When true, indicates that sync stopped early because it encountered
+  /// items that were already processed, avoiding unnecessary API calls.
+  bool terminatedEarly;
+
   /// Start time of the sync operation.
   final DateTime startTime;
 
@@ -66,6 +72,7 @@ class IncrementalSyncStats {
     this.itemsSkipped = 0,
     this.bandwidthSavedBytes = 0,
     this.apiCallsSaved = 0,
+    this.terminatedEarly = false,
     DateTime? startTime,
   }) : startTime = startTime ?? DateTime.now();
 
@@ -156,6 +163,7 @@ class IncrementalSyncStats {
     int? itemsSkipped,
     int? bandwidthSavedBytes,
     int? apiCallsSaved,
+    bool? terminatedEarly,
     DateTime? startTime,
     DateTime? endTime,
     bool? success,
@@ -168,6 +176,7 @@ class IncrementalSyncStats {
         itemsSkipped: itemsSkipped ?? this.itemsSkipped,
         bandwidthSavedBytes: bandwidthSavedBytes ?? this.bandwidthSavedBytes,
         apiCallsSaved: apiCallsSaved ?? this.apiCallsSaved,
+        terminatedEarly: terminatedEarly ?? this.terminatedEarly,
         startTime: startTime ?? this.startTime,
       )
       ..endTime = endTime ?? this.endTime
@@ -183,6 +192,7 @@ class IncrementalSyncStats {
     'itemsSkipped': itemsSkipped,
     'bandwidthSavedBytes': bandwidthSavedBytes,
     'apiCallsSaved': apiCallsSaved,
+    'terminatedEarly': terminatedEarly,
     'skipRate': skipRate,
     'updateRate': updateRate,
     'durationMs': duration.inMilliseconds,
@@ -282,7 +292,7 @@ class IncrementalSyncResult {
     'overallSkipRate': overallSkipRate,
     'error': error,
     'statsByEntity': statsByEntity.map(
-      (String k, IncrementalSyncStats v) => MapEntry(k, v.toJson()),
+      (String k, IncrementalSyncStats v) => MapEntry<String, dynamic>(k, v.toJson()),
     ),
   };
 

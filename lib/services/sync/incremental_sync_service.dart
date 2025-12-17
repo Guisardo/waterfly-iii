@@ -570,6 +570,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'transaction',
         start: since,
+        sort: 'updated_at',
+        order: 'desc',
+        stopWhenProcessed: (Map<String, dynamic> item) {
+          return _shouldStopIteration(item, 'transaction');
+        },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
           initialDelay: initialRetryDelay,
@@ -644,6 +649,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'account',
         start: since,
+        sort: 'updated_at',
+        order: 'desc',
+        stopWhenProcessed: (Map<String, dynamic> item) {
+          return _shouldStopIteration(item, 'account');
+        },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
           initialDelay: initialRetryDelay,
@@ -708,6 +718,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'budget',
         start: since,
+        sort: 'updated_at',
+        order: 'desc',
+        stopWhenProcessed: (Map<String, dynamic> item) {
+          return _shouldStopIteration(item, 'budget');
+        },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
           initialDelay: initialRetryDelay,
@@ -792,6 +807,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'category',
         start: DateTime.now().subtract(Duration(days: syncWindowDays)),
+        sort: 'updated_at',
+        order: 'desc',
+        stopWhenProcessed: (Map<String, dynamic> item) {
+          return _shouldStopIteration(item, 'category');
+        },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
           initialDelay: initialRetryDelay,
@@ -865,6 +885,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'bill',
         start: DateTime.now().subtract(Duration(days: syncWindowDays)),
+        sort: 'updated_at',
+        order: 'desc',
+        stopWhenProcessed: (Map<String, dynamic> item) {
+          return _shouldStopIteration(item, 'bill');
+        },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
           initialDelay: initialRetryDelay,
@@ -938,6 +963,11 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'piggy_bank',
         start: DateTime.now().subtract(Duration(days: syncWindowDays)),
+        sort: 'updated_at',
+        order: 'desc',
+        stopWhenProcessed: (Map<String, dynamic> item) {
+          return _shouldStopIteration(item, 'piggy_bank');
+        },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
           initialDelay: initialRetryDelay,
@@ -990,6 +1020,54 @@ class IncrementalSyncService {
   }
 
   // ==================== Timestamp Comparison ====================
+
+  /// Determine if iteration should stop early when encountering an already-processed item.
+  ///
+  /// Used for incremental sync optimization: when processing items sorted by
+  /// `updated_at` descending, we can stop as soon as we find an item that
+  /// hasn't changed (all subsequent items will also be unchanged).
+  ///
+  /// Returns `true` if iteration should stop (entity already processed).
+  /// Returns `false` if iteration should continue (entity needs processing).
+  ///
+  /// Edge cases handled:
+  /// - Missing timestamps: Continue processing (can't determine if processed)
+  /// - Clock skew: Use tolerance window to avoid false positives
+  /// - First sync: Never stop early (process all items)
+  Future<bool> _shouldStopIteration(
+    Map<String, dynamic> item,
+    String entityType,
+  ) async {
+    final Map<String, dynamic> attrs =
+        item['attributes'] as Map<String, dynamic>;
+    final String serverId = item['id'] as String;
+    final DateTime? serverUpdatedAt = _parseTimestamp(attrs['updated_at']);
+
+    // If no timestamp, can't determine if processed - continue
+    if (serverUpdatedAt == null) {
+      _logger.finest(
+        () => 'Entity $serverId: no timestamp, continuing iteration',
+      );
+      return false;
+    }
+
+    // Check if entity has changed
+    final bool hasChanged =
+        await _hasEntityChanged(serverId, serverUpdatedAt, entityType);
+
+    // Stop if entity hasn't changed (already processed)
+    // Since we're processing newest first, all subsequent items will also be unchanged
+    if (!hasChanged) {
+      _logger.info(
+        'Early termination: entity $serverId ($entityType) already processed '
+        '(updated_at: $serverUpdatedAt)',
+      );
+      return true;
+    }
+
+    // Continue if entity has changed (needs processing)
+    return false;
+  }
 
   /// Compare local and server timestamps to determine if entity has changed.
   ///

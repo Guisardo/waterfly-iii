@@ -212,6 +212,23 @@ class DateRangeIterator {
   /// Items per page for API requests.
   final int pageSize;
 
+  /// Field to sort by (e.g., 'updated_at', 'date', 'created_at').
+  ///
+  /// If provided, results will be sorted by this field.
+  /// Used for incremental sync optimization (sort by updated_at desc).
+  final String? sort;
+
+  /// Sort order ('asc' or 'desc').
+  ///
+  /// Defaults to 'desc' for incremental sync (newest first).
+  final String? order;
+
+  /// Callback to determine if iteration should stop early.
+  ///
+  /// Called for each item. If returns `true`, iteration stops immediately.
+  /// Used to stop when finding already-processed items during incremental sync.
+  final Future<bool> Function(Map<String, dynamic> item)? stopWhenProcessed;
+
   /// Retry configuration for failed API requests.
   final RetryConfig retryConfig;
 
@@ -232,6 +249,9 @@ class DateRangeIterator {
   /// - [start]: Start of date range
   /// - [end]: Optional end of date range (defaults to now)
   /// - [pageSize]: Number of items per page (default: 50)
+  /// - [sort]: Optional field to sort by (e.g., 'updated_at', 'date', 'created_at')
+  /// - [order]: Optional sort order ('asc' or 'desc', default: 'desc')
+  /// - [stopWhenProcessed]: Optional callback to stop iteration early when finding already-processed items
   /// - [retryConfig]: Configuration for retry behavior (default: [RetryConfig.defaultConfig])
   /// - [batchConfig]: Configuration for batch processing (default: [BatchConfig.defaultConfig])
   DateRangeIterator({
@@ -240,6 +260,9 @@ class DateRangeIterator {
     required this.start,
     this.end,
     this.pageSize = 50,
+    this.sort,
+    this.order,
+    this.stopWhenProcessed,
     this.retryConfig = RetryConfig.defaultConfig,
     this.batchConfig = BatchConfig.defaultConfig,
   }) {
@@ -272,12 +295,13 @@ class DateRangeIterator {
   /// ```
   Stream<Map<String, dynamic>> iterate() async* {
     _logger.fine(
-      'Starting iteration for $entityType (start: $start, end: $end)',
+      'Starting iteration for $entityType (start: $start, end: $end, sort: $sort, order: $order)',
     );
 
     int page = 1;
     int totalFetched = 0;
     int consecutiveErrors = 0;
+    bool terminatedEarly = false;
 
     while (true) {
       PaginatedResult<Map<String, dynamic>> result;
@@ -288,8 +312,25 @@ class DateRangeIterator {
         consecutiveErrors = 0; // Reset error counter on success
 
         for (final Map<String, dynamic> item in result.data) {
+          // Check if should stop early (for incremental sync optimization)
+          if (stopWhenProcessed != null) {
+            final bool shouldStop = await stopWhenProcessed!(item);
+            if (shouldStop) {
+              _logger.info(
+                'Early termination: found already-processed item at position $totalFetched',
+              );
+              terminatedEarly = true;
+              break;
+            }
+          }
+
           yield item;
           totalFetched++;
+        }
+
+        // Break if terminated early
+        if (terminatedEarly) {
+          break;
         }
 
         _logger.fine(
@@ -299,7 +340,8 @@ class DateRangeIterator {
 
         if (!result.hasMore) {
           _logger.info(
-            'Completed iteration for $entityType: $totalFetched total items fetched',
+            'Completed iteration for $entityType: $totalFetched total items fetched'
+            '${terminatedEarly ? ' (terminated early)' : ''}',
           );
           break;
         }
@@ -327,11 +369,11 @@ class DateRangeIterator {
   /// Uses exponential backoff to retry failed API requests.
   Future<PaginatedResult<Map<String, dynamic>>> _fetchPageWithRetry(
     int page,
-  ) async {
+  ) {
     int attemptCount = 0;
 
     return _retryOptions.retry(
-      () async {
+      () {
         attemptCount++;
         if (attemptCount > 1) {
           _logger.fine('Retry attempt $attemptCount for page $page');
@@ -794,8 +836,8 @@ class DateRangeIterator {
   /// Fetch a single page of results.
   ///
   /// Internal method that dispatches to the appropriate API method
-  /// based on [entityType].
-  Future<PaginatedResult<Map<String, dynamic>>> _fetchPage(int page) async {
+  /// based on [entityType]. Passes sort/order parameters if provided.
+  Future<PaginatedResult<Map<String, dynamic>>> _fetchPage(int page) {
     switch (entityType) {
       case 'transaction':
         return apiClient.getTransactionsPaginated(
@@ -803,12 +845,16 @@ class DateRangeIterator {
           start: start,
           end: end,
           limit: pageSize,
+          sort: sort,
+          order: order,
         );
       case 'account':
         return apiClient.getAccountsPaginated(
           page: page,
           start: start,
           limit: pageSize,
+          sort: sort,
+          order: order,
         );
       case 'budget':
         return apiClient.getBudgetsPaginated(
@@ -816,13 +862,30 @@ class DateRangeIterator {
           start: start,
           end: end,
           limit: pageSize,
+          sort: sort,
+          order: order,
         );
       case 'category':
-        return apiClient.getCategoriesPaginated(page: page, limit: pageSize);
+        return apiClient.getCategoriesPaginated(
+          page: page,
+          limit: pageSize,
+          sort: sort,
+          order: order,
+        );
       case 'bill':
-        return apiClient.getBillsPaginated(page: page, limit: pageSize);
+        return apiClient.getBillsPaginated(
+          page: page,
+          limit: pageSize,
+          sort: sort,
+          order: order,
+        );
       case 'piggy_bank':
-        return apiClient.getPiggyBanksPaginated(page: page, limit: pageSize);
+        return apiClient.getPiggyBanksPaginated(
+          page: page,
+          limit: pageSize,
+          sort: sort,
+          order: order,
+        );
       default:
         throw ArgumentError('Unknown entity type: $entityType');
     }
@@ -852,6 +915,9 @@ class IterationStats {
   /// Number of failed requests (after all retries).
   final int failedRequests;
 
+  /// Whether iteration terminated early (due to stopWhenProcessed callback).
+  final bool terminatedEarly;
+
   /// Creates iteration statistics.
   const IterationStats({
     required this.itemsFetched,
@@ -860,6 +926,7 @@ class IterationStats {
     required this.duration,
     this.retryAttempts = 0,
     this.failedRequests = 0,
+    this.terminatedEarly = false,
   });
 
   /// Average items per page.
@@ -890,6 +957,7 @@ class IterationStats {
     Duration? duration,
     int? retryAttempts,
     int? failedRequests,
+    bool? terminatedEarly,
   }) {
     return IterationStats(
       itemsFetched: itemsFetched ?? this.itemsFetched,
@@ -898,6 +966,7 @@ class IterationStats {
       duration: duration ?? this.duration,
       retryAttempts: retryAttempts ?? this.retryAttempts,
       failedRequests: failedRequests ?? this.failedRequests,
+      terminatedEarly: terminatedEarly ?? this.terminatedEarly,
     );
   }
 
@@ -909,6 +978,7 @@ class IterationStats {
     'durationMs': duration.inMilliseconds,
     'retryAttempts': retryAttempts,
     'failedRequests': failedRequests,
+    'terminatedEarly': terminatedEarly,
     'averagePerPage': averagePerPage,
     'averageTimePerPageMs': averageTimePerPageMs,
     'itemsPerSecond': itemsPerSecond,
@@ -923,6 +993,7 @@ class IterationStats {
       'serverTotal: $serverTotal, '
       'duration: ${duration.inMilliseconds}ms, '
       'throughput: ${itemsPerSecond.toStringAsFixed(1)} items/s'
+      '${terminatedEarly ? ', terminatedEarly: true' : ''}'
       ')';
 }
 
