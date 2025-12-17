@@ -1067,4 +1067,48 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
       rethrow;
     }
   }
+
+  /// Search piggy banks by name for autocomplete functionality.
+  ///
+  /// Performs case-insensitive partial match on piggy bank name.
+  /// Results are limited to 20 items for performance and ordered by name.
+  ///
+  /// **Parameters**:
+  /// - [query]: Search query string (partial match)
+  ///
+  /// **Returns**: List of matching piggy banks ordered by name
+  ///
+  /// **Example**:
+  /// ```dart
+  /// // Search piggy banks
+  /// final piggyBanks = await repository.search('vacation');
+  /// ```
+  ///
+  /// **Performance**:
+  /// - Typical response time: <10ms
+  /// - Limited to 20 results for responsiveness
+  Future<List<PiggyBankEntity>> search(String query) async {
+    try {
+      logger.fine('Searching piggy banks: "$query"');
+      final String searchPattern = '%${query.toLowerCase()}%';
+
+      final List<PiggyBankEntity> piggyBanks = await (database.select(database.piggyBanks)
+            ..where(($PiggyBanksTable p) => p.name.lower().like(searchPattern))
+            ..orderBy(<OrderClauseGenerator<$PiggyBanksTable>>[
+              ($PiggyBanksTable p) => OrderingTerm.asc(p.name)
+            ])
+            ..limit(20))
+          .get();
+
+      logger.info('Found ${piggyBanks.length} piggy banks matching: "$query"');
+      return piggyBanks;
+    } catch (error, stackTrace) {
+      logger.severe('Failed to search piggy banks: "$query"', error, stackTrace);
+      throw DatabaseException.queryFailed(
+        'SELECT * FROM piggy_banks WHERE name LIKE %$query%',
+        error,
+        stackTrace,
+      );
+    }
+  }
 }

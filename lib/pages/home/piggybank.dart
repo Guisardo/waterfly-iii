@@ -554,6 +554,8 @@ class _PiggyDetailsState extends State<PiggyDetails> {
   double? selectedValue;
 
   Future<List<PiggyBankEventRead>> _fetchChart() async {
+    // Note: PiggyBankEvents are not cached locally as there's no events table.
+    // This uses direct API call.
     final FireflyIii api = context.read<FireflyService>().api;
 
     final Response<PiggyBankEventArray> response = await api

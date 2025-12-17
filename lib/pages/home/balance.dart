@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -24,6 +26,35 @@ class _HomeBalanceState extends State<HomeBalance>
   final Logger log = Logger("Pages.Home.Balance");
 
   Future<AccountArray> _fetchAccounts() async {
+    // Try to use AccountRepository for cache-first strategy
+    final AccountRepository? accountRepo = context.read<AccountRepository?>();
+
+    if (accountRepo != null) {
+      log.fine('Using AccountRepository for accounts');
+      final List<AccountEntity> entities = await accountRepo.getAll();
+
+      // Convert entities to AccountArray for UI compatibility
+      final List<AccountRead> assetAccounts = entities
+          .where((AccountEntity a) => a.type == 'asset')
+          .map(
+            (AccountEntity a) => AccountRead(
+              id: a.serverId ?? a.id,
+              type: 'accounts',
+              attributes: AccountProperties(
+                name: a.name,
+                type: ShortAccountTypeProperty.asset,
+                currentBalance: a.currentBalance.toString(),
+                currencyCode: a.currencyCode,
+              ),
+            ),
+          )
+          .toList();
+
+      return AccountArray(data: assetAccounts, meta: const Meta());
+    }
+
+    // Fallback to direct API call if repository not available
+    log.warning('AccountRepository not available, falling back to direct API');
     final FireflyIii api = context.read<FireflyService>().api;
 
     final Response<AccountArray> respAccounts = await api.v1AccountsGet(

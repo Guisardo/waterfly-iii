@@ -7,6 +7,8 @@ import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -377,6 +379,42 @@ class _BillDetailsState extends State<BillDetails> {
   }
 
   Future<TransactionRead> _fetchFullTx(String id) async {
+    // Try to use TransactionRepository for cache-first strategy
+    final TransactionRepository? transactionRepo =
+        context.read<TransactionRepository?>();
+
+    if (transactionRepo != null) {
+      log.fine('Using TransactionRepository for transaction $id');
+      final TransactionEntity? entity = await transactionRepo.getById(id);
+
+      if (entity != null) {
+        // Convert entity to TransactionRead for UI compatibility
+        return TransactionRead(
+          id: entity.id,
+          type: 'transactions',
+          attributes: Transaction(
+            groupTitle: entity.description,
+            transactions: <TransactionSplit>[
+              TransactionSplit(
+                transactionJournalId: entity.id,
+                description: entity.description,
+                amount: entity.amount.toString(),
+                currencyCode: entity.currencyCode,
+                date: entity.date,
+                type: TransactionTypeProperty.values.firstWhere(
+                  (TransactionTypeProperty t) => t.value == entity.type,
+                  orElse: () => TransactionTypeProperty.withdrawal,
+                ),
+              ),
+            ],
+          ),
+          links: const ObjectLink(self: ''),
+        );
+      }
+    }
+
+    // Fallback to direct API call if repository not available or entity not found
+    log.warning('Falling back to direct API for transaction $id');
     final FireflyIii api = context.read<FireflyService>().api;
 
     final Response<TransactionSingle> response = await api.v1TransactionsIdGet(

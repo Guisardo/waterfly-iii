@@ -43,6 +43,7 @@ class UuidService {
   static const String _billPrefix = 'offline_bil_';
   static const String _piggyBankPrefix = 'offline_pig_';
   static const String _tagPrefix = 'offline_tag_';
+  static const String _attachmentPrefix = 'offline_att_';
   static const String _operationPrefix = 'offline_op_';
 
   /// Generates a unique ID for a transaction.
@@ -122,6 +123,17 @@ class UuidService {
     return id;
   }
 
+  /// Generates a unique ID for an attachment.
+  ///
+  /// Returns a UUID v4 with the prefix 'offline_att_'.
+  ///
+  /// Example: 'offline_att_550e8400-e29b-41d4-a716-446655440000'
+  String generateAttachmentId() {
+    final String id = '$_attachmentPrefix${_uuid.v4()}';
+    _logger.fine('Generated attachment ID: $id');
+    return id;
+  }
+
   /// Generates a unique ID for a sync operation.
   ///
   /// Returns a UUID v4 with the prefix 'offline_op_'.
@@ -186,6 +198,11 @@ class UuidService {
     return id.startsWith(_tagPrefix);
   }
 
+  /// Checks if an ID is an attachment ID.
+  bool isAttachmentId(String id) {
+    return id.startsWith(_attachmentPrefix);
+  }
+
   /// Checks if an ID is an operation ID.
   bool isOperationId(String id) {
     return id.startsWith(_operationPrefix);
@@ -214,6 +231,7 @@ class UuidService {
       _billPrefix,
       _piggyBankPrefix,
       _tagPrefix,
+      _attachmentPrefix,
       _operationPrefix,
     ];
 
@@ -254,6 +272,7 @@ class UuidService {
     if (isBillId(id)) return 'bill';
     if (isPiggyBankId(id)) return 'piggy_bank';
     if (isTagId(id)) return 'tag';
+    if (isAttachmentId(id)) return 'attachment';
     if (isOperationId(id)) return 'operation';
     return null;
   }

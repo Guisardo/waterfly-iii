@@ -25,7 +25,8 @@ import 'package:waterflyiii/widgets/entity_select_dialog.dart';
 Future<BillRead?> showBillDialog({
   required BuildContext context,
   BillRead? currentBill,
-}) async {
+}) {
+  // ignore: unused_local_variable
   final Logger log = Logger('BillDialog');
 
   return showDialog<BillRead>(

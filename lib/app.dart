@@ -14,6 +14,7 @@ import 'package:quick_actions/quick_actions.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/attachment_repository.dart';
 import 'package:waterflyiii/data/repositories/bill_repository.dart';
 import 'package:waterflyiii/data/repositories/budget_repository.dart';
 import 'package:waterflyiii/data/repositories/category_repository.dart';
@@ -298,6 +299,12 @@ class _WaterflyAppState extends State<WaterflyApp> {
             ),
             Provider<TagRepository>(
               create: (BuildContext context) => TagRepository(
+                database: context.read<AppDatabase>(),
+                cacheService: context.read<CacheService>(),
+              ),
+            ),
+            Provider<AttachmentRepository>(
+              create: (BuildContext context) => AttachmentRepository(
                 database: context.read<AppDatabase>(),
                 cacheService: context.read<CacheService>(),
               ),

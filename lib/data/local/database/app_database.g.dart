@@ -8391,6 +8391,1191 @@ class TagEntityCompanion extends UpdateCompanion<TagEntity> {
   }
 }
 
+class $AttachmentsTable extends Attachments
+    with TableInfo<$AttachmentsTable, AttachmentEntity> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AttachmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serverIdMeta = const VerificationMeta(
+    'serverId',
+  );
+  @override
+  late final GeneratedColumn<String> serverId = GeneratedColumn<String>(
+    'server_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _attachableTypeMeta = const VerificationMeta(
+    'attachableType',
+  );
+  @override
+  late final GeneratedColumn<String> attachableType = GeneratedColumn<String>(
+    'attachable_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _attachableIdMeta = const VerificationMeta(
+    'attachableId',
+  );
+  @override
+  late final GeneratedColumn<String> attachableId = GeneratedColumn<String>(
+    'attachable_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _filenameMeta = const VerificationMeta(
+    'filename',
+  );
+  @override
+  late final GeneratedColumn<String> filename = GeneratedColumn<String>(
+    'filename',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
+    'mimeType',
+  );
+  @override
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sizeMeta = const VerificationMeta('size');
+  @override
+  late final GeneratedColumn<int> size = GeneratedColumn<int>(
+    'size',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _md5Meta = const VerificationMeta('md5');
+  @override
+  late final GeneratedColumn<String> md5 = GeneratedColumn<String>(
+    'md5',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _downloadUrlMeta = const VerificationMeta(
+    'downloadUrl',
+  );
+  @override
+  late final GeneratedColumn<String> downloadUrl = GeneratedColumn<String>(
+    'download_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _uploadUrlMeta = const VerificationMeta(
+    'uploadUrl',
+  );
+  @override
+  late final GeneratedColumn<String> uploadUrl = GeneratedColumn<String>(
+    'upload_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _localPathMeta = const VerificationMeta(
+    'localPath',
+  );
+  @override
+  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
+    'local_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDownloadedMeta = const VerificationMeta(
+    'isDownloaded',
+  );
+  @override
+  late final GeneratedColumn<bool> isDownloaded = GeneratedColumn<bool>(
+    'is_downloaded',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_downloaded" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isPendingUploadMeta = const VerificationMeta(
+    'isPendingUpload',
+  );
+  @override
+  late final GeneratedColumn<bool> isPendingUpload = GeneratedColumn<bool>(
+    'is_pending_upload',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_pending_upload" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serverUpdatedAtMeta = const VerificationMeta(
+    'serverUpdatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> serverUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'server_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    serverId,
+    attachableType,
+    attachableId,
+    filename,
+    title,
+    mimeType,
+    size,
+    md5,
+    downloadUrl,
+    uploadUrl,
+    localPath,
+    isDownloaded,
+    isPendingUpload,
+    notes,
+    createdAt,
+    updatedAt,
+    serverUpdatedAt,
+    isSynced,
+    syncStatus,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'attachments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AttachmentEntity> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('server_id')) {
+      context.handle(
+        _serverIdMeta,
+        serverId.isAcceptableOrUnknown(data['server_id']!, _serverIdMeta),
+      );
+    }
+    if (data.containsKey('attachable_type')) {
+      context.handle(
+        _attachableTypeMeta,
+        attachableType.isAcceptableOrUnknown(
+          data['attachable_type']!,
+          _attachableTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_attachableTypeMeta);
+    }
+    if (data.containsKey('attachable_id')) {
+      context.handle(
+        _attachableIdMeta,
+        attachableId.isAcceptableOrUnknown(
+          data['attachable_id']!,
+          _attachableIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_attachableIdMeta);
+    }
+    if (data.containsKey('filename')) {
+      context.handle(
+        _filenameMeta,
+        filename.isAcceptableOrUnknown(data['filename']!, _filenameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_filenameMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(
+        _mimeTypeMeta,
+        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
+      );
+    }
+    if (data.containsKey('size')) {
+      context.handle(
+        _sizeMeta,
+        size.isAcceptableOrUnknown(data['size']!, _sizeMeta),
+      );
+    }
+    if (data.containsKey('md5')) {
+      context.handle(
+        _md5Meta,
+        md5.isAcceptableOrUnknown(data['md5']!, _md5Meta),
+      );
+    }
+    if (data.containsKey('download_url')) {
+      context.handle(
+        _downloadUrlMeta,
+        downloadUrl.isAcceptableOrUnknown(
+          data['download_url']!,
+          _downloadUrlMeta,
+        ),
+      );
+    }
+    if (data.containsKey('upload_url')) {
+      context.handle(
+        _uploadUrlMeta,
+        uploadUrl.isAcceptableOrUnknown(data['upload_url']!, _uploadUrlMeta),
+      );
+    }
+    if (data.containsKey('local_path')) {
+      context.handle(
+        _localPathMeta,
+        localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta),
+      );
+    }
+    if (data.containsKey('is_downloaded')) {
+      context.handle(
+        _isDownloadedMeta,
+        isDownloaded.isAcceptableOrUnknown(
+          data['is_downloaded']!,
+          _isDownloadedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_pending_upload')) {
+      context.handle(
+        _isPendingUploadMeta,
+        isPendingUpload.isAcceptableOrUnknown(
+          data['is_pending_upload']!,
+          _isPendingUploadMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('server_updated_at')) {
+      context.handle(
+        _serverUpdatedAtMeta,
+        serverUpdatedAt.isAcceptableOrUnknown(
+          data['server_updated_at']!,
+          _serverUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {serverId},
+  ];
+  @override
+  AttachmentEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AttachmentEntity(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      serverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}server_id'],
+      ),
+      attachableType:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}attachable_type'],
+          )!,
+      attachableId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}attachable_id'],
+          )!,
+      filename:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}filename'],
+          )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      ),
+      size: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size'],
+      ),
+      md5: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}md5'],
+      ),
+      downloadUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}download_url'],
+      ),
+      uploadUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}upload_url'],
+      ),
+      localPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_path'],
+      ),
+      isDownloaded:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_downloaded'],
+          )!,
+      isPendingUpload:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_pending_upload'],
+          )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
+          )!,
+      serverUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}server_updated_at'],
+      ),
+      isSynced:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_synced'],
+          )!,
+      syncStatus:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}sync_status'],
+          )!,
+    );
+  }
+
+  @override
+  $AttachmentsTable createAlias(String alias) {
+    return $AttachmentsTable(attachedDatabase, alias);
+  }
+}
+
+class AttachmentEntity extends DataClass
+    implements Insertable<AttachmentEntity> {
+  /// Unique identifier (UUID) for the attachment.
+  final String id;
+
+  /// Server-side ID from Firefly III API, nullable for offline-created attachments.
+  final String? serverId;
+
+  /// The type of entity this attachment belongs to (e.g., 'TransactionJournal').
+  final String attachableType;
+
+  /// The ID of the entity this attachment belongs to.
+  final String attachableId;
+
+  /// Original filename of the attachment.
+  final String filename;
+
+  /// Optional title/description for the attachment.
+  final String? title;
+
+  /// MIME type of the attachment (e.g., 'image/jpeg', 'application/pdf').
+  final String? mimeType;
+
+  /// File size in bytes.
+  final int? size;
+
+  /// MD5 hash of the file content for integrity verification.
+  final String? md5;
+
+  /// Download URL for the attachment (from Firefly III API).
+  final String? downloadUrl;
+
+  /// Upload URL for posting new attachment content.
+  final String? uploadUrl;
+
+  /// Local file path if attachment is cached locally.
+  final String? localPath;
+
+  /// Whether the attachment content has been downloaded locally.
+  final bool isDownloaded;
+
+  /// Whether the attachment content is pending upload.
+  final bool isPendingUpload;
+
+  /// Optional notes about the attachment.
+  final String? notes;
+
+  /// Timestamp when the attachment was created locally.
+  final DateTime createdAt;
+
+  /// Timestamp when the attachment was last updated locally.
+  final DateTime updatedAt;
+
+  /// Server's last updated timestamp for incremental sync change detection.
+  ///
+  /// Used during incremental sync to determine if the local entity
+  /// needs to be updated by comparing with the server's timestamp.
+  final DateTime? serverUpdatedAt;
+
+  /// Whether the attachment has been synced with the server.
+  final bool isSynced;
+
+  /// Sync status: 'pending', 'syncing', 'synced', 'error', 'pending_upload', 'pending_delete'.
+  final String syncStatus;
+  const AttachmentEntity({
+    required this.id,
+    this.serverId,
+    required this.attachableType,
+    required this.attachableId,
+    required this.filename,
+    this.title,
+    this.mimeType,
+    this.size,
+    this.md5,
+    this.downloadUrl,
+    this.uploadUrl,
+    this.localPath,
+    required this.isDownloaded,
+    required this.isPendingUpload,
+    this.notes,
+    required this.createdAt,
+    required this.updatedAt,
+    this.serverUpdatedAt,
+    required this.isSynced,
+    required this.syncStatus,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || serverId != null) {
+      map['server_id'] = Variable<String>(serverId);
+    }
+    map['attachable_type'] = Variable<String>(attachableType);
+    map['attachable_id'] = Variable<String>(attachableId);
+    map['filename'] = Variable<String>(filename);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    if (!nullToAbsent || mimeType != null) {
+      map['mime_type'] = Variable<String>(mimeType);
+    }
+    if (!nullToAbsent || size != null) {
+      map['size'] = Variable<int>(size);
+    }
+    if (!nullToAbsent || md5 != null) {
+      map['md5'] = Variable<String>(md5);
+    }
+    if (!nullToAbsent || downloadUrl != null) {
+      map['download_url'] = Variable<String>(downloadUrl);
+    }
+    if (!nullToAbsent || uploadUrl != null) {
+      map['upload_url'] = Variable<String>(uploadUrl);
+    }
+    if (!nullToAbsent || localPath != null) {
+      map['local_path'] = Variable<String>(localPath);
+    }
+    map['is_downloaded'] = Variable<bool>(isDownloaded);
+    map['is_pending_upload'] = Variable<bool>(isPendingUpload);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || serverUpdatedAt != null) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt);
+    }
+    map['is_synced'] = Variable<bool>(isSynced);
+    map['sync_status'] = Variable<String>(syncStatus);
+    return map;
+  }
+
+  AttachmentEntityCompanion toCompanion(bool nullToAbsent) {
+    return AttachmentEntityCompanion(
+      id: Value(id),
+      serverId:
+          serverId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverId),
+      attachableType: Value(attachableType),
+      attachableId: Value(attachableId),
+      filename: Value(filename),
+      title:
+          title == null && nullToAbsent ? const Value.absent() : Value(title),
+      mimeType:
+          mimeType == null && nullToAbsent
+              ? const Value.absent()
+              : Value(mimeType),
+      size: size == null && nullToAbsent ? const Value.absent() : Value(size),
+      md5: md5 == null && nullToAbsent ? const Value.absent() : Value(md5),
+      downloadUrl:
+          downloadUrl == null && nullToAbsent
+              ? const Value.absent()
+              : Value(downloadUrl),
+      uploadUrl:
+          uploadUrl == null && nullToAbsent
+              ? const Value.absent()
+              : Value(uploadUrl),
+      localPath:
+          localPath == null && nullToAbsent
+              ? const Value.absent()
+              : Value(localPath),
+      isDownloaded: Value(isDownloaded),
+      isPendingUpload: Value(isPendingUpload),
+      notes:
+          notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      serverUpdatedAt:
+          serverUpdatedAt == null && nullToAbsent
+              ? const Value.absent()
+              : Value(serverUpdatedAt),
+      isSynced: Value(isSynced),
+      syncStatus: Value(syncStatus),
+    );
+  }
+
+  factory AttachmentEntity.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AttachmentEntity(
+      id: serializer.fromJson<String>(json['id']),
+      serverId: serializer.fromJson<String?>(json['serverId']),
+      attachableType: serializer.fromJson<String>(json['attachableType']),
+      attachableId: serializer.fromJson<String>(json['attachableId']),
+      filename: serializer.fromJson<String>(json['filename']),
+      title: serializer.fromJson<String?>(json['title']),
+      mimeType: serializer.fromJson<String?>(json['mimeType']),
+      size: serializer.fromJson<int?>(json['size']),
+      md5: serializer.fromJson<String?>(json['md5']),
+      downloadUrl: serializer.fromJson<String?>(json['downloadUrl']),
+      uploadUrl: serializer.fromJson<String?>(json['uploadUrl']),
+      localPath: serializer.fromJson<String?>(json['localPath']),
+      isDownloaded: serializer.fromJson<bool>(json['isDownloaded']),
+      isPendingUpload: serializer.fromJson<bool>(json['isPendingUpload']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      serverUpdatedAt: serializer.fromJson<DateTime?>(json['serverUpdatedAt']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'serverId': serializer.toJson<String?>(serverId),
+      'attachableType': serializer.toJson<String>(attachableType),
+      'attachableId': serializer.toJson<String>(attachableId),
+      'filename': serializer.toJson<String>(filename),
+      'title': serializer.toJson<String?>(title),
+      'mimeType': serializer.toJson<String?>(mimeType),
+      'size': serializer.toJson<int?>(size),
+      'md5': serializer.toJson<String?>(md5),
+      'downloadUrl': serializer.toJson<String?>(downloadUrl),
+      'uploadUrl': serializer.toJson<String?>(uploadUrl),
+      'localPath': serializer.toJson<String?>(localPath),
+      'isDownloaded': serializer.toJson<bool>(isDownloaded),
+      'isPendingUpload': serializer.toJson<bool>(isPendingUpload),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'serverUpdatedAt': serializer.toJson<DateTime?>(serverUpdatedAt),
+      'isSynced': serializer.toJson<bool>(isSynced),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+    };
+  }
+
+  AttachmentEntity copyWith({
+    String? id,
+    Value<String?> serverId = const Value.absent(),
+    String? attachableType,
+    String? attachableId,
+    String? filename,
+    Value<String?> title = const Value.absent(),
+    Value<String?> mimeType = const Value.absent(),
+    Value<int?> size = const Value.absent(),
+    Value<String?> md5 = const Value.absent(),
+    Value<String?> downloadUrl = const Value.absent(),
+    Value<String?> uploadUrl = const Value.absent(),
+    Value<String?> localPath = const Value.absent(),
+    bool? isDownloaded,
+    bool? isPendingUpload,
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> serverUpdatedAt = const Value.absent(),
+    bool? isSynced,
+    String? syncStatus,
+  }) => AttachmentEntity(
+    id: id ?? this.id,
+    serverId: serverId.present ? serverId.value : this.serverId,
+    attachableType: attachableType ?? this.attachableType,
+    attachableId: attachableId ?? this.attachableId,
+    filename: filename ?? this.filename,
+    title: title.present ? title.value : this.title,
+    mimeType: mimeType.present ? mimeType.value : this.mimeType,
+    size: size.present ? size.value : this.size,
+    md5: md5.present ? md5.value : this.md5,
+    downloadUrl: downloadUrl.present ? downloadUrl.value : this.downloadUrl,
+    uploadUrl: uploadUrl.present ? uploadUrl.value : this.uploadUrl,
+    localPath: localPath.present ? localPath.value : this.localPath,
+    isDownloaded: isDownloaded ?? this.isDownloaded,
+    isPendingUpload: isPendingUpload ?? this.isPendingUpload,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    serverUpdatedAt:
+        serverUpdatedAt.present ? serverUpdatedAt.value : this.serverUpdatedAt,
+    isSynced: isSynced ?? this.isSynced,
+    syncStatus: syncStatus ?? this.syncStatus,
+  );
+  AttachmentEntity copyWithCompanion(AttachmentEntityCompanion data) {
+    return AttachmentEntity(
+      id: data.id.present ? data.id.value : this.id,
+      serverId: data.serverId.present ? data.serverId.value : this.serverId,
+      attachableType:
+          data.attachableType.present
+              ? data.attachableType.value
+              : this.attachableType,
+      attachableId:
+          data.attachableId.present
+              ? data.attachableId.value
+              : this.attachableId,
+      filename: data.filename.present ? data.filename.value : this.filename,
+      title: data.title.present ? data.title.value : this.title,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      size: data.size.present ? data.size.value : this.size,
+      md5: data.md5.present ? data.md5.value : this.md5,
+      downloadUrl:
+          data.downloadUrl.present ? data.downloadUrl.value : this.downloadUrl,
+      uploadUrl: data.uploadUrl.present ? data.uploadUrl.value : this.uploadUrl,
+      localPath: data.localPath.present ? data.localPath.value : this.localPath,
+      isDownloaded:
+          data.isDownloaded.present
+              ? data.isDownloaded.value
+              : this.isDownloaded,
+      isPendingUpload:
+          data.isPendingUpload.present
+              ? data.isPendingUpload.value
+              : this.isPendingUpload,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      serverUpdatedAt:
+          data.serverUpdatedAt.present
+              ? data.serverUpdatedAt.value
+              : this.serverUpdatedAt,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AttachmentEntity(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('attachableType: $attachableType, ')
+          ..write('attachableId: $attachableId, ')
+          ..write('filename: $filename, ')
+          ..write('title: $title, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('size: $size, ')
+          ..write('md5: $md5, ')
+          ..write('downloadUrl: $downloadUrl, ')
+          ..write('uploadUrl: $uploadUrl, ')
+          ..write('localPath: $localPath, ')
+          ..write('isDownloaded: $isDownloaded, ')
+          ..write('isPendingUpload: $isPendingUpload, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('syncStatus: $syncStatus')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    serverId,
+    attachableType,
+    attachableId,
+    filename,
+    title,
+    mimeType,
+    size,
+    md5,
+    downloadUrl,
+    uploadUrl,
+    localPath,
+    isDownloaded,
+    isPendingUpload,
+    notes,
+    createdAt,
+    updatedAt,
+    serverUpdatedAt,
+    isSynced,
+    syncStatus,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AttachmentEntity &&
+          other.id == this.id &&
+          other.serverId == this.serverId &&
+          other.attachableType == this.attachableType &&
+          other.attachableId == this.attachableId &&
+          other.filename == this.filename &&
+          other.title == this.title &&
+          other.mimeType == this.mimeType &&
+          other.size == this.size &&
+          other.md5 == this.md5 &&
+          other.downloadUrl == this.downloadUrl &&
+          other.uploadUrl == this.uploadUrl &&
+          other.localPath == this.localPath &&
+          other.isDownloaded == this.isDownloaded &&
+          other.isPendingUpload == this.isPendingUpload &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.serverUpdatedAt == this.serverUpdatedAt &&
+          other.isSynced == this.isSynced &&
+          other.syncStatus == this.syncStatus);
+}
+
+class AttachmentEntityCompanion extends UpdateCompanion<AttachmentEntity> {
+  final Value<String> id;
+  final Value<String?> serverId;
+  final Value<String> attachableType;
+  final Value<String> attachableId;
+  final Value<String> filename;
+  final Value<String?> title;
+  final Value<String?> mimeType;
+  final Value<int?> size;
+  final Value<String?> md5;
+  final Value<String?> downloadUrl;
+  final Value<String?> uploadUrl;
+  final Value<String?> localPath;
+  final Value<bool> isDownloaded;
+  final Value<bool> isPendingUpload;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> serverUpdatedAt;
+  final Value<bool> isSynced;
+  final Value<String> syncStatus;
+  final Value<int> rowid;
+  const AttachmentEntityCompanion({
+    this.id = const Value.absent(),
+    this.serverId = const Value.absent(),
+    this.attachableType = const Value.absent(),
+    this.attachableId = const Value.absent(),
+    this.filename = const Value.absent(),
+    this.title = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.size = const Value.absent(),
+    this.md5 = const Value.absent(),
+    this.downloadUrl = const Value.absent(),
+    this.uploadUrl = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.isDownloaded = const Value.absent(),
+    this.isPendingUpload = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.serverUpdatedAt = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AttachmentEntityCompanion.insert({
+    required String id,
+    this.serverId = const Value.absent(),
+    required String attachableType,
+    required String attachableId,
+    required String filename,
+    this.title = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.size = const Value.absent(),
+    this.md5 = const Value.absent(),
+    this.downloadUrl = const Value.absent(),
+    this.uploadUrl = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.isDownloaded = const Value.absent(),
+    this.isPendingUpload = const Value.absent(),
+    this.notes = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.serverUpdatedAt = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       attachableType = Value(attachableType),
+       attachableId = Value(attachableId),
+       filename = Value(filename),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<AttachmentEntity> custom({
+    Expression<String>? id,
+    Expression<String>? serverId,
+    Expression<String>? attachableType,
+    Expression<String>? attachableId,
+    Expression<String>? filename,
+    Expression<String>? title,
+    Expression<String>? mimeType,
+    Expression<int>? size,
+    Expression<String>? md5,
+    Expression<String>? downloadUrl,
+    Expression<String>? uploadUrl,
+    Expression<String>? localPath,
+    Expression<bool>? isDownloaded,
+    Expression<bool>? isPendingUpload,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? serverUpdatedAt,
+    Expression<bool>? isSynced,
+    Expression<String>? syncStatus,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (serverId != null) 'server_id': serverId,
+      if (attachableType != null) 'attachable_type': attachableType,
+      if (attachableId != null) 'attachable_id': attachableId,
+      if (filename != null) 'filename': filename,
+      if (title != null) 'title': title,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (size != null) 'size': size,
+      if (md5 != null) 'md5': md5,
+      if (downloadUrl != null) 'download_url': downloadUrl,
+      if (uploadUrl != null) 'upload_url': uploadUrl,
+      if (localPath != null) 'local_path': localPath,
+      if (isDownloaded != null) 'is_downloaded': isDownloaded,
+      if (isPendingUpload != null) 'is_pending_upload': isPendingUpload,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (serverUpdatedAt != null) 'server_updated_at': serverUpdatedAt,
+      if (isSynced != null) 'is_synced': isSynced,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AttachmentEntityCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? serverId,
+    Value<String>? attachableType,
+    Value<String>? attachableId,
+    Value<String>? filename,
+    Value<String?>? title,
+    Value<String?>? mimeType,
+    Value<int?>? size,
+    Value<String?>? md5,
+    Value<String?>? downloadUrl,
+    Value<String?>? uploadUrl,
+    Value<String?>? localPath,
+    Value<bool>? isDownloaded,
+    Value<bool>? isPendingUpload,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? serverUpdatedAt,
+    Value<bool>? isSynced,
+    Value<String>? syncStatus,
+    Value<int>? rowid,
+  }) {
+    return AttachmentEntityCompanion(
+      id: id ?? this.id,
+      serverId: serverId ?? this.serverId,
+      attachableType: attachableType ?? this.attachableType,
+      attachableId: attachableId ?? this.attachableId,
+      filename: filename ?? this.filename,
+      title: title ?? this.title,
+      mimeType: mimeType ?? this.mimeType,
+      size: size ?? this.size,
+      md5: md5 ?? this.md5,
+      downloadUrl: downloadUrl ?? this.downloadUrl,
+      uploadUrl: uploadUrl ?? this.uploadUrl,
+      localPath: localPath ?? this.localPath,
+      isDownloaded: isDownloaded ?? this.isDownloaded,
+      isPendingUpload: isPendingUpload ?? this.isPendingUpload,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      serverUpdatedAt: serverUpdatedAt ?? this.serverUpdatedAt,
+      isSynced: isSynced ?? this.isSynced,
+      syncStatus: syncStatus ?? this.syncStatus,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (serverId.present) {
+      map['server_id'] = Variable<String>(serverId.value);
+    }
+    if (attachableType.present) {
+      map['attachable_type'] = Variable<String>(attachableType.value);
+    }
+    if (attachableId.present) {
+      map['attachable_id'] = Variable<String>(attachableId.value);
+    }
+    if (filename.present) {
+      map['filename'] = Variable<String>(filename.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (size.present) {
+      map['size'] = Variable<int>(size.value);
+    }
+    if (md5.present) {
+      map['md5'] = Variable<String>(md5.value);
+    }
+    if (downloadUrl.present) {
+      map['download_url'] = Variable<String>(downloadUrl.value);
+    }
+    if (uploadUrl.present) {
+      map['upload_url'] = Variable<String>(uploadUrl.value);
+    }
+    if (localPath.present) {
+      map['local_path'] = Variable<String>(localPath.value);
+    }
+    if (isDownloaded.present) {
+      map['is_downloaded'] = Variable<bool>(isDownloaded.value);
+    }
+    if (isPendingUpload.present) {
+      map['is_pending_upload'] = Variable<bool>(isPendingUpload.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (serverUpdatedAt.present) {
+      map['server_updated_at'] = Variable<DateTime>(serverUpdatedAt.value);
+    }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AttachmentEntityCompanion(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('attachableType: $attachableType, ')
+          ..write('attachableId: $attachableId, ')
+          ..write('filename: $filename, ')
+          ..write('title: $title, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('size: $size, ')
+          ..write('md5: $md5, ')
+          ..write('downloadUrl: $downloadUrl, ')
+          ..write('uploadUrl: $uploadUrl, ')
+          ..write('localPath: $localPath, ')
+          ..write('isDownloaded: $isDownloaded, ')
+          ..write('isPendingUpload: $isPendingUpload, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('serverUpdatedAt: $serverUpdatedAt, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SyncQueueTable extends SyncQueue
     with TableInfo<$SyncQueueTable, SyncQueueEntity> {
   @override
@@ -12946,6 +14131,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PiggyBanksTable piggyBanks = $PiggyBanksTable(this);
   late final $CurrenciesTable currencies = $CurrenciesTable(this);
   late final $TagsTable tags = $TagsTable(this);
+  late final $AttachmentsTable attachments = $AttachmentsTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $SyncMetadataTable syncMetadata = $SyncMetadataTable(this);
   late final $IdMappingTable idMapping = $IdMappingTable(this);
@@ -12967,6 +14153,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     piggyBanks,
     currencies,
     tags,
+    attachments,
     syncQueue,
     syncMetadata,
     idMapping,
@@ -16557,6 +17744,513 @@ typedef $$TagsTableProcessedTableManager =
       TagEntity,
       PrefetchHooks Function()
     >;
+typedef $$AttachmentsTableCreateCompanionBuilder =
+    AttachmentEntityCompanion Function({
+      required String id,
+      Value<String?> serverId,
+      required String attachableType,
+      required String attachableId,
+      required String filename,
+      Value<String?> title,
+      Value<String?> mimeType,
+      Value<int?> size,
+      Value<String?> md5,
+      Value<String?> downloadUrl,
+      Value<String?> uploadUrl,
+      Value<String?> localPath,
+      Value<bool> isDownloaded,
+      Value<bool> isPendingUpload,
+      Value<String?> notes,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<bool> isSynced,
+      Value<String> syncStatus,
+      Value<int> rowid,
+    });
+typedef $$AttachmentsTableUpdateCompanionBuilder =
+    AttachmentEntityCompanion Function({
+      Value<String> id,
+      Value<String?> serverId,
+      Value<String> attachableType,
+      Value<String> attachableId,
+      Value<String> filename,
+      Value<String?> title,
+      Value<String?> mimeType,
+      Value<int?> size,
+      Value<String?> md5,
+      Value<String?> downloadUrl,
+      Value<String?> uploadUrl,
+      Value<String?> localPath,
+      Value<bool> isDownloaded,
+      Value<bool> isPendingUpload,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> serverUpdatedAt,
+      Value<bool> isSynced,
+      Value<String> syncStatus,
+      Value<int> rowid,
+    });
+
+class $$AttachmentsTableFilterComposer
+    extends Composer<_$AppDatabase, $AttachmentsTable> {
+  $$AttachmentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get attachableType => $composableBuilder(
+    column: $table.attachableType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get attachableId => $composableBuilder(
+    column: $table.attachableId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get filename => $composableBuilder(
+    column: $table.filename,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get md5 => $composableBuilder(
+    column: $table.md5,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get downloadUrl => $composableBuilder(
+    column: $table.downloadUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get uploadUrl => $composableBuilder(
+    column: $table.uploadUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localPath => $composableBuilder(
+    column: $table.localPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDownloaded => $composableBuilder(
+    column: $table.isDownloaded,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPendingUpload => $composableBuilder(
+    column: $table.isPendingUpload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AttachmentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AttachmentsTable> {
+  $$AttachmentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get attachableType => $composableBuilder(
+    column: $table.attachableType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get attachableId => $composableBuilder(
+    column: $table.attachableId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get filename => $composableBuilder(
+    column: $table.filename,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get size => $composableBuilder(
+    column: $table.size,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get md5 => $composableBuilder(
+    column: $table.md5,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get downloadUrl => $composableBuilder(
+    column: $table.downloadUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get uploadUrl => $composableBuilder(
+    column: $table.uploadUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localPath => $composableBuilder(
+    column: $table.localPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDownloaded => $composableBuilder(
+    column: $table.isDownloaded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isPendingUpload => $composableBuilder(
+    column: $table.isPendingUpload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AttachmentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AttachmentsTable> {
+  $$AttachmentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get serverId =>
+      $composableBuilder(column: $table.serverId, builder: (column) => column);
+
+  GeneratedColumn<String> get attachableType => $composableBuilder(
+    column: $table.attachableType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get attachableId => $composableBuilder(
+    column: $table.attachableId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get filename =>
+      $composableBuilder(column: $table.filename, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get mimeType =>
+      $composableBuilder(column: $table.mimeType, builder: (column) => column);
+
+  GeneratedColumn<int> get size =>
+      $composableBuilder(column: $table.size, builder: (column) => column);
+
+  GeneratedColumn<String> get md5 =>
+      $composableBuilder(column: $table.md5, builder: (column) => column);
+
+  GeneratedColumn<String> get downloadUrl => $composableBuilder(
+    column: $table.downloadUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get uploadUrl =>
+      $composableBuilder(column: $table.uploadUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get localPath =>
+      $composableBuilder(column: $table.localPath, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDownloaded => $composableBuilder(
+    column: $table.isDownloaded,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isPendingUpload => $composableBuilder(
+    column: $table.isPendingUpload,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get serverUpdatedAt => $composableBuilder(
+    column: $table.serverUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+}
+
+class $$AttachmentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AttachmentsTable,
+          AttachmentEntity,
+          $$AttachmentsTableFilterComposer,
+          $$AttachmentsTableOrderingComposer,
+          $$AttachmentsTableAnnotationComposer,
+          $$AttachmentsTableCreateCompanionBuilder,
+          $$AttachmentsTableUpdateCompanionBuilder,
+          (
+            AttachmentEntity,
+            BaseReferences<_$AppDatabase, $AttachmentsTable, AttachmentEntity>,
+          ),
+          AttachmentEntity,
+          PrefetchHooks Function()
+        > {
+  $$AttachmentsTableTableManager(_$AppDatabase db, $AttachmentsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$AttachmentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$AttachmentsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () =>
+                  $$AttachmentsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> serverId = const Value.absent(),
+                Value<String> attachableType = const Value.absent(),
+                Value<String> attachableId = const Value.absent(),
+                Value<String> filename = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> mimeType = const Value.absent(),
+                Value<int?> size = const Value.absent(),
+                Value<String?> md5 = const Value.absent(),
+                Value<String?> downloadUrl = const Value.absent(),
+                Value<String?> uploadUrl = const Value.absent(),
+                Value<String?> localPath = const Value.absent(),
+                Value<bool> isDownloaded = const Value.absent(),
+                Value<bool> isPendingUpload = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AttachmentEntityCompanion(
+                id: id,
+                serverId: serverId,
+                attachableType: attachableType,
+                attachableId: attachableId,
+                filename: filename,
+                title: title,
+                mimeType: mimeType,
+                size: size,
+                md5: md5,
+                downloadUrl: downloadUrl,
+                uploadUrl: uploadUrl,
+                localPath: localPath,
+                isDownloaded: isDownloaded,
+                isPendingUpload: isPendingUpload,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                isSynced: isSynced,
+                syncStatus: syncStatus,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> serverId = const Value.absent(),
+                required String attachableType,
+                required String attachableId,
+                required String filename,
+                Value<String?> title = const Value.absent(),
+                Value<String?> mimeType = const Value.absent(),
+                Value<int?> size = const Value.absent(),
+                Value<String?> md5 = const Value.absent(),
+                Value<String?> downloadUrl = const Value.absent(),
+                Value<String?> uploadUrl = const Value.absent(),
+                Value<String?> localPath = const Value.absent(),
+                Value<bool> isDownloaded = const Value.absent(),
+                Value<bool> isPendingUpload = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> serverUpdatedAt = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AttachmentEntityCompanion.insert(
+                id: id,
+                serverId: serverId,
+                attachableType: attachableType,
+                attachableId: attachableId,
+                filename: filename,
+                title: title,
+                mimeType: mimeType,
+                size: size,
+                md5: md5,
+                downloadUrl: downloadUrl,
+                uploadUrl: uploadUrl,
+                localPath: localPath,
+                isDownloaded: isDownloaded,
+                isPendingUpload: isPendingUpload,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                serverUpdatedAt: serverUpdatedAt,
+                isSynced: isSynced,
+                syncStatus: syncStatus,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AttachmentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AttachmentsTable,
+      AttachmentEntity,
+      $$AttachmentsTableFilterComposer,
+      $$AttachmentsTableOrderingComposer,
+      $$AttachmentsTableAnnotationComposer,
+      $$AttachmentsTableCreateCompanionBuilder,
+      $$AttachmentsTableUpdateCompanionBuilder,
+      (
+        AttachmentEntity,
+        BaseReferences<_$AppDatabase, $AttachmentsTable, AttachmentEntity>,
+      ),
+      AttachmentEntity,
+      PrefetchHooks Function()
+    >;
 typedef $$SyncQueueTableCreateCompanionBuilder =
     SyncQueueEntityCompanion Function({
       required String id,
@@ -18709,6 +20403,8 @@ class $AppDatabaseManager {
   $$CurrenciesTableTableManager get currencies =>
       $$CurrenciesTableTableManager(_db, _db.currencies);
   $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
+  $$AttachmentsTableTableManager get attachments =>
+      $$AttachmentsTableTableManager(_db, _db.attachments);
   $$SyncQueueTableTableManager get syncQueue =>
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
   $$SyncMetadataTableTableManager get syncMetadata =>

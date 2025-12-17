@@ -5,6 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/bill_repository.dart';
+import 'package:waterflyiii/data/repositories/budget_repository.dart';
+import 'package:waterflyiii/data/repositories/category_repository.dart';
+import 'package:waterflyiii/data/repositories/currency_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/transaction/tags.dart';
@@ -98,6 +104,98 @@ class FilterDialog extends StatelessWidget {
   final TransactionFilters filters;
 
   Future<FilterData> _getData(BuildContext context) async {
+    // Use repositories with cache-first strategy instead of direct API calls
+    final AccountRepository? accountRepo = context.read<AccountRepository?>();
+    final CurrencyRepository? currencyRepo = context.read<CurrencyRepository?>();
+    final CategoryRepository? categoryRepo = context.read<CategoryRepository?>();
+    final BudgetRepository? budgetRepo = context.read<BudgetRepository?>();
+    final BillRepository? billRepo = context.read<BillRepository?>();
+
+    // Check if all repositories are available
+    if (accountRepo != null &&
+        currencyRepo != null &&
+        categoryRepo != null &&
+        budgetRepo != null &&
+        billRepo != null) {
+      log.fine('Using repositories for filter data');
+
+      // Fetch data from repositories in parallel
+      final (
+        List<AccountEntity> accounts,
+        List<CurrencyEntity> currencies,
+        List<CategoryEntity> categories,
+        List<BudgetEntity> budgets,
+        List<BillEntity> bills,
+      ) = await (
+            accountRepo.getAll(),
+            currencyRepo.getAll(),
+            categoryRepo.getAll(),
+            budgetRepo.getAll(),
+            billRepo.getAll(),
+          ).wait;
+
+      // Convert entities to API models for UI compatibility
+      return FilterData(
+        accounts
+            .where((AccountEntity a) => a.type == 'asset')
+            .map(
+              (AccountEntity a) => AccountRead(
+                id: a.serverId ?? a.id,
+                type: 'accounts',
+                attributes: AccountProperties(
+                  name: a.name,
+                  type: ShortAccountTypeProperty.asset,
+                  currencyCode: a.currencyCode,
+                ),
+              ),
+            )
+            .toList(),
+        currencies
+            .map(
+              (CurrencyEntity c) => CurrencyRead(
+                id: c.serverId ?? c.id,
+                type: 'currencies',
+                attributes: CurrencyProperties(
+                  code: c.code,
+                  name: c.name,
+                  symbol: c.symbol,
+                  decimalPlaces: c.decimalPlaces,
+                ),
+              ),
+            )
+            .toList(),
+        categories
+            .map(
+              (CategoryEntity c) => CategoryRead(
+                id: c.serverId ?? c.id,
+                type: 'categories',
+                attributes: CategoryProperties(name: c.name),
+              ),
+            )
+            .toList(),
+        budgets
+            .map(
+              (BudgetEntity b) => BudgetRead(
+                id: b.serverId ?? b.id,
+                type: 'budgets',
+                attributes: BudgetProperties(name: b.name),
+              ),
+            )
+            .toList(),
+        bills
+            .map(
+              (BillEntity b) => BillRead(
+                id: b.serverId ?? b.id,
+                type: 'bills',
+                attributes: BillProperties(name: b.name),
+              ),
+            )
+            .toList(),
+      );
+    }
+
+    // Fallback to direct API calls if repositories not available
+    log.warning('Repositories not available, falling back to direct API');
     final FireflyIii api = context.read<FireflyService>().api;
 
     final (

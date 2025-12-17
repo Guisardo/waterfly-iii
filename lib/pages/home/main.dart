@@ -12,6 +12,8 @@ import 'package:timezone/timezone.dart';
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/bill_repository.dart';
 import 'package:waterflyiii/data/repositories/budget_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
@@ -324,13 +326,55 @@ class _HomeMainState extends State<HomeMain>
   }
 
   Future<List<BillRead>> _fetchBills() async {
-    final FireflyIii api = context.read<FireflyService>().api;
     final TimeZoneHandler tzHandler = context.read<FireflyService>().tzHandler;
-
     final DateTime now = tzHandler.sNow().clearTime();
     final DateTime end = now.copyWith(day: now.day + 7);
 
-    // Fetch bills from API (until local DB migration is complete)
+    // Try to use BillRepository with cache-first strategy
+    final BillRepository? billRepo = context.read<BillRepository?>();
+
+    if (billRepo != null) {
+      log.fine('Using BillRepository for bills');
+      final List<BillEntity> billEntities = await billRepo.getByDateRange(
+        start: now,
+        end: end,
+      );
+
+      // Convert entities to BillRead for UI compatibility
+      return billEntities
+          .where((BillEntity e) {
+            final DateTime? nextMatch = e.nextExpectedMatch;
+            final DateTime checkDate =
+                (nextMatch != null ? tzHandler.sTime(nextMatch) : end.copyWith(day: end.day + 2))
+                    .toLocal()
+                    .clearTime();
+            return checkDate.isBefore(end.copyWith(day: end.day + 1));
+          })
+          .map(
+            (BillEntity e) => BillRead(
+              id: e.serverId ?? e.id,
+              type: 'bills',
+              attributes: BillProperties(
+                name: e.name,
+                amountMin: e.minAmount.toString(),
+                amountMax: e.maxAmount.toString(),
+                date: e.date,
+                repeatFreq: BillRepeatFrequency.swaggerGeneratedUnknown,
+                currencyCode: e.currencyCode,
+                currencySymbol: e.currencySymbol ?? e.currencyCode,
+                currencyDecimalPlaces: e.currencyDecimalPlaces ?? 2,
+                nextExpectedMatch: e.nextExpectedMatch,
+                active: e.active,
+              ),
+            ),
+          )
+          .toList(growable: false);
+    }
+
+    // Fallback to direct API call if repository not available
+    log.warning('BillRepository not available, falling back to direct API');
+    final FireflyIii api = context.read<FireflyService>().api;
+
     final Response<BillArray> respBills = await api.v1BillsGet(
       start: DateFormat('yyyy-MM-dd', 'en_US').format(now),
       end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
@@ -355,7 +399,6 @@ class _HomeMainState extends State<HomeMain>
       return true;
     }
 
-    final FireflyIii api = context.read<FireflyService>().api;
     final TimeZoneHandler tzHandler = context.read<FireflyService>().tzHandler;
 
     final DateTime now = tzHandler.sNow().clearTime();
@@ -374,32 +417,90 @@ class _HomeMainState extends State<HomeMain>
       second: 0,
     );
 
-    final (
-      Response<AccountArray> respAssetAccounts,
-      Response<AccountArray> respLiabilityAccounts,
-      Response<List<ChartDataSet>> respBalanceData,
-    ) = await (
-          api.v1AccountsGet(type: AccountTypeFilter.asset),
-          api.v1AccountsGet(type: AccountTypeFilter.liabilities),
-          api.v1ChartAccountOverviewGet(
-            start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
-            end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            preselected: V1ChartAccountOverviewGetPreselected.all,
-          ),
-        ).wait;
-    apiThrowErrorIfEmpty(respAssetAccounts, mounted ? context : null);
-    apiThrowErrorIfEmpty(respLiabilityAccounts, mounted ? context : null);
-    apiThrowErrorIfEmpty(respBalanceData, mounted ? context : null);
+    // Try to use repositories and services with cache-first strategy
+    final AccountRepository? accountRepo = context.read<AccountRepository?>();
+    final ChartDataService? chartService = context.read<ChartDataService?>();
+
+    List<AccountRead> assetAccounts;
+    List<AccountRead> liabilityAccounts;
+    List<ChartDataSet> balanceData;
+
+    if (accountRepo != null && chartService != null) {
+      log.fine('Using repositories and services for balance data');
+
+      // Fetch accounts from repository
+      final List<AccountEntity> allAccounts = await accountRepo.getAll();
+
+      assetAccounts = allAccounts
+          .where((AccountEntity a) => a.type == 'asset')
+          .map(
+            (AccountEntity a) => AccountRead(
+              id: a.serverId ?? a.id,
+              type: 'accounts',
+              attributes: AccountProperties(
+                name: a.name,
+                type: ShortAccountTypeProperty.asset,
+              ),
+            ),
+          )
+          .toList();
+
+      liabilityAccounts = allAccounts
+          .where((AccountEntity a) => a.type == 'liabilities')
+          .map(
+            (AccountEntity a) => AccountRead(
+              id: a.serverId ?? a.id,
+              type: 'accounts',
+              attributes: AccountProperties(
+                name: a.name,
+                type: ShortAccountTypeProperty.liabilities,
+              ),
+            ),
+          )
+          .toList();
+
+      // Fetch chart data from ChartDataService
+      final ChartLine chartLine = await chartService.getAccountOverview(
+        start: start,
+        end: end,
+      );
+      balanceData = chartLine.toList();
+    } else {
+      // Fallback to direct API calls if services not available
+      log.warning('Services not available, falling back to direct API');
+      final FireflyIii api = context.read<FireflyService>().api;
+
+      final (
+        Response<AccountArray> respAssetAccounts,
+        Response<AccountArray> respLiabilityAccounts,
+        Response<List<ChartDataSet>> respBalanceData,
+      ) = await (
+            api.v1AccountsGet(type: AccountTypeFilter.asset),
+            api.v1AccountsGet(type: AccountTypeFilter.liabilities),
+            api.v1ChartAccountOverviewGet(
+              start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
+              end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
+              preselected: V1ChartAccountOverviewGetPreselected.all,
+            ),
+          ).wait;
+      apiThrowErrorIfEmpty(respAssetAccounts, mounted ? context : null);
+      apiThrowErrorIfEmpty(respLiabilityAccounts, mounted ? context : null);
+      apiThrowErrorIfEmpty(respBalanceData, mounted ? context : null);
+
+      assetAccounts = respAssetAccounts.body!.data;
+      liabilityAccounts = respLiabilityAccounts.body!.data;
+      balanceData = respBalanceData.body!;
+    }
 
     final Map<String, bool> includeInNetWorth = <String, bool>{
-      for (AccountRead e in respAssetAccounts.body!.data)
+      for (AccountRead e in assetAccounts)
         e.attributes.name: e.attributes.includeNetWorth ?? true,
     };
     includeInNetWorth.addAll(<String, bool>{
-      for (AccountRead e in respLiabilityAccounts.body!.data)
+      for (AccountRead e in liabilityAccounts)
         e.attributes.name: e.attributes.includeNetWorth ?? true,
     });
-    for (ChartDataSet e in respBalanceData.body!) {
+    for (ChartDataSet e in balanceData) {
       if (includeInNetWorth.containsKey(e.label) &&
           includeInNetWorth[e.label] != true) {
         continue;

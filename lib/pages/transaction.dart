@@ -17,6 +17,10 @@ import 'package:provider/provider.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/budget_repository.dart';
+import 'package:waterflyiii/data/repositories/category_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -361,11 +365,13 @@ class _TransactionPageState extends State<TransactionPage>
         if (widget.notification != null) {
           final FireflyIii api = context.read<FireflyService>().api;
           final SettingsProvider settings = context.read<SettingsProvider>();
+          final CurrencyRead defaultCurrency =
+              context.read<FireflyService>().defaultCurrency;
+          // Read repository before async gaps
+          final AccountRepository? accountRepo = context.read<AccountRepository?>();
 
           log.info("Got notification ${widget.notification?.title}");
           _transactionType = TransactionTypeProperty.withdrawal;
-          final CurrencyRead defaultCurrency =
-              context.read<FireflyService>().defaultCurrency;
           late CurrencyRead? currency;
           late double amount;
 
@@ -393,16 +399,39 @@ class _TransactionPageState extends State<TransactionPage>
             _noteTextControllers[0].text = widget.notification!.body;
           }
 
-          // Check account
-          final Response<AccountArray> response = await api.v1AccountsGet(
-            type: AccountTypeFilter.assetAccount,
-          );
-          if (!response.isSuccessful || response.body == null) {
-            log.warning("api account fetch failed");
-            return;
+          // Check account - use repository for cache-first strategy
+          List<AccountRead> assetAccounts = <AccountRead>[];
+
+          if (accountRepo != null) {
+            final List<AccountEntity> entities = await accountRepo.getAll();
+            assetAccounts = entities
+                .where((AccountEntity a) => a.type == 'asset')
+                .map(
+                  (AccountEntity a) => AccountRead(
+                    id: a.serverId ?? a.id,
+                    type: 'accounts',
+                    attributes: AccountProperties(
+                      name: a.name,
+                      type: ShortAccountTypeProperty.asset,
+                      currencyCode: a.currencyCode,
+                    ),
+                  ),
+                )
+                .toList();
+          } else {
+            // Fallback to direct API call
+            final Response<AccountArray> response = await api.v1AccountsGet(
+              type: AccountTypeFilter.assetAccount,
+            );
+            if (!response.isSuccessful || response.body == null) {
+              log.warning("api account fetch failed");
+              return;
+            }
+            assetAccounts = response.body!.data;
           }
+
           final String settingAppId = appSettings.defaultAccountId ?? "0";
-          for (AccountRead acc in response.body!.data) {
+          for (AccountRead acc in assetAccounts) {
             if (acc.id == settingAppId ||
                 widget.notification!.body.containsIgnoreCase(
                   acc.attributes.name,
@@ -1406,6 +1435,40 @@ class _TransactionPageState extends State<TransactionPage>
                     try {
                       unawaited(fetchOpSource?.cancel());
 
+                      // Try to use AccountRepository for cache-first strategy
+                      final AccountRepository? accountRepo =
+                          context.read<AccountRepository?>();
+
+                      if (accountRepo != null) {
+                        final List<AccountEntity> accounts =
+                            await accountRepo.search(textEditingValue.text);
+                        // Filter by allowed types
+                        final List<AccountTypeFilter> allowedTypes =
+                            _destinationAccountType.allowedOpposingTypes(false);
+                        return accounts
+                            .where((AccountEntity a) {
+                              return allowedTypes.isEmpty || allowedTypes.any(
+                                (AccountTypeFilter t) =>
+                                    t.value == a.type ||
+                                    t.value == '${a.type}Account',
+                              );
+                            })
+                            .map(
+                              (AccountEntity a) => AutocompleteAccount(
+                                id: a.serverId ?? a.id,
+                                name: a.name,
+                                nameWithBalance: a.name,
+                                type: a.type,
+                                currencyId: '0',
+                                currencyName: '',
+                                currencyCode: a.currencyCode,
+                                currencySymbol: a.currencyCode,
+                                currencyDecimalPlaces: 2,
+                              ),
+                            );
+                      }
+
+                      // Fallback to direct API call
                       final FireflyIii api = context.read<FireflyService>().api;
                       fetchOpSource = CancelableOperation<
                         Response<AutocompleteAccountArray>
@@ -1507,6 +1570,40 @@ class _TransactionPageState extends State<TransactionPage>
                       try {
                         unawaited(fetchOpDestination?.cancel());
 
+                        // Try to use AccountRepository for cache-first strategy
+                        final AccountRepository? accountRepo =
+                            context.read<AccountRepository?>();
+
+                        if (accountRepo != null) {
+                          final List<AccountEntity> accounts =
+                              await accountRepo.search(textEditingValue.text);
+                          // Filter by allowed types
+                          final List<AccountTypeFilter> allowedTypes =
+                              _sourceAccountType.allowedOpposingTypes(true);
+                          return accounts
+                              .where((AccountEntity a) {
+                                return allowedTypes.isEmpty || allowedTypes.any(
+                                  (AccountTypeFilter t) =>
+                                      t.value == a.type ||
+                                      t.value == '${a.type}Account',
+                                );
+                              })
+                              .map(
+                                (AccountEntity a) => AutocompleteAccount(
+                                  id: a.serverId ?? a.id,
+                                  name: a.name,
+                                  nameWithBalance: a.name,
+                                  type: a.type,
+                                  currencyId: '0',
+                                  currencyName: '',
+                                  currencyCode: a.currencyCode,
+                                  currencySymbol: a.currencyCode,
+                                  currencyDecimalPlaces: 2,
+                                ),
+                              );
+                        }
+
+                        // Fallback to direct API call
                         final FireflyIii api =
                             context.read<FireflyService>().api;
                         fetchOpDestination = CancelableOperation<
@@ -1799,6 +1896,40 @@ class _TransactionPageState extends State<TransactionPage>
                                       try {
                                         unawaited(fetchOp?.cancel());
 
+                                        // Try to use AccountRepository for cache-first strategy
+                                        final AccountRepository? accountRepo =
+                                            context.read<AccountRepository?>();
+
+                                        if (accountRepo != null) {
+                                          final List<AccountEntity> accounts =
+                                              await accountRepo.search(textEditingValue.text);
+                                          // Filter by allowed types
+                                          final List<AccountTypeFilter> allowedTypes =
+                                              _destinationAccountType.allowedOpposingTypes(false);
+                                          return accounts
+                                              .where((AccountEntity a) {
+                                                return allowedTypes.isEmpty || allowedTypes.any(
+                                                  (AccountTypeFilter t) =>
+                                                      t.value == a.type ||
+                                                      t.value == '${a.type}Account',
+                                                );
+                                              })
+                                              .map(
+                                                (AccountEntity a) => AutocompleteAccount(
+                                                  id: a.serverId ?? a.id,
+                                                  name: a.name,
+                                                  nameWithBalance: a.name,
+                                                  type: a.type,
+                                                  currencyId: '0',
+                                                  currencyName: '',
+                                                  currencyCode: a.currencyCode,
+                                                  currencySymbol: a.currencyCode,
+                                                  currencyDecimalPlaces: 2,
+                                                ),
+                                              );
+                                        }
+
+                                        // Fallback to direct API call
                                         final FireflyIii api =
                                             context.read<FireflyService>().api;
                                         fetchOp = CancelableOperation<
@@ -1877,6 +2008,40 @@ class _TransactionPageState extends State<TransactionPage>
                                       TextEditingValue textEditingValue,
                                     ) async {
                                       try {
+                                        // Try to use AccountRepository for cache-first strategy
+                                        final AccountRepository? accountRepo =
+                                            context.read<AccountRepository?>();
+
+                                        if (accountRepo != null) {
+                                          final List<AccountEntity> accounts =
+                                              await accountRepo.search(textEditingValue.text);
+                                          // Filter by allowed types
+                                          final List<AccountTypeFilter> allowedTypes =
+                                              _sourceAccountType.allowedOpposingTypes(true);
+                                          return accounts
+                                              .where((AccountEntity a) {
+                                                return allowedTypes.isEmpty || allowedTypes.any(
+                                                  (AccountTypeFilter t) =>
+                                                      t.value == a.type ||
+                                                      t.value == '${a.type}Account',
+                                                );
+                                              })
+                                              .map(
+                                                (AccountEntity a) => AutocompleteAccount(
+                                                  id: a.serverId ?? a.id,
+                                                  name: a.name,
+                                                  nameWithBalance: a.name,
+                                                  type: a.type,
+                                                  currencyId: '0',
+                                                  currencyName: '',
+                                                  currencyCode: a.currencyCode,
+                                                  currencySymbol: a.currencyCode,
+                                                  currencyDecimalPlaces: 2,
+                                                ),
+                                              );
+                                        }
+
+                                        // Fallback to direct API call
                                         final FireflyIii api =
                                             context.read<FireflyService>().api;
                                         fetchOp = CancelableOperation<
@@ -2517,6 +2682,17 @@ class TransactionCategory extends StatelessWidget {
               try {
                 unawaited(fetchOp?.cancel());
 
+                // Try to use CategoryRepository for cache-first strategy
+                final CategoryRepository? categoryRepo =
+                    context.read<CategoryRepository?>();
+
+                if (categoryRepo != null) {
+                  final List<CategoryEntity> categories =
+                      await categoryRepo.searchByName(textEditingValue.text);
+                  return categories.map((CategoryEntity c) => c.name);
+                }
+
+                // Fallback to direct API call
                 final FireflyIii api = context.read<FireflyService>().api;
                 fetchOp = CancelableOperation<
                   Response<AutocompleteCategoryArray>
@@ -2639,6 +2815,22 @@ class _TransactionBudgetState extends State<TransactionBudget> {
               try {
                 unawaited(fetchOp?.cancel());
 
+                // Try to use BudgetRepository for cache-first strategy
+                final BudgetRepository? budgetRepo =
+                    context.read<BudgetRepository?>();
+
+                if (budgetRepo != null) {
+                  final List<BudgetEntity> budgets =
+                      await budgetRepo.search(textEditingValue.text);
+                  return budgets.map(
+                    (BudgetEntity b) => AutocompleteBudget(
+                      id: b.serverId ?? b.id,
+                      name: b.name,
+                    ),
+                  );
+                }
+
+                // Fallback to direct API call
                 final FireflyIii api = context.read<FireflyService>().api;
                 fetchOp = CancelableOperation<
                   Response<AutocompleteBudgetArray>

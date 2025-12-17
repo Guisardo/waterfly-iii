@@ -13,6 +13,7 @@ import 'package:open_file_plus/open_file_plus.dart';
 import 'package:path_provider/path_provider.dart' show getTemporaryDirectory;
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/repositories/attachment_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/widgets/materialiconbutton.dart';
@@ -129,7 +130,11 @@ class _AttachmentDialogState extends State<AttachmentDialog>
     AttachmentRead attachment,
     int i,
   ) async {
+    // Read context values before async gaps
+    final AttachmentRepository? attachmentRepo =
+        context.read<AttachmentRepository?>();
     final FireflyIii api = context.read<FireflyService>().api;
+
     final bool? ok = await showDialog<bool>(
       context: context,
       builder:
@@ -139,7 +144,16 @@ class _AttachmentDialogState extends State<AttachmentDialog>
       return;
     }
 
-    await api.v1AttachmentsIdDelete(id: attachment.id);
+    // Try to use AttachmentRepository for cache-first strategy
+    if (attachmentRepo != null) {
+      log.fine('Using AttachmentRepository for delete');
+      await attachmentRepo.delete(attachment.id);
+    } else {
+      // Fallback to direct API call
+      log.warning('AttachmentRepository not available, falling back to direct API');
+      await api.v1AttachmentsIdDelete(id: attachment.id);
+    }
+
     setState(() {
       widget.attachments.removeAt(i);
     });
@@ -150,6 +164,9 @@ class _AttachmentDialogState extends State<AttachmentDialog>
     final FireflyIii api = context.read<FireflyService>().api;
     final AuthUser? user = context.read<FireflyService>().user;
     final S l10n = S.of(context);
+    // Read repository before async gaps
+    final AttachmentRepository? attachmentRepo =
+        context.read<AttachmentRepository?>();
 
     if (user == null) {
       log.severe("uploadAttachment: user was null");
@@ -250,7 +267,14 @@ class _AttachmentDialogState extends State<AttachmentDialog>
         behavior: SnackBarBehavior.floating,
       ),
     );
-    await api.v1AttachmentsIdDelete(id: newAttachment.id);
+
+    // Clean up the failed attachment (attachmentRepo was read at method start)
+    if (attachmentRepo != null) {
+      await attachmentRepo.delete(newAttachment.id);
+    } else {
+      await api.v1AttachmentsIdDelete(id: newAttachment.id);
+    }
+
     setState(() {
       widget.attachments.removeAt(newAttachmentIndex);
     });

@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:waterflyiii/data/local/database/accounts_table.dart';
+import 'package:waterflyiii/data/local/database/attachments_table.dart';
 import 'package:waterflyiii/data/local/database/bills_table.dart';
 import 'package:waterflyiii/data/local/database/budgets_table.dart';
 import 'package:waterflyiii/data/local/database/cache_metadata_table.dart';
@@ -48,6 +49,7 @@ part 'app_database.g.dart';
   PiggyBanks,
   Currencies,
   Tags,
+  Attachments,
   SyncQueue,
   SyncMetadata,
   IdMapping,
@@ -112,8 +114,9 @@ class AppDatabase extends _$AppDatabase {
   /// Version 6: Incremental sync support - added server_updated_at columns
   ///            and enhanced sync_statistics table schema
   /// Version 7: Added currencies and tags tables for cache-first architecture
+  /// Version 8: Added attachments table for attachment caching and offline support
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   /// Database migration logic.
   ///
@@ -233,6 +236,11 @@ class AppDatabase extends _$AppDatabase {
         if (from < 7) {
           // Version 7: Add currencies and tags tables for cache-first architecture
           await _migrateToVersion7(m);
+        }
+
+        if (from < 8) {
+          // Version 8: Add attachments table for attachment caching
+          await _migrateToVersion8(m);
         }
       },
       beforeOpen: (OpeningDetails details) async {
@@ -654,6 +662,60 @@ class AppDatabase extends _$AppDatabase {
       log.info('Migration to version 7 completed successfully');
     } catch (e, stackTrace) {
       log.severe('Migration to version 7 failed', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Migrate database from version 7 to version 8.
+  ///
+  /// Changes in v8:
+  /// - Add attachments table for local attachment caching
+  /// - Create indexes for performance
+  /// - Add sync statistics entry for attachments
+  Future<void> _migrateToVersion8(Migrator m) async {
+    final Logger log = Logger('AppDatabase.Migration');
+    log.info('Starting migration to version 8 (attachments table)');
+
+    try {
+      // Step 1: Create attachments table
+      log.fine('Creating attachments table');
+      await m.createTable(attachments);
+
+      // Step 2: Create indexes for performance
+      log.fine('Creating indexes for attachments');
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_attachments_attachable '
+        'ON attachments(attachable_type, attachable_id)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_attachments_sync_status '
+        'ON attachments(is_synced, sync_status)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_attachments_server_updated_at '
+        'ON attachments(server_updated_at)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_attachments_pending_upload '
+        'ON attachments(is_pending_upload)',
+      );
+
+      // Step 3: Add sync statistics entry for attachments
+      log.fine('Adding sync statistics for attachments');
+      final DateTime now = DateTime.now();
+      await into(syncStatistics).insert(
+        SyncStatisticsEntityCompanion.insert(
+          entityType: 'attachment',
+          lastIncrementalSync: now,
+          lastFullSync: Value<DateTime?>(now),
+          syncWindowDays: const Value<int>(30),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+
+      log.info('Migration to version 8 completed successfully');
+    } catch (e, stackTrace) {
+      log.severe('Migration to version 8 failed', e, stackTrace);
       rethrow;
     }
   }

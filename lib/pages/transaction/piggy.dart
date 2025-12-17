@@ -25,7 +25,8 @@ import 'package:waterflyiii/widgets/entity_select_dialog.dart';
 Future<PiggyBankRead?> showPiggyBankDialog({
   required BuildContext context,
   PiggyBankRead? currentPiggy,
-}) async {
+}) {
+  // ignore: unused_local_variable
   final Logger log = Logger('PiggyDialog');
 
   return showDialog<PiggyBankRead>(
