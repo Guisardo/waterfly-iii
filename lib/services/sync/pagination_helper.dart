@@ -15,23 +15,19 @@ class PaginationHelper {
   /// Rate limiting delay between page requests.
   final Duration rateLimitDelay;
 
-  PaginationHelper({
-    this.rateLimitDelay = const Duration(milliseconds: 100),
-  });
+  PaginationHelper({this.rateLimitDelay = const Duration(milliseconds: 100)});
 
   /// Parse pagination metadata from API response.
   ///
   /// Returns PaginationInfo with current page, total pages, and hasMore flag.
   PaginationInfo parsePagination(Map<String, dynamic> responseData) {
-    final Map<String, dynamic>? meta = responseData['meta'] as Map<String, dynamic>?;
-    final Map<String, dynamic>? pagination = meta?['pagination'] as Map<String, dynamic>?;
+    final Map<String, dynamic>? meta =
+        responseData['meta'] as Map<String, dynamic>?;
+    final Map<String, dynamic>? pagination =
+        meta?['pagination'] as Map<String, dynamic>?;
 
     if (pagination == null) {
-      return PaginationInfo(
-        currentPage: 1,
-        totalPages: 1,
-        hasMore: false,
-      );
+      return PaginationInfo(currentPage: 1, totalPages: 1, hasMore: false);
     }
 
     final int currentPage = pagination['current_page'] as int? ?? 1;
@@ -110,7 +106,9 @@ class PaginationHelper {
       await applyRateLimit(hasMore);
     }
 
-    _logger.info('Fetched ${allItems.length} $entityType across ${page - 1} pages');
+    _logger.info(
+      'Fetched ${allItems.length} $entityType across ${page - 1} pages',
+    );
     return allItems;
   }
 

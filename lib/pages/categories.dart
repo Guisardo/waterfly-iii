@@ -14,8 +14,10 @@ import 'package:waterflyiii/pages/categories/addedit.dart';
 import 'package:waterflyiii/pages/home/transactions.dart';
 import 'package:waterflyiii/pages/home/transactions/filter.dart';
 import 'package:waterflyiii/pages/navigation.dart';
+import 'package:waterflyiii/services/data/insights_service.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/stock.dart';
+import 'package:waterflyiii/widgets/entity_sync_button.dart';
 
 final Logger log = Logger("Pages.Categories");
 
@@ -42,8 +44,14 @@ class _CategoriesPageState extends State<CategoriesPage>
     );
     selectedMonth = now.copyWith(day: 15);
 
+    final InsightsService? insightsService = context.read<InsightsService>();
+    if (insightsService == null) {
+      throw StateError(
+        'InsightsService not available - user may not be signed in',
+      );
+    }
     stock = CatStock(
-      context.read<FireflyService>().api,
+      insightsService,
       context.read<FireflyService>().defaultCurrency,
     );
 
@@ -57,6 +65,13 @@ class _CategoriesPageState extends State<CategoriesPage>
         .copyWith(day: 1, month: selectedMonth.month + 1)
         .isAfter(now.copyWith(day: 1));
     context.read<NavPageElements>().appBarActions = <Widget>[
+      EntitySyncButton(
+        entityType: SyncableEntityType.category,
+        onSyncComplete: () async {
+          await stock.reset();
+          setState(() {});
+        },
+      ),
       IconButton(
         icon: const Icon(Icons.plus_one),
         tooltip: S.of(context).categoryTitleAdd,

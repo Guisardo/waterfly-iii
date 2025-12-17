@@ -90,9 +90,9 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
     UuidService? uuidService,
     SyncQueueManager? syncQueueManager,
     PiggyBankValidator? validator,
-  })  : _uuidService = uuidService ?? UuidService(),
-        _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
-        _validator = validator ?? PiggyBankValidator();
+  }) : _uuidService = uuidService ?? UuidService(),
+       _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
+       _validator = validator ?? PiggyBankValidator();
 
   final UuidService _uuidService;
   final SyncQueueManager _syncQueueManager;
@@ -118,9 +118,11 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
   Future<List<PiggyBankEntity>> getAll() async {
     try {
       logger.fine('Fetching all piggy banks');
-      final List<PiggyBankEntity> piggyBanks = await (database.select(database.piggyBanks)
-            ..orderBy(<OrderClauseGenerator<$PiggyBanksTable>>[($PiggyBanksTable p) => OrderingTerm.asc(p.name)]))
-          .get();
+      final List<PiggyBankEntity> piggyBanks =
+          await (database.select(database.piggyBanks)
+            ..orderBy(<OrderClauseGenerator<$PiggyBanksTable>>[
+              ($PiggyBanksTable p) => OrderingTerm.asc(p.name),
+            ])).get();
       logger.info('Retrieved ${piggyBanks.length} piggy banks');
       return piggyBanks;
     } catch (error, stackTrace) {
@@ -136,7 +138,10 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
   @override
   Stream<List<PiggyBankEntity>> watchAll() {
     logger.fine('Watching all piggy banks');
-    return (database.select(database.piggyBanks)..orderBy(<OrderClauseGenerator<$PiggyBanksTable>>[($PiggyBanksTable p) => OrderingTerm.asc(p.name)])).watch();
+    return (database.select(database.piggyBanks)
+      ..orderBy(<OrderClauseGenerator<$PiggyBanksTable>>[
+        ($PiggyBanksTable p) => OrderingTerm.asc(p.name),
+      ])).watch();
   }
 
   /// Retrieves a piggy bank by ID with cache-first strategy.
@@ -193,15 +198,15 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
       if (cacheService != null) {
         logger.finest('Using cache-first strategy for piggy bank $id');
 
-        final CacheResult<PiggyBankEntity?> cacheResult =
-            await cacheService!.get<PiggyBankEntity?>(
-          entityType: entityType,
-          entityId: id,
-          fetcher: () => _fetchPiggyBankFromDb(id),
-          ttl: cacheTtl,
-          forceRefresh: forceRefresh,
-          backgroundRefresh: backgroundRefresh,
-        );
+        final CacheResult<PiggyBankEntity?> cacheResult = await cacheService!
+            .get<PiggyBankEntity?>(
+              entityType: entityType,
+              entityId: id,
+              fetcher: () => _fetchPiggyBankFromDb(id),
+              ttl: cacheTtl,
+              forceRefresh: forceRefresh,
+              backgroundRefresh: backgroundRefresh,
+            );
 
         logger.info(
           'Piggy bank $id fetched from ${cacheResult.source} '
@@ -258,8 +263,9 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
   @override
   Stream<PiggyBankEntity?> watchById(String id) {
     logger.fine('Watching piggy bank: $id');
-    final SimpleSelectStatement<$PiggyBanksTable, PiggyBankEntity> query = database.select(database.piggyBanks)
-      ..where(($PiggyBanksTable p) => p.id.equals(id));
+    final SimpleSelectStatement<$PiggyBanksTable, PiggyBankEntity> query =
+        database.select(database.piggyBanks)
+          ..where(($PiggyBanksTable p) => p.id.equals(id));
     return query.watchSingleOrNull();
   }
 
@@ -324,37 +330,38 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
         'notes': entity.notes,
       };
 
-      final ValidationResult validationResult =
-          await _validator.validate(entityMap);
+      final ValidationResult validationResult = await _validator.validate(
+        entityMap,
+      );
       if (!validationResult.isValid) {
         final String errorMessage =
             'Piggy bank validation failed: ${validationResult.errors.join(', ')}';
         logger.warning(errorMessage);
-        throw ValidationException(errorMessage,
-            <String, dynamic>{'errors': validationResult.errors});
+        throw ValidationException(errorMessage, <String, dynamic>{
+          'errors': validationResult.errors,
+        });
       }
 
-      final String id = entity.id.isEmpty
-          ? _uuidService.generatePiggyBankId()
-          : entity.id;
+      final String id =
+          entity.id.isEmpty ? _uuidService.generatePiggyBankId() : entity.id;
       final DateTime now = DateTime.now();
 
       final PiggyBankEntityCompanion companion =
           PiggyBankEntityCompanion.insert(
-        id: id,
-        serverId: Value.ofNullable(entity.serverId),
-        name: entity.name,
-        accountId: entity.accountId,
-        targetAmount: Value.ofNullable(entity.targetAmount),
-        currentAmount: Value(entity.currentAmount),
-        startDate: Value.ofNullable(entity.startDate),
-        targetDate: Value.ofNullable(entity.targetDate),
-        notes: Value.ofNullable(entity.notes),
-        createdAt: now,
-        updatedAt: now,
-        isSynced: const Value(false),
-        syncStatus: const Value('pending'),
-      );
+            id: id,
+            serverId: Value.ofNullable(entity.serverId),
+            name: entity.name,
+            accountId: entity.accountId,
+            targetAmount: Value.ofNullable(entity.targetAmount),
+            currentAmount: Value(entity.currentAmount),
+            startDate: Value.ofNullable(entity.startDate),
+            targetDate: Value.ofNullable(entity.targetDate),
+            notes: Value.ofNullable(entity.notes),
+            createdAt: now,
+            updatedAt: now,
+            isSynced: const Value(false),
+            syncStatus: const Value('pending'),
+          );
 
       await database.into(database.piggyBanks).insert(companion);
 
@@ -400,7 +407,9 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
 
       // Trigger cascade cache invalidation (if CacheService available)
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation for piggy bank creation: $id');
+        logger.fine(
+          'Triggering cache invalidation for piggy bank creation: $id',
+        );
         await CacheInvalidationRules.onPiggyBankMutation(
           cacheService!,
           created,
@@ -475,14 +484,16 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
         'notes': entity.notes,
       };
 
-      final ValidationResult validationResult =
-          await _validator.validate(entityMap);
+      final ValidationResult validationResult = await _validator.validate(
+        entityMap,
+      );
       if (!validationResult.isValid) {
         final String errorMessage =
             'Piggy bank validation failed: ${validationResult.errors.join(', ')}';
         logger.warning(errorMessage);
-        throw ValidationException(errorMessage,
-            <String, dynamic>{'errors': validationResult.errors});
+        throw ValidationException(errorMessage, <String, dynamic>{
+          'errors': validationResult.errors,
+        });
       }
 
       final DateTime now = DateTime.now();
@@ -605,7 +616,9 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
       // Verify existence (using direct DB query)
       final PiggyBankEntity? existing = await _fetchPiggyBankFromDb(id);
       if (existing == null) {
-        logger.warning('Piggy bank not found for deletion: $id (already deleted?)');
+        logger.warning(
+          'Piggy bank not found for deletion: $id (already deleted?)',
+        );
         // Idempotent behavior: no error if already deleted
         return;
       }
@@ -618,8 +631,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
         // Soft delete: Mark as deleted and add to sync queue
         logger.fine('Soft deleting synced piggy bank: $id');
         await (database.update(database.piggyBanks)
-              ..where(($PiggyBanksTable p) => p.id.equals(id)))
-            .write(
+          ..where(($PiggyBanksTable p) => p.id.equals(id))).write(
           PiggyBankEntityCompanion(
             isSynced: const Value(false),
             syncStatus: const Value('pending_delete'),
@@ -644,8 +656,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
         // Hard delete: Not synced, just delete locally
         logger.fine('Hard deleting unsynced piggy bank: $id');
         await (database.delete(database.piggyBanks)
-              ..where(($PiggyBanksTable p) => p.id.equals(id)))
-            .go();
+          ..where(($PiggyBanksTable p) => p.id.equals(id))).go();
       }
 
       // Invalidate piggy bank from cache (if CacheService available)
@@ -656,7 +667,9 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
 
       // Trigger cascade cache invalidation (if CacheService available)
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation for piggy bank deletion: $id');
+        logger.fine(
+          'Triggering cache invalidation for piggy bank deletion: $id',
+        );
         await CacheInvalidationRules.onPiggyBankMutation(
           cacheService!,
           existing,
@@ -676,8 +689,9 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
   Future<List<PiggyBankEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced piggy banks');
-      final SimpleSelectStatement<$PiggyBanksTable, PiggyBankEntity> query = database.select(database.piggyBanks)
-        ..where(($PiggyBanksTable p) => p.isSynced.equals(false));
+      final SimpleSelectStatement<$PiggyBanksTable, PiggyBankEntity> query =
+          database.select(database.piggyBanks)
+            ..where(($PiggyBanksTable p) => p.isSynced.equals(false));
       final List<PiggyBankEntity> piggyBanks = await query.get();
       logger.info('Found ${piggyBanks.length} unsynced piggy banks');
       return piggyBanks;
@@ -696,7 +710,8 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
     try {
       logger.info('Marking piggy bank as synced: $localId -> $serverId');
 
-      await (database.update(database.piggyBanks)..where(($PiggyBanksTable p) => p.id.equals(localId))).write(
+      await (database.update(database.piggyBanks)
+        ..where(($PiggyBanksTable p) => p.id.equals(localId))).write(
         PiggyBankEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -707,7 +722,11 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
 
       logger.info('Piggy bank marked as synced: $localId');
     } catch (error, stackTrace) {
-      logger.severe('Failed to mark piggy bank as synced: $localId', error, stackTrace);
+      logger.severe(
+        'Failed to mark piggy bank as synced: $localId',
+        error,
+        stackTrace,
+      );
       throw DatabaseException('Failed to mark piggy bank as synced: $error');
     }
   }
@@ -721,7 +740,11 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
       }
       return piggyBank.syncStatus;
     } catch (error, stackTrace) {
-      logger.severe('Failed to get sync status for piggy bank $id', error, stackTrace);
+      logger.severe(
+        'Failed to get sync status for piggy bank $id',
+        error,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -742,7 +765,10 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
   Future<int> count() async {
     try {
       logger.fine('Counting piggy banks');
-      final int count = await database.select(database.piggyBanks).get().then((List<PiggyBankEntity> list) => list.length);
+      final int count = await database
+          .select(database.piggyBanks)
+          .get()
+          .then((List<PiggyBankEntity> list) => list.length);
       logger.fine('Piggy bank count: $count');
       return count;
     } catch (error, stackTrace) {
@@ -796,7 +822,9 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
 
       if (amount <= 0) {
         throw const ValidationException(
-            'Amount must be positive', <String, dynamic>{'amount': 'must be > 0'});
+          'Amount must be positive',
+          <String, dynamic>{'amount': 'must be > 0'},
+        );
       }
 
       // Get existing piggy bank (bypassing cache for fresh data)
@@ -815,7 +843,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
           <String, dynamic>{
             'current': existing.currentAmount,
             'adding': amount,
-            'target': target
+            'target': target,
           },
         );
       }
@@ -823,8 +851,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
       final DateTime now = DateTime.now();
 
       await (database.update(database.piggyBanks)
-            ..where(($PiggyBanksTable p) => p.id.equals(id)))
-          .write(
+        ..where(($PiggyBanksTable p) => p.id.equals(id))).write(
         PiggyBankEntityCompanion(
           currentAmount: Value(newAmount),
           updatedAt: Value(now),
@@ -856,10 +883,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
           entityType: 'piggy_bank',
           entityId: id,
           operation: SyncOperationType.update,
-          payload: <String, dynamic>{
-            'amount': amount,
-            'new_total': newAmount,
-          },
+          payload: <String, dynamic>{'amount': amount, 'new_total': newAmount},
           createdAt: now,
           attempts: 0,
           status: SyncOperationStatus.pending,
@@ -870,7 +894,8 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
       // Trigger cascade cache invalidation (if CacheService available)
       if (cacheService != null) {
         logger.fine(
-            'Triggering cache invalidation for piggy bank money add: $id');
+          'Triggering cache invalidation for piggy bank money add: $id',
+        );
         await CacheInvalidationRules.onPiggyBankMutation(
           cacheService!,
           updated,
@@ -928,7 +953,9 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
 
       if (amount <= 0) {
         throw const ValidationException(
-            'Amount must be positive', <String, dynamic>{'amount': 'must be > 0'});
+          'Amount must be positive',
+          <String, dynamic>{'amount': 'must be > 0'},
+        );
       }
 
       // Get existing piggy bank (bypassing cache for fresh data)
@@ -941,17 +968,16 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
 
       if (newAmount < 0) {
         logger.warning('Removing $amount would result in negative balance');
-        throw ValidationException(
-          'Insufficient funds',
-          <String, dynamic>{'current': existing.currentAmount, 'removing': amount},
-        );
+        throw ValidationException('Insufficient funds', <String, dynamic>{
+          'current': existing.currentAmount,
+          'removing': amount,
+        });
       }
 
       final DateTime now = DateTime.now();
 
       await (database.update(database.piggyBanks)
-            ..where(($PiggyBanksTable p) => p.id.equals(id)))
-          .write(
+        ..where(($PiggyBanksTable p) => p.id.equals(id))).write(
         PiggyBankEntityCompanion(
           currentAmount: Value(newAmount),
           updatedAt: Value(now),
@@ -968,8 +994,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
 
       // Update cache with fresh data (if CacheService available)
       if (cacheService != null) {
-        logger
-            .fine('Updating piggy bank in cache after removing money: $id');
+        logger.fine('Updating piggy bank in cache after removing money: $id');
         await cacheService!.set<PiggyBankEntity>(
           entityType: entityType,
           entityId: id,
@@ -984,10 +1009,7 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
           entityType: 'piggy_bank',
           entityId: id,
           operation: SyncOperationType.update,
-          payload: <String, dynamic>{
-            'amount': amount,
-            'new_total': newAmount,
-          },
+          payload: <String, dynamic>{'amount': amount, 'new_total': newAmount},
           createdAt: now,
           attempts: 0,
           status: SyncOperationStatus.pending,
@@ -998,7 +1020,8 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
       // Trigger cascade cache invalidation (if CacheService available)
       if (cacheService != null) {
         logger.fine(
-            'Triggering cache invalidation for piggy bank money remove: $id');
+          'Triggering cache invalidation for piggy bank money remove: $id',
+        );
         await CacheInvalidationRules.onPiggyBankMutation(
           cacheService!,
           updated,
@@ -1007,11 +1030,15 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
       }
 
       logger.info(
-          'Removed $amount from piggy bank $id, new balance: $newAmount');
+        'Removed $amount from piggy bank $id, new balance: $newAmount',
+      );
       return updated;
     } catch (error, stackTrace) {
       logger.severe(
-          'Failed to remove money from piggy bank $id', error, stackTrace);
+        'Failed to remove money from piggy bank $id',
+        error,
+        stackTrace,
+      );
       if (error is DatabaseException || error is ValidationException) rethrow;
       throw DatabaseException('Failed to remove money from piggy bank: $error');
     }
@@ -1021,14 +1048,23 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
   Future<List<PiggyBankEntity>> getByAccount(String accountId) async {
     try {
       logger.fine('Fetching piggy banks for account: $accountId');
-      final SimpleSelectStatement<$PiggyBanksTable, PiggyBankEntity> query = database.select(database.piggyBanks)
-        ..where(($PiggyBanksTable p) => p.accountId.equals(accountId))
-        ..orderBy(<OrderClauseGenerator<$PiggyBanksTable>>[($PiggyBanksTable p) => OrderingTerm.asc(p.name)]);
+      final SimpleSelectStatement<$PiggyBanksTable, PiggyBankEntity> query =
+          database.select(database.piggyBanks)
+            ..where(($PiggyBanksTable p) => p.accountId.equals(accountId))
+            ..orderBy(<OrderClauseGenerator<$PiggyBanksTable>>[
+              ($PiggyBanksTable p) => OrderingTerm.asc(p.name),
+            ]);
       final List<PiggyBankEntity> piggyBanks = await query.get();
-      logger.info('Found ${piggyBanks.length} piggy banks for account: $accountId');
+      logger.info(
+        'Found ${piggyBanks.length} piggy banks for account: $accountId',
+      );
       return piggyBanks;
     } catch (error, stackTrace) {
-      logger.severe('Failed to fetch piggy banks for account: $accountId', error, stackTrace);
+      logger.severe(
+        'Failed to fetch piggy banks for account: $accountId',
+        error,
+        stackTrace,
+      );
       throw DatabaseException.queryFailed(
         'SELECT * FROM piggy_banks WHERE account_id = $accountId',
         error,
@@ -1059,7 +1095,10 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
     try {
       logger.fine('Fetching completed piggy banks');
       final List<PiggyBankEntity> allPiggyBanks = await getAll();
-      final List<PiggyBankEntity> completed = allPiggyBanks.where((PiggyBankEntity p) => hasReachedTarget(p)).toList();
+      final List<PiggyBankEntity> completed =
+          allPiggyBanks
+              .where((PiggyBankEntity p) => hasReachedTarget(p))
+              .toList();
       logger.info('Found ${completed.length} completed piggy banks');
       return completed;
     } catch (error, stackTrace) {
@@ -1092,18 +1131,25 @@ class PiggyBankRepository extends BaseRepository<PiggyBankEntity, String> {
       logger.fine('Searching piggy banks: "$query"');
       final String searchPattern = '%${query.toLowerCase()}%';
 
-      final List<PiggyBankEntity> piggyBanks = await (database.select(database.piggyBanks)
-            ..where(($PiggyBanksTable p) => p.name.lower().like(searchPattern))
-            ..orderBy(<OrderClauseGenerator<$PiggyBanksTable>>[
-              ($PiggyBanksTable p) => OrderingTerm.asc(p.name)
-            ])
-            ..limit(20))
-          .get();
+      final List<PiggyBankEntity> piggyBanks =
+          await (database.select(database.piggyBanks)
+                ..where(
+                  ($PiggyBanksTable p) => p.name.lower().like(searchPattern),
+                )
+                ..orderBy(<OrderClauseGenerator<$PiggyBanksTable>>[
+                  ($PiggyBanksTable p) => OrderingTerm.asc(p.name),
+                ])
+                ..limit(20))
+              .get();
 
       logger.info('Found ${piggyBanks.length} piggy banks matching: "$query"');
       return piggyBanks;
     } catch (error, stackTrace) {
-      logger.severe('Failed to search piggy banks: "$query"', error, stackTrace);
+      logger.severe(
+        'Failed to search piggy banks: "$query"',
+        error,
+        stackTrace,
+      );
       throw DatabaseException.queryFailed(
         'SELECT * FROM piggy_banks WHERE name LIKE %$query%',
         error,

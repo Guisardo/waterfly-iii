@@ -32,9 +32,15 @@ class TransactionValidator {
       errors.add('Transaction type is required');
     } else {
       final String type = data['type'] as String;
-      if (!<String>['withdrawal', 'deposit', 'transfer'].contains(type.toLowerCase())) {
-        errors.add('Invalid transaction type: $type. '
-            'Must be withdrawal, deposit, or transfer');
+      if (!<String>[
+        'withdrawal',
+        'deposit',
+        'transfer',
+      ].contains(type.toLowerCase())) {
+        errors.add(
+          'Invalid transaction type: $type. '
+          'Must be withdrawal, deposit, or transfer',
+        );
       }
     }
 
@@ -76,21 +82,25 @@ class TransactionValidator {
     // Account validation
     final String? type = data['type'] as String?;
     if (type != null) {
-      if (type.toLowerCase() == 'withdrawal' || type.toLowerCase() == 'transfer') {
+      if (type.toLowerCase() == 'withdrawal' ||
+          type.toLowerCase() == 'transfer') {
         if (!data.containsKey('source_id') || data['source_id'] == null) {
           errors.add('Source account is required for $type transactions');
         }
       }
 
       if (type.toLowerCase() == 'deposit' || type.toLowerCase() == 'transfer') {
-        if (!data.containsKey('destination_id') || data['destination_id'] == null) {
+        if (!data.containsKey('destination_id') ||
+            data['destination_id'] == null) {
           errors.add('Destination account is required for $type transactions');
         }
       }
 
       if (type.toLowerCase() == 'transfer') {
         if (data['source_id'] == data['destination_id']) {
-          errors.add('Source and destination accounts must be different for transfers');
+          errors.add(
+            'Source and destination accounts must be different for transfers',
+          );
         }
       }
     }
@@ -114,7 +124,9 @@ class TransactionValidator {
 
       if (!data.containsKey('foreign_currency_code') ||
           data['foreign_currency_code'] == null) {
-        errors.add('Foreign currency code is required when foreign amount is specified');
+        errors.add(
+          'Foreign currency code is required when foreign amount is specified',
+        );
       }
     }
 
@@ -192,7 +204,9 @@ class TransactionValidator {
     final bool isValid = errors.isEmpty;
 
     if (!isValid) {
-      _logger.warning('Account reference validation failed: ${errors.join(', ')}');
+      _logger.warning(
+        'Account reference validation failed: ${errors.join(', ')}',
+      );
     }
 
     return ValidationResult(isValid: isValid, errors: errors);
@@ -225,10 +239,38 @@ class TransactionValidator {
 
     // Common currency codes (not exhaustive, but covers most cases)
     const Set<String> commonCurrencies = <String>{
-      'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD',
-      'CNY', 'INR', 'BRL', 'RUB', 'KRW', 'MXN', 'ZAR', 'SEK',
-      'NOK', 'DKK', 'PLN', 'THB', 'IDR', 'HUF', 'CZK', 'ILS',
-      'CLP', 'PHP', 'AED', 'COP', 'SAR', 'MYR', 'RON', 'ARS',
+      'USD',
+      'EUR',
+      'GBP',
+      'JPY',
+      'CHF',
+      'CAD',
+      'AUD',
+      'NZD',
+      'CNY',
+      'INR',
+      'BRL',
+      'RUB',
+      'KRW',
+      'MXN',
+      'ZAR',
+      'SEK',
+      'NOK',
+      'DKK',
+      'PLN',
+      'THB',
+      'IDR',
+      'HUF',
+      'CZK',
+      'ILS',
+      'CLP',
+      'PHP',
+      'AED',
+      'COP',
+      'SAR',
+      'MYR',
+      'RON',
+      'ARS',
     };
 
     return commonCurrencies.contains(code);
@@ -243,10 +285,7 @@ class ValidationResult {
   /// List of validation error messages
   final List<String> errors;
 
-  const ValidationResult({
-    required this.isValid,
-    required this.errors,
-  });
+  const ValidationResult({required this.isValid, required this.errors});
 
   /// Throws ValidationException if validation failed
   void throwIfInvalid() {

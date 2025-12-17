@@ -51,16 +51,16 @@ class DeduplicationService {
     try {
       final DateTime cutoffTime = DateTime.now().subtract(deduplicationWindow);
 
-      final SimpleSelectStatement<$SyncQueueTable, SyncQueueEntity> query = _database.select(_database.syncQueue)
-        ..where(
-          ($SyncQueueTable tbl) =>
-              tbl.entityType.equals(operation.entityType) &
-              tbl.entityId.equals(operation.entityId) &
-              tbl.operation.equals(operation.operation.name) &
-              tbl.createdAt.isBiggerThanValue(cutoffTime) &
-              (tbl.status.equals(SyncOperationStatus.pending.name) |
-                  tbl.status.equals(SyncOperationStatus.processing.name)),
-        );
+      final SimpleSelectStatement<$SyncQueueTable, SyncQueueEntity> query =
+          _database.select(_database.syncQueue)..where(
+            ($SyncQueueTable tbl) =>
+                tbl.entityType.equals(operation.entityType) &
+                tbl.entityId.equals(operation.entityId) &
+                tbl.operation.equals(operation.operation.name) &
+                tbl.createdAt.isBiggerThanValue(cutoffTime) &
+                (tbl.status.equals(SyncOperationStatus.pending.name) |
+                    tbl.status.equals(SyncOperationStatus.processing.name)),
+          );
 
       final List<SyncQueueEntity> results = await query.get();
 
@@ -77,12 +77,15 @@ class DeduplicationService {
       final String operationHash = _hashPayload(operation.payload);
 
       for (final SyncQueueEntity row in results) {
-        final Map<String, dynamic> existingPayload = jsonDecode(row.payload) as Map<String, dynamic>;
+        final Map<String, dynamic> existingPayload =
+            jsonDecode(row.payload) as Map<String, dynamic>;
         final String existingHash = _hashPayload(existingPayload);
 
         if (operationHash == existingHash) {
-          _logger.info('Duplicate operation found: ${operation.id} '
-              '(matches ${row.id})');
+          _logger.info(
+            'Duplicate operation found: ${operation.id} '
+            '(matches ${row.id})',
+          );
           return true;
         }
       }
@@ -95,10 +98,9 @@ class DeduplicationService {
         e,
         stackTrace,
       );
-      throw SyncException(
-        'Failed to check for duplicates',
-        <String, dynamic>{'error': e.toString()},
-      );
+      throw SyncException('Failed to check for duplicates', <String, dynamic>{
+        'error': e.toString(),
+      });
     }
   }
 
@@ -116,11 +118,13 @@ class DeduplicationService {
     _logger.info('Merging duplicates in ${operations.length} operations');
 
     try {
-      final Map<String, List<SyncOperation>> grouped = <String, List<SyncOperation>>{};
+      final Map<String, List<SyncOperation>> grouped =
+          <String, List<SyncOperation>>{};
 
       // Group by entity + operation type
       for (final SyncOperation operation in operations) {
-        final String key = '${operation.entityType}:${operation.entityId}:'
+        final String key =
+            '${operation.entityType}:${operation.entityId}:'
             '${operation.operation.name}';
 
         grouped.putIfAbsent(key, () => <SyncOperation>[]);
@@ -139,7 +143,10 @@ class DeduplicationService {
         }
 
         // Sort by creation time (newest first)
-        group.sort((SyncOperation a, SyncOperation b) => b.createdAt.compareTo(a.createdAt));
+        group.sort(
+          (SyncOperation a, SyncOperation b) =>
+              b.createdAt.compareTo(a.createdAt),
+        );
 
         // Keep the newest operation
         final SyncOperation newest = group.first;
@@ -157,20 +164,23 @@ class DeduplicationService {
 
         mergedCount += group.length - 1;
 
-        _logger.fine('Merged ${group.length} duplicates for '
-            '${newest.entityType}:${newest.entityId}');
+        _logger.fine(
+          'Merged ${group.length} duplicates for '
+          '${newest.entityType}:${newest.entityId}',
+        );
       }
 
-      _logger.info('Merged $mergedCount duplicate operations. '
-          'Result: ${deduplicated.length} operations');
+      _logger.info(
+        'Merged $mergedCount duplicate operations. '
+        'Result: ${deduplicated.length} operations',
+      );
 
       return deduplicated;
     } catch (e, stackTrace) {
       _logger.severe('Failed to merge duplicates', e, stackTrace);
-      throw SyncException(
-        'Failed to merge duplicates',
-        <String, dynamic>{'error': e.toString()},
-      );
+      throw SyncException('Failed to merge duplicates', <String, dynamic>{
+        'error': e.toString(),
+      });
     }
   }
 
@@ -184,20 +194,26 @@ class DeduplicationService {
     _logger.info('Removing duplicates from queue');
 
     try {
-      final SimpleSelectStatement<$SyncQueueTable, SyncQueueEntity> query = _database.select(_database.syncQueue)
-        ..where(
-          ($SyncQueueTable tbl) =>
-              tbl.status.equals(SyncOperationStatus.pending.name) |
-              tbl.status.equals(SyncOperationStatus.processing.name),
-        )
-        ..orderBy(<OrderClauseGenerator<$SyncQueueTable>>[
-          ($SyncQueueTable tbl) => OrderingTerm(expression: tbl.createdAt, mode: OrderingMode.desc),
-        ]);
+      final SimpleSelectStatement<$SyncQueueTable, SyncQueueEntity> query =
+          _database.select(_database.syncQueue)
+            ..where(
+              ($SyncQueueTable tbl) =>
+                  tbl.status.equals(SyncOperationStatus.pending.name) |
+                  tbl.status.equals(SyncOperationStatus.processing.name),
+            )
+            ..orderBy(<OrderClauseGenerator<$SyncQueueTable>>[
+              ($SyncQueueTable tbl) => OrderingTerm(
+                expression: tbl.createdAt,
+                mode: OrderingMode.desc,
+              ),
+            ]);
 
       final List<SyncQueueEntity> operations = await query.get();
 
       if (operations.length < 2) {
-        _logger.fine('No duplicates to remove (queue size: ${operations.length})');
+        _logger.fine(
+          'No duplicates to remove (queue size: ${operations.length})',
+        );
         return 0;
       }
 
@@ -205,7 +221,8 @@ class DeduplicationService {
       final List<String> toDelete = <String>[];
 
       for (final SyncQueueEntity operation in operations) {
-        final String key = '${operation.entityType}:${operation.entityId}:'
+        final String key =
+            '${operation.entityType}:${operation.entityId}:'
             '${operation.operation}';
 
         if (seen.contains(key)) {
@@ -217,13 +234,16 @@ class DeduplicationService {
       }
 
       if (toDelete.isNotEmpty) {
-        final DeleteStatement<$SyncQueueTable, SyncQueueEntity> delete = _database.delete(_database.syncQueue)
-          ..where(($SyncQueueTable tbl) => tbl.id.isIn(toDelete));
+        final DeleteStatement<$SyncQueueTable, SyncQueueEntity> delete =
+            _database.delete(_database.syncQueue)
+              ..where(($SyncQueueTable tbl) => tbl.id.isIn(toDelete));
 
         await delete.go();
       }
 
-      _logger.info('Removed ${toDelete.length} duplicate operations from queue');
+      _logger.info(
+        'Removed ${toDelete.length} duplicate operations from queue',
+      );
       return toDelete.length;
     } catch (e, stackTrace) {
       _logger.severe('Failed to remove duplicates from queue', e, stackTrace);
@@ -257,7 +277,9 @@ class DeduplicationService {
     if (payloads.length == 1) return payloads.first;
 
     // Start with the newest payload
-    final Map<String, dynamic> merged = Map<String, dynamic>.from(payloads.first);
+    final Map<String, dynamic> merged = Map<String, dynamic>.from(
+      payloads.first,
+    );
 
     // Merge in values from older payloads (only if not present)
     for (int i = 1; i < payloads.length; i++) {

@@ -172,13 +172,13 @@ class _TagDialogState extends State<TagDialog> {
   Future<List<String>>? _getTags() async {
     // Try to use TagRepository (cache-first) if available
     final TagRepository? tagRepository = context.read<TagRepository?>();
-    
+
     if (tagRepository != null) {
       // Use local database with cache-first strategy
       final List<TagEntity> tagEntities = await tagRepository.getAll();
       return tagEntities.map((TagEntity e) => e.tag).toList();
     }
-    
+
     // Fallback to direct API call if repository not available
     final FireflyIii api = context.read<FireflyService>().api;
     final List<String> tags = <String>[];

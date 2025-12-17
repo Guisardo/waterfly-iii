@@ -20,7 +20,8 @@ class ApiException implements Exception {
   ApiException(this.message, {this.statusCode, this.headers});
 
   @override
-  String toString() => 'ApiException: $message${statusCode != null ? ' (status: $statusCode)' : ''}';
+  String toString() =>
+      'ApiException: $message${statusCode != null ? ' (status: $statusCode)' : ''}';
 }
 
 /// Adapter for Firefly III API client to work with sync manager.
@@ -45,14 +46,16 @@ class FireflyApiAdapter {
     Map<String, dynamic> data,
   ) async {
     _logger.fine('Creating transaction via API');
-    
+
     final TransactionStore store = TransactionStore(
       transactions: <TransactionSplitStore>[
         TransactionSplitStore(
           type: TransactionTypeProperty.withdrawal,
           amount: data['amount']?.toString() ?? '0',
           description: data['description'] as String? ?? '',
-          date: DateTime.parse(data['date'] as String? ?? DateTime.now().toIso8601String()),
+          date: DateTime.parse(
+            data['date'] as String? ?? DateTime.now().toIso8601String(),
+          ),
           sourceId: data['source_id'] as String?,
           destinationId: data['destination_id'] as String?,
           categoryId: data['category_id'] as String?,
@@ -60,8 +63,9 @@ class FireflyApiAdapter {
       ],
     );
 
-    final Response<TransactionSingle> response = await apiClient.v1TransactionsPost(body: store);
-    
+    final Response<TransactionSingle> response = await apiClient
+        .v1TransactionsPost(body: store);
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to create transaction: ${response.error}');
     }
@@ -80,13 +84,16 @@ class FireflyApiAdapter {
     Map<String, dynamic> data,
   ) async {
     _logger.fine('Updating transaction $id via API');
-    
+
     final TransactionUpdate update = TransactionUpdate(
       transactions: <TransactionSplitUpdate>[
         TransactionSplitUpdate(
           amount: data['amount']?.toString(),
           description: data['description'] as String?,
-          date: data['date'] != null ? DateTime.parse(data['date'] as String) : null,
+          date:
+              data['date'] != null
+                  ? DateTime.parse(data['date'] as String)
+                  : null,
           sourceId: data['source_id'] as String?,
           destinationId: data['destination_id'] as String?,
           categoryId: data['category_id'] as String?,
@@ -94,8 +101,9 @@ class FireflyApiAdapter {
       ],
     );
 
-    final Response<TransactionSingle> response = await apiClient.v1TransactionsIdPut(id: id, body: update);
-    
+    final Response<TransactionSingle> response = await apiClient
+        .v1TransactionsIdPut(id: id, body: update);
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to update transaction: ${response.error}');
     }
@@ -111,9 +119,11 @@ class FireflyApiAdapter {
   /// Delete a transaction
   Future<void> deleteTransaction(String id) async {
     _logger.fine('Deleting transaction $id via API');
-    
-    final Response<dynamic> response = await apiClient.v1TransactionsIdDelete(id: id);
-    
+
+    final Response<dynamic> response = await apiClient.v1TransactionsIdDelete(
+      id: id,
+    );
+
     if (!response.isSuccessful) {
       throw Exception('Failed to delete transaction: ${response.error}');
     }
@@ -122,9 +132,10 @@ class FireflyApiAdapter {
   /// Get a transaction
   Future<Map<String, dynamic>?> getTransaction(String id) async {
     _logger.fine('Getting transaction $id via API');
-    
-    final Response<TransactionSingle> response = await apiClient.v1TransactionsIdGet(id: id);
-    
+
+    final Response<TransactionSingle> response = await apiClient
+        .v1TransactionsIdGet(id: id);
+
     if (!response.isSuccessful || response.body == null) {
       return null;
     }
@@ -142,7 +153,7 @@ class FireflyApiAdapter {
   /// Create an account
   Future<Map<String, dynamic>> createAccount(Map<String, dynamic> data) async {
     _logger.fine('Creating account via API');
-    
+
     final AccountStore store = AccountStore(
       name: data['name'] as String,
       type: ShortAccountTypeProperty.values.firstWhere(
@@ -153,14 +164,17 @@ class FireflyApiAdapter {
       iban: data['iban'] as String?,
       currencyId: data['currency_id'] as String?,
       openingBalance: data['opening_balance']?.toString(),
-      openingBalanceDate: data['opening_balance_date'] != null
-          ? DateTime.parse(data['opening_balance_date'] as String)
-          : null,
+      openingBalanceDate:
+          data['opening_balance_date'] != null
+              ? DateTime.parse(data['opening_balance_date'] as String)
+              : null,
       notes: data['notes'] as String?,
     );
 
-    final Response<AccountSingle> response = await apiClient.v1AccountsPost(body: store);
-    
+    final Response<AccountSingle> response = await apiClient.v1AccountsPost(
+      body: store,
+    );
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to create account: ${response.error}');
     }
@@ -179,9 +193,9 @@ class FireflyApiAdapter {
     Map<String, dynamic> data,
   ) async {
     _logger.fine('Updating account $id via API');
-    
+
     final String name = data['name'] as String? ?? '';
-    
+
     final AccountUpdate update = AccountUpdate(
       name: name,
       accountNumber: data['account_number'] as String?,
@@ -190,8 +204,11 @@ class FireflyApiAdapter {
       notes: data['notes'] as String?,
     );
 
-    final Response<AccountSingle> response = await apiClient.v1AccountsIdPut(id: id, body: update);
-    
+    final Response<AccountSingle> response = await apiClient.v1AccountsIdPut(
+      id: id,
+      body: update,
+    );
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to update account: ${response.error}');
     }
@@ -207,9 +224,11 @@ class FireflyApiAdapter {
   /// Delete an account
   Future<void> deleteAccount(String id) async {
     _logger.fine('Deleting account $id via API');
-    
-    final Response<dynamic> response = await apiClient.v1AccountsIdDelete(id: id);
-    
+
+    final Response<dynamic> response = await apiClient.v1AccountsIdDelete(
+      id: id,
+    );
+
     if (!response.isSuccessful) {
       throw Exception('Failed to delete account: ${response.error}');
     }
@@ -220,14 +239,16 @@ class FireflyApiAdapter {
   /// Create a category
   Future<Map<String, dynamic>> createCategory(Map<String, dynamic> data) async {
     _logger.fine('Creating category via API');
-    
+
     final CategoryStore store = CategoryStore(
       name: data['name'] as String,
       notes: data['notes'] as String?,
     );
 
-    final Response<CategorySingle> response = await apiClient.v1CategoriesPost(body: store);
-    
+    final Response<CategorySingle> response = await apiClient.v1CategoriesPost(
+      body: store,
+    );
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to create category: ${response.error}');
     }
@@ -246,16 +267,19 @@ class FireflyApiAdapter {
     Map<String, dynamic> data,
   ) async {
     _logger.fine('Updating category $id via API');
-    
+
     final String name = data['name'] as String? ?? '';
-    
+
     final CategoryUpdate update = CategoryUpdate(
       name: name,
       notes: data['notes'] as String?,
     );
 
-    final Response<CategorySingle> response = await apiClient.v1CategoriesIdPut(id: id, body: update);
-    
+    final Response<CategorySingle> response = await apiClient.v1CategoriesIdPut(
+      id: id,
+      body: update,
+    );
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to update category: ${response.error}');
     }
@@ -271,9 +295,11 @@ class FireflyApiAdapter {
   /// Delete a category
   Future<void> deleteCategory(String id) async {
     _logger.fine('Deleting category $id via API');
-    
-    final Response<dynamic> response = await apiClient.v1CategoriesIdDelete(id: id);
-    
+
+    final Response<dynamic> response = await apiClient.v1CategoriesIdDelete(
+      id: id,
+    );
+
     if (!response.isSuccessful) {
       throw Exception('Failed to delete category: ${response.error}');
     }
@@ -284,14 +310,16 @@ class FireflyApiAdapter {
   /// Create a budget
   Future<Map<String, dynamic>> createBudget(Map<String, dynamic> data) async {
     _logger.fine('Creating budget via API');
-    
+
     final BudgetStore store = BudgetStore(
       name: data['name'] as String,
       notes: data['notes'] as String?,
     );
 
-    final Response<BudgetSingle> response = await apiClient.v1BudgetsPost(body: store);
-    
+    final Response<BudgetSingle> response = await apiClient.v1BudgetsPost(
+      body: store,
+    );
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to create budget: ${response.error}');
     }
@@ -310,16 +338,19 @@ class FireflyApiAdapter {
     Map<String, dynamic> data,
   ) async {
     _logger.fine('Updating budget $id via API');
-    
+
     final String name = data['name'] as String? ?? '';
-    
+
     final BudgetUpdate update = BudgetUpdate(
       name: name,
       notes: data['notes'] as String?,
     );
 
-    final Response<BudgetSingle> response = await apiClient.v1BudgetsIdPut(id: id, body: update);
-    
+    final Response<BudgetSingle> response = await apiClient.v1BudgetsIdPut(
+      id: id,
+      body: update,
+    );
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to update budget: ${response.error}');
     }
@@ -335,9 +366,11 @@ class FireflyApiAdapter {
   /// Delete a budget
   Future<void> deleteBudget(String id) async {
     _logger.fine('Deleting budget $id via API');
-    
-    final Response<dynamic> response = await apiClient.v1BudgetsIdDelete(id: id);
-    
+
+    final Response<dynamic> response = await apiClient.v1BudgetsIdDelete(
+      id: id,
+    );
+
     if (!response.isSuccessful) {
       throw Exception('Failed to delete budget: ${response.error}');
     }
@@ -348,12 +381,14 @@ class FireflyApiAdapter {
   /// Create a bill
   Future<Map<String, dynamic>> createBill(Map<String, dynamic> data) async {
     _logger.fine('Creating bill via API');
-    
+
     final BillStore store = BillStore(
       name: data['name'] as String,
       amountMin: data['amount_min']?.toString() ?? '0',
       amountMax: data['amount_max']?.toString() ?? '0',
-      date: DateTime.parse(data['date'] as String? ?? DateTime.now().toIso8601String()),
+      date: DateTime.parse(
+        data['date'] as String? ?? DateTime.now().toIso8601String(),
+      ),
       repeatFreq: BillRepeatFrequency.values.firstWhere(
         (BillRepeatFrequency f) => f.name == data['repeat_freq'],
         orElse: () => BillRepeatFrequency.monthly,
@@ -362,8 +397,10 @@ class FireflyApiAdapter {
       notes: data['notes'] as String?,
     );
 
-    final Response<BillSingle> response = await apiClient.v1BillsPost(body: store);
-    
+    final Response<BillSingle> response = await apiClient.v1BillsPost(
+      body: store,
+    );
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to create bill: ${response.error}');
     }
@@ -382,26 +419,31 @@ class FireflyApiAdapter {
     Map<String, dynamic> data,
   ) async {
     _logger.fine('Updating bill $id via API');
-    
+
     final String name = data['name'] as String? ?? '';
-    
+
     final BillUpdate update = BillUpdate(
       name: name,
       amountMin: data['amount_min']?.toString(),
       amountMax: data['amount_max']?.toString(),
-      date: data['date'] != null ? DateTime.parse(data['date'] as String) : null,
-      repeatFreq: data['repeat_freq'] != null
-          ? BillRepeatFrequency.values.firstWhere(
-              (BillRepeatFrequency f) => f.name == data['repeat_freq'],
-              orElse: () => BillRepeatFrequency.monthly,
-            )
-          : null,
+      date:
+          data['date'] != null ? DateTime.parse(data['date'] as String) : null,
+      repeatFreq:
+          data['repeat_freq'] != null
+              ? BillRepeatFrequency.values.firstWhere(
+                (BillRepeatFrequency f) => f.name == data['repeat_freq'],
+                orElse: () => BillRepeatFrequency.monthly,
+              )
+              : null,
       currencyId: data['currency_id'] as String?,
       notes: data['notes'] as String?,
     );
 
-    final Response<BillSingle> response = await apiClient.v1BillsIdPut(id: id, body: update);
-    
+    final Response<BillSingle> response = await apiClient.v1BillsIdPut(
+      id: id,
+      body: update,
+    );
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to update bill: ${response.error}');
     }
@@ -417,9 +459,9 @@ class FireflyApiAdapter {
   /// Delete a bill
   Future<void> deleteBill(String id) async {
     _logger.fine('Deleting bill $id via API');
-    
+
     final Response<dynamic> response = await apiClient.v1BillsIdDelete(id: id);
-    
+
     if (!response.isSuccessful) {
       throw Exception('Failed to delete bill: ${response.error}');
     }
@@ -428,29 +470,36 @@ class FireflyApiAdapter {
   // ==================== Piggy Bank Methods ====================
 
   /// Create a piggy bank
-  Future<Map<String, dynamic>> createPiggyBank(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> createPiggyBank(
+    Map<String, dynamic> data,
+  ) async {
     _logger.fine('Creating piggy bank via API');
-    
+
     final PiggyBankStore store = PiggyBankStore(
       name: data['name'] as String,
-      accounts: data['account_id'] != null 
-          ? <PiggyBankAccountStore>[
-              PiggyBankAccountStore(id: data['account_id'] as String)
-            ]
-          : null,
+      accounts:
+          data['account_id'] != null
+              ? <PiggyBankAccountStore>[
+                PiggyBankAccountStore(id: data['account_id'] as String),
+              ]
+              : null,
       targetAmount: data['target_amount']?.toString(),
       currentAmount: data['current_amount']?.toString(),
-      startDate: data['start_date'] != null
-          ? DateTime.parse(data['start_date'] as String)
-          : DateTime.now(),
-      targetDate: data['target_date'] != null
-          ? DateTime.parse(data['target_date'] as String)
-          : null,
+      startDate:
+          data['start_date'] != null
+              ? DateTime.parse(data['start_date'] as String)
+              : DateTime.now(),
+      targetDate:
+          data['target_date'] != null
+              ? DateTime.parse(data['target_date'] as String)
+              : null,
       notes: data['notes'] as String?,
     );
 
-    final Response<PiggyBankSingle> response = await apiClient.v1PiggyBanksPost(body: store);
-    
+    final Response<PiggyBankSingle> response = await apiClient.v1PiggyBanksPost(
+      body: store,
+    );
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to create piggy bank: ${response.error}');
     }
@@ -469,26 +518,30 @@ class FireflyApiAdapter {
     Map<String, dynamic> data,
   ) async {
     _logger.fine('Updating piggy bank $id via API');
-    
+
     final PiggyBankUpdate update = PiggyBankUpdate(
       name: data['name'] as String?,
-      accounts: data['account_id'] != null 
-          ? <PiggyBankAccountUpdate>[
-              PiggyBankAccountUpdate(accountId: data['account_id'] as String)
-            ]
-          : null,
+      accounts:
+          data['account_id'] != null
+              ? <PiggyBankAccountUpdate>[
+                PiggyBankAccountUpdate(accountId: data['account_id'] as String),
+              ]
+              : null,
       targetAmount: data['target_amount']?.toString(),
-      startDate: data['start_date'] != null
-          ? DateTime.parse(data['start_date'] as String)
-          : null,
-      targetDate: data['target_date'] != null
-          ? DateTime.parse(data['target_date'] as String)
-          : null,
+      startDate:
+          data['start_date'] != null
+              ? DateTime.parse(data['start_date'] as String)
+              : null,
+      targetDate:
+          data['target_date'] != null
+              ? DateTime.parse(data['target_date'] as String)
+              : null,
       notes: data['notes'] as String?,
     );
 
-    final Response<PiggyBankSingle> response = await apiClient.v1PiggyBanksIdPut(id: id, body: update);
-    
+    final Response<PiggyBankSingle> response = await apiClient
+        .v1PiggyBanksIdPut(id: id, body: update);
+
     if (!response.isSuccessful || response.body == null) {
       throw Exception('Failed to update piggy bank: ${response.error}');
     }
@@ -504,9 +557,11 @@ class FireflyApiAdapter {
   /// Delete a piggy bank
   Future<void> deletePiggyBank(String id) async {
     _logger.fine('Deleting piggy bank $id via API');
-    
-    final Response<dynamic> response = await apiClient.v1PiggyBanksIdDelete(id: id);
-    
+
+    final Response<dynamic> response = await apiClient.v1PiggyBanksIdDelete(
+      id: id,
+    );
+
     if (!response.isSuccessful) {
       throw Exception('Failed to delete piggy bank: ${response.error}');
     }
@@ -517,20 +572,22 @@ class FireflyApiAdapter {
   /// Get all accounts from server
   Future<List<Map<String, dynamic>>> getAllAccounts() async {
     _logger.fine('Fetching all accounts from API');
-    
+
     final List<Map<String, dynamic>> allAccounts = <Map<String, dynamic>>[];
     int page = 1;
-    
+
     while (true) {
-      final Response<AccountArray> response = await apiClient.v1AccountsGet(page: page);
-      
+      final Response<AccountArray> response = await apiClient.v1AccountsGet(
+        page: page,
+      );
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch accounts: ${response.error}');
       }
-      
+
       final List<AccountRead> accounts = response.body!.data;
       if (accounts.isEmpty) break;
-      
+
       for (final AccountRead account in accounts) {
         allAccounts.add(<String, dynamic>{
           'id': account.id,
@@ -538,10 +595,10 @@ class FireflyApiAdapter {
           'attributes': account.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${allAccounts.length} accounts');
     return allAccounts;
   }
@@ -549,20 +606,22 @@ class FireflyApiAdapter {
   /// Get all categories from server
   Future<List<Map<String, dynamic>>> getAllCategories() async {
     _logger.fine('Fetching all categories from API');
-    
+
     final List<Map<String, dynamic>> allCategories = <Map<String, dynamic>>[];
     int page = 1;
-    
+
     while (true) {
-      final Response<CategoryArray> response = await apiClient.v1CategoriesGet(page: page);
-      
+      final Response<CategoryArray> response = await apiClient.v1CategoriesGet(
+        page: page,
+      );
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch categories: ${response.error}');
       }
-      
+
       final List<CategoryRead> categories = response.body!.data;
       if (categories.isEmpty) break;
-      
+
       for (final CategoryRead category in categories) {
         allCategories.add(<String, dynamic>{
           'id': category.id,
@@ -570,10 +629,10 @@ class FireflyApiAdapter {
           'attributes': category.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${allCategories.length} categories');
     return allCategories;
   }
@@ -581,20 +640,22 @@ class FireflyApiAdapter {
   /// Get all budgets from server
   Future<List<Map<String, dynamic>>> getAllBudgets() async {
     _logger.fine('Fetching all budgets from API');
-    
+
     final List<Map<String, dynamic>> allBudgets = <Map<String, dynamic>>[];
     int page = 1;
-    
+
     while (true) {
-      final Response<BudgetArray> response = await apiClient.v1BudgetsGet(page: page);
-      
+      final Response<BudgetArray> response = await apiClient.v1BudgetsGet(
+        page: page,
+      );
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch budgets: ${response.error}');
       }
-      
+
       final List<BudgetRead> budgets = response.body!.data;
       if (budgets.isEmpty) break;
-      
+
       for (final BudgetRead budget in budgets) {
         allBudgets.add(<String, dynamic>{
           'id': budget.id,
@@ -602,10 +663,10 @@ class FireflyApiAdapter {
           'attributes': budget.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${allBudgets.length} budgets');
     return allBudgets;
   }
@@ -613,20 +674,22 @@ class FireflyApiAdapter {
   /// Get all bills from server
   Future<List<Map<String, dynamic>>> getAllBills() async {
     _logger.fine('Fetching all bills from API');
-    
+
     final List<Map<String, dynamic>> allBills = <Map<String, dynamic>>[];
     int page = 1;
-    
+
     while (true) {
-      final Response<BillArray> response = await apiClient.v1BillsGet(page: page);
-      
+      final Response<BillArray> response = await apiClient.v1BillsGet(
+        page: page,
+      );
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch bills: ${response.error}');
       }
-      
+
       final List<BillRead> bills = response.body!.data;
       if (bills.isEmpty) break;
-      
+
       for (final BillRead bill in bills) {
         allBills.add(<String, dynamic>{
           'id': bill.id,
@@ -634,10 +697,10 @@ class FireflyApiAdapter {
           'attributes': bill.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${allBills.length} bills');
     return allBills;
   }
@@ -645,20 +708,22 @@ class FireflyApiAdapter {
   /// Get all piggy banks from server
   Future<List<Map<String, dynamic>>> getAllPiggyBanks() async {
     _logger.fine('Fetching all piggy banks from API');
-    
+
     final List<Map<String, dynamic>> allPiggyBanks = <Map<String, dynamic>>[];
     int page = 1;
-    
+
     while (true) {
-      final Response<PiggyBankArray> response = await apiClient.v1PiggyBanksGet(page: page);
-      
+      final Response<PiggyBankArray> response = await apiClient.v1PiggyBanksGet(
+        page: page,
+      );
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch piggy banks: ${response.error}');
       }
-      
+
       final List<PiggyBankRead> piggyBanks = response.body!.data;
       if (piggyBanks.isEmpty) break;
-      
+
       for (final PiggyBankRead piggyBank in piggyBanks) {
         allPiggyBanks.add(<String, dynamic>{
           'id': piggyBank.id,
@@ -666,10 +731,10 @@ class FireflyApiAdapter {
           'attributes': piggyBank.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${allPiggyBanks.length} piggy banks');
     return allPiggyBanks;
   }
@@ -677,20 +742,21 @@ class FireflyApiAdapter {
   /// Get all transactions from server with pagination
   Future<List<Map<String, dynamic>>> getAllTransactions() async {
     _logger.fine('Fetching all transactions from API');
-    
+
     final List<Map<String, dynamic>> allTransactions = <Map<String, dynamic>>[];
     int page = 1;
-    
+
     while (true) {
-      final Response<TransactionArray> response = await apiClient.v1TransactionsGet(page: page);
-      
+      final Response<TransactionArray> response = await apiClient
+          .v1TransactionsGet(page: page);
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch transactions: ${response.error}');
       }
-      
+
       final List<TransactionRead> transactions = response.body!.data;
       if (transactions.isEmpty) break;
-      
+
       for (final TransactionRead transaction in transactions) {
         allTransactions.add(<String, dynamic>{
           'id': transaction.id,
@@ -698,10 +764,10 @@ class FireflyApiAdapter {
           'attributes': transaction.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${allTransactions.length} transactions');
     return allTransactions;
   }
@@ -711,24 +777,24 @@ class FireflyApiAdapter {
   /// Get accounts updated since timestamp
   Future<List<Map<String, dynamic>>> getAccountsSince(DateTime since) async {
     _logger.fine('Fetching accounts updated since $since');
-    
+
     final List<Map<String, dynamic>> accounts = <Map<String, dynamic>>[];
     int page = 1;
     final String startDate = since.toIso8601String().split('T')[0];
-    
+
     while (true) {
       final Response<AccountArray> response = await apiClient.v1AccountsGet(
         page: page,
         start: startDate,
       );
-      
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch accounts: ${response.error}');
       }
-      
+
       final List<AccountRead> data = response.body!.data;
       if (data.isEmpty) break;
-      
+
       for (final AccountRead account in data) {
         accounts.add(<String, dynamic>{
           'id': account.id,
@@ -736,10 +802,10 @@ class FireflyApiAdapter {
           'attributes': account.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${accounts.length} accounts since $since');
     return accounts;
   }
@@ -747,23 +813,23 @@ class FireflyApiAdapter {
   /// Get categories updated since timestamp
   Future<List<Map<String, dynamic>>> getCategoriesSince(DateTime since) async {
     _logger.fine('Fetching categories updated since $since');
-    
+
     final List<Map<String, dynamic>> categories = <Map<String, dynamic>>[];
     int page = 1;
-    
+
     // Note: Categories API doesn't support date filtering, fetch all and filter locally
     while (true) {
       final Response<CategoryArray> response = await apiClient.v1CategoriesGet(
         page: page,
       );
-      
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch categories: ${response.error}');
       }
-      
+
       final List<CategoryRead> data = response.body!.data;
       if (data.isEmpty) break;
-      
+
       for (final CategoryRead category in data) {
         categories.add(<String, dynamic>{
           'id': category.id,
@@ -771,10 +837,10 @@ class FireflyApiAdapter {
           'attributes': category.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${categories.length} categories since $since');
     return categories;
   }
@@ -782,24 +848,24 @@ class FireflyApiAdapter {
   /// Get budgets updated since timestamp
   Future<List<Map<String, dynamic>>> getBudgetsSince(DateTime since) async {
     _logger.fine('Fetching budgets updated since $since');
-    
+
     final List<Map<String, dynamic>> budgets = <Map<String, dynamic>>[];
     int page = 1;
     final String startDate = since.toIso8601String().split('T')[0];
-    
+
     while (true) {
       final Response<BudgetArray> response = await apiClient.v1BudgetsGet(
         page: page,
         start: startDate,
       );
-      
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch budgets: ${response.error}');
       }
-      
+
       final List<BudgetRead> data = response.body!.data;
       if (data.isEmpty) break;
-      
+
       for (final BudgetRead budget in data) {
         budgets.add(<String, dynamic>{
           'id': budget.id,
@@ -807,10 +873,10 @@ class FireflyApiAdapter {
           'attributes': budget.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${budgets.length} budgets since $since');
     return budgets;
   }
@@ -818,23 +884,23 @@ class FireflyApiAdapter {
   /// Get bills updated since timestamp
   Future<List<Map<String, dynamic>>> getBillsSince(DateTime since) async {
     _logger.fine('Fetching bills updated since $since');
-    
+
     final List<Map<String, dynamic>> bills = <Map<String, dynamic>>[];
     int page = 1;
-    
+
     // Note: Bills API doesn't support date filtering, fetch all and filter locally
     while (true) {
       final Response<BillArray> response = await apiClient.v1BillsGet(
         page: page,
       );
-      
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch bills: ${response.error}');
       }
-      
+
       final List<BillRead> data = response.body!.data;
       if (data.isEmpty) break;
-      
+
       for (final BillRead bill in data) {
         bills.add(<String, dynamic>{
           'id': bill.id,
@@ -842,10 +908,10 @@ class FireflyApiAdapter {
           'attributes': bill.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${bills.length} bills since $since');
     return bills;
   }
@@ -853,23 +919,23 @@ class FireflyApiAdapter {
   /// Get piggy banks updated since timestamp
   Future<List<Map<String, dynamic>>> getPiggyBanksSince(DateTime since) async {
     _logger.fine('Fetching piggy banks updated since $since');
-    
+
     final List<Map<String, dynamic>> piggyBanks = <Map<String, dynamic>>[];
     int page = 1;
-    
+
     // Note: Piggy banks API doesn't support date filtering, fetch all and filter locally
     while (true) {
       final Response<PiggyBankArray> response = await apiClient.v1PiggyBanksGet(
         page: page,
       );
-      
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch piggy banks: ${response.error}');
       }
-      
+
       final List<PiggyBankRead> data = response.body!.data;
       if (data.isEmpty) break;
-      
+
       for (final PiggyBankRead piggyBank in data) {
         piggyBanks.add(<String, dynamic>{
           'id': piggyBank.id,
@@ -877,35 +943,35 @@ class FireflyApiAdapter {
           'attributes': piggyBank.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${piggyBanks.length} piggy banks since $since');
     return piggyBanks;
   }
 
   /// Get transactions updated since timestamp
-  Future<List<Map<String, dynamic>>> getTransactionsSince(DateTime since) async {
+  Future<List<Map<String, dynamic>>> getTransactionsSince(
+    DateTime since,
+  ) async {
     _logger.fine('Fetching transactions updated since $since');
-    
+
     final List<Map<String, dynamic>> transactions = <Map<String, dynamic>>[];
     int page = 1;
     final String startDate = since.toIso8601String().split('T')[0];
-    
+
     while (true) {
-      final Response<TransactionArray> response = await apiClient.v1TransactionsGet(
-        page: page,
-        start: startDate,
-      );
-      
+      final Response<TransactionArray> response = await apiClient
+          .v1TransactionsGet(page: page, start: startDate);
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch transactions: ${response.error}');
       }
-      
+
       final List<TransactionRead> data = response.body!.data;
       if (data.isEmpty) break;
-      
+
       for (final TransactionRead transaction in data) {
         transactions.add(<String, dynamic>{
           'id': transaction.id,
@@ -913,10 +979,10 @@ class FireflyApiAdapter {
           'attributes': transaction.attributes.toJson(),
         });
       }
-      
+
       page++;
     }
-    
+
     _logger.info('Fetched ${transactions.length} transactions since $since');
     return transactions;
   }
@@ -962,14 +1028,17 @@ class FireflyApiAdapter {
     DateTime? end,
     int limit = 50,
   }) async {
-    _logger.fine('Fetching transactions page $page (start: $start, end: $end, limit: $limit)');
-
-    final Response<TransactionArray> response = await apiClient.v1TransactionsGet(
-      page: page,
-      limit: limit,
-      start: start?.toIso8601String().split('T')[0],
-      end: end?.toIso8601String().split('T')[0],
+    _logger.fine(
+      'Fetching transactions page $page (start: $start, end: $end, limit: $limit)',
     );
+
+    final Response<TransactionArray> response = await apiClient
+        .v1TransactionsGet(
+          page: page,
+          limit: limit,
+          start: start?.toIso8601String().split('T')[0],
+          end: end?.toIso8601String().split('T')[0],
+        );
 
     if (!response.isSuccessful || response.body == null) {
       final String error = 'Failed to fetch transactions: ${response.error}';
@@ -988,19 +1057,26 @@ class FireflyApiAdapter {
 
     final PaginatedResult<Map<String, dynamic>> result =
         PaginatedResult<Map<String, dynamic>>(
-      data: body.data.map((TransactionRead t) => <String, dynamic>{
-        'id': t.id,
-        'type': t.type,
-        'attributes': t.attributes.toJson(),
-      }).toList(),
-      total: total,
-      currentPage: currentPage,
-      totalPages: totalPages,
-      perPage: perPage,
-    );
+          data:
+              body.data
+                  .map(
+                    (TransactionRead t) => <String, dynamic>{
+                      'id': t.id,
+                      'type': t.type,
+                      'attributes': t.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
 
-    _logger.fine('Fetched transactions page $page: ${result.data.length} items '
-        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+    _logger.fine(
+      'Fetched transactions page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
 
     return result;
   }
@@ -1043,19 +1119,26 @@ class FireflyApiAdapter {
 
     final PaginatedResult<Map<String, dynamic>> result =
         PaginatedResult<Map<String, dynamic>>(
-      data: body.data.map((AccountRead a) => <String, dynamic>{
-        'id': a.id,
-        'type': a.type,
-        'attributes': a.attributes.toJson(),
-      }).toList(),
-      total: total,
-      currentPage: currentPage,
-      totalPages: totalPages,
-      perPage: perPage,
-    );
+          data:
+              body.data
+                  .map(
+                    (AccountRead a) => <String, dynamic>{
+                      'id': a.id,
+                      'type': a.type,
+                      'attributes': a.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
 
-    _logger.fine('Fetched accounts page $page: ${result.data.length} items '
-        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+    _logger.fine(
+      'Fetched accounts page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
 
     return result;
   }
@@ -1076,7 +1159,9 @@ class FireflyApiAdapter {
     DateTime? end,
     int limit = 50,
   }) async {
-    _logger.fine('Fetching budgets page $page (start: $start, end: $end, limit: $limit)');
+    _logger.fine(
+      'Fetching budgets page $page (start: $start, end: $end, limit: $limit)',
+    );
 
     final Response<BudgetArray> response = await apiClient.v1BudgetsGet(
       page: page,
@@ -1101,19 +1186,26 @@ class FireflyApiAdapter {
 
     final PaginatedResult<Map<String, dynamic>> result =
         PaginatedResult<Map<String, dynamic>>(
-      data: body.data.map((BudgetRead b) => <String, dynamic>{
-        'id': b.id,
-        'type': b.type,
-        'attributes': b.attributes.toJson(),
-      }).toList(),
-      total: total,
-      currentPage: currentPage,
-      totalPages: totalPages,
-      perPage: perPage,
-    );
+          data:
+              body.data
+                  .map(
+                    (BudgetRead b) => <String, dynamic>{
+                      'id': b.id,
+                      'type': b.type,
+                      'attributes': b.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
 
-    _logger.fine('Fetched budgets page $page: ${result.data.length} items '
-        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+    _logger.fine(
+      'Fetched budgets page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
 
     return result;
   }
@@ -1153,19 +1245,26 @@ class FireflyApiAdapter {
 
     final PaginatedResult<Map<String, dynamic>> result =
         PaginatedResult<Map<String, dynamic>>(
-      data: body.data.map((CategoryRead c) => <String, dynamic>{
-        'id': c.id,
-        'type': c.type,
-        'attributes': c.attributes.toJson(),
-      }).toList(),
-      total: total,
-      currentPage: currentPage,
-      totalPages: totalPages,
-      perPage: perPage,
-    );
+          data:
+              body.data
+                  .map(
+                    (CategoryRead c) => <String, dynamic>{
+                      'id': c.id,
+                      'type': c.type,
+                      'attributes': c.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
 
-    _logger.fine('Fetched categories page $page: ${result.data.length} items '
-        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+    _logger.fine(
+      'Fetched categories page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
 
     return result;
   }
@@ -1205,19 +1304,26 @@ class FireflyApiAdapter {
 
     final PaginatedResult<Map<String, dynamic>> result =
         PaginatedResult<Map<String, dynamic>>(
-      data: body.data.map((BillRead b) => <String, dynamic>{
-        'id': b.id,
-        'type': b.type,
-        'attributes': b.attributes.toJson(),
-      }).toList(),
-      total: total,
-      currentPage: currentPage,
-      totalPages: totalPages,
-      perPage: perPage,
-    );
+          data:
+              body.data
+                  .map(
+                    (BillRead b) => <String, dynamic>{
+                      'id': b.id,
+                      'type': b.type,
+                      'attributes': b.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
 
-    _logger.fine('Fetched bills page $page: ${result.data.length} items '
-        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+    _logger.fine(
+      'Fetched bills page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
 
     return result;
   }
@@ -1257,19 +1363,26 @@ class FireflyApiAdapter {
 
     final PaginatedResult<Map<String, dynamic>> result =
         PaginatedResult<Map<String, dynamic>>(
-      data: body.data.map((PiggyBankRead p) => <String, dynamic>{
-        'id': p.id,
-        'type': p.type,
-        'attributes': p.attributes.toJson(),
-      }).toList(),
-      total: total,
-      currentPage: currentPage,
-      totalPages: totalPages,
-      perPage: perPage,
-    );
+          data:
+              body.data
+                  .map(
+                    (PiggyBankRead p) => <String, dynamic>{
+                      'id': p.id,
+                      'type': p.type,
+                      'attributes': p.attributes.toJson(),
+                    },
+                  )
+                  .toList(),
+          total: total,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          perPage: perPage,
+        );
 
-    _logger.fine('Fetched piggy banks page $page: ${result.data.length} items '
-        '(${result.currentPage}/${result.totalPages}, total: ${result.total})');
+    _logger.fine(
+      'Fetched piggy banks page $page: ${result.data.length} items '
+      '(${result.currentPage}/${result.totalPages}, total: ${result.total})',
+    );
 
     return result;
   }

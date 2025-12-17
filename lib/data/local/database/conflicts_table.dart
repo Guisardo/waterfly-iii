@@ -47,8 +47,8 @@ class Conflicts extends Table {
 
   @override
   List<String> get customConstraints => <String>[
-        'CHECK (entity_type IN (\'transaction\', \'account\', \'category\', \'budget\', \'bill\', \'piggy_bank\'))',
-        'CHECK (conflict_type IN (\'update_conflict\', \'delete_conflict\', \'create_conflict\'))',
-        'CHECK (status IN (\'pending\', \'resolved\', \'ignored\'))',
-      ];
+    'CHECK (entity_type IN (\'transaction\', \'account\', \'category\', \'budget\', \'bill\', \'piggy_bank\'))',
+    'CHECK (conflict_type IN (\'update_conflict\', \'delete_conflict\', \'create_conflict\'))',
+    'CHECK (status IN (\'pending\', \'resolved\', \'ignored\'))',
+  ];
 }

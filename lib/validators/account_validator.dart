@@ -84,8 +84,10 @@ class AccountValidator {
     } else {
       final String type = (data['type'] as String).toLowerCase();
       if (!validAccountTypes.contains(type)) {
-        errors.add('Invalid account type: $type. '
-            'Must be one of: ${validAccountTypes.join(', ')}');
+        errors.add(
+          'Invalid account type: $type. '
+          'Must be one of: ${validAccountTypes.join(', ')}',
+        );
       }
     }
 
@@ -104,7 +106,8 @@ class AccountValidator {
     }
 
     // Opening balance validation
-    if (data.containsKey('opening_balance') && data['opening_balance'] != null) {
+    if (data.containsKey('opening_balance') &&
+        data['opening_balance'] != null) {
       final double? openingBalance = _parseAmount(data['opening_balance']);
       if (openingBalance == null) {
         errors.add('Opening balance must be a valid number');
@@ -115,7 +118,9 @@ class AccountValidator {
       // Opening balance date is required if opening balance is set
       if (!data.containsKey('opening_balance_date') ||
           data['opening_balance_date'] == null) {
-        errors.add('Opening balance date is required when opening balance is set');
+        errors.add(
+          'Opening balance date is required when opening balance is set',
+        );
       } else {
         final DateTime? date = _parseDate(data['opening_balance_date']);
         if (date == null) {
@@ -130,8 +135,10 @@ class AccountValidator {
     if (data.containsKey('account_role') && data['account_role'] != null) {
       final String role = data['account_role'] as String;
       if (!validAccountRoles.contains(role)) {
-        errors.add('Invalid account role: $role. '
-            'Must be one of: ${validAccountRoles.join(', ')}');
+        errors.add(
+          'Invalid account role: $role. '
+          'Must be one of: ${validAccountRoles.join(', ')}',
+        );
       }
     }
 
@@ -192,7 +199,8 @@ class AccountValidator {
     }
 
     // Include net worth validation
-    if (data.containsKey('include_net_worth') && data['include_net_worth'] != null) {
+    if (data.containsKey('include_net_worth') &&
+        data['include_net_worth'] != null) {
       if (data['include_net_worth'] is! bool) {
         errors.add('Include net worth flag must be a boolean value');
       }
@@ -274,10 +282,38 @@ class AccountValidator {
 
     // Common currency codes
     const Set<String> commonCurrencies = <String>{
-      'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD',
-      'CNY', 'INR', 'BRL', 'RUB', 'KRW', 'MXN', 'ZAR', 'SEK',
-      'NOK', 'DKK', 'PLN', 'THB', 'IDR', 'HUF', 'CZK', 'ILS',
-      'CLP', 'PHP', 'AED', 'COP', 'SAR', 'MYR', 'RON', 'ARS',
+      'USD',
+      'EUR',
+      'GBP',
+      'JPY',
+      'CHF',
+      'CAD',
+      'AUD',
+      'NZD',
+      'CNY',
+      'INR',
+      'BRL',
+      'RUB',
+      'KRW',
+      'MXN',
+      'ZAR',
+      'SEK',
+      'NOK',
+      'DKK',
+      'PLN',
+      'THB',
+      'IDR',
+      'HUF',
+      'CZK',
+      'ILS',
+      'CLP',
+      'PHP',
+      'AED',
+      'COP',
+      'SAR',
+      'MYR',
+      'RON',
+      'ARS',
     };
 
     return commonCurrencies.contains(code);

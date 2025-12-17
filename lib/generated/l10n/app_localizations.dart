@@ -1613,6 +1613,42 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Notification asking to create a transaction from another notification.'**
   String get notificationExtractTransactionChannelDescription;
+
+  /// Button tooltip to sync a specific entity type from the server
+  ///
+  /// In en, this message translates to:
+  /// **'Sync {entity}'**
+  String generalSyncEntity(String entity);
+
+  /// Message shown after successful sync of an entity type
+  ///
+  /// In en, this message translates to:
+  /// **'Synced {count} {entity}'**
+  String generalSyncComplete(String entity, int count);
+
+  /// Error message when sync fails
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed: {error}'**
+  String generalSyncFailed(String error);
+
+  /// Label indicating the device is offline
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get generalOffline;
+
+  /// Message shown when trying to sync while offline
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline. Connect to sync.'**
+  String get generalOfflineMessage;
+
+  /// Message shown when sync service is not initialized
+  ///
+  /// In en, this message translates to:
+  /// **'Sync service not available'**
+  String get generalSyncNotAvailable;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

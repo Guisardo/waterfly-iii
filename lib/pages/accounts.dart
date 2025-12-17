@@ -11,6 +11,7 @@ import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger
 import 'package:waterflyiii/pages/home/accounts/row.dart';
 import 'package:waterflyiii/pages/home/accounts/search.dart';
 import 'package:waterflyiii/pages/navigation.dart';
+import 'package:waterflyiii/widgets/entity_sync_button.dart';
 
 final Logger log = Logger("Pages.Accounts");
 
@@ -47,6 +48,10 @@ class _AccountsPageState extends State<AccountsPage>
       );
 
       context.read<NavPageElements>().appBarActions = <Widget>[
+        const EntitySyncButton(
+          entityType: SyncableEntityType.account,
+          // Note: User should pull-to-refresh after sync completes
+        ),
         IconButton(
           icon: const Icon(Icons.search),
           tooltip: MaterialLocalizations.of(context).searchFieldLabel,
@@ -206,7 +211,8 @@ class _AccountDetailsState extends State<AccountDetails>
     if (_pagingState.isLoading) return;
 
     try {
-      final AccountRepository accountRepository = context.read<AccountRepository>();
+      final AccountRepository accountRepository =
+          context.read<AccountRepository>();
 
       final int pageKey = (_pagingState.keys?.last ?? 0) + 1;
       log.finest(
@@ -215,8 +221,8 @@ class _AccountDetailsState extends State<AccountDetails>
 
       // Use AccountRepository with cache-first strategy
       final String accountType = _getAccountTypeString(widget.accountType);
-      final List<AccountEntity> accountEntities =
-          await accountRepository.getByType(accountType);
+      final List<AccountEntity> accountEntities = await accountRepository
+          .getByType(accountType);
 
       // Convert to AccountRead for UI compatibility
       final List<AccountRead> accountList =
@@ -225,12 +231,13 @@ class _AccountDetailsState extends State<AccountDetails>
       // Implement simple pagination over local data
       final int startIndex = (pageKey - 1) * _numberOfItemsPerRequest;
       final int endIndex = startIndex + _numberOfItemsPerRequest;
-      final List<AccountRead> pageItems = accountList.length > startIndex
-          ? accountList.sublist(
-              startIndex,
-              endIndex > accountList.length ? accountList.length : endIndex,
-            )
-          : <AccountRead>[];
+      final List<AccountRead> pageItems =
+          accountList.length > startIndex
+              ? accountList.sublist(
+                startIndex,
+                endIndex > accountList.length ? accountList.length : endIndex,
+              )
+              : <AccountRead>[];
 
       final bool isLastPage = endIndex >= accountList.length;
 

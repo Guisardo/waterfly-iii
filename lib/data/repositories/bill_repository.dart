@@ -89,9 +89,9 @@ class BillRepository extends BaseRepository<BillEntity, String> {
     UuidService? uuidService,
     SyncQueueManager? syncQueueManager,
     BillValidator? validator,
-  })  : _uuidService = uuidService ?? UuidService(),
-        _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
-        _validator = validator ?? BillValidator();
+  }) : _uuidService = uuidService ?? UuidService(),
+       _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
+       _validator = validator ?? BillValidator();
 
   final UuidService _uuidService;
   final SyncQueueManager _syncQueueManager;
@@ -117,9 +117,11 @@ class BillRepository extends BaseRepository<BillEntity, String> {
   Future<List<BillEntity>> getAll() async {
     try {
       logger.fine('Fetching all bills');
-      final List<BillEntity> bills = await (database.select(database.bills)
-            ..orderBy(<OrderClauseGenerator<$BillsTable>>[($BillsTable b) => OrderingTerm.asc(b.name)]))
-          .get();
+      final List<BillEntity> bills =
+          await (database.select(database.bills)
+            ..orderBy(<OrderClauseGenerator<$BillsTable>>[
+              ($BillsTable b) => OrderingTerm.asc(b.name),
+            ])).get();
       logger.info('Retrieved ${bills.length} bills');
       return bills;
     } catch (error, stackTrace) {
@@ -135,7 +137,10 @@ class BillRepository extends BaseRepository<BillEntity, String> {
   @override
   Stream<List<BillEntity>> watchAll() {
     logger.fine('Watching all bills');
-    return (database.select(database.bills)..orderBy(<OrderClauseGenerator<$BillsTable>>[($BillsTable b) => OrderingTerm.asc(b.name)])).watch();
+    return (database.select(database.bills)
+      ..orderBy(<OrderClauseGenerator<$BillsTable>>[
+        ($BillsTable b) => OrderingTerm.asc(b.name),
+      ])).watch();
   }
 
   /// Retrieves a bill by ID with cache-first strategy.
@@ -192,15 +197,15 @@ class BillRepository extends BaseRepository<BillEntity, String> {
       if (cacheService != null) {
         logger.finest('Using cache-first strategy for bill $id');
 
-        final CacheResult<BillEntity?> cacheResult =
-            await cacheService!.get<BillEntity?>(
-          entityType: entityType,
-          entityId: id,
-          fetcher: () => _fetchBillFromDb(id),
-          ttl: cacheTtl,
-          forceRefresh: forceRefresh,
-          backgroundRefresh: backgroundRefresh,
-        );
+        final CacheResult<BillEntity?> cacheResult = await cacheService!
+            .get<BillEntity?>(
+              entityType: entityType,
+              entityId: id,
+              fetcher: () => _fetchBillFromDb(id),
+              ttl: cacheTtl,
+              forceRefresh: forceRefresh,
+              backgroundRefresh: backgroundRefresh,
+            );
 
         logger.info(
           'Bill $id fetched from ${cacheResult.source} '
@@ -239,9 +244,8 @@ class BillRepository extends BaseRepository<BillEntity, String> {
   Future<BillEntity?> _fetchBillFromDb(String id) async {
     logger.finest('Fetching bill from database: $id');
 
-    final SimpleSelectStatement<$BillsTable, BillEntity> query =
-        database.select(database.bills)
-          ..where(($BillsTable b) => b.id.equals(id));
+    final SimpleSelectStatement<$BillsTable, BillEntity> query = database
+      .select(database.bills)..where(($BillsTable b) => b.id.equals(id));
 
     final BillEntity? bill = await query.getSingleOrNull();
 
@@ -257,8 +261,8 @@ class BillRepository extends BaseRepository<BillEntity, String> {
   @override
   Stream<BillEntity?> watchById(String id) {
     logger.fine('Watching bill: $id');
-    final SimpleSelectStatement<$BillsTable, BillEntity> query = database.select(database.bills)
-      ..where(($BillsTable b) => b.id.equals(id));
+    final SimpleSelectStatement<$BillsTable, BillEntity> query = database
+      .select(database.bills)..where(($BillsTable b) => b.id.equals(id));
     return query.watchSingleOrNull();
   }
 
@@ -314,14 +318,15 @@ class BillRepository extends BaseRepository<BillEntity, String> {
       logger.info('Creating bill: ${entity.name}');
 
       // Validate bill data
-      final ValidationResult validationResult = await _validator.validate(<String, dynamic>{
-        'name': entity.name,
-        'amount_min': entity.minAmount,
-        'amount_max': entity.maxAmount,
-        'currency_code': entity.currencyCode,
-        'date': entity.date.toIso8601String(),
-        'repeat_freq': entity.repeatFreq,
-      });
+      final ValidationResult validationResult = await _validator
+          .validate(<String, dynamic>{
+            'name': entity.name,
+            'amount_min': entity.minAmount,
+            'amount_max': entity.maxAmount,
+            'currency_code': entity.currencyCode,
+            'date': entity.date.toIso8601String(),
+            'repeat_freq': entity.repeatFreq,
+          });
       if (!validationResult.isValid) {
         final String errorMessage =
             'Bill validation failed: ${validationResult.errors.join(', ')}';
@@ -468,14 +473,15 @@ class BillRepository extends BaseRepository<BillEntity, String> {
       }
 
       // Validate bill data
-      final ValidationResult validationResult = await _validator.validate(<String, dynamic>{
-        'name': entity.name,
-        'amount_min': entity.minAmount,
-        'amount_max': entity.maxAmount,
-        'currency_code': entity.currencyCode,
-        'date': entity.date.toIso8601String(),
-        'repeat_freq': entity.repeatFreq,
-      });
+      final ValidationResult validationResult = await _validator
+          .validate(<String, dynamic>{
+            'name': entity.name,
+            'amount_min': entity.minAmount,
+            'amount_max': entity.maxAmount,
+            'currency_code': entity.currencyCode,
+            'date': entity.date.toIso8601String(),
+            'repeat_freq': entity.repeatFreq,
+          });
       if (!validationResult.isValid) {
         final String errorMessage =
             'Bill validation failed: ${validationResult.errors.join(', ')}';
@@ -627,8 +633,7 @@ class BillRepository extends BaseRepository<BillEntity, String> {
         // Soft delete: Mark as deleted and add to sync queue
         logger.fine('Soft deleting synced bill: $id');
         await (database.update(database.bills)
-              ..where(($BillsTable b) => b.id.equals(id)))
-            .write(
+          ..where(($BillsTable b) => b.id.equals(id))).write(
           BillEntityCompanion(
             isSynced: const Value(false),
             syncStatus: const Value('pending_delete'),
@@ -653,8 +658,7 @@ class BillRepository extends BaseRepository<BillEntity, String> {
         // Hard delete: Not synced, just delete locally
         logger.fine('Hard deleting unsynced bill: $id');
         await (database.delete(database.bills)
-              ..where(($BillsTable b) => b.id.equals(id)))
-            .go();
+          ..where(($BillsTable b) => b.id.equals(id))).go();
       }
 
       // Invalidate bill from cache (if CacheService available)
@@ -685,7 +689,8 @@ class BillRepository extends BaseRepository<BillEntity, String> {
   Future<List<BillEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced bills');
-      final SimpleSelectStatement<$BillsTable, BillEntity> query = database.select(database.bills)
+      final SimpleSelectStatement<$BillsTable, BillEntity> query = database
+          .select(database.bills)
         ..where(($BillsTable b) => b.isSynced.equals(false));
       final List<BillEntity> bills = await query.get();
       logger.info('Found ${bills.length} unsynced bills');
@@ -705,7 +710,8 @@ class BillRepository extends BaseRepository<BillEntity, String> {
     try {
       logger.info('Marking bill as synced: $localId -> $serverId');
 
-      await (database.update(database.bills)..where(($BillsTable b) => b.id.equals(localId))).write(
+      await (database.update(database.bills)
+        ..where(($BillsTable b) => b.id.equals(localId))).write(
         BillEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -716,7 +722,11 @@ class BillRepository extends BaseRepository<BillEntity, String> {
 
       logger.info('Bill marked as synced: $localId');
     } catch (error, stackTrace) {
-      logger.severe('Failed to mark bill as synced: $localId', error, stackTrace);
+      logger.severe(
+        'Failed to mark bill as synced: $localId',
+        error,
+        stackTrace,
+      );
       throw DatabaseException('Failed to mark bill as synced: $error');
     }
   }
@@ -730,7 +740,11 @@ class BillRepository extends BaseRepository<BillEntity, String> {
       }
       return bill.syncStatus;
     } catch (error, stackTrace) {
-      logger.severe('Failed to get sync status for bill $id', error, stackTrace);
+      logger.severe(
+        'Failed to get sync status for bill $id',
+        error,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -751,7 +765,10 @@ class BillRepository extends BaseRepository<BillEntity, String> {
   Future<int> count() async {
     try {
       logger.fine('Counting bills');
-      final int count = await database.select(database.bills).get().then((List<BillEntity> list) => list.length);
+      final int count = await database
+          .select(database.bills)
+          .get()
+          .then((List<BillEntity> list) => list.length);
       logger.fine('Bill count: $count');
       return count;
     } catch (error, stackTrace) {
@@ -768,9 +785,12 @@ class BillRepository extends BaseRepository<BillEntity, String> {
   Future<List<BillEntity>> getActive() async {
     try {
       logger.fine('Fetching active bills');
-      final SimpleSelectStatement<$BillsTable, BillEntity> query = database.select(database.bills)
-        ..where(($BillsTable b) => b.active.equals(true))
-        ..orderBy(<OrderClauseGenerator<$BillsTable>>[($BillsTable b) => OrderingTerm.asc(b.name)]);
+      final SimpleSelectStatement<$BillsTable, BillEntity> query =
+          database.select(database.bills)
+            ..where(($BillsTable b) => b.active.equals(true))
+            ..orderBy(<OrderClauseGenerator<$BillsTable>>[
+              ($BillsTable b) => OrderingTerm.asc(b.name),
+            ]);
       final List<BillEntity> bills = await query.get();
       logger.info('Found ${bills.length} active bills');
       return bills;
@@ -788,14 +808,21 @@ class BillRepository extends BaseRepository<BillEntity, String> {
   Future<List<BillEntity>> getByFrequency(String frequency) async {
     try {
       logger.fine('Fetching bills by frequency: $frequency');
-      final SimpleSelectStatement<$BillsTable, BillEntity> query = database.select(database.bills)
-        ..where(($BillsTable b) => b.repeatFreq.equals(frequency))
-        ..orderBy(<OrderClauseGenerator<$BillsTable>>[($BillsTable b) => OrderingTerm.asc(b.name)]);
+      final SimpleSelectStatement<$BillsTable, BillEntity> query =
+          database.select(database.bills)
+            ..where(($BillsTable b) => b.repeatFreq.equals(frequency))
+            ..orderBy(<OrderClauseGenerator<$BillsTable>>[
+              ($BillsTable b) => OrderingTerm.asc(b.name),
+            ]);
       final List<BillEntity> bills = await query.get();
       logger.info('Found ${bills.length} bills with frequency: $frequency');
       return bills;
     } catch (error, stackTrace) {
-      logger.severe('Failed to fetch bills by frequency: $frequency', error, stackTrace);
+      logger.severe(
+        'Failed to fetch bills by frequency: $frequency',
+        error,
+        stackTrace,
+      );
       throw DatabaseException.queryFailed(
         'SELECT * FROM bills WHERE repeat_freq = $frequency',
         error,
@@ -832,10 +859,10 @@ class BillRepository extends BaseRepository<BillEntity, String> {
   }) async {
     try {
       logger.fine('Fetching upcoming bills from $start to $end');
-      
+
       // Get all active bills
       final List<BillEntity> activeBills = await getActive();
-      
+
       // Filter bills by calculated next due date within range
       final List<BillEntity> upcomingBills = <BillEntity>[];
       for (final BillEntity bill in activeBills) {
@@ -845,14 +872,14 @@ class BillRepository extends BaseRepository<BillEntity, String> {
           upcomingBills.add(bill);
         }
       }
-      
+
       // Sort by next due date
       upcomingBills.sort((BillEntity a, BillEntity b) {
         final DateTime nextA = calculateNextDueDate(a);
         final DateTime nextB = calculateNextDueDate(b);
         return nextA.compareTo(nextB);
       });
-      
+
       logger.info('Found ${upcomingBills.length} upcoming bills');
       return upcomingBills;
     } catch (error, stackTrace) {
@@ -868,15 +895,15 @@ class BillRepository extends BaseRepository<BillEntity, String> {
   /// Calculate next due date for a bill based on its recurrence.
   DateTime calculateNextDueDate(BillEntity bill) {
     logger.fine('Calculating next due date for bill: ${bill.id}');
-    
+
     final DateTime baseDate = bill.date;
     final DateTime now = DateTime.now();
-    
+
     // If bill date is in the future, return it
     if (baseDate.isAfter(now)) {
       return baseDate;
     }
-    
+
     // Calculate next occurrence based on frequency
     DateTime nextDate = baseDate;
     switch (bill.repeatFreq.toLowerCase()) {
@@ -909,7 +936,7 @@ class BillRepository extends BaseRepository<BillEntity, String> {
         logger.warning('Unknown repeat frequency: ${bill.repeatFreq}');
         return baseDate;
     }
-    
+
     logger.fine('Next due date for bill ${bill.id}: $nextDate');
     return nextDate;
   }
@@ -946,25 +973,27 @@ class BillRepository extends BaseRepository<BillEntity, String> {
       final String searchPattern = '%${query.toLowerCase()}%';
 
       var selectQuery = database.select(database.bills);
-      
-      selectQuery = selectQuery..where(($BillsTable b) {
-        // Build conditions
-        Expression<bool> condition = b.name.lower().like(searchPattern);
-        
-        // Filter active only if requested
-        if (activeOnly) {
-          condition = condition & b.active.equals(true);
-        }
-        
-        return condition;
-      });
 
-      final List<BillEntity> bills = await (selectQuery
-            ..orderBy(<OrderClauseGenerator<$BillsTable>>[
-              ($BillsTable b) => OrderingTerm.asc(b.name)
-            ])
-            ..limit(20))
-          .get();
+      selectQuery =
+          selectQuery..where(($BillsTable b) {
+            // Build conditions
+            Expression<bool> condition = b.name.lower().like(searchPattern);
+
+            // Filter active only if requested
+            if (activeOnly) {
+              condition = condition & b.active.equals(true);
+            }
+
+            return condition;
+          });
+
+      final List<BillEntity> bills =
+          await (selectQuery
+                ..orderBy(<OrderClauseGenerator<$BillsTable>>[
+                  ($BillsTable b) => OrderingTerm.asc(b.name),
+                ])
+                ..limit(20))
+              .get();
 
       logger.info('Found ${bills.length} bills matching: "$query"');
       return bills;
@@ -1006,7 +1035,9 @@ class BillRepository extends BaseRepository<BillEntity, String> {
     bool activeOnly = true,
   }) async {
     try {
-      logger.fine('Fetching bills by date range: $start to $end (activeOnly: $activeOnly)');
+      logger.fine(
+        'Fetching bills by date range: $start to $end (activeOnly: $activeOnly)',
+      );
 
       // Get all bills (optionally filter by active)
       List<BillEntity> bills;
@@ -1020,15 +1051,32 @@ class BillRepository extends BaseRepository<BillEntity, String> {
       final List<BillEntity> filteredBills = <BillEntity>[];
       for (final BillEntity bill in bills) {
         // Use nextExpectedMatch if available, otherwise calculate
-        final DateTime nextMatch = bill.nextExpectedMatch ?? calculateNextDueDate(bill);
-        
+        final DateTime nextMatch =
+            bill.nextExpectedMatch ?? calculateNextDueDate(bill);
+
         // Normalize dates to start of day for comparison
-        final DateTime normalizedStart = DateTime(start.year, start.month, start.day);
-        final DateTime normalizedEnd = DateTime(end.year, end.month, end.day, 23, 59, 59);
-        final DateTime normalizedNext = DateTime(nextMatch.year, nextMatch.month, nextMatch.day);
-        
+        final DateTime normalizedStart = DateTime(
+          start.year,
+          start.month,
+          start.day,
+        );
+        final DateTime normalizedEnd = DateTime(
+          end.year,
+          end.month,
+          end.day,
+          23,
+          59,
+          59,
+        );
+        final DateTime normalizedNext = DateTime(
+          nextMatch.year,
+          nextMatch.month,
+          nextMatch.day,
+        );
+
         // Check if next match falls within the range (inclusive)
-        if (!normalizedNext.isBefore(normalizedStart) && !normalizedNext.isAfter(normalizedEnd)) {
+        if (!normalizedNext.isBefore(normalizedStart) &&
+            !normalizedNext.isAfter(normalizedEnd)) {
           filteredBills.add(bill);
         }
       }

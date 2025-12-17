@@ -95,12 +95,13 @@ class SyncProgressEvent {
 
   /// Factory for started event.
   factory SyncProgressEvent.started() => SyncProgressEvent(
-        type: SyncProgressEventType.started,
-        message: 'Incremental sync started',
-      );
+    type: SyncProgressEventType.started,
+    message: 'Incremental sync started',
+  );
 
   /// Factory for entity started event.
-  factory SyncProgressEvent.entityStarted(String entityType) => SyncProgressEvent(
+  factory SyncProgressEvent.entityStarted(String entityType) =>
+      SyncProgressEvent(
         type: SyncProgressEventType.entityStarted,
         entityType: entityType,
         message: 'Syncing $entityType',
@@ -110,15 +111,14 @@ class SyncProgressEvent {
   factory SyncProgressEvent.entityCompleted(
     String entityType,
     IncrementalSyncStats stats,
-  ) =>
-      SyncProgressEvent(
-        type: SyncProgressEventType.entityCompleted,
-        entityType: entityType,
-        message: 'Completed $entityType: ${stats.summary}',
-        itemsFetched: stats.itemsFetched,
-        itemsUpdated: stats.itemsUpdated,
-        itemsSkipped: stats.itemsSkipped,
-      );
+  ) => SyncProgressEvent(
+    type: SyncProgressEventType.entityCompleted,
+    entityType: entityType,
+    message: 'Completed $entityType: ${stats.summary}',
+    itemsFetched: stats.itemsFetched,
+    itemsUpdated: stats.itemsUpdated,
+    itemsSkipped: stats.itemsSkipped,
+  );
 
   /// Factory for progress update event.
   factory SyncProgressEvent.progress(
@@ -127,16 +127,15 @@ class SyncProgressEvent {
     int updated,
     int skipped, {
     int? total,
-  }) =>
-      SyncProgressEvent(
-        type: SyncProgressEventType.progress,
-        entityType: entityType,
-        message: 'Progress: $fetched fetched, $updated updated, $skipped skipped',
-        itemsFetched: fetched,
-        itemsUpdated: updated,
-        itemsSkipped: skipped,
-        totalItems: total,
-      );
+  }) => SyncProgressEvent(
+    type: SyncProgressEventType.progress,
+    entityType: entityType,
+    message: 'Progress: $fetched fetched, $updated updated, $skipped skipped',
+    itemsFetched: fetched,
+    itemsUpdated: updated,
+    itemsSkipped: skipped,
+    totalItems: total,
+  );
 
   /// Factory for retry event.
   factory SyncProgressEvent.retry(
@@ -144,37 +143,39 @@ class SyncProgressEvent {
     int attempt,
     int maxAttempts,
     String reason,
-  ) =>
-      SyncProgressEvent(
-        type: SyncProgressEventType.retry,
-        entityType: entityType,
-        message: 'Retry $attempt/$maxAttempts: $reason',
-        retryAttempt: attempt,
-        maxRetries: maxAttempts,
-      );
+  ) => SyncProgressEvent(
+    type: SyncProgressEventType.retry,
+    entityType: entityType,
+    message: 'Retry $attempt/$maxAttempts: $reason',
+    retryAttempt: attempt,
+    maxRetries: maxAttempts,
+  );
 
   /// Factory for completed event.
-  factory SyncProgressEvent.completed(IncrementalSyncResult result) => SyncProgressEvent(
-        type: SyncProgressEventType.completed,
-        message: 'Sync completed: ${result.totalUpdated} updated, ${result.totalSkipped} skipped',
-        itemsFetched: result.totalFetched,
-        itemsUpdated: result.totalUpdated,
-        itemsSkipped: result.totalSkipped,
-      );
+  factory SyncProgressEvent.completed(
+    IncrementalSyncResult result,
+  ) => SyncProgressEvent(
+    type: SyncProgressEventType.completed,
+    message:
+        'Sync completed: ${result.totalUpdated} updated, ${result.totalSkipped} skipped',
+    itemsFetched: result.totalFetched,
+    itemsUpdated: result.totalUpdated,
+    itemsSkipped: result.totalSkipped,
+  );
 
   /// Factory for failed event.
   factory SyncProgressEvent.failed(String error) => SyncProgressEvent(
-        type: SyncProgressEventType.failed,
-        message: 'Sync failed: $error',
-        error: error,
-      );
+    type: SyncProgressEventType.failed,
+    message: 'Sync failed: $error',
+    error: error,
+  );
 
   /// Factory for cache hit event.
   factory SyncProgressEvent.cacheHit(String entityType) => SyncProgressEvent(
-        type: SyncProgressEventType.cacheHit,
-        entityType: entityType,
-        message: '$entityType cache fresh, skipping API call',
-      );
+    type: SyncProgressEventType.cacheHit,
+    entityType: entityType,
+    message: '$entityType cache fresh, skipping API call',
+  );
 
   /// Calculate progress percentage if total is known.
   double? get progressPercent {
@@ -269,7 +270,8 @@ class IncrementalSyncService {
       StreamController<SyncProgressEvent>.broadcast();
 
   /// Stream of sync progress events for UI updates.
-  Stream<SyncProgressEvent> get progressStream => _progressStreamController.stream;
+  Stream<SyncProgressEvent> get progressStream =>
+      _progressStreamController.stream;
 
   /// Creates a new incremental sync service.
   IncrementalSyncService({
@@ -285,10 +287,10 @@ class IncrementalSyncService {
     this.maxRetryAttempts = 3,
     this.initialRetryDelay = const Duration(seconds: 1),
     this.maxRetryDelay = const Duration(seconds: 30),
-  })  : _database = database,
-        _apiAdapter = apiAdapter,
-        _cacheService = cacheService,
-        _progressTracker = progressTracker {
+  }) : _database = database,
+       _apiAdapter = apiAdapter,
+       _cacheService = cacheService,
+       _progressTracker = progressTracker {
     _retryOptions = RetryOptions(
       maxAttempts: maxRetryAttempts,
       delayFactor: initialRetryDelay,
@@ -358,31 +360,47 @@ class IncrementalSyncService {
       // TIER 1: Date-range filtered entities
       _logger.fine('Tier 1: Syncing date-range filtered entities');
 
-      statsByEntity['transaction'] =
-          await _syncEntityWithRetry('transaction', () => _syncTransactionsIncremental(since));
-      statsByEntity['account'] =
-          await _syncEntityWithRetry('account', () => _syncAccountsIncremental(since));
-      statsByEntity['budget'] =
-          await _syncEntityWithRetry('budget', () => _syncBudgetsIncremental(since));
+      statsByEntity['transaction'] = await _syncEntityWithRetry(
+        'transaction',
+        () => _syncTransactionsIncremental(since),
+      );
+      statsByEntity['account'] = await _syncEntityWithRetry(
+        'account',
+        () => _syncAccountsIncremental(since),
+      );
+      statsByEntity['budget'] = await _syncEntityWithRetry(
+        'budget',
+        () => _syncBudgetsIncremental(since),
+      );
 
       // TIER 2: Extended cache entities
       _logger.fine('Tier 2: Syncing cached entities');
 
-      statsByEntity['category'] =
-          await _syncEntityWithRetry('category', () => _syncCategoriesIncremental());
-      statsByEntity['bill'] =
-          await _syncEntityWithRetry('bill', () => _syncBillsIncremental());
-      statsByEntity['piggy_bank'] =
-          await _syncEntityWithRetry('piggy_bank', () => _syncPiggyBanksIncremental());
+      statsByEntity['category'] = await _syncEntityWithRetry(
+        'category',
+        () => _syncCategoriesIncremental(),
+      );
+      statsByEntity['bill'] = await _syncEntityWithRetry(
+        'bill',
+        () => _syncBillsIncremental(),
+      );
+      statsByEntity['piggy_bank'] = await _syncEntityWithRetry(
+        'piggy_bank',
+        () => _syncPiggyBanksIncremental(),
+      );
 
       // Check if any entity failed
       final bool anyEntityFailed = statsByEntity.values.any(
         (IncrementalSyncStats stats) => stats.success != true,
       );
-      final List<String> failedEntities = statsByEntity.entries
-          .where((MapEntry<String, IncrementalSyncStats> e) => e.value.success != true)
-          .map((MapEntry<String, IncrementalSyncStats> e) => e.key)
-          .toList();
+      final List<String> failedEntities =
+          statsByEntity.entries
+              .where(
+                (MapEntry<String, IncrementalSyncStats> e) =>
+                    e.value.success != true,
+              )
+              .map((MapEntry<String, IncrementalSyncStats> e) => e.key)
+              .toList();
 
       // Update sync statistics in database
       await _updateSyncStatistics(statsByEntity);
@@ -404,14 +422,17 @@ class IncrementalSyncService {
         success: !anyEntityFailed,
         duration: duration,
         statsByEntity: statsByEntity,
-        error: anyEntityFailed
-            ? 'Some entities failed to sync: ${failedEntities.join(", ")}'
-            : null,
+        error:
+            anyEntityFailed
+                ? 'Some entities failed to sync: ${failedEntities.join(", ")}'
+                : null,
       );
 
-      _emitProgress(anyEntityFailed
-          ? SyncProgressEvent.failed(result.error!)
-          : SyncProgressEvent.completed(result));
+      _emitProgress(
+        anyEntityFailed
+            ? SyncProgressEvent.failed(result.error!)
+            : SyncProgressEvent.completed(result),
+      );
 
       return result;
     } catch (e, stackTrace) {
@@ -441,7 +462,7 @@ class IncrementalSyncService {
     String entityType,
     Future<IncrementalSyncStats> Function() syncOperation,
   ) async {
-      _emitProgress(SyncProgressEvent.entityStarted(entityType));
+    _emitProgress(SyncProgressEvent.entityStarted(entityType));
     int attemptCount = 0;
 
     try {
@@ -449,12 +470,14 @@ class IncrementalSyncService {
         () {
           attemptCount++;
           if (attemptCount > 1) {
-            _emitProgress(SyncProgressEvent.retry(
-              entityType,
-              attemptCount,
-              maxRetryAttempts,
-              'Retrying after previous failure',
-            ));
+            _emitProgress(
+              SyncProgressEvent.retry(
+                entityType,
+                attemptCount,
+                maxRetryAttempts,
+                'Retrying after previous failure',
+              ),
+            );
           }
           return syncOperation();
         },
@@ -469,7 +492,10 @@ class IncrementalSyncService {
     } catch (e) {
       // Return stats indicating failure - don't rethrow so other entities
       // can still be synced and so the failed stats can be recorded
-      _logger.severe('Sync failed for $entityType after $attemptCount attempts', e);
+      _logger.severe(
+        'Sync failed for $entityType after $attemptCount attempts',
+        e,
+      );
       final IncrementalSyncStats failedStats = IncrementalSyncStats(
         entityType: entityType,
       )..complete(success: false, error: e.toString());
@@ -533,8 +559,9 @@ class IncrementalSyncService {
   Future<IncrementalSyncStats> _syncTransactionsIncremental(
     DateTime since,
   ) async {
-    final IncrementalSyncStats stats =
-        IncrementalSyncStats(entityType: 'transaction');
+    final IncrementalSyncStats stats = IncrementalSyncStats(
+      entityType: 'transaction',
+    );
 
     _logger.info('Starting incremental transaction sync (since: $since)');
 
@@ -568,11 +595,7 @@ class IncrementalSyncService {
         }
 
         // Compare timestamps
-        if (await _hasEntityChanged(
-          serverId,
-          serverUpdatedAt,
-          'transaction',
-        )) {
+        if (await _hasEntityChanged(serverId, serverUpdatedAt, 'transaction')) {
           await _mergeTransaction(serverTx);
           stats.itemsUpdated++;
           _logger.finest(() => 'Updated transaction $serverId');
@@ -585,12 +608,14 @@ class IncrementalSyncService {
 
         // Emit progress every 50 items (transactions are typically more numerous)
         if (stats.itemsFetched % 50 == 0) {
-          _emitProgress(SyncProgressEvent.progress(
-            'transaction',
-            stats.itemsFetched,
-            stats.itemsUpdated,
-            stats.itemsSkipped,
-          ));
+          _emitProgress(
+            SyncProgressEvent.progress(
+              'transaction',
+              stats.itemsFetched,
+              stats.itemsUpdated,
+              stats.itemsSkipped,
+            ),
+          );
         }
       }
 
@@ -608,8 +633,9 @@ class IncrementalSyncService {
 
   /// Sync accounts incrementally using date-range filtering.
   Future<IncrementalSyncStats> _syncAccountsIncremental(DateTime since) async {
-    final IncrementalSyncStats stats =
-        IncrementalSyncStats(entityType: 'account');
+    final IncrementalSyncStats stats = IncrementalSyncStats(
+      entityType: 'account',
+    );
 
     _logger.info('Starting incremental account sync (since: $since)');
 
@@ -646,12 +672,14 @@ class IncrementalSyncService {
 
         // Emit progress every 10 items
         if (stats.itemsFetched % 10 == 0) {
-          _emitProgress(SyncProgressEvent.progress(
-            'account',
-            stats.itemsFetched,
-            stats.itemsUpdated,
-            stats.itemsSkipped,
-          ));
+          _emitProgress(
+            SyncProgressEvent.progress(
+              'account',
+              stats.itemsFetched,
+              stats.itemsUpdated,
+              stats.itemsSkipped,
+            ),
+          );
         }
       }
 
@@ -669,8 +697,9 @@ class IncrementalSyncService {
 
   /// Sync budgets incrementally using date-range filtering.
   Future<IncrementalSyncStats> _syncBudgetsIncremental(DateTime since) async {
-    final IncrementalSyncStats stats =
-        IncrementalSyncStats(entityType: 'budget');
+    final IncrementalSyncStats stats = IncrementalSyncStats(
+      entityType: 'budget',
+    );
 
     _logger.info('Starting incremental budget sync (since: $since)');
 
@@ -707,12 +736,14 @@ class IncrementalSyncService {
 
         // Emit progress every 10 items
         if (stats.itemsFetched % 10 == 0) {
-          _emitProgress(SyncProgressEvent.progress(
-            'budget',
-            stats.itemsFetched,
-            stats.itemsUpdated,
-            stats.itemsSkipped,
-          ));
+          _emitProgress(
+            SyncProgressEvent.progress(
+              'budget',
+              stats.itemsFetched,
+              stats.itemsUpdated,
+              stats.itemsSkipped,
+            ),
+          );
         }
       }
 
@@ -735,8 +766,9 @@ class IncrementalSyncService {
   /// Categories change infrequently, so we use 24-hour cache TTL
   /// to minimize API calls. If cache is fresh, skip sync entirely.
   Future<IncrementalSyncStats> _syncCategoriesIncremental() async {
-    final IncrementalSyncStats stats =
-        IncrementalSyncStats(entityType: 'category');
+    final IncrementalSyncStats stats = IncrementalSyncStats(
+      entityType: 'category',
+    );
 
     _logger.info('Starting incremental category sync');
 
@@ -786,12 +818,14 @@ class IncrementalSyncService {
 
         // Emit progress every 10 items
         if (stats.itemsFetched % 10 == 0) {
-          _emitProgress(SyncProgressEvent.progress(
-            'category',
-            stats.itemsFetched,
-            stats.itemsUpdated,
-            stats.itemsSkipped,
-          ));
+          _emitProgress(
+            SyncProgressEvent.progress(
+              'category',
+              stats.itemsFetched,
+              stats.itemsUpdated,
+              stats.itemsSkipped,
+            ),
+          );
         }
       }
 
@@ -856,12 +890,14 @@ class IncrementalSyncService {
 
         // Emit progress every 10 items
         if (stats.itemsFetched % 10 == 0) {
-          _emitProgress(SyncProgressEvent.progress(
-            'bill',
-            stats.itemsFetched,
-            stats.itemsUpdated,
-            stats.itemsSkipped,
-          ));
+          _emitProgress(
+            SyncProgressEvent.progress(
+              'bill',
+              stats.itemsFetched,
+              stats.itemsUpdated,
+              stats.itemsSkipped,
+            ),
+          );
         }
       }
 
@@ -881,8 +917,9 @@ class IncrementalSyncService {
 
   /// Sync piggy banks using extended cache TTL strategy.
   Future<IncrementalSyncStats> _syncPiggyBanksIncremental() async {
-    final IncrementalSyncStats stats =
-        IncrementalSyncStats(entityType: 'piggy_bank');
+    final IncrementalSyncStats stats = IncrementalSyncStats(
+      entityType: 'piggy_bank',
+    );
 
     _logger.info('Starting incremental piggy bank sync');
 
@@ -927,12 +964,14 @@ class IncrementalSyncService {
 
         // Emit progress every 10 items
         if (stats.itemsFetched % 10 == 0) {
-          _emitProgress(SyncProgressEvent.progress(
-            'piggy_bank',
-            stats.itemsFetched,
-            stats.itemsUpdated,
-            stats.itemsSkipped,
-          ));
+          _emitProgress(
+            SyncProgressEvent.progress(
+              'piggy_bank',
+              stats.itemsFetched,
+              stats.itemsUpdated,
+              stats.itemsSkipped,
+            ),
+          );
         }
       }
 
@@ -966,11 +1005,15 @@ class IncrementalSyncService {
     DateTime serverUpdatedAt,
     String entityType,
   ) async {
-    final DateTime? localTimestamp =
-        await _getLocalServerUpdatedAt(entityId, entityType);
+    final DateTime? localTimestamp = await _getLocalServerUpdatedAt(
+      entityId,
+      entityType,
+    );
 
     if (localTimestamp == null) {
-      _logger.finest(() => 'Entity $entityId: no local timestamp (new or legacy)');
+      _logger.finest(
+        () => 'Entity $entityId: no local timestamp (new or legacy)',
+      );
       return true; // New entity or no timestamp stored
     }
 
@@ -979,8 +1022,7 @@ class IncrementalSyncService {
     final DateTime localWithTolerance = localTimestamp.add(tolerance);
 
     // Detect significant clock skew (>1 hour)
-    final Duration timeDiff =
-        serverUpdatedAt.difference(localTimestamp).abs();
+    final Duration timeDiff = serverUpdatedAt.difference(localTimestamp).abs();
     if (timeDiff > const Duration(hours: 1)) {
       _logger.warning(
         'Clock skew detected for entity $entityId: '
@@ -992,9 +1034,11 @@ class IncrementalSyncService {
     // Server wins if timestamp is newer (beyond tolerance)
     final bool hasChanged = serverUpdatedAt.isAfter(localWithTolerance);
 
-    _logger.finest(() =>
-        'Entity $entityId: local=$localTimestamp, '
-        'server=$serverUpdatedAt, changed=$hasChanged');
+    _logger.finest(
+      () =>
+          'Entity $entityId: local=$localTimestamp, '
+          'server=$serverUpdatedAt, changed=$hasChanged',
+    );
 
     return hasChanged;
   }
@@ -1006,44 +1050,45 @@ class IncrementalSyncService {
   ) async {
     switch (entityType) {
       case 'transaction':
-        final TransactionEntity? entity = await (_database
-                .select(_database.transactions)
-              ..where(($TransactionsTable t) => t.serverId.equals(serverId)))
-            .getSingleOrNull();
+        final TransactionEntity? entity =
+            await (_database.select(_database.transactions)..where(
+              ($TransactionsTable t) => t.serverId.equals(serverId),
+            )).getSingleOrNull();
         return entity?.serverUpdatedAt;
 
       case 'account':
         final AccountEntity? entity =
-            await (_database.select(_database.accounts)
-                  ..where(($AccountsTable a) => a.serverId.equals(serverId)))
-                .getSingleOrNull();
+            await (_database.select(_database.accounts)..where(
+              ($AccountsTable a) => a.serverId.equals(serverId),
+            )).getSingleOrNull();
         return entity?.serverUpdatedAt;
 
       case 'budget':
         final BudgetEntity? entity =
-            await (_database.select(_database.budgets)
-                  ..where(($BudgetsTable b) => b.serverId.equals(serverId)))
-                .getSingleOrNull();
+            await (_database.select(_database.budgets)..where(
+              ($BudgetsTable b) => b.serverId.equals(serverId),
+            )).getSingleOrNull();
         return entity?.serverUpdatedAt;
 
       case 'category':
         final CategoryEntity? entity =
-            await (_database.select(_database.categories)
-                  ..where(($CategoriesTable c) => c.serverId.equals(serverId)))
-                .getSingleOrNull();
+            await (_database.select(_database.categories)..where(
+              ($CategoriesTable c) => c.serverId.equals(serverId),
+            )).getSingleOrNull();
         return entity?.serverUpdatedAt;
 
       case 'bill':
-        final BillEntity? entity = await (_database.select(_database.bills)
-              ..where(($BillsTable b) => b.serverId.equals(serverId)))
-            .getSingleOrNull();
+        final BillEntity? entity =
+            await (_database.select(_database.bills)..where(
+              ($BillsTable b) => b.serverId.equals(serverId),
+            )).getSingleOrNull();
         return entity?.serverUpdatedAt;
 
       case 'piggy_bank':
         final PiggyBankEntity? entity =
-            await (_database.select(_database.piggyBanks)
-                  ..where(($PiggyBanksTable p) => p.serverId.equals(serverId)))
-                .getSingleOrNull();
+            await (_database.select(_database.piggyBanks)..where(
+              ($PiggyBanksTable p) => p.serverId.equals(serverId),
+            )).getSingleOrNull();
         return entity?.serverUpdatedAt;
 
       default:
@@ -1074,31 +1119,36 @@ class IncrementalSyncService {
     // Use first split (most common case)
     final Map<String, dynamic> tx = txList[0] as Map<String, dynamic>;
 
-    await _database.into(_database.transactions).insertOnConflictUpdate(
-      TransactionEntityCompanion.insert(
-        id: serverId,
-        serverId: Value<String?>(serverId),
-        type: tx['type'] as String? ?? 'withdrawal',
-        date: _parseTimestamp(tx['date']) ?? DateTime.now(),
-        amount: _parseDouble(tx['amount']),
-        description: tx['description'] as String? ?? '',
-        sourceAccountId: tx['source_id'] as String? ?? '',
-        destinationAccountId: tx['destination_id'] as String? ?? '',
-        categoryId: Value<String?>(tx['category_id'] as String?),
-        budgetId: Value<String?>(tx['budget_id'] as String?),
-        currencyCode: tx['currency_code'] as String? ?? 'USD',
-        foreignAmount:
-            Value<double?>(_parseDoubleNullable(tx['foreign_amount'])),
-        foreignCurrencyCode: Value<String?>(tx['foreign_currency_code'] as String?),
-        notes: Value<String?>(tx['notes'] as String?),
-        tags: Value<String>(tx['tags']?.toString() ?? '[]'),
-        createdAt: createdAt ?? DateTime.now(),
-        updatedAt: serverUpdatedAt ?? DateTime.now(),
-        serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
-        isSynced: const Value<bool>(true),
-        syncStatus: const Value<String>('synced'),
-      ),
-    );
+    await _database
+        .into(_database.transactions)
+        .insertOnConflictUpdate(
+          TransactionEntityCompanion.insert(
+            id: serverId,
+            serverId: Value<String?>(serverId),
+            type: tx['type'] as String? ?? 'withdrawal',
+            date: _parseTimestamp(tx['date']) ?? DateTime.now(),
+            amount: _parseDouble(tx['amount']),
+            description: tx['description'] as String? ?? '',
+            sourceAccountId: tx['source_id'] as String? ?? '',
+            destinationAccountId: tx['destination_id'] as String? ?? '',
+            categoryId: Value<String?>(tx['category_id'] as String?),
+            budgetId: Value<String?>(tx['budget_id'] as String?),
+            currencyCode: tx['currency_code'] as String? ?? 'USD',
+            foreignAmount: Value<double?>(
+              _parseDoubleNullable(tx['foreign_amount']),
+            ),
+            foreignCurrencyCode: Value<String?>(
+              tx['foreign_currency_code'] as String?,
+            ),
+            notes: Value<String?>(tx['notes'] as String?),
+            tags: Value<String>(tx['tags']?.toString() ?? '[]'),
+            createdAt: createdAt ?? DateTime.now(),
+            updatedAt: serverUpdatedAt ?? DateTime.now(),
+            serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
+            isSynced: const Value<bool>(true),
+            syncStatus: const Value<String>('synced'),
+          ),
+        );
   }
 
   /// Merge server account into local database.
@@ -1110,29 +1160,35 @@ class IncrementalSyncService {
     final DateTime? serverUpdatedAt = _parseTimestamp(attrs['updated_at']);
     final DateTime? createdAt = _parseTimestamp(attrs['created_at']);
 
-    await _database.into(_database.accounts).insertOnConflictUpdate(
-      AccountEntityCompanion.insert(
-        id: serverId,
-        serverId: Value<String?>(serverId),
-        name: attrs['name'] as String? ?? 'Unknown',
-        type: attrs['type'] as String? ?? 'asset',
-        accountRole: Value<String?>(attrs['account_role'] as String?),
-        currencyCode: attrs['currency_code'] as String? ?? 'USD',
-        currentBalance: _parseDouble(attrs['current_balance']),
-        iban: Value<String?>(attrs['iban'] as String?),
-        bic: Value<String?>(attrs['bic'] as String?),
-        accountNumber: Value<String?>(attrs['account_number'] as String?),
-        openingBalance: Value<double?>(_parseDoubleNullable(attrs['opening_balance'])),
-        openingBalanceDate: Value<DateTime?>(_parseTimestamp(attrs['opening_balance_date'])),
-        notes: Value<String?>(attrs['notes'] as String?),
-        active: Value<bool>(attrs['active'] as bool? ?? true),
-        createdAt: createdAt ?? DateTime.now(),
-        updatedAt: serverUpdatedAt ?? DateTime.now(),
-        serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
-        isSynced: const Value<bool>(true),
-        syncStatus: const Value<String>('synced'),
-      ),
-    );
+    await _database
+        .into(_database.accounts)
+        .insertOnConflictUpdate(
+          AccountEntityCompanion.insert(
+            id: serverId,
+            serverId: Value<String?>(serverId),
+            name: attrs['name'] as String? ?? 'Unknown',
+            type: attrs['type'] as String? ?? 'asset',
+            accountRole: Value<String?>(attrs['account_role'] as String?),
+            currencyCode: attrs['currency_code'] as String? ?? 'USD',
+            currentBalance: _parseDouble(attrs['current_balance']),
+            iban: Value<String?>(attrs['iban'] as String?),
+            bic: Value<String?>(attrs['bic'] as String?),
+            accountNumber: Value<String?>(attrs['account_number'] as String?),
+            openingBalance: Value<double?>(
+              _parseDoubleNullable(attrs['opening_balance']),
+            ),
+            openingBalanceDate: Value<DateTime?>(
+              _parseTimestamp(attrs['opening_balance_date']),
+            ),
+            notes: Value<String?>(attrs['notes'] as String?),
+            active: Value<bool>(attrs['active'] as bool? ?? true),
+            createdAt: createdAt ?? DateTime.now(),
+            updatedAt: serverUpdatedAt ?? DateTime.now(),
+            serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
+            isSynced: const Value<bool>(true),
+            syncStatus: const Value<String>('synced'),
+          ),
+        );
   }
 
   /// Merge server budget into local database.
@@ -1144,23 +1200,30 @@ class IncrementalSyncService {
     final DateTime? serverUpdatedAt = _parseTimestamp(attrs['updated_at']);
     final DateTime? createdAt = _parseTimestamp(attrs['created_at']);
 
-    await _database.into(_database.budgets).insertOnConflictUpdate(
-      BudgetEntityCompanion.insert(
-        id: serverId,
-        serverId: Value<String?>(serverId),
-        name: attrs['name'] as String? ?? 'Unknown',
-        active: Value<bool>(attrs['active'] as bool? ?? true),
-        autoBudgetType: Value<String?>(attrs['auto_budget_type'] as String?),
-        autoBudgetAmount:
-            Value<double?>(_parseDoubleNullable(attrs['auto_budget_amount'])),
-        autoBudgetPeriod: Value<String?>(attrs['auto_budget_period'] as String?),
-        createdAt: createdAt ?? DateTime.now(),
-        updatedAt: serverUpdatedAt ?? DateTime.now(),
-        serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
-        isSynced: const Value<bool>(true),
-        syncStatus: const Value<String>('synced'),
-      ),
-    );
+    await _database
+        .into(_database.budgets)
+        .insertOnConflictUpdate(
+          BudgetEntityCompanion.insert(
+            id: serverId,
+            serverId: Value<String?>(serverId),
+            name: attrs['name'] as String? ?? 'Unknown',
+            active: Value<bool>(attrs['active'] as bool? ?? true),
+            autoBudgetType: Value<String?>(
+              attrs['auto_budget_type'] as String?,
+            ),
+            autoBudgetAmount: Value<double?>(
+              _parseDoubleNullable(attrs['auto_budget_amount']),
+            ),
+            autoBudgetPeriod: Value<String?>(
+              attrs['auto_budget_period'] as String?,
+            ),
+            createdAt: createdAt ?? DateTime.now(),
+            updatedAt: serverUpdatedAt ?? DateTime.now(),
+            serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
+            isSynced: const Value<bool>(true),
+            syncStatus: const Value<String>('synced'),
+          ),
+        );
   }
 
   /// Merge server category into local database.
@@ -1172,19 +1235,21 @@ class IncrementalSyncService {
     final DateTime? serverUpdatedAt = _parseTimestamp(attrs['updated_at']);
     final DateTime? createdAt = _parseTimestamp(attrs['created_at']);
 
-    await _database.into(_database.categories).insertOnConflictUpdate(
-      CategoryEntityCompanion.insert(
-        id: serverId,
-        serverId: Value<String?>(serverId),
-        name: attrs['name'] as String? ?? 'Unknown',
-        notes: Value<String?>(attrs['notes'] as String?),
-        createdAt: createdAt ?? DateTime.now(),
-        updatedAt: serverUpdatedAt ?? DateTime.now(),
-        serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
-        isSynced: const Value<bool>(true),
-        syncStatus: const Value<String>('synced'),
-      ),
-    );
+    await _database
+        .into(_database.categories)
+        .insertOnConflictUpdate(
+          CategoryEntityCompanion.insert(
+            id: serverId,
+            serverId: Value<String?>(serverId),
+            name: attrs['name'] as String? ?? 'Unknown',
+            notes: Value<String?>(attrs['notes'] as String?),
+            createdAt: createdAt ?? DateTime.now(),
+            updatedAt: serverUpdatedAt ?? DateTime.now(),
+            serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
+            isSynced: const Value<bool>(true),
+            syncStatus: const Value<String>('synced'),
+          ),
+        );
   }
 
   /// Merge server bill into local database.
@@ -1196,33 +1261,41 @@ class IncrementalSyncService {
     final DateTime? serverUpdatedAt = _parseTimestamp(attrs['updated_at']);
     final DateTime? createdAt = _parseTimestamp(attrs['created_at']);
 
-    await _database.into(_database.bills).insertOnConflictUpdate(
-      BillEntityCompanion.insert(
-        id: serverId,
-        serverId: Value<String?>(serverId),
-        name: attrs['name'] as String? ?? 'Unknown',
-        minAmount: _parseDouble(attrs['amount_min']),
-        maxAmount: _parseDouble(attrs['amount_max']),
-        currencyCode: attrs['currency_code'] as String? ?? 'USD',
-        currencySymbol: Value<String?>(attrs['currency_symbol'] as String?),
-        currencyDecimalPlaces: Value<int?>(attrs['currency_decimal_places'] as int?),
-        currencyId: Value<String?>(attrs['currency_id'] as String?),
-        date: _parseTimestamp(attrs['date']) ?? DateTime.now(),
-        repeatFreq: attrs['repeat_freq'] as String? ?? 'monthly',
-        skip: Value<int>(attrs['skip'] as int? ?? 0),
-        active: Value<bool>(attrs['active'] as bool? ?? true),
-        notes: Value<String?>(attrs['notes'] as String?),
-        nextExpectedMatch: Value<DateTime?>(_parseTimestamp(attrs['next_expected_match'])),
-        order: Value<int?>(attrs['order'] as int?),
-        objectGroupOrder: Value<int?>(attrs['object_group_order'] as int?),
-        objectGroupTitle: Value<String?>(attrs['object_group_title'] as String?),
-        createdAt: createdAt ?? DateTime.now(),
-        updatedAt: serverUpdatedAt ?? DateTime.now(),
-        serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
-        isSynced: const Value<bool>(true),
-        syncStatus: const Value<String>('synced'),
-      ),
-    );
+    await _database
+        .into(_database.bills)
+        .insertOnConflictUpdate(
+          BillEntityCompanion.insert(
+            id: serverId,
+            serverId: Value<String?>(serverId),
+            name: attrs['name'] as String? ?? 'Unknown',
+            minAmount: _parseDouble(attrs['amount_min']),
+            maxAmount: _parseDouble(attrs['amount_max']),
+            currencyCode: attrs['currency_code'] as String? ?? 'USD',
+            currencySymbol: Value<String?>(attrs['currency_symbol'] as String?),
+            currencyDecimalPlaces: Value<int?>(
+              attrs['currency_decimal_places'] as int?,
+            ),
+            currencyId: Value<String?>(attrs['currency_id'] as String?),
+            date: _parseTimestamp(attrs['date']) ?? DateTime.now(),
+            repeatFreq: attrs['repeat_freq'] as String? ?? 'monthly',
+            skip: Value<int>(attrs['skip'] as int? ?? 0),
+            active: Value<bool>(attrs['active'] as bool? ?? true),
+            notes: Value<String?>(attrs['notes'] as String?),
+            nextExpectedMatch: Value<DateTime?>(
+              _parseTimestamp(attrs['next_expected_match']),
+            ),
+            order: Value<int?>(attrs['order'] as int?),
+            objectGroupOrder: Value<int?>(attrs['object_group_order'] as int?),
+            objectGroupTitle: Value<String?>(
+              attrs['object_group_title'] as String?,
+            ),
+            createdAt: createdAt ?? DateTime.now(),
+            updatedAt: serverUpdatedAt ?? DateTime.now(),
+            serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
+            isSynced: const Value<bool>(true),
+            syncStatus: const Value<String>('synced'),
+          ),
+        );
   }
 
   /// Merge server piggy bank into local database.
@@ -1234,25 +1307,30 @@ class IncrementalSyncService {
     final DateTime? serverUpdatedAt = _parseTimestamp(attrs['updated_at']);
     final DateTime? createdAt = _parseTimestamp(attrs['created_at']);
 
-    await _database.into(_database.piggyBanks).insertOnConflictUpdate(
-      PiggyBankEntityCompanion.insert(
-        id: serverId,
-        serverId: Value<String?>(serverId),
-        name: attrs['name'] as String? ?? 'Unknown',
-        accountId: attrs['account_id'] as String? ?? '',
-        targetAmount: Value<double?>(_parseDoubleNullable(attrs['target_amount'])),
-        currentAmount:
-            Value<double>(_parseDoubleNullable(attrs['current_amount']) ?? 0.0),
-        startDate: Value<DateTime?>(_parseTimestamp(attrs['start_date'])),
-        targetDate: Value<DateTime?>(_parseTimestamp(attrs['target_date'])),
-        notes: Value<String?>(attrs['notes'] as String?),
-        createdAt: createdAt ?? DateTime.now(),
-        updatedAt: serverUpdatedAt ?? DateTime.now(),
-        serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
-        isSynced: const Value<bool>(true),
-        syncStatus: const Value<String>('synced'),
-      ),
-    );
+    await _database
+        .into(_database.piggyBanks)
+        .insertOnConflictUpdate(
+          PiggyBankEntityCompanion.insert(
+            id: serverId,
+            serverId: Value<String?>(serverId),
+            name: attrs['name'] as String? ?? 'Unknown',
+            accountId: attrs['account_id'] as String? ?? '',
+            targetAmount: Value<double?>(
+              _parseDoubleNullable(attrs['target_amount']),
+            ),
+            currentAmount: Value<double>(
+              _parseDoubleNullable(attrs['current_amount']) ?? 0.0,
+            ),
+            startDate: Value<DateTime?>(_parseTimestamp(attrs['start_date'])),
+            targetDate: Value<DateTime?>(_parseTimestamp(attrs['target_date'])),
+            notes: Value<String?>(attrs['notes'] as String?),
+            createdAt: createdAt ?? DateTime.now(),
+            updatedAt: serverUpdatedAt ?? DateTime.now(),
+            serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
+            isSynced: const Value<bool>(true),
+            syncStatus: const Value<String>('synced'),
+          ),
+        );
   }
 
   // ==================== Sync Window Management (Tier 3) ====================
@@ -1276,9 +1354,7 @@ class IncrementalSyncService {
     final int daysSinceFullSync =
         DateTime.now().difference(lastFullSync).inDays;
     if (daysSinceFullSync > maxDaysSinceFullSync) {
-      _logger.fine(
-        'Full sync too old ($daysSinceFullSync days), falling back',
-      );
+      _logger.fine('Full sync too old ($daysSinceFullSync days), falling back');
       return false; // Fallback to full sync
     }
 
@@ -1296,10 +1372,10 @@ class IncrementalSyncService {
 
   /// Get last full sync timestamp from database.
   Future<DateTime?> _getLastFullSyncTime() async {
-    final SyncMetadataEntity? metadata = await (_database
-            .select(_database.syncMetadata)
-          ..where(($SyncMetadataTable m) => m.key.equals('last_full_sync')))
-        .getSingleOrNull();
+    final SyncMetadataEntity? metadata =
+        await (_database.select(_database.syncMetadata)..where(
+          ($SyncMetadataTable m) => m.key.equals('last_full_sync'),
+        )).getSingleOrNull();
 
     if (metadata == null || metadata.value.isEmpty) {
       return null;
@@ -1310,10 +1386,10 @@ class IncrementalSyncService {
 
   /// Get last incremental sync timestamp from database.
   Future<DateTime?> _getLastIncrementalSyncTime() async {
-    final SyncMetadataEntity? metadata = await (_database
-            .select(_database.syncMetadata)
-          ..where(($SyncMetadataTable m) => m.key.equals('last_incremental_sync')))
-        .getSingleOrNull();
+    final SyncMetadataEntity? metadata =
+        await (_database.select(_database.syncMetadata)..where(
+          ($SyncMetadataTable m) => m.key.equals('last_incremental_sync'),
+        )).getSingleOrNull();
 
     if (metadata == null || metadata.value.isEmpty) {
       return null;
@@ -1324,13 +1400,15 @@ class IncrementalSyncService {
 
   /// Update last incremental sync timestamp in database.
   Future<void> _updateLastIncrementalSyncTime(DateTime timestamp) async {
-    await _database.into(_database.syncMetadata).insertOnConflictUpdate(
-      SyncMetadataEntityCompanion.insert(
-        key: 'last_incremental_sync',
-        value: timestamp.toIso8601String(),
-        updatedAt: DateTime.now(),
-      ),
-    );
+    await _database
+        .into(_database.syncMetadata)
+        .insertOnConflictUpdate(
+          SyncMetadataEntityCompanion.insert(
+            key: 'last_incremental_sync',
+            value: timestamp.toIso8601String(),
+            updatedAt: DateTime.now(),
+          ),
+        );
   }
 
   // ==================== Cache Management ====================
@@ -1364,13 +1442,13 @@ class IncrementalSyncService {
       // Use CacheService.isFresh() which handles metadata checking
       // and TTL validation according to cache-first architecture
       final bool isFresh = await _cacheService.isFresh(cacheKey, 'all');
-      
+
       if (isFresh) {
         _logger.fine('Cache fresh for $cacheKey (TTL: ${cacheTtlHours}h)');
       } else {
         _logger.fine('Cache stale or missing for $cacheKey');
       }
-      
+
       return isFresh;
     } catch (e) {
       _logger.warning('Cache check failed for $cacheKey: $e');
@@ -1399,35 +1477,40 @@ class IncrementalSyncService {
   Future<void> _updateSyncStatistics(
     Map<String, IncrementalSyncStats> statsByEntity,
   ) async {
-    for (final MapEntry<String, IncrementalSyncStats> entry in statsByEntity.entries) {
+    for (final MapEntry<String, IncrementalSyncStats> entry
+        in statsByEntity.entries) {
       final String entityType = entry.key;
       final IncrementalSyncStats stats = entry.value;
 
       try {
         // Get existing statistics
         final SyncStatisticsEntity? existing =
-            await (_database.select(_database.syncStatistics)
-                  ..where(($SyncStatisticsTable s) => s.entityType.equals(entityType)))
-                .getSingleOrNull();
+            await (_database.select(_database.syncStatistics)..where(
+              ($SyncStatisticsTable s) => s.entityType.equals(entityType),
+            )).getSingleOrNull();
 
         if (existing != null) {
           // Update cumulative statistics
-          await (_database.update(_database.syncStatistics)
-                ..where(($SyncStatisticsTable s) => s.entityType.equals(entityType)))
-              .write(
+          await (_database.update(_database.syncStatistics)..where(
+            ($SyncStatisticsTable s) => s.entityType.equals(entityType),
+          )).write(
             SyncStatisticsEntityCompanion(
               lastIncrementalSync: Value<DateTime>(DateTime.now()),
-              itemsFetchedTotal:
-                  Value<int>(existing.itemsFetchedTotal + stats.itemsFetched),
-              itemsUpdatedTotal:
-                  Value<int>(existing.itemsUpdatedTotal + stats.itemsUpdated),
-              itemsSkippedTotal:
-                  Value<int>(existing.itemsSkippedTotal + stats.itemsSkipped),
+              itemsFetchedTotal: Value<int>(
+                existing.itemsFetchedTotal + stats.itemsFetched,
+              ),
+              itemsUpdatedTotal: Value<int>(
+                existing.itemsUpdatedTotal + stats.itemsUpdated,
+              ),
+              itemsSkippedTotal: Value<int>(
+                existing.itemsSkippedTotal + stats.itemsSkipped,
+              ),
               bandwidthSavedBytes: Value<int>(
                 existing.bandwidthSavedBytes + stats.bandwidthSavedBytes,
               ),
-              apiCallsSavedCount:
-                  Value<int>(existing.apiCallsSavedCount + stats.apiCallsSaved),
+              apiCallsSavedCount: Value<int>(
+                existing.apiCallsSavedCount + stats.apiCallsSaved,
+              ),
               syncWindowStart: Value<DateTime?>(
                 DateTime.now().subtract(Duration(days: syncWindowDays)),
               ),
@@ -1437,19 +1520,21 @@ class IncrementalSyncService {
           );
         } else {
           // Insert new statistics
-          await _database.into(_database.syncStatistics).insert(
-            SyncStatisticsEntityCompanion.insert(
-              entityType: entityType,
-              lastIncrementalSync: DateTime.now(),
-              lastFullSync: const Value<DateTime?>(null),
-              itemsFetchedTotal: Value<int>(stats.itemsFetched),
-              itemsUpdatedTotal: Value<int>(stats.itemsUpdated),
-              itemsSkippedTotal: Value<int>(stats.itemsSkipped),
-              bandwidthSavedBytes: Value<int>(stats.bandwidthSavedBytes),
-              apiCallsSavedCount: Value<int>(stats.apiCallsSaved),
-              syncWindowDays: Value<int>(syncWindowDays),
-            ),
-          );
+          await _database
+              .into(_database.syncStatistics)
+              .insert(
+                SyncStatisticsEntityCompanion.insert(
+                  entityType: entityType,
+                  lastIncrementalSync: DateTime.now(),
+                  lastFullSync: const Value<DateTime?>(null),
+                  itemsFetchedTotal: Value<int>(stats.itemsFetched),
+                  itemsUpdatedTotal: Value<int>(stats.itemsUpdated),
+                  itemsSkippedTotal: Value<int>(stats.itemsSkipped),
+                  bandwidthSavedBytes: Value<int>(stats.bandwidthSavedBytes),
+                  apiCallsSavedCount: Value<int>(stats.apiCallsSaved),
+                  syncWindowDays: Value<int>(syncWindowDays),
+                ),
+              );
         }
       } catch (e) {
         _logger.warning('Failed to update statistics for $entityType: $e');
@@ -1479,8 +1564,9 @@ class IncrementalSyncService {
       _logger.warning('Failed to invalidate cache: $e');
     }
 
-    final DateTime since =
-        DateTime.now().subtract(Duration(days: syncWindowDays));
+    final DateTime since = DateTime.now().subtract(
+      Duration(days: syncWindowDays),
+    );
 
     switch (entityType) {
       case 'transaction':
@@ -1575,4 +1661,3 @@ class IncrementalSyncService {
     return null;
   }
 }
-

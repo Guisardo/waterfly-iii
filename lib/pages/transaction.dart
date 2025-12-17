@@ -368,7 +368,8 @@ class _TransactionPageState extends State<TransactionPage>
           final CurrencyRead defaultCurrency =
               context.read<FireflyService>().defaultCurrency;
           // Read repository before async gaps
-          final AccountRepository? accountRepo = context.read<AccountRepository?>();
+          final AccountRepository? accountRepo =
+              context.read<AccountRepository?>();
 
           log.info("Got notification ${widget.notification?.title}");
           _transactionType = TransactionTypeProperty.withdrawal;
@@ -404,20 +405,21 @@ class _TransactionPageState extends State<TransactionPage>
 
           if (accountRepo != null) {
             final List<AccountEntity> entities = await accountRepo.getAll();
-            assetAccounts = entities
-                .where((AccountEntity a) => a.type == 'asset')
-                .map(
-                  (AccountEntity a) => AccountRead(
-                    id: a.serverId ?? a.id,
-                    type: 'accounts',
-                    attributes: AccountProperties(
-                      name: a.name,
-                      type: ShortAccountTypeProperty.asset,
-                      currencyCode: a.currencyCode,
-                    ),
-                  ),
-                )
-                .toList();
+            assetAccounts =
+                entities
+                    .where((AccountEntity a) => a.type == 'asset')
+                    .map(
+                      (AccountEntity a) => AccountRead(
+                        id: a.serverId ?? a.id,
+                        type: 'accounts',
+                        attributes: AccountProperties(
+                          name: a.name,
+                          type: ShortAccountTypeProperty.asset,
+                          currencyCode: a.currencyCode,
+                        ),
+                      ),
+                    )
+                    .toList();
           } else {
             // Fallback to direct API call
             final Response<AccountArray> response = await api.v1AccountsGet(
@@ -1440,18 +1442,19 @@ class _TransactionPageState extends State<TransactionPage>
                           context.read<AccountRepository?>();
 
                       if (accountRepo != null) {
-                        final List<AccountEntity> accounts =
-                            await accountRepo.search(textEditingValue.text);
+                        final List<AccountEntity> accounts = await accountRepo
+                            .search(textEditingValue.text);
                         // Filter by allowed types
                         final List<AccountTypeFilter> allowedTypes =
                             _destinationAccountType.allowedOpposingTypes(false);
                         return accounts
                             .where((AccountEntity a) {
-                              return allowedTypes.isEmpty || allowedTypes.any(
-                                (AccountTypeFilter t) =>
-                                    t.value == a.type ||
-                                    t.value == '${a.type}Account',
-                              );
+                              return allowedTypes.isEmpty ||
+                                  allowedTypes.any(
+                                    (AccountTypeFilter t) =>
+                                        t.value == a.type ||
+                                        t.value == '${a.type}Account',
+                                  );
                             })
                             .map(
                               (AccountEntity a) => AutocompleteAccount(
@@ -1575,18 +1578,19 @@ class _TransactionPageState extends State<TransactionPage>
                             context.read<AccountRepository?>();
 
                         if (accountRepo != null) {
-                          final List<AccountEntity> accounts =
-                              await accountRepo.search(textEditingValue.text);
+                          final List<AccountEntity> accounts = await accountRepo
+                              .search(textEditingValue.text);
                           // Filter by allowed types
                           final List<AccountTypeFilter> allowedTypes =
                               _sourceAccountType.allowedOpposingTypes(true);
                           return accounts
                               .where((AccountEntity a) {
-                                return allowedTypes.isEmpty || allowedTypes.any(
-                                  (AccountTypeFilter t) =>
-                                      t.value == a.type ||
-                                      t.value == '${a.type}Account',
-                                );
+                                return allowedTypes.isEmpty ||
+                                    allowedTypes.any(
+                                      (AccountTypeFilter t) =>
+                                          t.value == a.type ||
+                                          t.value == '${a.type}Account',
+                                    );
                               })
                               .map(
                                 (AccountEntity a) => AutocompleteAccount(
@@ -1902,30 +1906,38 @@ class _TransactionPageState extends State<TransactionPage>
 
                                         if (accountRepo != null) {
                                           final List<AccountEntity> accounts =
-                                              await accountRepo.search(textEditingValue.text);
+                                              await accountRepo.search(
+                                                textEditingValue.text,
+                                              );
                                           // Filter by allowed types
-                                          final List<AccountTypeFilter> allowedTypes =
-                                              _destinationAccountType.allowedOpposingTypes(false);
+                                          final List<AccountTypeFilter>
+                                          allowedTypes = _destinationAccountType
+                                              .allowedOpposingTypes(false);
                                           return accounts
                                               .where((AccountEntity a) {
-                                                return allowedTypes.isEmpty || allowedTypes.any(
-                                                  (AccountTypeFilter t) =>
-                                                      t.value == a.type ||
-                                                      t.value == '${a.type}Account',
-                                                );
+                                                return allowedTypes.isEmpty ||
+                                                    allowedTypes.any(
+                                                      (AccountTypeFilter t) =>
+                                                          t.value == a.type ||
+                                                          t.value ==
+                                                              '${a.type}Account',
+                                                    );
                                               })
                                               .map(
-                                                (AccountEntity a) => AutocompleteAccount(
-                                                  id: a.serverId ?? a.id,
-                                                  name: a.name,
-                                                  nameWithBalance: a.name,
-                                                  type: a.type,
-                                                  currencyId: '0',
-                                                  currencyName: '',
-                                                  currencyCode: a.currencyCode,
-                                                  currencySymbol: a.currencyCode,
-                                                  currencyDecimalPlaces: 2,
-                                                ),
+                                                (AccountEntity a) =>
+                                                    AutocompleteAccount(
+                                                      id: a.serverId ?? a.id,
+                                                      name: a.name,
+                                                      nameWithBalance: a.name,
+                                                      type: a.type,
+                                                      currencyId: '0',
+                                                      currencyName: '',
+                                                      currencyCode:
+                                                          a.currencyCode,
+                                                      currencySymbol:
+                                                          a.currencyCode,
+                                                      currencyDecimalPlaces: 2,
+                                                    ),
                                               );
                                         }
 
@@ -2014,30 +2026,38 @@ class _TransactionPageState extends State<TransactionPage>
 
                                         if (accountRepo != null) {
                                           final List<AccountEntity> accounts =
-                                              await accountRepo.search(textEditingValue.text);
+                                              await accountRepo.search(
+                                                textEditingValue.text,
+                                              );
                                           // Filter by allowed types
-                                          final List<AccountTypeFilter> allowedTypes =
-                                              _sourceAccountType.allowedOpposingTypes(true);
+                                          final List<AccountTypeFilter>
+                                          allowedTypes = _sourceAccountType
+                                              .allowedOpposingTypes(true);
                                           return accounts
                                               .where((AccountEntity a) {
-                                                return allowedTypes.isEmpty || allowedTypes.any(
-                                                  (AccountTypeFilter t) =>
-                                                      t.value == a.type ||
-                                                      t.value == '${a.type}Account',
-                                                );
+                                                return allowedTypes.isEmpty ||
+                                                    allowedTypes.any(
+                                                      (AccountTypeFilter t) =>
+                                                          t.value == a.type ||
+                                                          t.value ==
+                                                              '${a.type}Account',
+                                                    );
                                               })
                                               .map(
-                                                (AccountEntity a) => AutocompleteAccount(
-                                                  id: a.serverId ?? a.id,
-                                                  name: a.name,
-                                                  nameWithBalance: a.name,
-                                                  type: a.type,
-                                                  currencyId: '0',
-                                                  currencyName: '',
-                                                  currencyCode: a.currencyCode,
-                                                  currencySymbol: a.currencyCode,
-                                                  currencyDecimalPlaces: 2,
-                                                ),
+                                                (AccountEntity a) =>
+                                                    AutocompleteAccount(
+                                                      id: a.serverId ?? a.id,
+                                                      name: a.name,
+                                                      nameWithBalance: a.name,
+                                                      type: a.type,
+                                                      currencyId: '0',
+                                                      currencyName: '',
+                                                      currencyCode:
+                                                          a.currencyCode,
+                                                      currencySymbol:
+                                                          a.currencyCode,
+                                                      currencyDecimalPlaces: 2,
+                                                    ),
                                               );
                                         }
 
@@ -2687,8 +2707,8 @@ class TransactionCategory extends StatelessWidget {
                     context.read<CategoryRepository?>();
 
                 if (categoryRepo != null) {
-                  final List<CategoryEntity> categories =
-                      await categoryRepo.searchByName(textEditingValue.text);
+                  final List<CategoryEntity> categories = await categoryRepo
+                      .searchByName(textEditingValue.text);
                   return categories.map((CategoryEntity c) => c.name);
                 }
 
@@ -2820,8 +2840,9 @@ class _TransactionBudgetState extends State<TransactionBudget> {
                     context.read<BudgetRepository?>();
 
                 if (budgetRepo != null) {
-                  final List<BudgetEntity> budgets =
-                      await budgetRepo.search(textEditingValue.text);
+                  final List<BudgetEntity> budgets = await budgetRepo.search(
+                    textEditingValue.text,
+                  );
                   return budgets.map(
                     (BudgetEntity b) => AutocompleteBudget(
                       id: b.serverId ?? b.id,

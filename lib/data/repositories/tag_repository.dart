@@ -77,11 +77,11 @@ class TagRepository extends BaseRepository<TagEntity, String> {
   Future<List<TagEntity>> getAll() async {
     try {
       logger.fine('Fetching all tags');
-      final List<TagEntity> tags = await (database.select(database.tags)
+      final List<TagEntity> tags =
+          await (database.select(database.tags)
             ..orderBy(<OrderClauseGenerator<$TagsTable>>[
-              ($TagsTable t) => OrderingTerm.asc(t.tag)
-            ]))
-          .get();
+              ($TagsTable t) => OrderingTerm.asc(t.tag),
+            ])).get();
       logger.info('Retrieved ${tags.length} tags');
       return tags;
     } catch (error, stackTrace) {
@@ -98,10 +98,9 @@ class TagRepository extends BaseRepository<TagEntity, String> {
   Stream<List<TagEntity>> watchAll() {
     logger.fine('Watching all tags');
     return (database.select(database.tags)
-          ..orderBy(<OrderClauseGenerator<$TagsTable>>[
-            ($TagsTable t) => OrderingTerm.asc(t.tag)
-          ]))
-        .watch();
+      ..orderBy(<OrderClauseGenerator<$TagsTable>>[
+        ($TagsTable t) => OrderingTerm.asc(t.tag),
+      ])).watch();
   }
 
   /// Retrieves a tag by ID with cache-first strategy.
@@ -117,15 +116,15 @@ class TagRepository extends BaseRepository<TagEntity, String> {
       if (cacheService != null) {
         logger.finest('Using cache-first strategy for tag $id');
 
-        final CacheResult<TagEntity?> cacheResult =
-            await cacheService!.get<TagEntity?>(
-          entityType: entityType,
-          entityId: id,
-          fetcher: () => _fetchTagFromDb(id),
-          ttl: cacheTtl,
-          forceRefresh: forceRefresh,
-          backgroundRefresh: backgroundRefresh,
-        );
+        final CacheResult<TagEntity?> cacheResult = await cacheService!
+            .get<TagEntity?>(
+              entityType: entityType,
+              entityId: id,
+              fetcher: () => _fetchTagFromDb(id),
+              ttl: cacheTtl,
+              forceRefresh: forceRefresh,
+              backgroundRefresh: backgroundRefresh,
+            );
 
         logger.info(
           'Tag fetched: $id from ${cacheResult.source} '
@@ -153,9 +152,9 @@ class TagRepository extends BaseRepository<TagEntity, String> {
   Future<TagEntity?> getByName(String name) async {
     try {
       logger.fine('Fetching tag by name: $name');
-      final TagEntity? tag = await (database.select(database.tags)
-            ..where(($TagsTable t) => t.tag.equals(name)))
-          .getSingleOrNull();
+      final TagEntity? tag =
+          await (database.select(database.tags)
+            ..where(($TagsTable t) => t.tag.equals(name))).getSingleOrNull();
 
       if (tag != null) {
         logger.fine('Found tag: $name');
@@ -183,13 +182,14 @@ class TagRepository extends BaseRepository<TagEntity, String> {
       logger.fine('Searching tags: $query');
       final String searchPattern = '%$query%';
 
-      final List<TagEntity> tags = await (database.select(database.tags)
-            ..where(($TagsTable t) => t.tag.like(searchPattern))
-            ..orderBy(<OrderClauseGenerator<$TagsTable>>[
-              ($TagsTable t) => OrderingTerm.asc(t.tag)
-            ])
-            ..limit(10))
-          .get();
+      final List<TagEntity> tags =
+          await (database.select(database.tags)
+                ..where(($TagsTable t) => t.tag.like(searchPattern))
+                ..orderBy(<OrderClauseGenerator<$TagsTable>>[
+                  ($TagsTable t) => OrderingTerm.asc(t.tag),
+                ])
+                ..limit(10))
+              .get();
 
       logger.info('Found ${tags.length} tags matching: $query');
       return tags;
@@ -207,9 +207,8 @@ class TagRepository extends BaseRepository<TagEntity, String> {
     try {
       logger.finest('Fetching tag from database: $id');
 
-      final SimpleSelectStatement<$TagsTable, TagEntity> query =
-          database.select(database.tags)
-            ..where(($TagsTable t) => t.id.equals(id));
+      final SimpleSelectStatement<$TagsTable, TagEntity> query = database
+        .select(database.tags)..where(($TagsTable t) => t.id.equals(id));
 
       final TagEntity? tag = await query.getSingleOrNull();
 
@@ -221,11 +220,7 @@ class TagRepository extends BaseRepository<TagEntity, String> {
 
       return tag;
     } catch (error, stackTrace) {
-      logger.severe(
-        'Database query failed for tag $id',
-        error,
-        stackTrace,
-      );
+      logger.severe('Database query failed for tag $id', error, stackTrace);
       throw DatabaseException.queryFailed(
         'SELECT * FROM tags WHERE id = $id',
         error,
@@ -237,9 +232,9 @@ class TagRepository extends BaseRepository<TagEntity, String> {
   @override
   Stream<TagEntity?> watchById(String id) {
     logger.fine('Watching tag: $id');
-    final SimpleSelectStatement<$TagsTable, TagEntity> query =
-        database.select(database.tags)
-          ..where(($TagsTable t) => t.id.equals(id));
+    final SimpleSelectStatement<$TagsTable, TagEntity> query = database.select(
+      database.tags,
+    )..where(($TagsTable t) => t.id.equals(id));
     return query.watchSingleOrNull();
   }
 
@@ -434,8 +429,7 @@ class TagRepository extends BaseRepository<TagEntity, String> {
       }
 
       await (database.delete(database.tags)
-            ..where(($TagsTable t) => t.id.equals(id)))
-          .go();
+        ..where(($TagsTable t) => t.id.equals(id))).go();
       logger.info('Tag deleted from database: $id');
 
       // Invalidate cache
@@ -456,9 +450,9 @@ class TagRepository extends BaseRepository<TagEntity, String> {
   Future<List<TagEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced tags');
-      final SimpleSelectStatement<$TagsTable, TagEntity> query =
-          database.select(database.tags)
-            ..where(($TagsTable t) => t.isSynced.equals(false));
+      final SimpleSelectStatement<$TagsTable, TagEntity> query = database
+          .select(database.tags)
+        ..where(($TagsTable t) => t.isSynced.equals(false));
       final List<TagEntity> tags = await query.get();
       logger.info('Found ${tags.length} unsynced tags');
       return tags;
@@ -478,8 +472,7 @@ class TagRepository extends BaseRepository<TagEntity, String> {
       logger.info('Marking tag as synced: $localId -> $serverId');
 
       await (database.update(database.tags)
-            ..where(($TagsTable t) => t.id.equals(localId)))
-          .write(
+        ..where(($TagsTable t) => t.id.equals(localId))).write(
         TagEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -491,7 +484,10 @@ class TagRepository extends BaseRepository<TagEntity, String> {
       logger.info('Tag marked as synced: $localId');
     } catch (error, stackTrace) {
       logger.severe(
-          'Failed to mark tag as synced: $localId', error, stackTrace);
+        'Failed to mark tag as synced: $localId',
+        error,
+        stackTrace,
+      );
       throw DatabaseException('Failed to mark tag as synced: $error');
     }
   }
@@ -542,4 +538,3 @@ class TagRepository extends BaseRepository<TagEntity, String> {
     }
   }
 }
-

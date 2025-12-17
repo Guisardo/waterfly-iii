@@ -72,7 +72,9 @@ class RetryStrategy {
         () async {
           attemptNumber++;
           try {
-            _logger.fine('Attempting $name (attempt $attemptNumber/$maxAttempts)');
+            _logger.fine(
+              'Attempting $name (attempt $attemptNumber/$maxAttempts)',
+            );
             return await operation();
           } catch (e) {
             _logger.warning(
@@ -137,7 +139,8 @@ class RetryStrategy {
     final Map<String, Exception> errors = <String, Exception>{};
     int completed = 0;
 
-    for (final MapEntry<String, Future<T> Function()> entry in operations.entries) {
+    for (final MapEntry<String, Future<T> Function()> entry
+        in operations.entries) {
       final String operationId = entry.key;
       final Future<T> Function() operation = entry.value;
 
@@ -209,11 +212,14 @@ class RetryStrategy {
   ///   Duration to wait before next retry
   Duration getRetryDelay(int attemptNumber) {
     // Calculate base delay with exponential backoff
-    final num baseDelayMs = initialDelay.inMilliseconds *
-        pow(exponentialFactor, attemptNumber - 1);
+    final num baseDelayMs =
+        initialDelay.inMilliseconds * pow(exponentialFactor, attemptNumber - 1);
 
     // Cap at max delay
-    final num cappedDelayMs = min(baseDelayMs, maxDelay.inMilliseconds.toDouble());
+    final num cappedDelayMs = min(
+      baseDelayMs,
+      maxDelay.inMilliseconds.toDouble(),
+    );
 
     // Add jitter (±jitter%)
     final double jitterAmount = cappedDelayMs * jitter;

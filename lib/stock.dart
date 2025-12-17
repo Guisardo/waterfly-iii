@@ -4,13 +4,13 @@ import 'dart:convert';
 import 'package:chopper/chopper.dart' show Response;
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:stock/stock.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart'
     as enums
     show TransactionTypeFilter;
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/services/data/insights_service.dart';
 
 class TransStock with ChangeNotifier {
   final FireflyIii api;
@@ -244,53 +244,34 @@ class _getOptions {
 }
 
 class CatStock {
-  final FireflyIii api;
+  final InsightsService insightsService;
   final CurrencyRead defaultCurrency;
 
   late Stock<DateTime, CategoryArray> _stock;
   final CachedSourceOfTruth<DateTime, CategoryArray> _sot =
       CachedSourceOfTruth<DateTime, CategoryArray>();
 
-  CatStock(this.api, this.defaultCurrency) {
+  CatStock(this.insightsService, this.defaultCurrency) {
     _stock = Stock<DateTime, CategoryArray>(
       fetcher: Fetcher.ofFuture<DateTime, CategoryArray>((DateTime t) async {
-        final String startDate = DateFormat(
-          'yyyy-MM-dd',
-          'en_US',
-        ).format(t.copyWith(day: 1));
-        final String endDate = DateFormat('yyyy-MM-dd', 'en_US').format(t);
+        final DateTime startDate = t.copyWith(day: 1);
+        final DateTime endDate = t;
 
-        final Response<InsightGroup> respIncomeCat = await api
-            .v1InsightIncomeCategoryGet(start: startDate, end: endDate);
-        if (!respIncomeCat.isSuccessful || respIncomeCat.body == null) {
-          throw Exception(
-            "[stock] Invalid v1InsightIncomeCategoryGet response: ${respIncomeCat.error}",
-          );
-        }
-        final Response<InsightTotal> respIncomeNoCat = await api
-            .v1InsightIncomeNoCategoryGet(start: startDate, end: endDate);
-        if (!respIncomeNoCat.isSuccessful || respIncomeNoCat.body == null) {
-          throw Exception(
-            "[stock] Invalid v1InsightIncomeNoCategoryGet response: ${respIncomeNoCat.error}",
-          );
-        }
-        final Response<InsightGroup> respExpenseCat = await api
-            .v1InsightExpenseCategoryGet(start: startDate, end: endDate);
-        if (!respExpenseCat.isSuccessful || respExpenseCat.body == null) {
-          throw Exception(
-            "[stock] Invalid v1InsightExpenseCategoryGet response: ${respExpenseCat.error}",
-          );
-        }
-        final Response<InsightTotal> respExpenseNoCat = await api
-            .v1InsightExpenseNoCategoryGet(start: startDate, end: endDate);
-        if (!respExpenseNoCat.isSuccessful || respExpenseNoCat.body == null) {
-          throw Exception(
-            "[stock] Invalid v1InsightExpenseNoCategoryGet response: ${respExpenseNoCat.error}",
-          );
-        }
+        // Use InsightsService with cache-first strategy instead of direct API calls
+        final List<InsightGroupEntry> respIncomeCat = await insightsService
+            .getIncomeByCategory(start: startDate, end: endDate);
+
+        final List<InsightTotalEntry> respIncomeNoCat = await insightsService
+            .getIncomeTotal(start: startDate, end: endDate);
+
+        final List<InsightGroupEntry> respExpenseCat = await insightsService
+            .getExpenseByCategory(start: startDate, end: endDate);
+
+        final List<InsightTotalEntry> respExpenseNoCat = await insightsService
+            .getExpenseTotal(start: startDate, end: endDate);
 
         final Map<String, CategoryRead> categories = <String, CategoryRead>{};
-        for (InsightGroupEntry cat in respIncomeCat.body!) {
+        for (InsightGroupEntry cat in respIncomeCat) {
           if ((cat.id?.isEmpty ?? true) || (cat.name?.isEmpty ?? true)) {
             continue;
           }
@@ -319,7 +300,7 @@ class CatStock {
             ),
           );
         }
-        for (InsightGroupEntry cat in respExpenseCat.body!) {
+        for (InsightGroupEntry cat in respExpenseCat) {
           if ((cat.id?.isEmpty ?? true) || (cat.name?.isEmpty ?? true)) {
             continue;
           }
@@ -348,7 +329,7 @@ class CatStock {
             ),
           );
         }
-        for (InsightTotalEntry cat in respIncomeNoCat.body!) {
+        for (InsightTotalEntry cat in respIncomeNoCat) {
           if (cat.currencyId != defaultCurrency.id) {
             continue;
           }
@@ -373,7 +354,7 @@ class CatStock {
             ),
           );
         }
-        for (InsightTotalEntry cat in respExpenseNoCat.body!) {
+        for (InsightTotalEntry cat in respExpenseNoCat) {
           if (cat.currencyId != defaultCurrency.id) {
             continue;
           }

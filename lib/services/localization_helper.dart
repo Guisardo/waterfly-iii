@@ -13,7 +13,7 @@ class LocalizationHelper {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? localeStr = prefs.getString(SettingsProvider.settingLocale);
-      
+
       Locale locale;
       if (localeStr != null && localeStr != 'unset') {
         locale = _parseLocale(localeStr);

@@ -53,22 +53,19 @@ class SyncStatistics extends Table {
   ///
   /// Cumulative counter used to calculate sync efficiency metrics.
   /// Reset when statistics are cleared.
-  IntColumn get itemsFetchedTotal =>
-      integer().withDefault(const Constant(0))();
+  IntColumn get itemsFetchedTotal => integer().withDefault(const Constant(0))();
 
   /// Total number of items that had changes and were updated locally.
   ///
   /// Items are updated when server timestamp is newer than local timestamp.
   /// Used to calculate the update rate (itemsUpdated / itemsFetched).
-  IntColumn get itemsUpdatedTotal =>
-      integer().withDefault(const Constant(0))();
+  IntColumn get itemsUpdatedTotal => integer().withDefault(const Constant(0))();
 
   /// Total number of items that were skipped because they were unchanged.
   ///
   /// Items are skipped when local timestamp equals server timestamp.
   /// High skip rate indicates good incremental sync efficiency.
-  IntColumn get itemsSkippedTotal =>
-      integer().withDefault(const Constant(0))();
+  IntColumn get itemsSkippedTotal => integer().withDefault(const Constant(0))();
 
   /// Estimated total bandwidth saved in bytes from incremental syncs.
   ///

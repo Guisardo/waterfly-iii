@@ -153,7 +153,8 @@ class ETagHandler {
     }
 
     // Try common header name variations
-    final etagValue = headers['etag'] ??
+    final etagValue =
+        headers['etag'] ??
         headers['ETag'] ??
         headers['Etag'] ??
         headers['ETAG'];
@@ -331,7 +332,9 @@ class ETagHandler {
     final String? etag = extractETagFromDio(response);
     final Map<String, String> headers = _convertHeaders(response.headers.map);
 
-    _log.fine('Wrapping response: statusCode=$statusCode, hasETag=${etag != null}');
+    _log.fine(
+      'Wrapping response: statusCode=$statusCode, hasETag=${etag != null}',
+    );
 
     // Handle 304 Not Modified
     if (statusCode == 304) {
@@ -352,10 +355,7 @@ class ETagHandler {
         );
       }
 
-      return ETagResponse<T>.notModified(
-        etag: etag,
-        headers: headers,
-      );
+      return ETagResponse<T>.notModified(etag: etag, headers: headers);
     }
 
     // Handle 200 OK
@@ -397,26 +397,16 @@ class ETagHandler {
       // Return error if data is null (parsing failed or no parser provided)
       if (data == null) {
         _log.severe('No data parsed from 200 response');
-        return ETagResponse<T>.error(
-          statusCode: 500,
-          headers: headers,
-        );
+        return ETagResponse<T>.error(statusCode: 500, headers: headers);
       }
 
-      return ETagResponse<T>.ok(
-        data: data,
-        etag: etag,
-        headers: headers,
-      );
+      return ETagResponse<T>.ok(data: data, etag: etag, headers: headers);
     }
 
     // Handle errors (4xx, 5xx)
     _log.warning('Error response: statusCode=$statusCode');
 
-    return ETagResponse<T>.error(
-      statusCode: statusCode,
-      headers: headers,
-    );
+    return ETagResponse<T>.error(statusCode: statusCode, headers: headers);
   }
 
   /// Wrap list response (for collection endpoints)
@@ -479,17 +469,19 @@ class ETagHandler {
       if (response.data != null) {
         try {
           if (response.data is List) {
-            data = (response.data as List)
-                .map((item) => parser(item as Map<String, dynamic>))
-                .toList();
+            data =
+                (response.data as List)
+                    .map((item) => parser(item as Map<String, dynamic>))
+                    .toList();
           } else if (response.data is Map<String, dynamic>) {
             // Handle wrapped list (e.g., {"data": [...]})
             final Map<String, dynamic> map =
                 response.data as Map<String, dynamic>;
             if (map.containsKey('data') && map['data'] is List) {
-              data = (map['data'] as List)
-                  .map((item) => parser(item as Map<String, dynamic>))
-                  .toList();
+              data =
+                  (map['data'] as List)
+                      .map((item) => parser(item as Map<String, dynamic>))
+                      .toList();
             }
           }
         } catch (e, stackTrace) {
@@ -500,17 +492,10 @@ class ETagHandler {
       // Return error if data is null (parsing failed)
       if (data == null) {
         _log.severe('No data parsed from 200 list response');
-        return ETagResponse<List<T>>.error(
-          statusCode: 500,
-          headers: headers,
-        );
+        return ETagResponse<List<T>>.error(statusCode: 500, headers: headers);
       }
 
-      return ETagResponse<List<T>>.ok(
-        data: data,
-        etag: etag,
-        headers: headers,
-      );
+      return ETagResponse<List<T>>.ok(data: data, etag: etag, headers: headers);
     }
 
     // Handle errors
@@ -588,9 +573,10 @@ class ETagHandler {
     final double bandwidthUsedMB = _bandwidthUsedBytes / (1024 * 1024);
     final double totalBandwidthMB = bandwidthSavedMB + bandwidthUsedMB;
 
-    final double savingsRate = totalBandwidthMB > 0
-        ? (bandwidthSavedMB / totalBandwidthMB) * 100
-        : 0.0;
+    final double savingsRate =
+        totalBandwidthMB > 0
+            ? (bandwidthSavedMB / totalBandwidthMB) * 100
+            : 0.0;
 
     return <String, dynamic>{
       'totalRequests': _totalRequests,

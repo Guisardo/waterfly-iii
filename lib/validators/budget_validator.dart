@@ -39,7 +39,13 @@ class BudgetValidator {
     // Period validation
     if (data.containsKey('period') && data['period'] != null) {
       final String period = data['period'] as String;
-      const List<String> validPeriods = <String>['daily', 'weekly', 'monthly', 'quarterly', 'yearly'];
+      const List<String> validPeriods = <String>[
+        'daily',
+        'weekly',
+        'monthly',
+        'quarterly',
+        'yearly',
+      ];
       if (!validPeriods.contains(period.toLowerCase())) {
         errors.add('Invalid budget period: $period');
       }

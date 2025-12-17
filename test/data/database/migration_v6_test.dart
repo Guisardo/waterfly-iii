@@ -28,13 +28,13 @@ void main() {
 
       test('should have correct columns in sync_statistics table', () async {
         // Query table info
-        final List<QueryRow> columns = await database.customSelect(
-          "PRAGMA table_info(sync_statistics)",
-        ).get();
+        final List<QueryRow> columns =
+            await database
+                .customSelect("PRAGMA table_info(sync_statistics)")
+                .get();
 
-        final List<String> columnNames = columns
-            .map((QueryRow col) => col.read<String>('name'))
-            .toList();
+        final List<String> columnNames =
+            columns.map((QueryRow col) => col.read<String>('name')).toList();
 
         expect(columnNames, contains('entity_type'));
         expect(columnNames, contains('last_incremental_sync'));
@@ -55,7 +55,9 @@ void main() {
         final DateTime now = DateTime.now();
 
         // First create accounts (required by FK constraint)
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'src-acc-1',
                 name: 'Source Account',
@@ -66,7 +68,9 @@ void main() {
                 updatedAt: now,
               ),
             );
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'dst-acc-1',
                 name: 'Destination Account',
@@ -79,7 +83,9 @@ void main() {
             );
 
         // Insert transaction with serverUpdatedAt
-        await database.into(database.transactions).insert(
+        await database
+            .into(database.transactions)
+            .insert(
               TransactionEntityCompanion.insert(
                 id: 'test-tx-123',
                 serverId: const Value<String?>('server-123'),
@@ -97,9 +103,9 @@ void main() {
 
         // Verify serverUpdatedAt column exists (should be null initially)
         final TransactionEntity transaction =
-            await (database.select(database.transactions)
-                  ..where(($TransactionsTable t) => t.id.equals('test-tx-123')))
-                .getSingle();
+            await (database.select(database.transactions)..where(
+              ($TransactionsTable t) => t.id.equals('test-tx-123'),
+            )).getSingle();
 
         expect(transaction.serverUpdatedAt, isNull); // Nullable column
       });
@@ -108,7 +114,9 @@ void main() {
         final DateTime now = DateTime.now();
 
         // Insert account
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'test-acc-123',
                 serverId: const Value<String?>('server-acc-123'),
@@ -123,9 +131,9 @@ void main() {
 
         // Verify serverUpdatedAt column exists
         final AccountEntity account =
-            await (database.select(database.accounts)
-                  ..where(($AccountsTable a) => a.id.equals('test-acc-123')))
-                .getSingle();
+            await (database.select(database.accounts)..where(
+              ($AccountsTable a) => a.id.equals('test-acc-123'),
+            )).getSingle();
 
         expect(account.serverUpdatedAt, isNull);
       });
@@ -133,7 +141,9 @@ void main() {
       test('should add server_updated_at column to budgets', () async {
         final DateTime now = DateTime.now();
 
-        await database.into(database.budgets).insert(
+        await database
+            .into(database.budgets)
+            .insert(
               BudgetEntityCompanion.insert(
                 id: 'test-bgt-123',
                 serverId: const Value<String?>('server-bgt-123'),
@@ -143,9 +153,10 @@ void main() {
               ),
             );
 
-        final BudgetEntity budget = await (database.select(database.budgets)
-              ..where(($BudgetsTable b) => b.id.equals('test-bgt-123')))
-            .getSingle();
+        final BudgetEntity budget =
+            await (database.select(database.budgets)..where(
+              ($BudgetsTable b) => b.id.equals('test-bgt-123'),
+            )).getSingle();
 
         expect(budget.serverUpdatedAt, isNull);
       });
@@ -153,7 +164,9 @@ void main() {
       test('should add server_updated_at column to categories', () async {
         final DateTime now = DateTime.now();
 
-        await database.into(database.categories).insert(
+        await database
+            .into(database.categories)
+            .insert(
               CategoryEntityCompanion.insert(
                 id: 'test-cat-123',
                 serverId: const Value<String?>('server-cat-123'),
@@ -164,9 +177,9 @@ void main() {
             );
 
         final CategoryEntity category =
-            await (database.select(database.categories)
-                  ..where(($CategoriesTable c) => c.id.equals('test-cat-123')))
-                .getSingle();
+            await (database.select(database.categories)..where(
+              ($CategoriesTable c) => c.id.equals('test-cat-123'),
+            )).getSingle();
 
         expect(category.serverUpdatedAt, isNull);
       });
@@ -174,7 +187,9 @@ void main() {
       test('should add server_updated_at column to bills', () async {
         final DateTime now = DateTime.now();
 
-        await database.into(database.bills).insert(
+        await database
+            .into(database.bills)
+            .insert(
               BillEntityCompanion.insert(
                 id: 'test-bill-123',
                 serverId: const Value<String?>('server-bill-123'),
@@ -189,9 +204,10 @@ void main() {
               ),
             );
 
-        final BillEntity bill = await (database.select(database.bills)
-              ..where(($BillsTable b) => b.id.equals('test-bill-123')))
-            .getSingle();
+        final BillEntity bill =
+            await (database.select(database.bills)..where(
+              ($BillsTable b) => b.id.equals('test-bill-123'),
+            )).getSingle();
 
         expect(bill.serverUpdatedAt, isNull);
       });
@@ -200,7 +216,9 @@ void main() {
         final DateTime now = DateTime.now();
 
         // First create an account for the piggy bank
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'piggy-acc-123',
                 serverId: const Value<String?>('server-piggy-acc-123'),
@@ -213,7 +231,9 @@ void main() {
               ),
             );
 
-        await database.into(database.piggyBanks).insert(
+        await database
+            .into(database.piggyBanks)
+            .insert(
               PiggyBankEntityCompanion.insert(
                 id: 'test-piggy-123',
                 serverId: const Value<String?>('server-piggy-123'),
@@ -227,9 +247,9 @@ void main() {
             );
 
         final PiggyBankEntity piggyBank =
-            await (database.select(database.piggyBanks)
-                  ..where(($PiggyBanksTable p) => p.id.equals('test-piggy-123')))
-                .getSingle();
+            await (database.select(database.piggyBanks)..where(
+              ($PiggyBanksTable p) => p.id.equals('test-piggy-123'),
+            )).getSingle();
 
         expect(piggyBank.serverUpdatedAt, isNull);
       });
@@ -245,9 +265,8 @@ void main() {
         ];
 
         for (final String table in tables) {
-          final List<QueryRow> columns = await database.customSelect(
-            "PRAGMA table_info($table)",
-          ).get();
+          final List<QueryRow> columns =
+              await database.customSelect("PRAGMA table_info($table)").get();
 
           final bool hasServerUpdatedAt = columns.any(
             (QueryRow col) => col.read<String>('name') == 'server_updated_at',
@@ -265,10 +284,13 @@ void main() {
     group('Index Creation', () {
       test('should create indexes on server_updated_at columns', () async {
         // Query sqlite_master for indexes
-        final List<QueryRow> indexes = await database.customSelect(
-          "SELECT name FROM sqlite_master WHERE type='index' "
-          "AND name LIKE 'idx_%_server_updated_at'",
-        ).get();
+        final List<QueryRow> indexes =
+            await database
+                .customSelect(
+                  "SELECT name FROM sqlite_master WHERE type='index' "
+                  "AND name LIKE 'idx_%_server_updated_at'",
+                )
+                .get();
 
         expect(indexes.length, greaterThanOrEqualTo(6));
 
@@ -290,7 +312,9 @@ void main() {
         final DateTime now = DateTime.now();
 
         // First create accounts (required by FK constraint)
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'src-acc-backfill',
                 name: 'Source Account Backfill',
@@ -301,7 +325,9 @@ void main() {
                 updatedAt: now,
               ),
             );
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'dst-acc-backfill',
                 name: 'Dest Account Backfill',
@@ -314,7 +340,9 @@ void main() {
             );
 
         // Insert transaction with updated_at but no server_updated_at
-        await database.into(database.transactions).insert(
+        await database
+            .into(database.transactions)
+            .insert(
               TransactionEntityCompanion.insert(
                 id: 'backfill-tx-123',
                 serverId: const Value<String?>('backfill-server-123'),
@@ -338,9 +366,9 @@ void main() {
 
         // Verify backfilled
         final TransactionEntity transaction =
-            await (database.select(database.transactions)
-                  ..where(($TransactionsTable t) => t.id.equals('backfill-tx-123')))
-                .getSingle();
+            await (database.select(database.transactions)..where(
+              ($TransactionsTable t) => t.id.equals('backfill-tx-123'),
+            )).getSingle();
 
         expect(transaction.serverUpdatedAt, isNotNull);
         // Note: Due to DateTime precision, we check they're close
@@ -355,7 +383,9 @@ void main() {
         final DateTime earlier = now.subtract(const Duration(hours: 1));
 
         // First create accounts (required by FK constraint)
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'src-acc-nooverwrite',
                 name: 'Source Account NoOverwrite',
@@ -366,7 +396,9 @@ void main() {
                 updatedAt: now,
               ),
             );
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'dst-acc-nooverwrite',
                 name: 'Dest Account NoOverwrite',
@@ -379,7 +411,9 @@ void main() {
             );
 
         // Insert transaction with both updated_at and server_updated_at
-        await database.into(database.transactions).insert(
+        await database
+            .into(database.transactions)
+            .insert(
               TransactionEntityCompanion.insert(
                 id: 'nooverwrite-tx-456',
                 serverId: const Value<String?>('nooverwrite-server-456'),
@@ -404,9 +438,9 @@ void main() {
 
         // Verify server_updated_at was NOT overwritten
         final TransactionEntity transaction =
-            await (database.select(database.transactions)
-                  ..where(($TransactionsTable t) => t.id.equals('nooverwrite-tx-456')))
-                .getSingle();
+            await (database.select(database.transactions)..where(
+              ($TransactionsTable t) => t.id.equals('nooverwrite-tx-456'),
+            )).getSingle();
 
         expect(
           transaction.serverUpdatedAt!.difference(earlier).inSeconds.abs(),
@@ -438,9 +472,9 @@ void main() {
 
       test('should have default values for statistics', () async {
         final SyncStatisticsEntity? transactionStats =
-            await (database.select(database.syncStatistics)
-                  ..where(($SyncStatisticsTable s) => s.entityType.equals('transaction')))
-                .getSingleOrNull();
+            await (database.select(database.syncStatistics)..where(
+              ($SyncStatisticsTable s) => s.entityType.equals('transaction'),
+            )).getSingleOrNull();
 
         expect(transactionStats, isNotNull);
         expect(transactionStats!.itemsFetchedTotal, equals(0));
@@ -465,9 +499,9 @@ void main() {
     group('Database Operations', () {
       test('should update sync statistics', () async {
         // Update statistics for transactions
-        await (database.update(database.syncStatistics)
-              ..where(($SyncStatisticsTable s) => s.entityType.equals('transaction')))
-            .write(
+        await (database.update(database.syncStatistics)..where(
+          ($SyncStatisticsTable s) => s.entityType.equals('transaction'),
+        )).write(
           const SyncStatisticsEntityCompanion(
             itemsFetchedTotal: Value<int>(100),
             itemsUpdatedTotal: Value<int>(25),
@@ -477,9 +511,9 @@ void main() {
 
         // Verify update
         final SyncStatisticsEntity? stats =
-            await (database.select(database.syncStatistics)
-                  ..where(($SyncStatisticsTable s) => s.entityType.equals('transaction')))
-                .getSingleOrNull();
+            await (database.select(database.syncStatistics)..where(
+              ($SyncStatisticsTable s) => s.entityType.equals('transaction'),
+            )).getSingleOrNull();
 
         expect(stats!.itemsFetchedTotal, equals(100));
         expect(stats.itemsUpdatedTotal, equals(25));
@@ -491,7 +525,9 @@ void main() {
         final DateTime earlier = now.subtract(const Duration(days: 7));
 
         // First create accounts (required by FK constraint)
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'src-acc-old',
                 name: 'Source Account Old',
@@ -502,7 +538,9 @@ void main() {
                 updatedAt: earlier,
               ),
             );
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'dst-acc-old',
                 name: 'Dest Account Old',
@@ -513,7 +551,9 @@ void main() {
                 updatedAt: earlier,
               ),
             );
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'src-acc-new',
                 name: 'Source Account New',
@@ -524,7 +564,9 @@ void main() {
                 updatedAt: now,
               ),
             );
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'dst-acc-new',
                 name: 'Dest Account New',
@@ -537,7 +579,9 @@ void main() {
             );
 
         // Insert multiple transactions with different server_updated_at
-        await database.into(database.transactions).insert(
+        await database
+            .into(database.transactions)
+            .insert(
               TransactionEntityCompanion.insert(
                 id: 'old-tx-1',
                 serverId: const Value<String?>('old-server-1'),
@@ -554,7 +598,9 @@ void main() {
               ),
             );
 
-        await database.into(database.transactions).insert(
+        await database
+            .into(database.transactions)
+            .insert(
               TransactionEntityCompanion.insert(
                 id: 'new-tx-1',
                 serverId: const Value<String?>('new-server-1'),
@@ -574,9 +620,10 @@ void main() {
         // Query transactions updated since a specific time
         final DateTime cutoff = now.subtract(const Duration(days: 3));
         final List<TransactionEntity> recentTransactions =
-            await (database.select(database.transactions)
-                  ..where(($TransactionsTable t) => t.serverUpdatedAt.isBiggerThanValue(cutoff)))
-                .get();
+            await (database.select(database.transactions)..where(
+              ($TransactionsTable t) =>
+                  t.serverUpdatedAt.isBiggerThanValue(cutoff),
+            )).get();
 
         expect(recentTransactions.length, equals(1));
         expect(recentTransactions.first.serverId, equals('new-server-1'));
@@ -586,7 +633,9 @@ void main() {
         final DateTime now = DateTime.now();
 
         // First create accounts (required by FK constraint)
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'src-acc-null',
                 name: 'Source Account Null',
@@ -597,7 +646,9 @@ void main() {
                 updatedAt: now,
               ),
             );
-        await database.into(database.accounts).insert(
+        await database
+            .into(database.accounts)
+            .insert(
               AccountEntityCompanion.insert(
                 id: 'dst-acc-null',
                 name: 'Dest Account Null',
@@ -610,7 +661,9 @@ void main() {
             );
 
         // Insert transaction without server_updated_at
-        await database.into(database.transactions).insert(
+        await database
+            .into(database.transactions)
+            .insert(
               TransactionEntityCompanion.insert(
                 id: 'null-tx-1',
                 serverId: const Value<String?>('null-server-1'),
@@ -628,12 +681,14 @@ void main() {
 
         // Query transactions with null server_updated_at using Drift's isNull()
         final List<TransactionEntity> nullTimestampTransactions =
-            await (database.select(database.transactions)
-                  ..where(($TransactionsTable t) => t.serverUpdatedAt.isNull()))
-                .get();
+            await (database.select(database.transactions)..where(
+              ($TransactionsTable t) => t.serverUpdatedAt.isNull(),
+            )).get();
 
         expect(
-          nullTimestampTransactions.any((TransactionEntity t) => t.serverId == 'null-server-1'),
+          nullTimestampTransactions.any(
+            (TransactionEntity t) => t.serverId == 'null-server-1',
+          ),
           isTrue,
         );
       });
@@ -645,9 +700,12 @@ void main() {
         // This just verifies the validation logic doesn't throw
 
         // Check sync_statistics table exists
-        final QueryRow? tableExists = await database.customSelect(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='sync_statistics'",
-        ).getSingleOrNull();
+        final QueryRow? tableExists =
+            await database
+                .customSelect(
+                  "SELECT name FROM sqlite_master WHERE type='table' AND name='sync_statistics'",
+                )
+                .getSingleOrNull();
 
         expect(tableExists, isNotNull);
 
@@ -657,10 +715,13 @@ void main() {
         expect(stats.length, greaterThanOrEqualTo(6));
 
         // Check indexes exist
-        final List<QueryRow> indexes = await database.customSelect(
-          "SELECT name FROM sqlite_master WHERE type='index' "
-          "AND name LIKE 'idx_%_server_updated_at'",
-        ).get();
+        final List<QueryRow> indexes =
+            await database
+                .customSelect(
+                  "SELECT name FROM sqlite_master WHERE type='index' "
+                  "AND name LIKE 'idx_%_server_updated_at'",
+                )
+                .get();
 
         expect(indexes.length, greaterThanOrEqualTo(6));
       });
@@ -669,8 +730,9 @@ void main() {
 
   group('Database Schema Version', () {
     test('should report schema version 8', () async {
-      final AppDatabase database =
-          AppDatabase.forTesting(NativeDatabase.memory());
+      final AppDatabase database = AppDatabase.forTesting(
+        NativeDatabase.memory(),
+      );
 
       expect(database.schemaVersion, equals(8));
 
@@ -680,10 +742,14 @@ void main() {
 
   group('MigrationException', () {
     test('should format message correctly', () {
-      final MigrationException exception =
-          MigrationException('Test error message');
+      final MigrationException exception = MigrationException(
+        'Test error message',
+      );
 
-      expect(exception.toString(), equals('MigrationException: Test error message'));
+      expect(
+        exception.toString(),
+        equals('MigrationException: Test error message'),
+      );
       expect(exception.message, equals('Test error message'));
     });
   });

@@ -141,8 +141,10 @@ class _CacheStalenessManualTestPageState
       final CacheService cacheService = context.read<CacheService>();
 
       // Check if cache exists and is fresh using public API
-      final bool isFresh =
-          await cacheService.isFresh(testEntityType, testEntityId);
+      final bool isFresh = await cacheService.isFresh(
+        testEntityType,
+        testEntityId,
+      );
 
       // Calculate time remaining based on local tracking
       // (Avoids direct database access which can fail on some devices)
@@ -153,7 +155,8 @@ class _CacheStalenessManualTestPageState
 
           if (_cachedAt != null) {
             _expiresAt = _cachedAt!.add(testTtl);
-            _secondsUntilStale = _expiresAt!.difference(DateTime.now()).inSeconds;
+            _secondsUntilStale =
+                _expiresAt!.difference(DateTime.now()).inSeconds;
             if (_secondsUntilStale < 0) _secondsUntilStale = 0;
           }
         });
@@ -171,7 +174,9 @@ class _CacheStalenessManualTestPageState
   /// Start countdown timer
   void _startCountdownTimer() {
     _countdownTimer?.cancel();
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (Timer timer) async {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (
+      Timer timer,
+    ) async {
       if (!mounted) {
         timer.cancel();
         return;
@@ -205,8 +210,10 @@ class _CacheStalenessManualTestPageState
       await Future.delayed(const Duration(milliseconds: 50));
 
       // Update local tracking to reflect stale state
-      _cachedAt = DateTime.now().subtract(testTtl).subtract(const Duration(seconds: 1));
-      
+      _cachedAt = DateTime.now()
+          .subtract(testTtl)
+          .subtract(const Duration(seconds: 1));
+
       _addLog('✅ Cache forced to stale state');
       await _checkFreshness();
     } catch (e) {
@@ -222,7 +229,8 @@ class _CacheStalenessManualTestPageState
       final CacheService cacheService = context.read<CacheService>();
 
       // Simulate background refresh by re-caching with fresh TTL
-      final String newData = 'Refreshed Data - ${DateTime.now().toIso8601String()}';
+      final String newData =
+          'Refreshed Data - ${DateTime.now().toIso8601String()}';
       await cacheService.set(
         entityType: testEntityType,
         entityId: testEntityId,
@@ -308,8 +316,10 @@ class _CacheStalenessManualTestPageState
                   children: <Widget>[
                     Row(
                       children: <Widget>[
-                        Icon(Icons.info_outline,
-                            color: Theme.of(context).colorScheme.primary),
+                        Icon(
+                          Icons.info_outline,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Manual Test Instructions',
@@ -384,9 +394,10 @@ class _CacheStalenessManualTestPageState
             // Cache Status Display
             if (_testRunning) ...<Widget>[
               Card(
-                color: _isFresh
-                    ? Colors.green.shade50
-                    : _cacheExists
+                color:
+                    _isFresh
+                        ? Colors.green.shade50
+                        : _cacheExists
                         ? Colors.orange.shade50
                         : Colors.grey.shade50,
                 child: Padding(
@@ -408,15 +419,15 @@ class _CacheStalenessManualTestPageState
                               children: <Widget>[
                                 Text(
                                   _isFresh ? 'FRESH ✅' : 'STALE ⚠️',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(
-                                        color: _isFresh
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleLarge?.copyWith(
+                                    color:
+                                        _isFresh
                                             ? Colors.green.shade700
                                             : Colors.orange.shade700,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -424,9 +435,10 @@ class _CacheStalenessManualTestPageState
                                       ? 'Cache is fresh and valid'
                                       : 'Cache has exceeded TTL',
                                   style: TextStyle(
-                                    color: _isFresh
-                                        ? Colors.green.shade700
-                                        : Colors.orange.shade700,
+                                    color:
+                                        _isFresh
+                                            ? Colors.green.shade700
+                                            : Colors.orange.shade700,
                                   ),
                                 ),
                               ],
@@ -484,8 +496,10 @@ class _CacheStalenessManualTestPageState
                   children: <Widget>[
                     Row(
                       children: <Widget>[
-                        Icon(Icons.terminal,
-                            color: Theme.of(context).colorScheme.primary),
+                        Icon(
+                          Icons.terminal,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Test Logs',
@@ -512,36 +526,40 @@ class _CacheStalenessManualTestPageState
                         color: Colors.grey.shade900,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: _logMessages.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'No logs yet. Start the test to see logs.',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            )
-                          : ListView.builder(
-                              reverse: true,
-                              itemCount: _logMessages.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                final String message =
-                                    _logMessages[_logMessages.length - 1 - index];
-                                return Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 2),
-                                  child: Text(
-                                    message,
-                                    style: const TextStyle(
-                                      color: Colors.greenAccent,
-                                      fontFamily: 'monospace',
-                                      fontSize: 11,
-                                    ),
+                      child:
+                          _logMessages.isEmpty
+                              ? const Center(
+                                child: Text(
+                                  'No logs yet. Start the test to see logs.',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
                                   ),
-                                );
-                              },
-                            ),
+                                ),
+                              )
+                              : ListView.builder(
+                                reverse: true,
+                                itemCount: _logMessages.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  final String message =
+                                      _logMessages[_logMessages.length -
+                                          1 -
+                                          index];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 2,
+                                    ),
+                                    child: Text(
+                                      message,
+                                      style: const TextStyle(
+                                        color: Colors.greenAccent,
+                                        fontFamily: 'monospace',
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                     ),
                   ],
                 ),

@@ -123,10 +123,11 @@ class _NetEarningsChartPopupState extends State<NetEarningsChartPopup> {
 
     // Use InsightsService with cache-first strategy
     if (insightsService != null) {
-      (incomeData, expenseData) = await (
-        insightsService.getIncomeByCategory(start: start, end: end),
-        insightsService.getExpenseByCategory(start: start, end: end),
-      ).wait;
+      (incomeData, expenseData) =
+          await (
+            insightsService.getIncomeByCategory(start: start, end: end),
+            insightsService.getExpenseByCategory(start: start, end: end),
+          ).wait;
     } else {
       // Fallback to direct API call if service not available
       final FireflyIii api = context.read<FireflyService>().api;

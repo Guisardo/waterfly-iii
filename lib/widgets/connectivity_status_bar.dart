@@ -73,10 +73,9 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, -1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -89,7 +88,11 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
   @override
   Widget build(BuildContext context) {
     return Consumer<ConnectivityProvider>(
-      builder: (BuildContext context, ConnectivityProvider connectivity, Widget? child) {
+      builder: (
+        BuildContext context,
+        ConnectivityProvider connectivity,
+        Widget? child,
+      ) {
         final ConnectivityStatus status = connectivity.status;
 
         // Handle status changes after build completes
@@ -110,7 +113,9 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
             color: _getStatusColor(status),
             elevation: 4,
             child: InkWell(
-              onTap: widget.onTap ?? () => _showNetworkDetails(context, connectivity),
+              onTap:
+                  widget.onTap ??
+                  () => _showNetworkDetails(context, connectivity),
               child: SafeArea(
                 bottom: false,
                 child: Container(
@@ -244,11 +249,11 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
       context,
       listen: false,
     );
-    
+
     if (connectivity.isOffline) {
       return 'No connection';
     }
-    
+
     return connectivity.networkTypeDescription;
   }
 
@@ -259,94 +264,102 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
   ) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Row(
-          children: <Widget>[
-            Icon(
-              _getStatusIcon(connectivity.status),
-              color: _getStatusColor(connectivity.status),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: Row(
+              children: <Widget>[
+                Icon(
+                  _getStatusIcon(connectivity.status),
+                  color: _getStatusColor(connectivity.status),
+                ),
+                const SizedBox(width: 12),
+                const Text('Network Status'),
+              ],
             ),
-            const SizedBox(width: 12),
-            const Text('Network Status'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _buildDetailRow(
-              'Status',
-              connectivity.statusText,
-              connectivity.isOnline ? Colors.green : Colors.red,
-            ),
-            const SizedBox(height: 12),
-            _buildDetailRow(
-              'Connection',
-              connectivity.isOnline ? 'Available' : 'Unavailable',
-              null,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              connectivity.isOffline
-                  ? 'Some features may be limited while offline. '
-                      'Data will sync automatically when connection is restored.'
-                  : 'All features are available.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
-            ),
-          ],
-        ),
-        actions: <Widget>[
-          if (connectivity.isOffline)
-            TextButton.icon(
-              onPressed: () async {
-                Navigator.pop(context);
-                _log.info('Manual connectivity check requested');
-                
-                try {
-                  // Trigger connectivity check via provider
-                  final ConnectivityProvider connectivityProvider = Provider.of<ConnectivityProvider>(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                _buildDetailRow(
+                  'Status',
+                  connectivity.statusText,
+                  connectivity.isOnline ? Colors.green : Colors.red,
+                ),
+                const SizedBox(height: 12),
+                _buildDetailRow(
+                  'Connection',
+                  connectivity.isOnline ? 'Available' : 'Unavailable',
+                  null,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  connectivity.isOffline
+                      ? 'Some features may be limited while offline. '
+                          'Data will sync automatically when connection is restored.'
+                      : 'All features are available.',
+                  style: Theme.of(
                     context,
-                    listen: false,
-                  );
-                  
-                  final bool isOnline = await connectivityProvider.checkConnectivity();
-                  
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          isOnline
-                              ? 'Connection restored!'
-                              : 'Still offline. Please check your network settings.',
-                        ),
-                        backgroundColor: isOnline ? Colors.green : Colors.orange,
-                      ),
-                    );
-                  }
-                } catch (e, stackTrace) {
-                  _log.severe('Failed to check connectivity', e, stackTrace);
-                  
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Failed to check connectivity'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+                  ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                ),
+              ],
             ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            actions: <Widget>[
+              if (connectivity.isOffline)
+                TextButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    _log.info('Manual connectivity check requested');
+
+                    try {
+                      // Trigger connectivity check via provider
+                      final ConnectivityProvider connectivityProvider =
+                          Provider.of<ConnectivityProvider>(
+                            context,
+                            listen: false,
+                          );
+
+                      final bool isOnline =
+                          await connectivityProvider.checkConnectivity();
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isOnline
+                                  ? 'Connection restored!'
+                                  : 'Still offline. Please check your network settings.',
+                            ),
+                            backgroundColor:
+                                isOnline ? Colors.green : Colors.orange,
+                          ),
+                        );
+                      }
+                    } catch (e, stackTrace) {
+                      _log.severe(
+                        'Failed to check connectivity',
+                        e,
+                        stackTrace,
+                      );
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Failed to check connectivity'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -355,10 +368,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
         Text(
           value,
           style: TextStyle(

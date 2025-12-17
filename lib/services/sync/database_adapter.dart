@@ -39,7 +39,7 @@ import 'package:waterflyiii/validators/piggy_bank_validator.dart';
 class DatabaseAdapter {
   final Logger _logger = Logger('DatabaseAdapter');
   final AppDatabase database;
-  
+
   // Validators
   final TransactionValidator _transactionValidator;
   final AccountValidator _accountValidator;
@@ -56,12 +56,12 @@ class DatabaseAdapter {
     BudgetValidator? budgetValidator,
     BillValidator? billValidator,
     PiggyBankValidator? piggyBankValidator,
-  })  : _transactionValidator = transactionValidator ?? TransactionValidator(),
-        _accountValidator = accountValidator ?? AccountValidator(),
-        _categoryValidator = categoryValidator ?? CategoryValidator(),
-        _budgetValidator = budgetValidator ?? BudgetValidator(),
-        _billValidator = billValidator ?? BillValidator(),
-        _piggyBankValidator = piggyBankValidator ?? PiggyBankValidator();
+  }) : _transactionValidator = transactionValidator ?? TransactionValidator(),
+       _accountValidator = accountValidator ?? AccountValidator(),
+       _categoryValidator = categoryValidator ?? CategoryValidator(),
+       _budgetValidator = budgetValidator ?? BudgetValidator(),
+       _billValidator = billValidator ?? BillValidator(),
+       _piggyBankValidator = piggyBankValidator ?? PiggyBankValidator();
 
   // ==================== TRANSACTION OPERATIONS ====================
 
@@ -78,7 +78,7 @@ class DatabaseAdapter {
       }
 
       final String id = data['id'] as String;
-      
+
       final TransactionEntityCompanion entity = TransactionEntityCompanion(
         id: Value(id),
         serverId: Value(data['server_id'] as String?),
@@ -87,7 +87,9 @@ class DatabaseAdapter {
         amount: Value(_parseDouble(data['amount'])),
         description: Value(data['description'] as String? ?? ''),
         sourceAccountId: Value(data['source_account_id'] as String? ?? ''),
-        destinationAccountId: Value(data['destination_account_id'] as String? ?? ''),
+        destinationAccountId: Value(
+          data['destination_account_id'] as String? ?? '',
+        ),
         categoryId: Value(data['category_id'] as String?),
         budgetId: Value(data['budget_id'] as String?),
         currencyCode: Value(data['currency_code'] as String? ?? 'USD'),
@@ -110,7 +112,9 @@ class DatabaseAdapter {
   }
 
   /// Batch upsert transactions.
-  Future<void> upsertTransactionsBatch(List<Map<String, dynamic>> dataList) async {
+  Future<void> upsertTransactionsBatch(
+    List<Map<String, dynamic>> dataList,
+  ) async {
     try {
       await database.transaction(() async {
         for (final Map<String, dynamic> data in dataList) {
@@ -120,17 +124,20 @@ class DatabaseAdapter {
       _logger.info('Batch upserted ${dataList.length} transactions');
     } catch (e, stackTrace) {
       _logger.severe('Failed to batch upsert transactions', e, stackTrace);
-      throw DatabaseException('Failed to batch upsert transactions: ${e.toString()}');
+      throw DatabaseException(
+        'Failed to batch upsert transactions: ${e.toString()}',
+      );
     }
   }
 
   /// Get a transaction by ID.
   Future<Map<String, dynamic>?> getTransaction(String id) async {
     try {
-      final TransactionEntity? result = await (database.select(database.transactions)
-            ..where(($TransactionsTable t) => t.id.equals(id)))
-          .getSingleOrNull();
-      
+      final TransactionEntity? result =
+          await (database.select(database.transactions)..where(
+            ($TransactionsTable t) => t.id.equals(id),
+          )).getSingleOrNull();
+
       if (result == null) return null;
 
       return _transactionToMap(result);
@@ -144,8 +151,7 @@ class DatabaseAdapter {
   Future<void> deleteTransaction(String id) async {
     try {
       await (database.delete(database.transactions)
-            ..where(($TransactionsTable t) => t.id.equals(id)))
-          .go();
+        ..where(($TransactionsTable t) => t.id.equals(id))).go();
       _logger.fine('Deleted transaction: $id');
     } catch (e, stackTrace) {
       _logger.severe('Failed to delete transaction $id', e, stackTrace);
@@ -156,7 +162,8 @@ class DatabaseAdapter {
   /// Get all transactions.
   Future<List<Map<String, dynamic>>> getAllTransactions() async {
     try {
-      final List<TransactionEntity> results = await database.select(database.transactions).get();
+      final List<TransactionEntity> results =
+          await database.select(database.transactions).get();
       return results.map(_transactionToMap).toList();
     } catch (e, stackTrace) {
       _logger.severe('Failed to get all transactions', e, stackTrace);
@@ -169,7 +176,9 @@ class DatabaseAdapter {
   /// Insert or update an account with validation.
   Future<void> upsertAccount(Map<String, dynamic> data) async {
     try {
-      final ValidationResult validation = await _accountValidator.validate(data);
+      final ValidationResult validation = await _accountValidator.validate(
+        data,
+      );
       if (!validation.isValid) {
         throw ValidationException(
           'Account validation failed: ${validation.errors.join(', ')}',
@@ -178,7 +187,7 @@ class DatabaseAdapter {
       }
 
       final String id = data['id'] as String;
-      
+
       final AccountEntityCompanion entity = AccountEntityCompanion(
         id: Value(id),
         serverId: Value(data['server_id'] as String?),
@@ -217,17 +226,19 @@ class DatabaseAdapter {
       _logger.info('Batch upserted ${dataList.length} accounts');
     } catch (e, stackTrace) {
       _logger.severe('Failed to batch upsert accounts', e, stackTrace);
-      throw DatabaseException('Failed to batch upsert accounts: ${e.toString()}');
+      throw DatabaseException(
+        'Failed to batch upsert accounts: ${e.toString()}',
+      );
     }
   }
 
   /// Get an account by ID.
   Future<Map<String, dynamic>?> getAccount(String id) async {
     try {
-      final AccountEntity? result = await (database.select(database.accounts)
-            ..where(($AccountsTable a) => a.id.equals(id)))
-          .getSingleOrNull();
-      
+      final AccountEntity? result =
+          await (database.select(database.accounts)
+            ..where(($AccountsTable a) => a.id.equals(id))).getSingleOrNull();
+
       if (result == null) return null;
 
       return _accountToMap(result);
@@ -242,7 +253,9 @@ class DatabaseAdapter {
   /// Insert or update a category with validation.
   Future<void> upsertCategory(Map<String, dynamic> data) async {
     try {
-      final ValidationResult validation = await _categoryValidator.validate(data);
+      final ValidationResult validation = await _categoryValidator.validate(
+        data,
+      );
       if (!validation.isValid) {
         throw ValidationException(
           'Category validation failed: ${validation.errors.join(', ')}',
@@ -251,7 +264,7 @@ class DatabaseAdapter {
       }
 
       final String id = data['id'] as String;
-      
+
       final CategoryEntityCompanion entity = CategoryEntityCompanion(
         id: Value(id),
         serverId: Value(data['server_id'] as String?),
@@ -272,7 +285,9 @@ class DatabaseAdapter {
   }
 
   /// Batch upsert categories.
-  Future<void> upsertCategoriesBatch(List<Map<String, dynamic>> dataList) async {
+  Future<void> upsertCategoriesBatch(
+    List<Map<String, dynamic>> dataList,
+  ) async {
     try {
       await database.transaction(() async {
         for (final Map<String, dynamic> data in dataList) {
@@ -282,17 +297,19 @@ class DatabaseAdapter {
       _logger.info('Batch upserted ${dataList.length} categories');
     } catch (e, stackTrace) {
       _logger.severe('Failed to batch upsert categories', e, stackTrace);
-      throw DatabaseException('Failed to batch upsert categories: ${e.toString()}');
+      throw DatabaseException(
+        'Failed to batch upsert categories: ${e.toString()}',
+      );
     }
   }
 
   /// Get a category by ID.
   Future<Map<String, dynamic>?> getCategory(String id) async {
     try {
-      final CategoryEntity? result = await (database.select(database.categories)
-            ..where(($CategoriesTable c) => c.id.equals(id)))
-          .getSingleOrNull();
-      
+      final CategoryEntity? result =
+          await (database.select(database.categories)
+            ..where(($CategoriesTable c) => c.id.equals(id))).getSingleOrNull();
+
       if (result == null) return null;
 
       return _categoryToMap(result);
@@ -316,7 +333,7 @@ class DatabaseAdapter {
       }
 
       final String id = data['id'] as String;
-      
+
       final BudgetEntityCompanion entity = BudgetEntityCompanion(
         id: Value(id),
         serverId: Value(data['server_id'] as String?),
@@ -339,10 +356,10 @@ class DatabaseAdapter {
   /// Get a budget by ID.
   Future<Map<String, dynamic>?> getBudget(String id) async {
     try {
-      final BudgetEntity? result = await (database.select(database.budgets)
-            ..where(($BudgetsTable b) => b.id.equals(id)))
-          .getSingleOrNull();
-      
+      final BudgetEntity? result =
+          await (database.select(database.budgets)
+            ..where(($BudgetsTable b) => b.id.equals(id))).getSingleOrNull();
+
       if (result == null) return null;
 
       return _budgetToMap(result);
@@ -366,7 +383,7 @@ class DatabaseAdapter {
       }
 
       final String id = data['id'] as String;
-      
+
       final BillEntityCompanion entity = BillEntityCompanion(
         id: Value(id),
         serverId: Value(data['server_id'] as String?),
@@ -403,10 +420,10 @@ class DatabaseAdapter {
   /// Get a bill by ID.
   Future<Map<String, dynamic>?> getBill(String id) async {
     try {
-      final BillEntity? result = await (database.select(database.bills)
-            ..where(($BillsTable b) => b.id.equals(id)))
-          .getSingleOrNull();
-      
+      final BillEntity? result =
+          await (database.select(database.bills)
+            ..where(($BillsTable b) => b.id.equals(id))).getSingleOrNull();
+
       if (result == null) return null;
 
       return _billToMap(result);
@@ -421,7 +438,9 @@ class DatabaseAdapter {
   /// Insert or update a piggy bank with validation.
   Future<void> upsertPiggyBank(Map<String, dynamic> data) async {
     try {
-      final ValidationResult validation = await _piggyBankValidator.validate(data);
+      final ValidationResult validation = await _piggyBankValidator.validate(
+        data,
+      );
       if (!validation.isValid) {
         throw ValidationException(
           'Piggy bank validation failed: ${validation.errors.join(', ')}',
@@ -430,7 +449,7 @@ class DatabaseAdapter {
       }
 
       final String id = data['id'] as String;
-      
+
       final PiggyBankEntityCompanion entity = PiggyBankEntityCompanion(
         id: Value(id),
         serverId: Value(data['server_id'] as String?),
@@ -458,10 +477,10 @@ class DatabaseAdapter {
   /// Get a piggy bank by ID.
   Future<Map<String, dynamic>?> getPiggyBank(String id) async {
     try {
-      final PiggyBankEntity? result = await (database.select(database.piggyBanks)
-            ..where(($PiggyBanksTable p) => p.id.equals(id)))
-          .getSingleOrNull();
-      
+      final PiggyBankEntity? result =
+          await (database.select(database.piggyBanks)
+            ..where(($PiggyBanksTable p) => p.id.equals(id))).getSingleOrNull();
+
       if (result == null) return null;
 
       return _piggyBankToMap(result);

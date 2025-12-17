@@ -12,7 +12,8 @@ import 'package:logging/logging.dart';
 /// Note: Designed for mobile devices with optional hardware keyboard support.
 class KeyboardNavigationService {
   static final Logger _logger = Logger('KeyboardNavigationService');
-  static final KeyboardNavigationService _instance = KeyboardNavigationService._internal();
+  static final KeyboardNavigationService _instance =
+      KeyboardNavigationService._internal();
 
   factory KeyboardNavigationService() => _instance;
 
@@ -69,11 +70,11 @@ class KeyboardNavigationService {
   /// Dispose of all resources
   void dispose() {
     _logger.info('Disposing KeyboardNavigationService');
-    
+
     for (final FocusNode node in _focusNodes.values) {
       node.dispose();
     }
-    
+
     _focusNodes.clear();
   }
 }
@@ -129,8 +130,9 @@ class _FocusIndicatorWidgetState extends State<FocusIndicatorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final KeyboardNavigationService keyboardService = KeyboardNavigationService();
-    
+    final KeyboardNavigationService keyboardService =
+        KeyboardNavigationService();
+
     Widget child = Container(
       decoration: keyboardService.buildFocusIndicator(
         context,

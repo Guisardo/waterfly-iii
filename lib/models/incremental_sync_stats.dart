@@ -162,14 +162,14 @@ class IncrementalSyncStats {
     String? error,
   }) {
     return IncrementalSyncStats(
-      entityType: entityType ?? this.entityType,
-      itemsFetched: itemsFetched ?? this.itemsFetched,
-      itemsUpdated: itemsUpdated ?? this.itemsUpdated,
-      itemsSkipped: itemsSkipped ?? this.itemsSkipped,
-      bandwidthSavedBytes: bandwidthSavedBytes ?? this.bandwidthSavedBytes,
-      apiCallsSaved: apiCallsSaved ?? this.apiCallsSaved,
-      startTime: startTime ?? this.startTime,
-    )
+        entityType: entityType ?? this.entityType,
+        itemsFetched: itemsFetched ?? this.itemsFetched,
+        itemsUpdated: itemsUpdated ?? this.itemsUpdated,
+        itemsSkipped: itemsSkipped ?? this.itemsSkipped,
+        bandwidthSavedBytes: bandwidthSavedBytes ?? this.bandwidthSavedBytes,
+        apiCallsSaved: apiCallsSaved ?? this.apiCallsSaved,
+        startTime: startTime ?? this.startTime,
+      )
       ..endTime = endTime ?? this.endTime
       ..success = success ?? this.success
       ..error = error ?? this.error;
@@ -177,23 +177,24 @@ class IncrementalSyncStats {
 
   /// Convert to JSON for storage/logging.
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'entityType': entityType,
-        'itemsFetched': itemsFetched,
-        'itemsUpdated': itemsUpdated,
-        'itemsSkipped': itemsSkipped,
-        'bandwidthSavedBytes': bandwidthSavedBytes,
-        'apiCallsSaved': apiCallsSaved,
-        'skipRate': skipRate,
-        'updateRate': updateRate,
-        'durationMs': duration.inMilliseconds,
-        'startTime': startTime.toIso8601String(),
-        'endTime': endTime?.toIso8601String(),
-        'success': success,
-        'error': error,
-      };
+    'entityType': entityType,
+    'itemsFetched': itemsFetched,
+    'itemsUpdated': itemsUpdated,
+    'itemsSkipped': itemsSkipped,
+    'bandwidthSavedBytes': bandwidthSavedBytes,
+    'apiCallsSaved': apiCallsSaved,
+    'skipRate': skipRate,
+    'updateRate': updateRate,
+    'durationMs': duration.inMilliseconds,
+    'startTime': startTime.toIso8601String(),
+    'endTime': endTime?.toIso8601String(),
+    'success': success,
+    'error': error,
+  };
 
   @override
-  String toString() => 'IncrementalSyncStats('
+  String toString() =>
+      'IncrementalSyncStats('
       'entityType: $entityType, '
       '$summary, '
       'skipRate: ${skipRate.toStringAsFixed(1)}%, '
@@ -231,20 +232,28 @@ class IncrementalSyncResult {
   });
 
   /// Total items fetched across all entities.
-  int get totalFetched =>
-      statsByEntity.values.fold(0, (int sum, IncrementalSyncStats s) => sum + s.itemsFetched);
+  int get totalFetched => statsByEntity.values.fold(
+    0,
+    (int sum, IncrementalSyncStats s) => sum + s.itemsFetched,
+  );
 
   /// Total items updated across all entities.
-  int get totalUpdated =>
-      statsByEntity.values.fold(0, (int sum, IncrementalSyncStats s) => sum + s.itemsUpdated);
+  int get totalUpdated => statsByEntity.values.fold(
+    0,
+    (int sum, IncrementalSyncStats s) => sum + s.itemsUpdated,
+  );
 
   /// Total items skipped across all entities.
-  int get totalSkipped =>
-      statsByEntity.values.fold(0, (int sum, IncrementalSyncStats s) => sum + s.itemsSkipped);
+  int get totalSkipped => statsByEntity.values.fold(
+    0,
+    (int sum, IncrementalSyncStats s) => sum + s.itemsSkipped,
+  );
 
   /// Total bandwidth saved across all entities.
-  int get totalBandwidthSaved =>
-      statsByEntity.values.fold(0, (int sum, IncrementalSyncStats s) => sum + s.bandwidthSavedBytes);
+  int get totalBandwidthSaved => statsByEntity.values.fold(
+    0,
+    (int sum, IncrementalSyncStats s) => sum + s.bandwidthSavedBytes,
+  );
 
   /// Overall skip rate across all entities.
   double get overallSkipRate =>
@@ -263,21 +272,23 @@ class IncrementalSyncResult {
 
   /// Convert to JSON for storage/logging.
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'isIncremental': isIncremental,
-        'success': success,
-        'durationMs': duration.inMilliseconds,
-        'totalFetched': totalFetched,
-        'totalUpdated': totalUpdated,
-        'totalSkipped': totalSkipped,
-        'totalBandwidthSaved': totalBandwidthSaved,
-        'overallSkipRate': overallSkipRate,
-        'error': error,
-        'statsByEntity':
-            statsByEntity.map((String k, IncrementalSyncStats v) => MapEntry(k, v.toJson())),
-      };
+    'isIncremental': isIncremental,
+    'success': success,
+    'durationMs': duration.inMilliseconds,
+    'totalFetched': totalFetched,
+    'totalUpdated': totalUpdated,
+    'totalSkipped': totalSkipped,
+    'totalBandwidthSaved': totalBandwidthSaved,
+    'overallSkipRate': overallSkipRate,
+    'error': error,
+    'statsByEntity': statsByEntity.map(
+      (String k, IncrementalSyncStats v) => MapEntry(k, v.toJson()),
+    ),
+  };
 
   @override
-  String toString() => 'IncrementalSyncResult('
+  String toString() =>
+      'IncrementalSyncResult('
       'success: $success, '
       'incremental: $isIncremental, '
       'fetched: $totalFetched, '
@@ -288,4 +299,3 @@ class IncrementalSyncResult {
       'duration: ${duration.inMilliseconds}ms'
       ')';
 }
-

@@ -101,21 +101,23 @@ class SyncManager {
     this.batchTimeout = const Duration(seconds: 60),
     this.autoResolveConflicts = true,
     this.autoSyncOnReconnect = true,
-  })  : _queueManager = queueManager,
-        _apiClient = apiClient,
-        _database = database,
-        _connectivity = connectivity,
-        _idMapping = idMapping,
-        _progressTracker = progressTracker ?? SyncProgressTracker(),
-        _conflictDetector = conflictDetector ?? ConflictDetector(),
-        _conflictResolver = conflictResolver ?? ConflictResolver(
-          apiAdapter: apiClient,
-          database: database,
-          queueManager: SyncQueueManager(database),
-        ),
-        _retryStrategy = retryStrategy ?? RetryStrategy(),
-        _circuitBreaker = circuitBreaker ?? CircuitBreaker(),
-        _operationTracker = operationTracker ?? OperationTracker(database) {
+  }) : _queueManager = queueManager,
+       _apiClient = apiClient,
+       _database = database,
+       _connectivity = connectivity,
+       _idMapping = idMapping,
+       _progressTracker = progressTracker ?? SyncProgressTracker(),
+       _conflictDetector = conflictDetector ?? ConflictDetector(),
+       _conflictResolver =
+           conflictResolver ??
+           ConflictResolver(
+             apiAdapter: apiClient,
+             database: database,
+             queueManager: SyncQueueManager(database),
+           ),
+       _retryStrategy = retryStrategy ?? RetryStrategy(),
+       _circuitBreaker = circuitBreaker ?? CircuitBreaker(),
+       _operationTracker = operationTracker ?? OperationTracker(database) {
     _initializeConnectivityListener();
   }
 
@@ -150,7 +152,7 @@ class SyncManager {
 
     _logger.info('Cancelling sync operation');
     _isSyncing = false;
-    
+
     _progressTracker.emitEvent(
       SyncFailedEvent(
         timestamp: DateTime.now(),
@@ -222,7 +224,8 @@ class SyncManager {
         );
 
         // Group operations by entity type for efficient processing
-        final Map<String, List<SyncOperation>> groupedOperations = _groupOperationsByEntityType(operations);
+        final Map<String, List<SyncOperation>> groupedOperations =
+            _groupOperationsByEntityType(operations);
 
         // Process operations
         _progressTracker.updatePhase(SyncPhase.syncing);
@@ -282,22 +285,27 @@ class SyncManager {
   Future<List<SyncOperation>> _getPendingOperations() async {
     try {
       _logger.fine('Retrieving pending operations from queue');
-      
-      final List<SyncOperation> operations = await _queueManager.getPendingOperations();
-      
+
+      final List<SyncOperation> operations =
+          await _queueManager.getPendingOperations();
+
       // Track all queued operations
       for (final SyncOperation operation in operations) {
         await _operationTracker.trackOperation(operation.id, 'queued');
       }
-      
+
       _logger.info(
         'Retrieved ${operations.length} pending operations from queue',
         <String, dynamic>{
           'count': operations.length,
-          'entity_types': operations.map((SyncOperation op) => op.entityType).toSet().toList(),
+          'entity_types':
+              operations
+                  .map((SyncOperation op) => op.entityType)
+                  .toSet()
+                  .toList(),
         },
       );
-      
+
       return operations;
     } catch (e, stackTrace) {
       _logger.severe(
@@ -313,10 +321,13 @@ class SyncManager {
   Map<String, List<SyncOperation>> _groupOperationsByEntityType(
     List<SyncOperation> operations,
   ) {
-    final Map<String, List<SyncOperation>> grouped = <String, List<SyncOperation>>{};
+    final Map<String, List<SyncOperation>> grouped =
+        <String, List<SyncOperation>>{};
 
     for (final SyncOperation operation in operations) {
-      grouped.putIfAbsent(operation.entityType, () => <SyncOperation>[]).add(operation);
+      grouped
+          .putIfAbsent(operation.entityType, () => <SyncOperation>[])
+          .add(operation);
     }
 
     _logger.fine(
@@ -330,7 +341,8 @@ class SyncManager {
   Future<void> _processOperations(
     Map<String, List<SyncOperation>> groupedOperations,
   ) async {
-    for (final MapEntry<String, List<SyncOperation>> entry in groupedOperations.entries) {
+    for (final MapEntry<String, List<SyncOperation>> entry
+        in groupedOperations.entries) {
       final String entityType = entry.key;
       final List<SyncOperation> operations = entry.value;
 
@@ -338,7 +350,8 @@ class SyncManager {
 
       // Process in batches
       for (int i = 0; i < operations.length; i += batchSize) {
-        final List<SyncOperation> batch = operations.skip(i).take(batchSize).toList();
+        final List<SyncOperation> batch =
+            operations.skip(i).take(batchSize).toList();
         await _processBatch(batch);
       }
     }
@@ -369,7 +382,7 @@ class SyncManager {
   Future<void> _processOperation(SyncOperation operation) async {
     // Track operation start
     await _operationTracker.trackOperation(operation.id, 'processing');
-    
+
     try {
       _progressTracker.updateCurrentOperation(
         '${operation.operation.name} ${operation.entityType}',
@@ -385,7 +398,7 @@ class SyncManager {
       );
 
       _progressTracker.incrementCompleted(operationId: operation.id);
-      
+
       // Track operation completion
       await _operationTracker.trackOperation(operation.id, 'completed');
     } catch (e, stackTrace) {
@@ -400,7 +413,7 @@ class SyncManager {
         operationId: operation.id,
         error: e.toString(),
       );
-      
+
       // Track operation failure
       await _operationTracker.trackOperation(operation.id, 'failed');
     }
@@ -453,53 +466,44 @@ class SyncManager {
   ///   NetworkError: If API call fails
   ///   ConflictError: If server data conflicts with local data
   Future<void> _syncTransaction(SyncOperation operation) async {
-    _logger.fine(
-      'Syncing transaction ${operation.entityId}',
-      <String, dynamic>{
-        'operation_type': operation.operation.name,
-        'entity_id': operation.entityId,
-        'attempts': operation.attempts,
-      },
-    );
+    _logger.fine('Syncing transaction ${operation.entityId}', <String, dynamic>{
+      'operation_type': operation.operation.name,
+      'entity_id': operation.entityId,
+      'attempts': operation.attempts,
+    });
 
     try {
       // Step 1: Resolve ID references from local to server IDs
-      final Map<String, dynamic> resolvedPayload = await _resolveTransactionReferences(
-        operation.payload,
-      );
+      final Map<String, dynamic> resolvedPayload =
+          await _resolveTransactionReferences(operation.payload);
 
-      _logger.fine(
-        'Resolved transaction references',
-        <String, dynamic>{
-          'local_source_id': operation.payload['source_id'],
-          'server_source_id': resolvedPayload['source_id'],
-          'local_destination_id': operation.payload['destination_id'],
-          'server_destination_id': resolvedPayload['destination_id'],
-          'local_category_id': operation.payload['category_id'],
-          'server_category_id': resolvedPayload['category_id'],
-        },
-      );
+      _logger.fine('Resolved transaction references', <String, dynamic>{
+        'local_source_id': operation.payload['source_id'],
+        'server_source_id': resolvedPayload['source_id'],
+        'local_destination_id': operation.payload['destination_id'],
+        'server_destination_id': resolvedPayload['destination_id'],
+        'local_category_id': operation.payload['category_id'],
+        'server_category_id': resolvedPayload['category_id'],
+      });
 
       // Step 2: Call API based on operation type
       Map<String, dynamic>? serverResponse;
-      
+
       switch (operation.operation) {
         case SyncOperationType.create:
           serverResponse = await _apiClient.createTransaction(resolvedPayload);
-          _logger.info(
-            'Created transaction on server',
-            <String, dynamic>{
-              'local_id': operation.entityId,
-              'server_id': serverResponse['id'],
-            },
-          );
+          _logger.info('Created transaction on server', <String, dynamic>{
+            'local_id': operation.entityId,
+            'server_id': serverResponse['id'],
+          });
           break;
 
         case SyncOperationType.update:
           // Get server ID from mapping
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
             throw ValidationError(
               'Cannot update transaction: no server ID mapping found',
@@ -512,27 +516,23 @@ class SyncManager {
             serverId,
             resolvedPayload,
           );
-          _logger.info(
-            'Updated transaction on server',
-            <String, dynamic>{
-              'local_id': operation.entityId,
-              'server_id': serverId,
-            },
-          );
+          _logger.info('Updated transaction on server', <String, dynamic>{
+            'local_id': operation.entityId,
+            'server_id': serverId,
+          });
           break;
 
         case SyncOperationType.delete:
           // Get server ID from mapping
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
             _logger.warning(
               'Cannot delete transaction: no server ID mapping found, '
               'assuming already deleted',
-              <String, dynamic>{
-                'local_id': operation.entityId,
-              },
+              <String, dynamic>{'local_id': operation.entityId},
             );
             // Mark as completed since it doesn't exist on server
             await _queueManager.markCompleted(operation.id);
@@ -540,67 +540,57 @@ class SyncManager {
           }
 
           await _apiClient.deleteTransaction(serverId);
-          _logger.info(
-            'Deleted transaction on server',
-            <String, dynamic>{
-              'local_id': operation.entityId,
-              'server_id': serverId,
-            },
-          );
+          _logger.info('Deleted transaction on server', <String, dynamic>{
+            'local_id': operation.entityId,
+            'server_id': serverId,
+          });
           break;
       }
 
       // Step 3: Update local database with server response
-      if (operation.operation != SyncOperationType.delete && serverResponse != null) {
+      if (operation.operation != SyncOperationType.delete &&
+          serverResponse != null) {
         await _updateLocalTransaction(operation.entityId, serverResponse);
       }
 
       // Step 4: Map local ID to server ID
-      if (operation.operation == SyncOperationType.create && serverResponse != null) {
+      if (operation.operation == SyncOperationType.create &&
+          serverResponse != null) {
         await _idMapping.mapIds(
           'transaction',
           operation.entityId,
           serverResponse['id'] as String,
         );
-        _logger.fine(
-          'Mapped transaction IDs',
-          <String, dynamic>{
-            'local_id': operation.entityId,
-            'server_id': serverResponse['id'],
-          },
-        );
+        _logger.fine('Mapped transaction IDs', <String, dynamic>{
+          'local_id': operation.entityId,
+          'server_id': serverResponse['id'],
+        });
       } else if (operation.operation == SyncOperationType.delete) {
         await _idMapping.removeMapping(operation.entityId);
-        _logger.fine(
-          'Removed transaction ID mapping',
-          <String, dynamic>{
-            'local_id': operation.entityId,
-          },
-        );
+        _logger.fine('Removed transaction ID mapping', <String, dynamic>{
+          'local_id': operation.entityId,
+        });
       }
 
       // Step 5: Mark operation as completed
       await _queueManager.markCompleted(operation.id);
-      _logger.info(
-        'Successfully synced transaction',
-        <String, dynamic>{
-          'operation_id': operation.id,
-          'entity_id': operation.entityId,
-          'operation_type': operation.operation.name,
-        },
-      );
+      _logger.info('Successfully synced transaction', <String, dynamic>{
+        'operation_id': operation.id,
+        'entity_id': operation.entityId,
+        'operation_type': operation.operation.name,
+      });
     } catch (e, stackTrace) {
       _logger.severe(
         'Failed to sync transaction ${operation.entityId}',
         e,
         stackTrace,
       );
-      
+
       await _queueManager.markFailed(
         operation.id,
         'Transaction sync failed: ${e.toString()}',
       );
-      
+
       rethrow;
     }
   }
@@ -616,7 +606,8 @@ class SyncManager {
 
     // Resolve source account ID
     if (payload['source_id'] != null) {
-      final String? serverId = await _idMapping.getServerId(payload['source_id'] as String,
+      final String? serverId = await _idMapping.getServerId(
+        payload['source_id'] as String,
       );
       if (serverId != null) {
         resolved['source_id'] = serverId;
@@ -625,7 +616,8 @@ class SyncManager {
 
     // Resolve destination account ID
     if (payload['destination_id'] != null) {
-      final String? serverId = await _idMapping.getServerId(payload['destination_id'] as String,
+      final String? serverId = await _idMapping.getServerId(
+        payload['destination_id'] as String,
       );
       if (serverId != null) {
         resolved['destination_id'] = serverId;
@@ -634,7 +626,8 @@ class SyncManager {
 
     // Resolve category ID
     if (payload['category_id'] != null) {
-      final String? serverId = await _idMapping.getServerId(payload['category_id'] as String,
+      final String? serverId = await _idMapping.getServerId(
+        payload['category_id'] as String,
       );
       if (serverId != null) {
         resolved['category_id'] = serverId;
@@ -643,7 +636,8 @@ class SyncManager {
 
     // Resolve budget ID
     if (payload['budget_id'] != null) {
-      final String? serverId = await _idMapping.getServerId(payload['budget_id'] as String,
+      final String? serverId = await _idMapping.getServerId(
+        payload['budget_id'] as String,
       );
       if (serverId != null) {
         resolved['budget_id'] = serverId;
@@ -652,7 +646,8 @@ class SyncManager {
 
     // Resolve bill ID
     if (payload['bill_id'] != null) {
-      final String? serverId = await _idMapping.getServerId(payload['bill_id'] as String,
+      final String? serverId = await _idMapping.getServerId(
+        payload['bill_id'] as String,
       );
       if (serverId != null) {
         resolved['bill_id'] = serverId;
@@ -678,12 +673,12 @@ class SyncManager {
   ) async {
     try {
       // Update the transaction in local database with server data
-      final Map<String, dynamic>? attributes = serverData['attributes'] as Map<String, dynamic>?;
-      
+      final Map<String, dynamic>? attributes =
+          serverData['attributes'] as Map<String, dynamic>?;
+
       if (attributes != null) {
         await (_database.update(_database.transactions)
-              ..where(($TransactionsTable t) => t.id.equals(localId)))
-            .write(
+          ..where(($TransactionsTable t) => t.id.equals(localId))).write(
           TransactionEntityCompanion(
             serverId: Value(serverData['id'] as String?),
             isSynced: const Value(true),
@@ -691,7 +686,7 @@ class SyncManager {
             lastSyncAttempt: Value(DateTime.now()),
           ),
         );
-        
+
         _logger.fine('Updated local transaction with server data');
       }
     } catch (e, stackTrace) {
@@ -705,17 +700,14 @@ class SyncManager {
   ///
   /// Synchronizes an account with the server following the same pattern as transactions.
   Future<void> _syncAccount(SyncOperation operation) async {
-    _logger.fine(
-      'Syncing account ${operation.entityId}',
-      <String, dynamic>{
-        'operation_type': operation.operation.name,
-        'entity_id': operation.entityId,
-      },
-    );
+    _logger.fine('Syncing account ${operation.entityId}', <String, dynamic>{
+      'operation_type': operation.operation.name,
+      'entity_id': operation.entityId,
+    });
 
     try {
       Map<String, dynamic>? serverResponse;
-      
+
       switch (operation.operation) {
         case SyncOperationType.create:
           serverResponse = await _apiClient.createAccount(operation.payload);
@@ -723,9 +715,10 @@ class SyncManager {
           break;
 
         case SyncOperationType.update:
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
             throw ValidationError(
               'Cannot update account: no server ID mapping found',
@@ -742,9 +735,10 @@ class SyncManager {
           break;
 
         case SyncOperationType.delete:
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
             _logger.warning(
               'Cannot delete account: no server ID mapping found',
@@ -759,7 +753,8 @@ class SyncManager {
       }
 
       // Update ID mapping
-      if (operation.operation == SyncOperationType.create && serverResponse != null) {
+      if (operation.operation == SyncOperationType.create &&
+          serverResponse != null) {
         await _idMapping.mapIds(
           'account',
           operation.entityId,
@@ -772,7 +767,11 @@ class SyncManager {
       await _queueManager.markCompleted(operation.id);
       _logger.info('Successfully synced account ${operation.entityId}');
     } catch (e, stackTrace) {
-      _logger.severe('Failed to sync account ${operation.entityId}', e, stackTrace);
+      _logger.severe(
+        'Failed to sync account ${operation.entityId}',
+        e,
+        stackTrace,
+      );
       await _queueManager.markFailed(operation.id, 'Account sync failed: $e');
       rethrow;
     }
@@ -782,17 +781,14 @@ class SyncManager {
   ///
   /// Synchronizes a category with the server.
   Future<void> _syncCategory(SyncOperation operation) async {
-    _logger.fine(
-      'Syncing category ${operation.entityId}',
-      <String, dynamic>{
-        'operation_type': operation.operation.name,
-        'entity_id': operation.entityId,
-      },
-    );
+    _logger.fine('Syncing category ${operation.entityId}', <String, dynamic>{
+      'operation_type': operation.operation.name,
+      'entity_id': operation.entityId,
+    });
 
     try {
       Map<String, dynamic>? serverResponse;
-      
+
       switch (operation.operation) {
         case SyncOperationType.create:
           serverResponse = await _apiClient.createCategory(operation.payload);
@@ -800,9 +796,10 @@ class SyncManager {
           break;
 
         case SyncOperationType.update:
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
             throw ValidationError(
               'Cannot update category: no server ID mapping found',
@@ -819,9 +816,10 @@ class SyncManager {
           break;
 
         case SyncOperationType.delete:
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
             _logger.warning(
               'Cannot delete category: no server ID mapping found',
@@ -836,7 +834,8 @@ class SyncManager {
       }
 
       // Update ID mapping
-      if (operation.operation == SyncOperationType.create && serverResponse != null) {
+      if (operation.operation == SyncOperationType.create &&
+          serverResponse != null) {
         await _idMapping.mapIds(
           'category',
           operation.entityId,
@@ -849,7 +848,11 @@ class SyncManager {
       await _queueManager.markCompleted(operation.id);
       _logger.info('Successfully synced category ${operation.entityId}');
     } catch (e, stackTrace) {
-      _logger.severe('Failed to sync category ${operation.entityId}', e, stackTrace);
+      _logger.severe(
+        'Failed to sync category ${operation.entityId}',
+        e,
+        stackTrace,
+      );
       await _queueManager.markFailed(operation.id, 'Category sync failed: $e');
       rethrow;
     }
@@ -859,17 +862,14 @@ class SyncManager {
   ///
   /// Synchronizes a budget with the server.
   Future<void> _syncBudget(SyncOperation operation) async {
-    _logger.fine(
-      'Syncing budget ${operation.entityId}',
-      <String, dynamic>{
-        'operation_type': operation.operation.name,
-        'entity_id': operation.entityId,
-      },
-    );
+    _logger.fine('Syncing budget ${operation.entityId}', <String, dynamic>{
+      'operation_type': operation.operation.name,
+      'entity_id': operation.entityId,
+    });
 
     try {
       Map<String, dynamic>? serverResponse;
-      
+
       switch (operation.operation) {
         case SyncOperationType.create:
           serverResponse = await _apiClient.createBudget(operation.payload);
@@ -877,9 +877,10 @@ class SyncManager {
           break;
 
         case SyncOperationType.update:
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
             throw ValidationError(
               'Cannot update budget: no server ID mapping found',
@@ -896,13 +897,12 @@ class SyncManager {
           break;
 
         case SyncOperationType.delete:
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
-            _logger.warning(
-              'Cannot delete budget: no server ID mapping found',
-            );
+            _logger.warning('Cannot delete budget: no server ID mapping found');
             await _queueManager.markCompleted(operation.id);
             return;
           }
@@ -913,7 +913,8 @@ class SyncManager {
       }
 
       // Update ID mapping
-      if (operation.operation == SyncOperationType.create && serverResponse != null) {
+      if (operation.operation == SyncOperationType.create &&
+          serverResponse != null) {
         await _idMapping.mapIds(
           'budget',
           operation.entityId,
@@ -926,7 +927,11 @@ class SyncManager {
       await _queueManager.markCompleted(operation.id);
       _logger.info('Successfully synced budget ${operation.entityId}');
     } catch (e, stackTrace) {
-      _logger.severe('Failed to sync budget ${operation.entityId}', e, stackTrace);
+      _logger.severe(
+        'Failed to sync budget ${operation.entityId}',
+        e,
+        stackTrace,
+      );
       await _queueManager.markFailed(operation.id, 'Budget sync failed: $e');
       rethrow;
     }
@@ -936,17 +941,14 @@ class SyncManager {
   ///
   /// Synchronizes a bill with the server.
   Future<void> _syncBill(SyncOperation operation) async {
-    _logger.fine(
-      'Syncing bill ${operation.entityId}',
-      <String, dynamic>{
-        'operation_type': operation.operation.name,
-        'entity_id': operation.entityId,
-      },
-    );
+    _logger.fine('Syncing bill ${operation.entityId}', <String, dynamic>{
+      'operation_type': operation.operation.name,
+      'entity_id': operation.entityId,
+    });
 
     try {
       Map<String, dynamic>? serverResponse;
-      
+
       switch (operation.operation) {
         case SyncOperationType.create:
           serverResponse = await _apiClient.createBill(operation.payload);
@@ -954,9 +956,10 @@ class SyncManager {
           break;
 
         case SyncOperationType.update:
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
             throw ValidationError(
               'Cannot update bill: no server ID mapping found',
@@ -973,13 +976,12 @@ class SyncManager {
           break;
 
         case SyncOperationType.delete:
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
-            _logger.warning(
-              'Cannot delete bill: no server ID mapping found',
-            );
+            _logger.warning('Cannot delete bill: no server ID mapping found');
             await _queueManager.markCompleted(operation.id);
             return;
           }
@@ -990,7 +992,8 @@ class SyncManager {
       }
 
       // Update ID mapping
-      if (operation.operation == SyncOperationType.create && serverResponse != null) {
+      if (operation.operation == SyncOperationType.create &&
+          serverResponse != null) {
         await _idMapping.mapIds(
           'bill',
           operation.entityId,
@@ -1003,7 +1006,11 @@ class SyncManager {
       await _queueManager.markCompleted(operation.id);
       _logger.info('Successfully synced bill ${operation.entityId}');
     } catch (e, stackTrace) {
-      _logger.severe('Failed to sync bill ${operation.entityId}', e, stackTrace);
+      _logger.severe(
+        'Failed to sync bill ${operation.entityId}',
+        e,
+        stackTrace,
+      );
       await _queueManager.markFailed(operation.id, 'Bill sync failed: $e');
       rethrow;
     }
@@ -1014,19 +1021,19 @@ class SyncManager {
   /// Synchronizes a piggy bank with the server.
   /// Resolves account ID reference before syncing.
   Future<void> _syncPiggyBank(SyncOperation operation) async {
-    _logger.fine(
-      'Syncing piggy bank ${operation.entityId}',
-      <String, dynamic>{
-        'operation_type': operation.operation.name,
-        'entity_id': operation.entityId,
-      },
-    );
+    _logger.fine('Syncing piggy bank ${operation.entityId}', <String, dynamic>{
+      'operation_type': operation.operation.name,
+      'entity_id': operation.entityId,
+    });
 
     try {
       // Resolve account ID reference
-      final Map<String, dynamic> resolvedPayload = Map<String, dynamic>.from(operation.payload);
+      final Map<String, dynamic> resolvedPayload = Map<String, dynamic>.from(
+        operation.payload,
+      );
       if (resolvedPayload['account_id'] != null) {
-        final String? serverId = await _idMapping.getServerId(resolvedPayload['account_id'] as String,
+        final String? serverId = await _idMapping.getServerId(
+          resolvedPayload['account_id'] as String,
         );
         if (serverId != null) {
           resolvedPayload['account_id'] = serverId;
@@ -1034,7 +1041,7 @@ class SyncManager {
       }
 
       Map<String, dynamic>? serverResponse;
-      
+
       switch (operation.operation) {
         case SyncOperationType.create:
           serverResponse = await _apiClient.createPiggyBank(resolvedPayload);
@@ -1042,9 +1049,10 @@ class SyncManager {
           break;
 
         case SyncOperationType.update:
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
             throw ValidationError(
               'Cannot update piggy bank: no server ID mapping found',
@@ -1061,9 +1069,10 @@ class SyncManager {
           break;
 
         case SyncOperationType.delete:
-          final String? serverId = await _idMapping.getServerId(operation.entityId,
+          final String? serverId = await _idMapping.getServerId(
+            operation.entityId,
           );
-          
+
           if (serverId == null) {
             _logger.warning(
               'Cannot delete piggy bank: no server ID mapping found',
@@ -1078,7 +1087,8 @@ class SyncManager {
       }
 
       // Update ID mapping
-      if (operation.operation == SyncOperationType.create && serverResponse != null) {
+      if (operation.operation == SyncOperationType.create &&
+          serverResponse != null) {
         await _idMapping.mapIds(
           'piggy_bank',
           operation.entityId,
@@ -1091,8 +1101,15 @@ class SyncManager {
       await _queueManager.markCompleted(operation.id);
       _logger.info('Successfully synced piggy bank ${operation.entityId}');
     } catch (e, stackTrace) {
-      _logger.severe('Failed to sync piggy bank ${operation.entityId}', e, stackTrace);
-      await _queueManager.markFailed(operation.id, 'Piggy bank sync failed: $e');
+      _logger.severe(
+        'Failed to sync piggy bank ${operation.entityId}',
+        e,
+        stackTrace,
+      );
+      await _queueManager.markFailed(
+        operation.id,
+        'Piggy bank sync failed: $e',
+      );
       rethrow;
     }
   }
@@ -1103,12 +1120,16 @@ class SyncManager {
   ) async {
     _logger.info('Detecting conflicts for ${operations.length} operations');
 
-    final Map<String, Conflict?> conflictMap = await _conflictDetector.detectConflictsBatch(
-      operations,
-      (List<String> entityIds) async => <String, Map<String, dynamic>?>{for (String id in entityIds) id: null},
-    );
-    
-    final List<Conflict> conflicts = conflictMap.values.whereType<Conflict>().toList();
+    final Map<String, Conflict?> conflictMap = await _conflictDetector
+        .detectConflictsBatch(
+          operations,
+          (List<String> entityIds) async => <String, Map<String, dynamic>?>{
+            for (String id in entityIds) id: null,
+          },
+        );
+
+    final List<Conflict> conflicts =
+        conflictMap.values.whereType<Conflict>().toList();
 
     if (conflicts.isNotEmpty) {
       _logger.warning('Detected ${conflicts.length} conflicts');
@@ -1125,10 +1146,13 @@ class SyncManager {
     _logger.info('Resolving ${conflicts.length} conflicts');
 
     if (autoResolveConflicts) {
-      final Map<String, Resolution> resolutions = await _conflictResolver.autoResolveConflicts(conflicts);
+      final Map<String, Resolution> resolutions = await _conflictResolver
+          .autoResolveConflicts(conflicts);
       _logger.info('Auto-resolved ${resolutions.length} conflicts');
     } else {
-      _logger.info('Auto-resolution disabled, conflicts require manual resolution');
+      _logger.info(
+        'Auto-resolution disabled, conflicts require manual resolution',
+      );
     }
   }
 
@@ -1148,24 +1172,26 @@ class SyncManager {
   ///   DatabaseException: If local database operations fail
   Future<void> _pullFromServer() async {
     _logger.info('Pulling latest changes from server');
-    
+
     try {
       // Step 1: Get last sync timestamp
-      final SyncMetadataEntity? lastSyncQuery = await (_database.select(_database.syncMetadata)
-            ..where(($SyncMetadataTable m) => m.key.equals('last_partial_sync')))
-          .getSingleOrNull();
-      
-      final DateTime? lastSync = lastSyncQuery?.value.isNotEmpty ?? false
-          ? DateTime.tryParse(lastSyncQuery!.value)
-          : null;
-      
+      final SyncMetadataEntity? lastSyncQuery =
+          await (_database.select(_database.syncMetadata)..where(
+            ($SyncMetadataTable m) => m.key.equals('last_partial_sync'),
+          )).getSingleOrNull();
+
+      final DateTime? lastSync =
+          lastSyncQuery?.value.isNotEmpty ?? false
+              ? DateTime.tryParse(lastSyncQuery!.value)
+              : null;
+
       _logger.fine('Last sync: ${lastSync ?? "never"}');
-      
+
       // Step 2: Fetch changes since last sync
       // Note: This would require API endpoints that support filtering by date
       // For now, we log that this would happen
       _logger.fine('Would fetch changes since: ${lastSync ?? "beginning"}');
-      
+
       // Step 3: Merge with local data
       // This would involve:
       // - Fetching updated entities from server
@@ -1173,17 +1199,17 @@ class SyncManager {
       // - Detecting conflicts
       // - Updating local database with server changes
       _logger.fine('Would merge server changes with local data');
-      
+
       // Step 4: Update last sync timestamp
-      await (_database.update(_database.syncMetadata)
-            ..where(($SyncMetadataTable m) => m.key.equals('last_partial_sync')))
-          .write(
+      await (_database.update(_database.syncMetadata)..where(
+        ($SyncMetadataTable m) => m.key.equals('last_partial_sync'),
+      )).write(
         SyncMetadataEntityCompanion(
           value: Value(DateTime.now().toIso8601String()),
           updatedAt: Value(DateTime.now()),
         ),
       );
-      
+
       _logger.info('Successfully pulled changes from server');
     } catch (e, stackTrace) {
       _logger.severe('Failed to pull from server', e, stackTrace);
@@ -1204,35 +1230,34 @@ class SyncManager {
   ///   DatabaseException: If database operations fail
   Future<void> _finalize() async {
     _logger.info('Finalizing sync');
-    
+
     try {
       // Step 1: Validate consistency
       // Check that all synced entities have valid references
       final int unsyncedCount = await (_database.select(_database.transactions)
-            ..where(($TransactionsTable t) => t.isSynced.equals(false)))
-          .get()
-          .then((List<TransactionEntity> list) => list.length);
-      
+        ..where(
+          ($TransactionsTable t) => t.isSynced.equals(false),
+        )).get().then((List<TransactionEntity> list) => list.length);
+
       _logger.fine('Unsynced transactions remaining: $unsyncedCount');
-      
+
       // Step 2: Clean up completed operations
       // Remove operations that have been successfully processed
       await (_database.delete(_database.syncQueue)
-            ..where(($SyncQueueTable q) => q.status.equals('completed')))
-          .go();
-      
+        ..where(($SyncQueueTable q) => q.status.equals('completed'))).go();
+
       _logger.fine('Cleaned up completed sync operations');
-      
+
       // Step 3: Update metadata
-      await (_database.update(_database.syncMetadata)
-            ..where(($SyncMetadataTable m) => m.key.equals('last_full_sync')))
-          .write(
+      await (_database.update(
+        _database.syncMetadata,
+      )..where(($SyncMetadataTable m) => m.key.equals('last_full_sync'))).write(
         SyncMetadataEntityCompanion(
           value: Value(DateTime.now().toIso8601String()),
           updatedAt: Value(DateTime.now()),
         ),
       );
-      
+
       _logger.info('Sync finalized successfully');
     } catch (e, stackTrace) {
       _logger.severe('Failed to finalize sync', e, stackTrace);
@@ -1286,17 +1311,14 @@ class SyncManager {
     try {
       // Step 1: Store conflict in database
       // Conflicts table created in app_database.dart version 3
-      _logger.warning(
-        'Conflict detected',
-        <String, dynamic>{
-          'operation_id': operation.id,
-          'entity_type': operation.entityType,
-          'entity_id': operation.entityId,
-          'local_data': operation.payload,
-          'error_message': error.message,
-          'error_context': error.context,
-        },
-      );
+      _logger.warning('Conflict detected', <String, dynamic>{
+        'operation_id': operation.id,
+        'entity_type': operation.entityType,
+        'entity_id': operation.entityId,
+        'local_data': operation.payload,
+        'error_message': error.message,
+        'error_context': error.context,
+      });
 
       // Step 2: Remove from sync queue
       // Mark as failed so it doesn't block other operations
@@ -1307,14 +1329,12 @@ class SyncManager {
 
       _logger.info(
         'Marked operation as failed due to conflict',
-        <String, dynamic>{
-          'operation_id': operation.id,
-        },
+        <String, dynamic>{'operation_id': operation.id},
       );
 
       // Step 3: Notify user via progress tracker
       _progressTracker.incrementConflicts(conflictId: operation.id);
-      
+
       _progressTracker.emitEvent(
         ConflictDetectedEvent(
           conflict: <String, dynamic>{
@@ -1327,19 +1347,12 @@ class SyncManager {
         ),
       );
 
-      _logger.info(
-        'Conflict handling completed',
-        <String, dynamic>{
-          'operation_id': operation.id,
-          'next_step': 'User must resolve conflict manually',
-        },
-      );
+      _logger.info('Conflict handling completed', <String, dynamic>{
+        'operation_id': operation.id,
+        'next_step': 'User must resolve conflict manually',
+      });
     } catch (e, stackTrace) {
-      _logger.severe(
-        'Failed to handle conflict error',
-        e,
-        stackTrace,
-      );
+      _logger.severe('Failed to handle conflict error', e, stackTrace);
       rethrow;
     }
   }
@@ -1392,22 +1405,19 @@ class SyncManager {
 
       // Step 2: Store error details
       // ErrorLog table created in app_database.dart version 3
-      _logger.warning(
-        'Validation error details',
-        <String, dynamic>{
-          'operation_id': operation.id,
-          'entity_type': operation.entityType,
-          'entity_id': operation.entityId,
-          'payload': operation.payload,
-          'validation_field': error.field,
-          'validation_rule': error.rule,
-          'error_message': error.message,
-        },
-      );
+      _logger.warning('Validation error details', <String, dynamic>{
+        'operation_id': operation.id,
+        'entity_type': operation.entityType,
+        'entity_id': operation.entityId,
+        'payload': operation.payload,
+        'validation_field': error.field,
+        'validation_rule': error.rule,
+        'error_message': error.message,
+      });
 
       // Step 3: Notify user with fix suggestions
       final String fixSuggestion = _generateFixSuggestion(error);
-      
+
       _progressTracker.incrementFailed(
         operationId: operation.id,
         error: 'Validation failed: ${error.message}. $fixSuggestion',
@@ -1415,24 +1425,18 @@ class SyncManager {
 
       _progressTracker.emitEvent(
         SyncFailedEvent(
-          error: 'Validation failed: ${error.message}. Suggestion: $fixSuggestion',
+          error:
+              'Validation failed: ${error.message}. Suggestion: $fixSuggestion',
           timestamp: DateTime.now(),
         ),
       );
 
-      _logger.info(
-        'Validation error handling completed',
-        <String, dynamic>{
-          'operation_id': operation.id,
-          'fix_suggestion': fixSuggestion,
-        },
-      );
+      _logger.info('Validation error handling completed', <String, dynamic>{
+        'operation_id': operation.id,
+        'fix_suggestion': fixSuggestion,
+      });
     } catch (e, stackTrace) {
-      _logger.severe(
-        'Failed to handle validation error',
-        e,
-        stackTrace,
-      );
+      _logger.severe('Failed to handle validation error', e, stackTrace);
       rethrow;
     }
   }
@@ -1455,7 +1459,9 @@ class SyncManager {
       return 'Please provide a value for $field';
     } else if (rule.contains('format') || rule.contains('pattern')) {
       return 'Please check the format of $field';
-    } else if (rule.contains('range') || rule.contains('min') || rule.contains('max')) {
+    } else if (rule.contains('range') ||
+        rule.contains('min') ||
+        rule.contains('max')) {
       return 'Please ensure $field is within the valid range';
     } else if (rule.contains('unique')) {
       return 'The value for $field already exists, please use a different value';
@@ -1497,12 +1503,9 @@ class SyncManager {
       // Step 1: Keep operation in queue
       // Network errors are transient, so we don't mark as failed
       // The operation will be retried on next sync attempt
-      _logger.fine(
-        'Operation remains in queue for retry',
-        <String, dynamic>{
-          'operation_id': operation.id,
-        },
-      );
+      _logger.fine('Operation remains in queue for retry', <String, dynamic>{
+        'operation_id': operation.id,
+      });
 
       // Step 2: Schedule retry when connectivity restored
       // Connectivity listener implemented in _initializeConnectivityListener()
@@ -1516,25 +1519,19 @@ class SyncManager {
 
       _progressTracker.emitEvent(
         SyncFailedEvent(
-          error: 'Network error: ${error.message}. Will retry when connection is restored.',
+          error:
+              'Network error: ${error.message}. Will retry when connection is restored.',
           timestamp: DateTime.now(),
         ),
       );
 
-      _logger.info(
-        'Network error handling completed',
-        <String, dynamic>{
-          'operation_id': operation.id,
-          'status': 'queued_for_retry',
-          'next_step': 'Wait for connectivity or manual sync',
-        },
-      );
+      _logger.info('Network error handling completed', <String, dynamic>{
+        'operation_id': operation.id,
+        'status': 'queued_for_retry',
+        'next_step': 'Wait for connectivity or manual sync',
+      });
     } catch (e, stackTrace) {
-      _logger.severe(
-        'Failed to handle network error',
-        e,
-        stackTrace,
-      );
+      _logger.severe('Failed to handle network error', e, stackTrace);
       rethrow;
     }
   }
@@ -1577,22 +1574,22 @@ class SyncManager {
       try {
         _logger.info('Starting full sync from server');
 
-        _progressTracker.start(
-          totalOperations: 6,
-          phase: SyncPhase.pulling,
-        );
+        _progressTracker.start(totalOperations: 6, phase: SyncPhase.pulling);
 
         // Fetch all data from server
         _logger.fine('Fetching accounts from server');
-        final List<Map<String, dynamic>> accounts = await _apiClient.getAllAccounts();
+        final List<Map<String, dynamic>> accounts =
+            await _apiClient.getAllAccounts();
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching categories from server');
-        final List<Map<String, dynamic>> categories = await _apiClient.getAllCategories();
+        final List<Map<String, dynamic>> categories =
+            await _apiClient.getAllCategories();
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching budgets from server');
-        final List<Map<String, dynamic>> budgets = await _apiClient.getAllBudgets();
+        final List<Map<String, dynamic>> budgets =
+            await _apiClient.getAllBudgets();
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching bills from server');
@@ -1600,29 +1597,28 @@ class SyncManager {
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching piggy banks from server');
-        final List<Map<String, dynamic>> piggyBanks = await _apiClient.getAllPiggyBanks();
+        final List<Map<String, dynamic>> piggyBanks =
+            await _apiClient.getAllPiggyBanks();
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching transactions from server');
-        final List<Map<String, dynamic>> transactions = await _apiClient.getAllTransactions();
+        final List<Map<String, dynamic>> transactions =
+            await _apiClient.getAllTransactions();
         _progressTracker.incrementCompleted();
 
-        _logger.info(
-          'Fetched all data from server',
-          <String, dynamic>{
-            'accounts': accounts.length,
-            'categories': categories.length,
-            'budgets': budgets.length,
-            'bills': bills.length,
-            'piggy_banks': piggyBanks.length,
-            'transactions': transactions.length,
-          },
-        );
+        _logger.info('Fetched all data from server', <String, dynamic>{
+          'accounts': accounts.length,
+          'categories': categories.length,
+          'budgets': budgets.length,
+          'bills': bills.length,
+          'piggy_banks': piggyBanks.length,
+          'transactions': transactions.length,
+        });
 
         // Clear and insert data in transaction using batch operations for performance
         await _database.transaction(() async {
           _logger.fine('Clearing local database');
-          
+
           // Clear tables in correct order (respecting foreign keys)
           await _database.delete(_database.transactions).go();
           await _database.delete(_database.piggyBanks).go();
@@ -1636,7 +1632,8 @@ class SyncManager {
           _logger.fine('Batch inserting accounts (${accounts.length} items)');
           await _database.batch((Batch batch) {
             for (final Map<String, dynamic> account in accounts) {
-              final Map<String, dynamic> attrs = account['attributes'] as Map<String, dynamic>;
+              final Map<String, dynamic> attrs =
+                  account['attributes'] as Map<String, dynamic>;
               batch.insert(
                 _database.accounts,
                 AccountEntityCompanion.insert(
@@ -1647,7 +1644,8 @@ class SyncManager {
                   accountNumber: Value(attrs['account_number'] as String?),
                   iban: Value(attrs['iban'] as String?),
                   currencyCode: attrs['currency_code'] as String? ?? 'USD',
-                  currentBalance: (attrs['current_balance'] as num?)?.toDouble() ?? 0.0,
+                  currentBalance:
+                      (attrs['current_balance'] as num?)?.toDouble() ?? 0.0,
                   notes: Value(attrs['notes'] as String?),
                   createdAt: DateTime.parse(attrs['created_at'] as String),
                   updatedAt: DateTime.parse(attrs['updated_at'] as String),
@@ -1658,10 +1656,13 @@ class SyncManager {
             }
           });
 
-          _logger.fine('Batch inserting categories (${categories.length} items)');
+          _logger.fine(
+            'Batch inserting categories (${categories.length} items)',
+          );
           await _database.batch((Batch batch) {
             for (final Map<String, dynamic> category in categories) {
-              final Map<String, dynamic> attrs = category['attributes'] as Map<String, dynamic>;
+              final Map<String, dynamic> attrs =
+                  category['attributes'] as Map<String, dynamic>;
               batch.insert(
                 _database.categories,
                 CategoryEntityCompanion.insert(
@@ -1681,7 +1682,8 @@ class SyncManager {
           _logger.fine('Batch inserting budgets (${budgets.length} items)');
           await _database.batch((Batch batch) {
             for (final Map<String, dynamic> budget in budgets) {
-              final Map<String, dynamic> attrs = budget['attributes'] as Map<String, dynamic>;
+              final Map<String, dynamic> attrs =
+                  budget['attributes'] as Map<String, dynamic>;
               batch.insert(
                 _database.budgets,
                 BudgetEntityCompanion.insert(
@@ -1700,7 +1702,8 @@ class SyncManager {
           _logger.fine('Batch inserting bills (${bills.length} items)');
           await _database.batch((Batch batch) {
             for (final Map<String, dynamic> bill in bills) {
-              final Map<String, dynamic> attrs = bill['attributes'] as Map<String, dynamic>;
+              final Map<String, dynamic> attrs =
+                  bill['attributes'] as Map<String, dynamic>;
               batch.insert(
                 _database.bills,
                 BillEntityCompanion.insert(
@@ -1713,14 +1716,22 @@ class SyncManager {
                   repeatFreq: attrs['repeat_freq'] as String,
                   currencyCode: attrs['currency_code'] as String? ?? 'USD',
                   currencySymbol: Value(attrs['currency_symbol'] as String?),
-                  currencyDecimalPlaces: Value(attrs['currency_decimal_places'] as int?),
+                  currencyDecimalPlaces: Value(
+                    attrs['currency_decimal_places'] as int?,
+                  ),
                   currencyId: Value(attrs['currency_id'] as String?),
-                  nextExpectedMatch: Value(attrs['next_expected_match'] != null
-                      ? DateTime.tryParse(attrs['next_expected_match'] as String)
-                      : null),
+                  nextExpectedMatch: Value(
+                    attrs['next_expected_match'] != null
+                        ? DateTime.tryParse(
+                          attrs['next_expected_match'] as String,
+                        )
+                        : null,
+                  ),
                   order: Value(attrs['order'] as int?),
                   objectGroupOrder: Value(attrs['object_group_order'] as int?),
-                  objectGroupTitle: Value(attrs['object_group_title'] as String?),
+                  objectGroupTitle: Value(
+                    attrs['object_group_title'] as String?,
+                  ),
                   notes: Value(attrs['notes'] as String?),
                   createdAt: DateTime.parse(attrs['created_at'] as String),
                   updatedAt: DateTime.parse(attrs['updated_at'] as String),
@@ -1731,10 +1742,13 @@ class SyncManager {
             }
           });
 
-          _logger.fine('Batch inserting piggy banks (${piggyBanks.length} items)');
+          _logger.fine(
+            'Batch inserting piggy banks (${piggyBanks.length} items)',
+          );
           await _database.batch((Batch batch) {
             for (final Map<String, dynamic> piggyBank in piggyBanks) {
-              final Map<String, dynamic> attrs = piggyBank['attributes'] as Map<String, dynamic>;
+              final Map<String, dynamic> attrs =
+                  piggyBank['attributes'] as Map<String, dynamic>;
               batch.insert(
                 _database.piggyBanks,
                 PiggyBankEntityCompanion.insert(
@@ -1742,10 +1756,22 @@ class SyncManager {
                   serverId: Value(piggyBank['id'] as String),
                   name: attrs['name'] as String,
                   accountId: attrs['account_id'] as String,
-                  targetAmount: Value((attrs['target_amount'] as num?)?.toDouble()),
-                  currentAmount: Value((attrs['current_amount'] as num?)?.toDouble() ?? 0.0),
-                  startDate: Value(attrs['start_date'] != null ? DateTime.parse(attrs['start_date'] as String) : null),
-                  targetDate: Value(attrs['target_date'] != null ? DateTime.parse(attrs['target_date'] as String) : null),
+                  targetAmount: Value(
+                    (attrs['target_amount'] as num?)?.toDouble(),
+                  ),
+                  currentAmount: Value(
+                    (attrs['current_amount'] as num?)?.toDouble() ?? 0.0,
+                  ),
+                  startDate: Value(
+                    attrs['start_date'] != null
+                        ? DateTime.parse(attrs['start_date'] as String)
+                        : null,
+                  ),
+                  targetDate: Value(
+                    attrs['target_date'] != null
+                        ? DateTime.parse(attrs['target_date'] as String)
+                        : null,
+                  ),
                   createdAt: DateTime.parse(attrs['created_at'] as String),
                   updatedAt: DateTime.parse(attrs['updated_at'] as String),
                   isSynced: const Value(true),
@@ -1756,21 +1782,34 @@ class SyncManager {
           });
 
           // Process transactions in batches to avoid memory issues with large datasets
-          _logger.fine('Batch inserting transactions (${transactions.length} items)');
+          _logger.fine(
+            'Batch inserting transactions (${transactions.length} items)',
+          );
           const int batchSize = 500; // Process 500 transactions at a time
           for (int i = 0; i < transactions.length; i += batchSize) {
-            final int end = (i + batchSize < transactions.length) ? i + batchSize : transactions.length;
-            final List<Map<String, dynamic>> batch = transactions.sublist(i, end);
-            
-            _logger.fine('Processing transaction batch ${i ~/ batchSize + 1} (${batch.length} items)');
-            
+            final int end =
+                (i + batchSize < transactions.length)
+                    ? i + batchSize
+                    : transactions.length;
+            final List<Map<String, dynamic>> batch = transactions.sublist(
+              i,
+              end,
+            );
+
+            _logger.fine(
+              'Processing transaction batch ${i ~/ batchSize + 1} (${batch.length} items)',
+            );
+
             await _database.batch((Batch dbBatch) {
               for (final Map<String, dynamic> transaction in batch) {
-                final Map<String, dynamic> attrs = transaction['attributes'] as Map<String, dynamic>;
-                final List<dynamic> txList = attrs['transactions'] as List<dynamic>;
-                
+                final Map<String, dynamic> attrs =
+                    transaction['attributes'] as Map<String, dynamic>;
+                final List<dynamic> txList =
+                    attrs['transactions'] as List<dynamic>;
+
                 for (final tx in txList) {
-                  final Map<String, dynamic> txData = tx as Map<String, dynamic>;
+                  final Map<String, dynamic> txData =
+                      tx as Map<String, dynamic>;
                   dbBatch.insert(
                     _database.transactions,
                     TransactionEntityCompanion.insert(
@@ -1785,8 +1824,12 @@ class SyncManager {
                       categoryId: Value(txData['category_id'] as String?),
                       budgetId: Value(txData['budget_id'] as String?),
                       currencyCode: txData['currency_code'] as String? ?? 'USD',
-                      foreignAmount: Value((txData['foreign_amount'] as num?)?.toDouble()),
-                      foreignCurrencyCode: Value(txData['foreign_currency_code'] as String?),
+                      foreignAmount: Value(
+                        (txData['foreign_amount'] as num?)?.toDouble(),
+                      ),
+                      foreignCurrencyCode: Value(
+                        txData['foreign_currency_code'] as String?,
+                      ),
                       notes: Value(txData['notes'] as String?),
                       tags: Value(txData['tags']?.toString() ?? '[]'),
                       createdAt: DateTime.parse(attrs['created_at'] as String),
@@ -1804,13 +1847,15 @@ class SyncManager {
         });
 
         // Update sync metadata
-        await _database.into(_database.syncMetadata).insertOnConflictUpdate(
-          SyncMetadataEntityCompanion.insert(
-            key: 'last_full_sync',
-            value: DateTime.now().toIso8601String(),
-            updatedAt: DateTime.now(),
-          ),
-        );
+        await _database
+            .into(_database.syncMetadata)
+            .insertOnConflictUpdate(
+              SyncMetadataEntityCompanion.insert(
+                key: 'last_full_sync',
+                value: DateTime.now().toIso8601String(),
+                updatedAt: DateTime.now(),
+              ),
+            );
 
         _lastFullSyncTime = DateTime.now();
         _lastSyncTime = DateTime.now();
@@ -1852,64 +1897,67 @@ class SyncManager {
           return;
         }
 
-        _progressTracker.start(
-          totalOperations: 6,
-          phase: SyncPhase.pulling,
-        );
+        _progressTracker.start(totalOperations: 6, phase: SyncPhase.pulling);
 
         final DateTime since = _lastSyncTime!;
 
         // Fetch changes from server
         _logger.fine('Fetching account changes since $since');
-        final List<Map<String, dynamic>> accounts = await _apiClient.getAccountsSince(since);
+        final List<Map<String, dynamic>> accounts = await _apiClient
+            .getAccountsSince(since);
         await _mergeAccounts(accounts);
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching category changes since $since');
-        final List<Map<String, dynamic>> categories = await _apiClient.getCategoriesSince(since);
+        final List<Map<String, dynamic>> categories = await _apiClient
+            .getCategoriesSince(since);
         await _mergeCategories(categories);
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching budget changes since $since');
-        final List<Map<String, dynamic>> budgets = await _apiClient.getBudgetsSince(since);
+        final List<Map<String, dynamic>> budgets = await _apiClient
+            .getBudgetsSince(since);
         await _mergeBudgets(budgets);
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching bill changes since $since');
-        final List<Map<String, dynamic>> bills = await _apiClient.getBillsSince(since);
+        final List<Map<String, dynamic>> bills = await _apiClient.getBillsSince(
+          since,
+        );
         await _mergeBills(bills);
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching piggy bank changes since $since');
-        final List<Map<String, dynamic>> piggyBanks = await _apiClient.getPiggyBanksSince(since);
+        final List<Map<String, dynamic>> piggyBanks = await _apiClient
+            .getPiggyBanksSince(since);
         await _mergePiggyBanks(piggyBanks);
         _progressTracker.incrementCompleted();
 
         _logger.fine('Fetching transaction changes since $since');
-        final List<Map<String, dynamic>> transactions = await _apiClient.getTransactionsSince(since);
+        final List<Map<String, dynamic>> transactions = await _apiClient
+            .getTransactionsSince(since);
         await _mergeTransactions(transactions);
         _progressTracker.incrementCompleted();
 
-        _logger.info(
-          'Fetched changes from server',
-          <String, dynamic>{
-            'accounts': accounts.length,
-            'categories': categories.length,
-            'budgets': budgets.length,
-            'bills': bills.length,
-            'piggy_banks': piggyBanks.length,
-            'transactions': transactions.length,
-          },
-        );
+        _logger.info('Fetched changes from server', <String, dynamic>{
+          'accounts': accounts.length,
+          'categories': categories.length,
+          'budgets': budgets.length,
+          'bills': bills.length,
+          'piggy_banks': piggyBanks.length,
+          'transactions': transactions.length,
+        });
 
         // Update sync metadata
-        await _database.into(_database.syncMetadata).insertOnConflictUpdate(
-          SyncMetadataEntityCompanion.insert(
-            key: 'last_partial_sync',
-            value: DateTime.now().toIso8601String(),
-            updatedAt: DateTime.now(),
-          ),
-        );
+        await _database
+            .into(_database.syncMetadata)
+            .insertOnConflictUpdate(
+              SyncMetadataEntityCompanion.insert(
+                key: 'last_partial_sync',
+                value: DateTime.now().toIso8601String(),
+                updatedAt: DateTime.now(),
+              ),
+            );
 
         _lastSyncTime = DateTime.now();
 
@@ -1928,13 +1976,15 @@ class SyncManager {
   Future<void> _mergeAccounts(List<Map<String, dynamic>> accounts) async {
     for (final Map<String, dynamic> account in accounts) {
       final String serverId = account['id'] as String;
-      final Map<String, dynamic> attrs = account['attributes'] as Map<String, dynamic>;
-      
+      final Map<String, dynamic> attrs =
+          account['attributes'] as Map<String, dynamic>;
+
       // Check if local has pending changes
-      final AccountEntity? local = await (_database.select(_database.accounts)
-            ..where(($AccountsTable tbl) => tbl.serverId.equals(serverId)))
-          .getSingleOrNull();
-      
+      final AccountEntity? local =
+          await (_database.select(_database.accounts)..where(
+            ($AccountsTable tbl) => tbl.serverId.equals(serverId),
+          )).getSingleOrNull();
+
       if (local != null && !local.isSynced) {
         await _storeConflict(
           entityType: 'account',
@@ -1945,25 +1995,28 @@ class SyncManager {
         _progressTracker.incrementConflicts();
         continue;
       }
-      
+
       // Merge server data
-      await _database.into(_database.accounts).insertOnConflictUpdate(
-        AccountEntityCompanion.insert(
-          id: serverId,
-          serverId: Value(serverId),
-          name: attrs['name'] as String,
-          type: attrs['type'] as String,
-          accountNumber: Value(attrs['account_number'] as String?),
-          iban: Value(attrs['iban'] as String?),
-          currencyCode: attrs['currency_code'] as String? ?? 'USD',
-          currentBalance: (attrs['current_balance'] as num?)?.toDouble() ?? 0.0,
-          notes: Value(attrs['notes'] as String?),
-          createdAt: DateTime.parse(attrs['created_at'] as String),
-          updatedAt: DateTime.parse(attrs['updated_at'] as String),
-          isSynced: const Value(true),
-          syncStatus: const Value('synced'),
-        ),
-      );
+      await _database
+          .into(_database.accounts)
+          .insertOnConflictUpdate(
+            AccountEntityCompanion.insert(
+              id: serverId,
+              serverId: Value(serverId),
+              name: attrs['name'] as String,
+              type: attrs['type'] as String,
+              accountNumber: Value(attrs['account_number'] as String?),
+              iban: Value(attrs['iban'] as String?),
+              currencyCode: attrs['currency_code'] as String? ?? 'USD',
+              currentBalance:
+                  (attrs['current_balance'] as num?)?.toDouble() ?? 0.0,
+              notes: Value(attrs['notes'] as String?),
+              createdAt: DateTime.parse(attrs['created_at'] as String),
+              updatedAt: DateTime.parse(attrs['updated_at'] as String),
+              isSynced: const Value(true),
+              syncStatus: const Value('synced'),
+            ),
+          );
     }
   }
 
@@ -1971,12 +2024,14 @@ class SyncManager {
   Future<void> _mergeCategories(List<Map<String, dynamic>> categories) async {
     for (final Map<String, dynamic> category in categories) {
       final String serverId = category['id'] as String;
-      final Map<String, dynamic> attrs = category['attributes'] as Map<String, dynamic>;
-      
-      final CategoryEntity? local = await (_database.select(_database.categories)
-            ..where(($CategoriesTable tbl) => tbl.serverId.equals(serverId)))
-          .getSingleOrNull();
-      
+      final Map<String, dynamic> attrs =
+          category['attributes'] as Map<String, dynamic>;
+
+      final CategoryEntity? local =
+          await (_database.select(_database.categories)..where(
+            ($CategoriesTable tbl) => tbl.serverId.equals(serverId),
+          )).getSingleOrNull();
+
       if (local != null && !local.isSynced) {
         await _storeConflict(
           entityType: 'category',
@@ -1987,19 +2042,21 @@ class SyncManager {
         _progressTracker.incrementConflicts();
         continue;
       }
-      
-      await _database.into(_database.categories).insertOnConflictUpdate(
-        CategoryEntityCompanion.insert(
-          id: serverId,
-          serverId: Value(serverId),
-          name: attrs['name'] as String,
-          notes: Value(attrs['notes'] as String?),
-          createdAt: DateTime.parse(attrs['created_at'] as String),
-          updatedAt: DateTime.parse(attrs['updated_at'] as String),
-          isSynced: const Value(true),
-          syncStatus: const Value('synced'),
-        ),
-      );
+
+      await _database
+          .into(_database.categories)
+          .insertOnConflictUpdate(
+            CategoryEntityCompanion.insert(
+              id: serverId,
+              serverId: Value(serverId),
+              name: attrs['name'] as String,
+              notes: Value(attrs['notes'] as String?),
+              createdAt: DateTime.parse(attrs['created_at'] as String),
+              updatedAt: DateTime.parse(attrs['updated_at'] as String),
+              isSynced: const Value(true),
+              syncStatus: const Value('synced'),
+            ),
+          );
     }
   }
 
@@ -2007,12 +2064,14 @@ class SyncManager {
   Future<void> _mergeBudgets(List<Map<String, dynamic>> budgets) async {
     for (final Map<String, dynamic> budget in budgets) {
       final String serverId = budget['id'] as String;
-      final Map<String, dynamic> attrs = budget['attributes'] as Map<String, dynamic>;
-      
-      final BudgetEntity? local = await (_database.select(_database.budgets)
-            ..where(($BudgetsTable tbl) => tbl.serverId.equals(serverId)))
-          .getSingleOrNull();
-      
+      final Map<String, dynamic> attrs =
+          budget['attributes'] as Map<String, dynamic>;
+
+      final BudgetEntity? local =
+          await (_database.select(_database.budgets)..where(
+            ($BudgetsTable tbl) => tbl.serverId.equals(serverId),
+          )).getSingleOrNull();
+
       if (local != null && !local.isSynced) {
         await _storeConflict(
           entityType: 'budget',
@@ -2023,18 +2082,20 @@ class SyncManager {
         _progressTracker.incrementConflicts();
         continue;
       }
-      
-      await _database.into(_database.budgets).insertOnConflictUpdate(
-        BudgetEntityCompanion.insert(
-          id: serverId,
-          serverId: Value(serverId),
-          name: attrs['name'] as String,
-          createdAt: DateTime.parse(attrs['created_at'] as String),
-          updatedAt: DateTime.parse(attrs['updated_at'] as String),
-          isSynced: const Value(true),
-          syncStatus: const Value('synced'),
-        ),
-      );
+
+      await _database
+          .into(_database.budgets)
+          .insertOnConflictUpdate(
+            BudgetEntityCompanion.insert(
+              id: serverId,
+              serverId: Value(serverId),
+              name: attrs['name'] as String,
+              createdAt: DateTime.parse(attrs['created_at'] as String),
+              updatedAt: DateTime.parse(attrs['updated_at'] as String),
+              isSynced: const Value(true),
+              syncStatus: const Value('synced'),
+            ),
+          );
     }
   }
 
@@ -2042,12 +2103,14 @@ class SyncManager {
   Future<void> _mergeBills(List<Map<String, dynamic>> bills) async {
     for (final Map<String, dynamic> bill in bills) {
       final String serverId = bill['id'] as String;
-      final Map<String, dynamic> attrs = bill['attributes'] as Map<String, dynamic>;
-      
-      final BillEntity? local = await (_database.select(_database.bills)
-            ..where(($BillsTable tbl) => tbl.serverId.equals(serverId)))
-          .getSingleOrNull();
-      
+      final Map<String, dynamic> attrs =
+          bill['attributes'] as Map<String, dynamic>;
+
+      final BillEntity? local =
+          await (_database.select(_database.bills)..where(
+            ($BillsTable tbl) => tbl.serverId.equals(serverId),
+          )).getSingleOrNull();
+
       if (local != null && !local.isSynced) {
         await _storeConflict(
           entityType: 'bill',
@@ -2058,33 +2121,39 @@ class SyncManager {
         _progressTracker.incrementConflicts();
         continue;
       }
-      
-      await _database.into(_database.bills).insertOnConflictUpdate(
-        BillEntityCompanion.insert(
-          id: serverId,
-          serverId: Value(serverId),
-          name: attrs['name'] as String,
-          minAmount: (attrs['amount_min'] as num).toDouble(),
-          maxAmount: (attrs['amount_max'] as num).toDouble(),
-          date: DateTime.parse(attrs['date'] as String),
-          repeatFreq: attrs['repeat_freq'] as String,
-          currencyCode: attrs['currency_code'] as String? ?? 'USD',
-          currencySymbol: Value(attrs['currency_symbol'] as String?),
-          currencyDecimalPlaces: Value(attrs['currency_decimal_places'] as int?),
-          currencyId: Value(attrs['currency_id'] as String?),
-          nextExpectedMatch: Value(attrs['next_expected_match'] != null
-              ? DateTime.tryParse(attrs['next_expected_match'] as String)
-              : null),
-          order: Value(attrs['order'] as int?),
-          objectGroupOrder: Value(attrs['object_group_order'] as int?),
-          objectGroupTitle: Value(attrs['object_group_title'] as String?),
-          notes: Value(attrs['notes'] as String?),
-          createdAt: DateTime.parse(attrs['created_at'] as String),
-          updatedAt: DateTime.parse(attrs['updated_at'] as String),
-          isSynced: const Value(true),
-          syncStatus: const Value('synced'),
-        ),
-      );
+
+      await _database
+          .into(_database.bills)
+          .insertOnConflictUpdate(
+            BillEntityCompanion.insert(
+              id: serverId,
+              serverId: Value(serverId),
+              name: attrs['name'] as String,
+              minAmount: (attrs['amount_min'] as num).toDouble(),
+              maxAmount: (attrs['amount_max'] as num).toDouble(),
+              date: DateTime.parse(attrs['date'] as String),
+              repeatFreq: attrs['repeat_freq'] as String,
+              currencyCode: attrs['currency_code'] as String? ?? 'USD',
+              currencySymbol: Value(attrs['currency_symbol'] as String?),
+              currencyDecimalPlaces: Value(
+                attrs['currency_decimal_places'] as int?,
+              ),
+              currencyId: Value(attrs['currency_id'] as String?),
+              nextExpectedMatch: Value(
+                attrs['next_expected_match'] != null
+                    ? DateTime.tryParse(attrs['next_expected_match'] as String)
+                    : null,
+              ),
+              order: Value(attrs['order'] as int?),
+              objectGroupOrder: Value(attrs['object_group_order'] as int?),
+              objectGroupTitle: Value(attrs['object_group_title'] as String?),
+              notes: Value(attrs['notes'] as String?),
+              createdAt: DateTime.parse(attrs['created_at'] as String),
+              updatedAt: DateTime.parse(attrs['updated_at'] as String),
+              isSynced: const Value(true),
+              syncStatus: const Value('synced'),
+            ),
+          );
     }
   }
 
@@ -2092,12 +2161,14 @@ class SyncManager {
   Future<void> _mergePiggyBanks(List<Map<String, dynamic>> piggyBanks) async {
     for (final Map<String, dynamic> piggyBank in piggyBanks) {
       final String serverId = piggyBank['id'] as String;
-      final Map<String, dynamic> attrs = piggyBank['attributes'] as Map<String, dynamic>;
-      
-      final PiggyBankEntity? local = await (_database.select(_database.piggyBanks)
-            ..where(($PiggyBanksTable tbl) => tbl.serverId.equals(serverId)))
-          .getSingleOrNull();
-      
+      final Map<String, dynamic> attrs =
+          piggyBank['attributes'] as Map<String, dynamic>;
+
+      final PiggyBankEntity? local =
+          await (_database.select(_database.piggyBanks)..where(
+            ($PiggyBanksTable tbl) => tbl.serverId.equals(serverId),
+          )).getSingleOrNull();
+
       if (local != null && !local.isSynced) {
         await _storeConflict(
           entityType: 'piggy_bank',
@@ -2108,36 +2179,52 @@ class SyncManager {
         _progressTracker.incrementConflicts();
         continue;
       }
-      
-      await _database.into(_database.piggyBanks).insertOnConflictUpdate(
-        PiggyBankEntityCompanion.insert(
-          id: serverId,
-          serverId: Value(serverId),
-          name: attrs['name'] as String,
-          accountId: attrs['account_id'] as String,
-          targetAmount: Value((attrs['target_amount'] as num?)?.toDouble()),
-          currentAmount: Value((attrs['current_amount'] as num?)?.toDouble() ?? 0.0),
-          startDate: Value(attrs['start_date'] != null ? DateTime.parse(attrs['start_date'] as String) : null),
-          targetDate: Value(attrs['target_date'] != null ? DateTime.parse(attrs['target_date'] as String) : null),
-          createdAt: DateTime.parse(attrs['created_at'] as String),
-          updatedAt: DateTime.parse(attrs['updated_at'] as String),
-          isSynced: const Value(true),
-          syncStatus: const Value('synced'),
-        ),
-      );
+
+      await _database
+          .into(_database.piggyBanks)
+          .insertOnConflictUpdate(
+            PiggyBankEntityCompanion.insert(
+              id: serverId,
+              serverId: Value(serverId),
+              name: attrs['name'] as String,
+              accountId: attrs['account_id'] as String,
+              targetAmount: Value((attrs['target_amount'] as num?)?.toDouble()),
+              currentAmount: Value(
+                (attrs['current_amount'] as num?)?.toDouble() ?? 0.0,
+              ),
+              startDate: Value(
+                attrs['start_date'] != null
+                    ? DateTime.parse(attrs['start_date'] as String)
+                    : null,
+              ),
+              targetDate: Value(
+                attrs['target_date'] != null
+                    ? DateTime.parse(attrs['target_date'] as String)
+                    : null,
+              ),
+              createdAt: DateTime.parse(attrs['created_at'] as String),
+              updatedAt: DateTime.parse(attrs['updated_at'] as String),
+              isSynced: const Value(true),
+              syncStatus: const Value('synced'),
+            ),
+          );
     }
   }
 
   /// Merge transactions from server with local data
-  Future<void> _mergeTransactions(List<Map<String, dynamic>> transactions) async {
+  Future<void> _mergeTransactions(
+    List<Map<String, dynamic>> transactions,
+  ) async {
     for (final Map<String, dynamic> transaction in transactions) {
       final String serverId = transaction['id'] as String;
-      final Map<String, dynamic> attrs = transaction['attributes'] as Map<String, dynamic>;
-      
-      final TransactionEntity? local = await (_database.select(_database.transactions)
-            ..where(($TransactionsTable tbl) => tbl.serverId.equals(serverId)))
-          .getSingleOrNull();
-      
+      final Map<String, dynamic> attrs =
+          transaction['attributes'] as Map<String, dynamic>;
+
+      final TransactionEntity? local =
+          await (_database.select(_database.transactions)..where(
+            ($TransactionsTable tbl) => tbl.serverId.equals(serverId),
+          )).getSingleOrNull();
+
       if (local != null && !local.isSynced) {
         await _storeConflict(
           entityType: 'transaction',
@@ -2148,51 +2235,57 @@ class SyncManager {
         _progressTracker.incrementConflicts();
         continue;
       }
-      
+
       final List<dynamic> txList = attrs['transactions'] as List<dynamic>;
       for (final tx in txList) {
         final Map<String, dynamic> txData = tx as Map<String, dynamic>;
-        await _database.into(_database.transactions).insertOnConflictUpdate(
-          TransactionEntityCompanion.insert(
-            id: serverId,
-            serverId: Value(serverId),
-            type: txData['type'] as String,
-            date: DateTime.parse(txData['date'] as String),
-            amount: (txData['amount'] as num).toDouble(),
-            description: txData['description'] as String,
-            sourceAccountId: txData['source_id'] as String,
-            destinationAccountId: txData['destination_id'] as String,
-            categoryId: Value(txData['category_id'] as String?),
-            budgetId: Value(txData['budget_id'] as String?),
-            currencyCode: txData['currency_code'] as String? ?? 'USD',
-            foreignAmount: Value((txData['foreign_amount'] as num?)?.toDouble()),
-            foreignCurrencyCode: Value(txData['foreign_currency_code'] as String?),
-            notes: Value(txData['notes'] as String?),
-            tags: Value(txData['tags']?.toString() ?? '[]'),
-            createdAt: DateTime.parse(attrs['created_at'] as String),
-            updatedAt: DateTime.parse(attrs['updated_at'] as String),
-            isSynced: const Value(true),
-            syncStatus: const Value('synced'),
-          ),
-        );
+        await _database
+            .into(_database.transactions)
+            .insertOnConflictUpdate(
+              TransactionEntityCompanion.insert(
+                id: serverId,
+                serverId: Value(serverId),
+                type: txData['type'] as String,
+                date: DateTime.parse(txData['date'] as String),
+                amount: (txData['amount'] as num).toDouble(),
+                description: txData['description'] as String,
+                sourceAccountId: txData['source_id'] as String,
+                destinationAccountId: txData['destination_id'] as String,
+                categoryId: Value(txData['category_id'] as String?),
+                budgetId: Value(txData['budget_id'] as String?),
+                currencyCode: txData['currency_code'] as String? ?? 'USD',
+                foreignAmount: Value(
+                  (txData['foreign_amount'] as num?)?.toDouble(),
+                ),
+                foreignCurrencyCode: Value(
+                  txData['foreign_currency_code'] as String?,
+                ),
+                notes: Value(txData['notes'] as String?),
+                tags: Value(txData['tags']?.toString() ?? '[]'),
+                createdAt: DateTime.parse(attrs['created_at'] as String),
+                updatedAt: DateTime.parse(attrs['updated_at'] as String),
+                isSynced: const Value(true),
+                syncStatus: const Value('synced'),
+              ),
+            );
       }
     }
   }
 
   /// Schedule periodic sync.
   Future<void> schedulePeriodicSync(Duration interval) async {
-    _logger.info('Scheduling periodic sync every ${interval.inMinutes} minutes');
-    
+    _logger.info(
+      'Scheduling periodic sync every ${interval.inMinutes} minutes',
+    );
+
     try {
       await Workmanager().registerPeriodicTask(
         'waterfly-sync',
         'syncTask',
         frequency: interval,
-        constraints: Constraints(
-          networkType: NetworkType.connected,
-        ),
+        constraints: Constraints(networkType: NetworkType.connected),
       );
-      
+
       _logger.info('Background sync scheduled successfully');
     } catch (e, stackTrace) {
       _logger.severe('Failed to schedule background sync', e, stackTrace);
@@ -2203,7 +2296,7 @@ class SyncManager {
   /// Cancel scheduled sync.
   Future<void> cancelScheduledSync() async {
     _logger.info('Cancelling scheduled sync');
-    
+
     try {
       await Workmanager().cancelByUniqueName('waterfly-sync');
       _logger.info('Background sync cancelled successfully');
@@ -2221,33 +2314,36 @@ class SyncManager {
     required Map<String, dynamic> serverData,
   }) async {
     try {
-      final String conflictId = '${entityType}_${entityId}_${DateTime.now().millisecondsSinceEpoch}';
-      
+      final String conflictId =
+          '${entityType}_${entityId}_${DateTime.now().millisecondsSinceEpoch}';
+
       // Detect conflicting fields
-      final List<String> conflictingFields = _detectConflictingFields(localData, serverData);
-      
-      await _database.into(_database.conflicts).insert(
-        ConflictEntityCompanion.insert(
-          id: conflictId,
-          entityType: entityType,
-          entityId: entityId,
-          conflictType: 'update_conflict',
-          localData: _serializeData(localData),
-          serverData: _serializeData(serverData),
-          conflictingFields: jsonEncode(conflictingFields),
-          detectedAt: DateTime.now(),
-        ),
+      final List<String> conflictingFields = _detectConflictingFields(
+        localData,
+        serverData,
       );
-      
-      _logger.info(
-        'Stored conflict for resolution',
-        <String, dynamic>{
-          'conflict_id': conflictId,
-          'entity_type': entityType,
-          'entity_id': entityId,
-          'conflicting_fields': conflictingFields,
-        },
-      );
+
+      await _database
+          .into(_database.conflicts)
+          .insert(
+            ConflictEntityCompanion.insert(
+              id: conflictId,
+              entityType: entityType,
+              entityId: entityId,
+              conflictType: 'update_conflict',
+              localData: _serializeData(localData),
+              serverData: _serializeData(serverData),
+              conflictingFields: jsonEncode(conflictingFields),
+              detectedAt: DateTime.now(),
+            ),
+          );
+
+      _logger.info('Stored conflict for resolution', <String, dynamic>{
+        'conflict_id': conflictId,
+        'entity_type': entityType,
+        'entity_id': entityId,
+        'conflicting_fields': conflictingFields,
+      });
     } catch (e, stackTrace) {
       _logger.severe('Failed to store conflict', e, stackTrace);
     }
@@ -2259,29 +2355,30 @@ class SyncManager {
     Map<String, dynamic> serverData,
   ) {
     final List<String> conflictingFields = <String>[];
-    
+
     try {
       // Convert local data to map
-      final Map<String, dynamic> localMap = localData is Map
-          ? Map<String, dynamic>.from(localData)
-          : (localData as dynamic).toJson();
-      
+      final Map<String, dynamic> localMap =
+          localData is Map
+              ? Map<String, dynamic>.from(localData)
+              : (localData as dynamic).toJson();
+
       // Compare each field
       for (final String key in serverData.keys) {
         if (!localMap.containsKey(key)) continue;
-        
+
         final localValue = localMap[key];
         final serverValue = serverData[key];
-        
+
         // Skip null comparisons
         if (localValue == null && serverValue == null) continue;
-        
+
         // Check if values differ
         if (localValue != serverValue) {
           conflictingFields.add(key);
         }
       }
-      
+
       // Check for fields only in local
       for (final String key in localMap.keys) {
         if (!serverData.containsKey(key) && localMap[key] != null) {
@@ -2292,7 +2389,7 @@ class SyncManager {
       _logger.warning('Failed to detect conflicting fields: $e');
       // Return empty list on error
     }
-    
+
     return conflictingFields;
   }
 
@@ -2314,26 +2411,23 @@ class SyncManager {
         _logger.severe('Connectivity listener error', error, stackTrace);
       },
     );
-    
+
     _logger.info('Connectivity listener initialized');
   }
 
   /// Handle connectivity status changes.
   void _handleConnectivityChange(ConnectivityStatus status) {
     final bool isOnline = status == ConnectivityStatus.online;
-    
-    _logger.fine(
-      'Connectivity changed',
-      <String, dynamic>{
-        'status': status.name,
-        'was_offline': _wasOffline,
-        'auto_sync_enabled': autoSyncOnReconnect,
-      },
-    );
+
+    _logger.fine('Connectivity changed', <String, dynamic>{
+      'status': status.name,
+      'was_offline': _wasOffline,
+      'auto_sync_enabled': autoSyncOnReconnect,
+    });
 
     if (isOnline && _wasOffline && autoSyncOnReconnect) {
       _logger.info('Network restored, triggering automatic sync');
-      
+
       // Trigger sync asynchronously to avoid blocking the listener
       Future.microtask(() async {
         try {
@@ -2351,11 +2445,11 @@ class SyncManager {
   Future<bool> _checkConnectivity() async {
     final ConnectivityStatus status = _connectivity.currentStatus;
     final bool isOnline = status == ConnectivityStatus.online;
-    
+
     if (!isOnline) {
       _logger.warning('Cannot sync: device is offline');
     }
-    
+
     return isOnline;
   }
 

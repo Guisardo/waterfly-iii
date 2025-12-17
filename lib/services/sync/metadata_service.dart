@@ -28,10 +28,11 @@ class MetadataService {
   /// Returns null if key doesn't exist.
   Future<String?> get(String key) async {
     try {
-      final SyncMetadataEntity? result = await (_database.select(_database.syncMetadata)
-            ..where(($SyncMetadataTable t) => t.key.equals(key))
-            ..limit(1))
-          .getSingleOrNull();
+      final SyncMetadataEntity? result =
+          await (_database.select(_database.syncMetadata)
+                ..where(($SyncMetadataTable t) => t.key.equals(key))
+                ..limit(1))
+              .getSingleOrNull();
 
       _logger.fine('Retrieved metadata: $key = ${result?.value}');
       return result?.value;
@@ -69,9 +70,9 @@ class MetadataService {
   /// No-op if key doesn't exist.
   Future<void> delete(String key) async {
     try {
-      final int deleted = await (_database.delete(_database.syncMetadata)
-            ..where(($SyncMetadataTable t) => t.key.equals(key)))
-          .go();
+      final int deleted =
+          await (_database.delete(_database.syncMetadata)
+            ..where(($SyncMetadataTable t) => t.key.equals(key))).go();
 
       _logger.fine('Deleted metadata: $key (rows: $deleted)');
     } catch (e, stackTrace) {
@@ -89,7 +90,8 @@ class MetadataService {
   /// ```
   Future<Map<String, String>> getAll({String? prefix}) async {
     try {
-      final SimpleSelectStatement<$SyncMetadataTable, SyncMetadataEntity> query = _database.select(_database.syncMetadata);
+      final SimpleSelectStatement<$SyncMetadataTable, SyncMetadataEntity>
+      query = _database.select(_database.syncMetadata);
 
       if (prefix != null) {
         query.where(($SyncMetadataTable t) => t.key.like('$prefix%'));
@@ -117,7 +119,8 @@ class MetadataService {
   /// Useful for clearing operation history or statistics.
   Future<int> deleteAll({String? prefix}) async {
     try {
-      final DeleteStatement<$SyncMetadataTable, SyncMetadataEntity> delete = _database.delete(_database.syncMetadata);
+      final DeleteStatement<$SyncMetadataTable, SyncMetadataEntity> delete =
+          _database.delete(_database.syncMetadata);
 
       if (prefix != null) {
         delete.where(($SyncMetadataTable t) => t.key.like('$prefix%'));
@@ -167,10 +170,11 @@ class MetadataService {
   /// Check if metadata key exists.
   Future<bool> exists(String key) async {
     try {
-      final SyncMetadataEntity? result = await (_database.select(_database.syncMetadata)
-            ..where(($SyncMetadataTable t) => t.key.equals(key))
-            ..limit(1))
-          .getSingleOrNull();
+      final SyncMetadataEntity? result =
+          await (_database.select(_database.syncMetadata)
+                ..where(($SyncMetadataTable t) => t.key.equals(key))
+                ..limit(1))
+              .getSingleOrNull();
 
       return result != null;
     } catch (e, stackTrace) {
@@ -182,10 +186,11 @@ class MetadataService {
   /// Get metadata entry with timestamp information.
   Future<MetadataEntry?> getEntry(String key) async {
     try {
-      final SyncMetadataEntity? result = await (_database.select(_database.syncMetadata)
-            ..where(($SyncMetadataTable t) => t.key.equals(key))
-            ..limit(1))
-          .getSingleOrNull();
+      final SyncMetadataEntity? result =
+          await (_database.select(_database.syncMetadata)
+                ..where(($SyncMetadataTable t) => t.key.equals(key))
+                ..limit(1))
+              .getSingleOrNull();
 
       if (result == null) return null;
 
@@ -203,7 +208,8 @@ class MetadataService {
   /// Get all metadata entries with timestamp information.
   Future<List<MetadataEntry>> getAllEntries({String? prefix}) async {
     try {
-      final SimpleSelectStatement<$SyncMetadataTable, SyncMetadataEntity> query = _database.select(_database.syncMetadata);
+      final SimpleSelectStatement<$SyncMetadataTable, SyncMetadataEntity>
+      query = _database.select(_database.syncMetadata);
 
       if (prefix != null) {
         query.where(($SyncMetadataTable t) => t.key.like('$prefix%'));
@@ -211,11 +217,13 @@ class MetadataService {
 
       final List<SyncMetadataEntity> results = await query.get();
       return results
-          .map((SyncMetadataEntity row) => MetadataEntry(
-                key: row.key,
-                value: row.value,
-                updatedAt: row.updatedAt,
-              ))
+          .map(
+            (SyncMetadataEntity row) => MetadataEntry(
+              key: row.key,
+              value: row.value,
+              updatedAt: row.updatedAt,
+            ),
+          )
           .toList();
     } catch (e, stackTrace) {
       _logger.severe('Failed to get all metadata entries', e, stackTrace);
@@ -226,7 +234,8 @@ class MetadataService {
   /// Count metadata entries with optional prefix filter.
   Future<int> count({String? prefix}) async {
     try {
-      final SimpleSelectStatement<$SyncMetadataTable, SyncMetadataEntity> query = _database.select(_database.syncMetadata);
+      final SimpleSelectStatement<$SyncMetadataTable, SyncMetadataEntity>
+      query = _database.select(_database.syncMetadata);
 
       if (prefix != null) {
         query.where(($SyncMetadataTable t) => t.key.like('$prefix%'));

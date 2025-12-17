@@ -24,7 +24,7 @@ import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
 class AppModeProvider extends ChangeNotifier {
   /// Creates an app mode provider.
   AppModeProvider({AppModeManager? appModeManager})
-      : _appModeManager = appModeManager ?? AppModeManager();
+    : _appModeManager = appModeManager ?? AppModeManager();
 
   final AppModeManager _appModeManager;
 
@@ -69,13 +69,13 @@ class AppModeProvider extends ChangeNotifier {
     if (_isInitialized) return;
 
     await _appModeManager.initialize();
-    
+
     // Set initial mode
     _mode = _appModeManager.currentMode;
-    
+
     // Listen to mode changes
     _appModeManager.modeStream.listen(_onModeChanged);
-    
+
     _isInitialized = true;
     notifyListeners();
   }

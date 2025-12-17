@@ -76,7 +76,8 @@ void main() {
         isIncremental: isIncremental,
         success: success,
         duration: duration,
-        statsByEntity: statsByEntity ??
+        statsByEntity:
+            statsByEntity ??
             <String, IncrementalSyncStats>{
               'transaction': createStats(
                 entityType: 'transaction',
@@ -136,23 +137,27 @@ void main() {
           body: ChangeNotifierProvider<OfflineSettingsProvider>.value(
             value: settingsProvider,
             child: Builder(
-              builder: (BuildContext context) => ElevatedButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (BuildContext context) => IncrementalSyncProgressWidget(
-                      progressStream: streamController.stream,
-                      displayMode: IncrementalSyncProgressDisplayMode.dialog,
-                      allowCancel: allowCancel,
-                      onCancel: onCancel,
-                      onComplete: onComplete,
-                      autoDismissOnComplete: autoDismissOnComplete,
-                    ),
-                  );
-                },
-                child: const Text('Show Dialog'),
-              ),
+              builder:
+                  (BuildContext context) => ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder:
+                            (BuildContext context) =>
+                                IncrementalSyncProgressWidget(
+                                  progressStream: streamController.stream,
+                                  displayMode:
+                                      IncrementalSyncProgressDisplayMode.dialog,
+                                  allowCancel: allowCancel,
+                                  onCancel: onCancel,
+                                  onComplete: onComplete,
+                                  autoDismissOnComplete: autoDismissOnComplete,
+                                ),
+                      );
+                    },
+                    child: const Text('Show Dialog'),
+                  ),
             ),
           ),
         ),
@@ -160,34 +165,40 @@ void main() {
     }
 
     group('Embedded Display Mode', () {
-      testWidgets('renders header with sync title', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncProgressDisplayMode.embedded,
-        ));
+      testWidgets('renders header with sync title', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncProgressDisplayMode.embedded),
+        );
 
         expect(find.text('Incremental Sync'), findsOneWidget);
       });
 
       testWidgets('renders as a Card widget', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncProgressDisplayMode.embedded,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncProgressDisplayMode.embedded),
+        );
 
         expect(find.byType(Card), findsOneWidget);
       });
 
-      testWidgets('shows circular progress indicator initially', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncProgressDisplayMode.embedded,
-        ));
+      testWidgets('shows circular progress indicator initially', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncProgressDisplayMode.embedded),
+        );
 
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
       });
 
-      testWidgets('displays all entity types in progress list', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncProgressDisplayMode.embedded,
-        ));
+      testWidgets('displays all entity types in progress list', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncProgressDisplayMode.embedded),
+        );
 
         // All entity types should be shown
         expect(find.text('Transactions'), findsOneWidget);
@@ -199,9 +210,9 @@ void main() {
       });
 
       testWidgets('shows live statistics section', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncProgressDisplayMode.embedded,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncProgressDisplayMode.embedded),
+        );
 
         expect(find.text('Fetched'), findsOneWidget);
         expect(find.text('Updated'), findsOneWidget);
@@ -210,7 +221,9 @@ void main() {
     });
 
     group('Dialog Display Mode', () {
-      testWidgets('renders AlertDialog when opened', (WidgetTester tester) async {
+      testWidgets('renders AlertDialog when opened', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildDialogTestWidget());
 
         // Open the dialog
@@ -223,7 +236,9 @@ void main() {
         expect(find.text('Incremental Sync'), findsOneWidget);
       });
 
-      testWidgets('shows cancel button when allowCancel is true', (WidgetTester tester) async {
+      testWidgets('shows cancel button when allowCancel is true', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildDialogTestWidget(allowCancel: true));
 
         await tester.tap(find.text('Show Dialog'));
@@ -234,7 +249,9 @@ void main() {
         expect(find.text('Cancel'), findsOneWidget);
       });
 
-      testWidgets('hides cancel button when allowCancel is false', (WidgetTester tester) async {
+      testWidgets('hides cancel button when allowCancel is false', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildDialogTestWidget(allowCancel: false));
 
         await tester.tap(find.text('Show Dialog'));
@@ -248,9 +265,9 @@ void main() {
 
     group('Sheet Display Mode', () {
       testWidgets('renders sheet layout', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncProgressDisplayMode.sheet,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncProgressDisplayMode.sheet),
+        );
 
         // Sheet mode uses a Container with decoration
         expect(find.text('Incremental Sync'), findsOneWidget);
@@ -280,17 +297,21 @@ void main() {
         expect(find.text('Syncing Transactions...'), findsOneWidget);
       });
 
-      testWidgets('handles progress event with counts', (WidgetTester tester) async {
+      testWidgets('handles progress event with counts', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Emit progress event with specific counts
-        streamController.add(SyncProgressEvent.progress(
-          'transaction',
-          50, // fetched
-          10, // updated
-          40, // skipped
-          total: 100,
-        ));
+        streamController.add(
+          SyncProgressEvent.progress(
+            'transaction',
+            50, // fetched
+            10, // updated
+            40, // skipped
+            total: 100,
+          ),
+        );
         await tester.pump();
 
         // Stats should be updated
@@ -311,17 +332,18 @@ void main() {
         );
 
         // Emit entityCompleted event
-        streamController.add(SyncProgressEvent.entityCompleted(
-          'transaction',
-          stats,
-        ));
+        streamController.add(
+          SyncProgressEvent.entityCompleted('transaction', stats),
+        );
         await tester.pump();
 
         // Should show check mark for completed entity
         expect(find.byIcon(Icons.check), findsAtLeastNWidgets(1));
       });
 
-      testWidgets('handles multiple entity completions', (WidgetTester tester) async {
+      testWidgets('handles multiple entity completions', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Complete multiple entities
@@ -332,7 +354,8 @@ void main() {
           skipped: 80,
         );
         streamController.add(
-            SyncProgressEvent.entityCompleted('transaction', transactionStats));
+          SyncProgressEvent.entityCompleted('transaction', transactionStats),
+        );
         await tester.pump();
 
         final IncrementalSyncStats accountStats = createStats(
@@ -342,7 +365,8 @@ void main() {
           skipped: 8,
         );
         streamController.add(
-            SyncProgressEvent.entityCompleted('account', accountStats));
+          SyncProgressEvent.entityCompleted('account', accountStats),
+        );
         await tester.pump();
 
         // Both should show as completed
@@ -354,7 +378,8 @@ void main() {
 
         // Emit retry event
         streamController.add(
-            SyncProgressEvent.retry('transaction', 1, 3, 'Network error'));
+          SyncProgressEvent.retry('transaction', 1, 3, 'Network error'),
+        );
         await tester.pump();
 
         // Should show retry indicator
@@ -367,11 +392,13 @@ void main() {
 
         // Emit multiple retry events
         streamController.add(
-            SyncProgressEvent.retry('transaction', 1, 3, 'Network error'));
+          SyncProgressEvent.retry('transaction', 1, 3, 'Network error'),
+        );
         await tester.pump();
 
         streamController.add(
-            SyncProgressEvent.retry('transaction', 2, 3, 'Timeout'));
+          SyncProgressEvent.retry('transaction', 2, 3, 'Timeout'),
+        );
         await tester.pump();
 
         // Should show plural retry count
@@ -390,7 +417,9 @@ void main() {
         expect(find.byIcon(Icons.cached), findsOneWidget);
       });
 
-      testWidgets('handles multiple cacheHit events', (WidgetTester tester) async {
+      testWidgets('handles multiple cacheHit events', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Emit multiple cacheHit events
@@ -406,7 +435,9 @@ void main() {
     });
 
     group('Entity Progress Indicators', () {
-      testWidgets('shows CACHED badge for cache hit entities', (WidgetTester tester) async {
+      testWidgets('shows CACHED badge for cache hit entities', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Emit cacheHit event
@@ -416,7 +447,9 @@ void main() {
         expect(find.text('CACHED'), findsOneWidget);
       });
 
-      testWidgets('shows progress spinner for current entity', (WidgetTester tester) async {
+      testWidgets('shows progress spinner for current entity', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Start syncing an entity
@@ -425,13 +458,12 @@ void main() {
 
         // Should have a small progress indicator for the current entity
         // (In addition to the main header one)
-        expect(
-          find.byType(CircularProgressIndicator),
-          findsAtLeastNWidgets(2),
-        );
+        expect(find.byType(CircularProgressIndicator), findsAtLeastNWidgets(2));
       });
 
-      testWidgets('shows update counts for completed entities', (WidgetTester tester) async {
+      testWidgets('shows update counts for completed entities', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Complete an entity with stats
@@ -441,18 +473,18 @@ void main() {
           updated: 20,
           skipped: 80,
         );
-        streamController.add(SyncProgressEvent.entityCompleted(
-          'transaction',
-          stats,
-        ));
+        streamController.add(
+          SyncProgressEvent.entityCompleted('transaction', stats),
+        );
         await tester.pump();
 
         // Should show "updated/fetched" format
         expect(find.text('20/100'), findsOneWidget);
       });
 
-      testWidgets('shows "Extended cache" label for Tier 2 entities',
-          (WidgetTester tester) async {
+      testWidgets('shows "Extended cache" label for Tier 2 entities', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Categories, Bills, Piggy Banks are Tier 2
@@ -461,7 +493,9 @@ void main() {
     });
 
     group('Completion State', () {
-      testWidgets('shows completion UI when sync completes', (WidgetTester tester) async {
+      testWidgets('shows completion UI when sync completes', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Emit completed event
@@ -483,7 +517,9 @@ void main() {
         expect(find.byIcon(Icons.check_circle), findsAtLeastNWidgets(1));
       });
 
-      testWidgets('shows summary statistics on completion', (WidgetTester tester) async {
+      testWidgets('shows summary statistics on completion', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         final IncrementalSyncResult result = createResult();
@@ -496,7 +532,9 @@ void main() {
         expect(find.text('Efficiency'), findsOneWidget);
       });
 
-      testWidgets('shows cache hit count in completion summary', (WidgetTester tester) async {
+      testWidgets('shows cache hit count in completion summary', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Emit cache hits then complete
@@ -513,7 +551,9 @@ void main() {
         expect(find.text('2 entity types served from cache'), findsOneWidget);
       });
 
-      testWidgets('shows Close button on completion', (WidgetTester tester) async {
+      testWidgets('shows Close button on completion', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildDialogTestWidget());
 
         await tester.tap(find.text('Show Dialog'));
@@ -530,13 +570,17 @@ void main() {
         expect(find.text('Close'), findsOneWidget);
       });
 
-      testWidgets('calls onComplete callback when sync completes',
-          (WidgetTester tester) async {
+      testWidgets('calls onComplete callback when sync completes', (
+        WidgetTester tester,
+      ) async {
         IncrementalSyncResult? receivedResult;
 
-        await tester.pumpWidget(buildTestWidget(
-          onComplete: (IncrementalSyncResult? result) => receivedResult = result,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onComplete:
+                (IncrementalSyncResult? result) => receivedResult = result,
+          ),
+        );
 
         final IncrementalSyncResult result = createResult();
         streamController.add(SyncProgressEvent.completed(result));
@@ -548,7 +592,9 @@ void main() {
     });
 
     group('Error State', () {
-      testWidgets('shows error UI when sync fails', (WidgetTester tester) async {
+      testWidgets('shows error UI when sync fails', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Emit failed event
@@ -560,7 +606,9 @@ void main() {
         expect(find.byIcon(Icons.error), findsAtLeastNWidgets(1));
       });
 
-      testWidgets('shows error icon in header when failed', (WidgetTester tester) async {
+      testWidgets('shows error icon in header when failed', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         streamController.add(SyncProgressEvent.failed('Connection error'));
@@ -569,7 +617,9 @@ void main() {
         expect(find.byIcon(Icons.error), findsAtLeastNWidgets(1));
       });
 
-      testWidgets('shows completed entity count before failure', (WidgetTester tester) async {
+      testWidgets('shows completed entity count before failure', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Complete some entities before failing
@@ -580,7 +630,8 @@ void main() {
           skipped: 80,
         );
         streamController.add(
-            SyncProgressEvent.entityCompleted('transaction', transactionStats));
+          SyncProgressEvent.entityCompleted('transaction', transactionStats),
+        );
         await tester.pump();
 
         final IncrementalSyncStats accountStats = createStats(
@@ -590,7 +641,8 @@ void main() {
           skipped: 8,
         );
         streamController.add(
-            SyncProgressEvent.entityCompleted('account', accountStats));
+          SyncProgressEvent.entityCompleted('account', accountStats),
+        );
         await tester.pump();
 
         // Then fail
@@ -603,14 +655,18 @@ void main() {
         );
       });
 
-      testWidgets('calls onComplete with error result', (WidgetTester tester) async {
+      testWidgets('calls onComplete with error result', (
+        WidgetTester tester,
+      ) async {
         bool callbackInvoked = false;
 
-        await tester.pumpWidget(buildTestWidget(
-          onComplete: (IncrementalSyncResult? result) {
-            callbackInvoked = true;
-          },
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            onComplete: (IncrementalSyncResult? result) {
+              callbackInvoked = true;
+            },
+          ),
+        );
 
         streamController.add(SyncProgressEvent.failed('Test error'));
         // Wait a moment for the callback to be processed
@@ -625,7 +681,9 @@ void main() {
     });
 
     group('Cancel Functionality', () {
-      testWidgets('tapping cancel shows confirmation dialog', (WidgetTester tester) async {
+      testWidgets('tapping cancel shows confirmation dialog', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildDialogTestWidget());
 
         await tester.tap(find.text('Show Dialog'));
@@ -648,7 +706,9 @@ void main() {
         );
       });
 
-      testWidgets('clicking Continue dismisses confirmation', (WidgetTester tester) async {
+      testWidgets('clicking Continue dismisses confirmation', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildDialogTestWidget());
 
         await tester.tap(find.text('Show Dialog'));
@@ -669,13 +729,14 @@ void main() {
         expect(find.text('Cancel Sync?'), findsNothing);
       });
 
-      testWidgets('clicking Cancel Sync calls onCancel and closes dialog',
-          (WidgetTester tester) async {
+      testWidgets('clicking Cancel Sync calls onCancel and closes dialog', (
+        WidgetTester tester,
+      ) async {
         bool cancelCalled = false;
 
-        await tester.pumpWidget(buildDialogTestWidget(
-          onCancel: () => cancelCalled = true,
-        ));
+        await tester.pumpWidget(
+          buildDialogTestWidget(onCancel: () => cancelCalled = true),
+        );
 
         await tester.tap(find.text('Show Dialog'));
         await tester.pump();
@@ -696,10 +757,12 @@ void main() {
     });
 
     group('Auto-Dismiss Behavior', () {
-      testWidgets('auto-dismisses after delay when enabled', (WidgetTester tester) async {
-        await tester.pumpWidget(buildDialogTestWidget(
-          autoDismissOnComplete: true,
-        ));
+      testWidgets('auto-dismisses after delay when enabled', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildDialogTestWidget(autoDismissOnComplete: true),
+        );
 
         await tester.tap(find.text('Show Dialog'));
         // Use pump() because of repeating animation
@@ -724,10 +787,12 @@ void main() {
         expect(find.text('Sync Complete'), findsNothing);
       });
 
-      testWidgets('does not auto-dismiss when disabled', (WidgetTester tester) async {
-        await tester.pumpWidget(buildDialogTestWidget(
-          autoDismissOnComplete: false,
-        ));
+      testWidgets('does not auto-dismiss when disabled', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildDialogTestWidget(autoDismissOnComplete: false),
+        );
 
         await tester.tap(find.text('Show Dialog'));
         await tester.pump();
@@ -746,10 +811,12 @@ void main() {
         expect(find.text('Sync Complete'), findsOneWidget);
       });
 
-      testWidgets('does not auto-dismiss on failure', (WidgetTester tester) async {
-        await tester.pumpWidget(buildDialogTestWidget(
-          autoDismissOnComplete: true,
-        ));
+      testWidgets('does not auto-dismiss on failure', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildDialogTestWidget(autoDismissOnComplete: true),
+        );
 
         await tester.tap(find.text('Show Dialog'));
         await tester.pump();
@@ -770,8 +837,9 @@ void main() {
     });
 
     group('Efficiency Calculation', () {
-      testWidgets('shows excellent efficiency for 80%+ skip rate',
-          (WidgetTester tester) async {
+      testWidgets('shows excellent efficiency for 80%+ skip rate', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // 85% skip rate
@@ -793,7 +861,9 @@ void main() {
         expect(find.text('85%'), findsOneWidget);
       });
 
-      testWidgets('shows lower efficiency for low skip rate', (WidgetTester tester) async {
+      testWidgets('shows lower efficiency for low skip rate', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // 10% skip rate
@@ -871,14 +941,17 @@ void main() {
     });
 
     group('Entity Icons', () {
-      testWidgets('displays correct icons for each entity type',
-          (WidgetTester tester) async {
+      testWidgets('displays correct icons for each entity type', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         expect(find.byIcon(Icons.receipt), findsOneWidget); // transaction
         expect(find.byIcon(Icons.account_balance), findsOneWidget); // account
         expect(
-            find.byIcon(Icons.account_balance_wallet), findsOneWidget); // budget
+          find.byIcon(Icons.account_balance_wallet),
+          findsOneWidget,
+        ); // budget
         expect(find.byIcon(Icons.category), findsOneWidget); // category
         expect(find.byIcon(Icons.receipt_long), findsOneWidget); // bill
         expect(find.byIcon(Icons.savings), findsOneWidget); // piggy_bank
@@ -886,7 +959,9 @@ void main() {
     });
 
     group('Stream Error Handling', () {
-      testWidgets('handles stream errors gracefully', (WidgetTester tester) async {
+      testWidgets('handles stream errors gracefully', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         // Emit an error on the stream
@@ -899,21 +974,23 @@ void main() {
     });
 
     group('Helper Functions', () {
-      testWidgets('showIncrementalSyncProgressDialog shows dialog',
-          (WidgetTester tester) async {
+      testWidgets('showIncrementalSyncProgressDialog shows dialog', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (BuildContext context) => ElevatedButton(
-                  onPressed: () {
-                    showIncrementalSyncProgressDialog(
-                      context,
-                      progressStream: streamController.stream,
-                    );
-                  },
-                  child: const Text('Show Helper Dialog'),
-                ),
+                builder:
+                    (BuildContext context) => ElevatedButton(
+                      onPressed: () {
+                        showIncrementalSyncProgressDialog(
+                          context,
+                          progressStream: streamController.stream,
+                        );
+                      },
+                      child: const Text('Show Helper Dialog'),
+                    ),
               ),
             ),
           ),
@@ -928,8 +1005,9 @@ void main() {
         expect(find.text('Incremental Sync'), findsOneWidget);
       });
 
-      testWidgets('showIncrementalSyncProgressSheet shows bottom sheet',
-          (WidgetTester tester) async {
+      testWidgets('showIncrementalSyncProgressSheet shows bottom sheet', (
+        WidgetTester tester,
+      ) async {
         // Set a larger surface size for bottom sheet to have enough space
         tester.view.physicalSize = const Size(800, 1200);
         tester.view.devicePixelRatio = 1.0;
@@ -939,15 +1017,16 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (BuildContext context) => ElevatedButton(
-                  onPressed: () {
-                    showIncrementalSyncProgressSheet(
-                      context,
-                      progressStream: streamController.stream,
-                    );
-                  },
-                  child: const Text('Show Helper Sheet'),
-                ),
+                builder:
+                    (BuildContext context) => ElevatedButton(
+                      onPressed: () {
+                        showIncrementalSyncProgressSheet(
+                          context,
+                          progressStream: streamController.stream,
+                        );
+                      },
+                      child: const Text('Show Helper Sheet'),
+                    ),
               ),
             ),
           ),

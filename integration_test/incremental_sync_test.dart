@@ -54,8 +54,9 @@ void main() {
     // ==================== Settings UI Tests ====================
 
     group('Incremental Sync Settings', () {
-      testWidgets('Settings page displays incremental sync section',
-          (WidgetTester tester) async {
+      testWidgets('Settings page displays incremental sync section', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -81,8 +82,9 @@ void main() {
         );
       });
 
-      testWidgets('Incremental sync toggle is functional',
-          (WidgetTester tester) async {
+      testWidgets('Incremental sync toggle is functional', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -111,8 +113,7 @@ void main() {
 
         if (incrementalSwitch.evaluate().isNotEmpty) {
           // Get initial state
-          final Switch switchWidget =
-              tester.widget<Switch>(incrementalSwitch);
+          final Switch switchWidget = tester.widget<Switch>(incrementalSwitch);
           final bool initialValue = switchWidget.value;
 
           // Toggle the switch
@@ -120,8 +121,9 @@ void main() {
           await tester.pumpAndSettle();
 
           // Verify switch state changed
-          final Switch switchWidgetAfter =
-              tester.widget<Switch>(incrementalSwitch);
+          final Switch switchWidgetAfter = tester.widget<Switch>(
+            incrementalSwitch,
+          );
           expect(
             switchWidgetAfter.value,
             isNot(equals(initialValue)),
@@ -134,8 +136,9 @@ void main() {
         }
       });
 
-      testWidgets('Sync window selector is accessible',
-          (WidgetTester tester) async {
+      testWidgets('Sync window selector is accessible', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -166,8 +169,9 @@ void main() {
     // ==================== Statistics Display Tests ====================
 
     group('Incremental Sync Statistics', () {
-      testWidgets('Statistics section displays correctly',
-          (WidgetTester tester) async {
+      testWidgets('Statistics section displays correctly', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -189,8 +193,7 @@ void main() {
         // Note: Statistics card is searched but may not be visible in all states
         find.byWidgetPredicate(
           (Widget widget) =>
-              widget is Card &&
-              widget.toString().contains('Statistics'),
+              widget is Card && widget.toString().contains('Statistics'),
           description: 'Statistics card',
         );
 
@@ -206,8 +209,9 @@ void main() {
         );
       });
 
-      testWidgets('Bandwidth saved is formatted correctly',
-          (WidgetTester tester) async {
+      testWidgets('Bandwidth saved is formatted correctly', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -219,8 +223,10 @@ void main() {
         }
 
         // Look for bandwidth saved text (may contain B, KB, MB, GB)
-        final Finder bandwidthText = find.textContaining(RegExp(r'\d+.*[BKMG]B'));
-        
+        final Finder bandwidthText = find.textContaining(
+          RegExp(r'\d+.*[BKMG]B'),
+        );
+
         // This is an optional check - bandwidth may not be shown if no syncs have occurred
         if (bandwidthText.evaluate().isNotEmpty) {
           expect(
@@ -235,8 +241,9 @@ void main() {
     // ==================== Force Sync Tests ====================
 
     group('Force Sync Functionality', () {
-      testWidgets('Force sync button triggers sync',
-          (WidgetTester tester) async {
+      testWidgets('Force sync button triggers sync', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -281,12 +288,14 @@ void main() {
               find.byType(LinearProgressIndicator).evaluate().isNotEmpty ||
               find.byType(AlertDialog).evaluate().isNotEmpty,
           isTrue,
-          reason: 'Should show progress indicator or dialog when force sync is triggered',
+          reason:
+              'Should show progress indicator or dialog when force sync is triggered',
         );
       });
 
-      testWidgets('Individual entity force sync is available',
-          (WidgetTester tester) async {
+      testWidgets('Individual entity force sync is available', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -323,8 +332,9 @@ void main() {
     // ==================== Progress Display Tests ====================
 
     group('Sync Progress Display', () {
-      testWidgets('Progress dialog shows during sync',
-          (WidgetTester tester) async {
+      testWidgets('Progress dialog shows during sync', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -333,7 +343,8 @@ void main() {
         // the UI components are present
 
         // Look for any sync-related UI elements
-        final bool hasSyncUI = find.byType(CircularProgressIndicator).evaluate().isNotEmpty ||
+        final bool hasSyncUI =
+            find.byType(CircularProgressIndicator).evaluate().isNotEmpty ||
             find.textContaining('Sync').evaluate().isNotEmpty ||
             find.byIcon(Icons.sync).evaluate().isNotEmpty;
 
@@ -344,8 +355,9 @@ void main() {
         );
       });
 
-      testWidgets('Progress shows entity types being synced',
-          (WidgetTester tester) async {
+      testWidgets('Progress shows entity types being synced', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -365,9 +377,9 @@ void main() {
           // Check for entity type labels in progress
           final bool showsEntityTypes =
               find.textContaining('Transaction').evaluate().isNotEmpty ||
-                  find.textContaining('Account').evaluate().isNotEmpty ||
-                  find.textContaining('Budget').evaluate().isNotEmpty ||
-                  find.textContaining('Category').evaluate().isNotEmpty;
+              find.textContaining('Account').evaluate().isNotEmpty ||
+              find.textContaining('Budget').evaluate().isNotEmpty ||
+              find.textContaining('Category').evaluate().isNotEmpty;
 
           if (showsEntityTypes) {
             expect(
@@ -385,8 +397,7 @@ void main() {
     // ==================== Dashboard Card Tests ====================
 
     group('Dashboard Integration', () {
-      testWidgets('Dashboard shows sync status',
-          (WidgetTester tester) async {
+      testWidgets('Dashboard shows sync status', (WidgetTester tester) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -407,8 +418,9 @@ void main() {
         );
       });
 
-      testWidgets('Sync can be triggered from dashboard',
-          (WidgetTester tester) async {
+      testWidgets('Sync can be triggered from dashboard', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -435,8 +447,9 @@ void main() {
     // ==================== Accessibility Tests ====================
 
     group('Accessibility', () {
-      testWidgets('Sync settings are accessible via screen reader',
-          (WidgetTester tester) async {
+      testWidgets('Sync settings are accessible via screen reader', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -460,23 +473,23 @@ void main() {
         // Check that the page has semantic information
         expect(
           tester.getSemantics(find.byType(Scaffold).first),
-          matchesSemantics(
-            scopesRoute: true,
-          ),
+          matchesSemantics(scopesRoute: true),
           reason: 'Page should have semantic information for accessibility',
         );
 
         handle.dispose();
       });
 
-      testWidgets('Progress indicators have semantic labels',
-          (WidgetTester tester) async {
+      testWidgets('Progress indicators have semantic labels', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
         // Look for any progress indicators
-        final Finder progressIndicators =
-            find.byType(CircularProgressIndicator);
+        final Finder progressIndicators = find.byType(
+          CircularProgressIndicator,
+        );
 
         if (progressIndicators.evaluate().isNotEmpty) {
           final SemanticsHandle handle = tester.ensureSemantics();
@@ -497,8 +510,9 @@ void main() {
     // ==================== Error Handling Tests ====================
 
     group('Error Handling', () {
-      testWidgets('App handles sync errors gracefully',
-          (WidgetTester tester) async {
+      testWidgets('App handles sync errors gracefully', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -531,8 +545,9 @@ void main() {
         }
       });
 
-      testWidgets('Reset statistics shows confirmation',
-          (WidgetTester tester) async {
+      testWidgets('Reset statistics shows confirmation', (
+        WidgetTester tester,
+      ) async {
         app.main();
         await tester.pumpAndSettle(const Duration(seconds: 5));
 
@@ -576,4 +591,3 @@ void main() {
     });
   });
 }
-

@@ -74,7 +74,10 @@ class ConflictDetector {
       }
 
       // Determine conflict type
-      final ConflictType? conflictType = _determineConflictType(operation, remoteData);
+      final ConflictType? conflictType = _determineConflictType(
+        operation,
+        remoteData,
+      );
 
       // No conflict if types don't indicate one
       if (conflictType == null) {
@@ -89,13 +92,17 @@ class ConflictDetector {
       );
 
       // No conflict if no fields differ
-      if (conflictingFields.isEmpty && conflictType == ConflictType.updateUpdate) {
+      if (conflictingFields.isEmpty &&
+          conflictType == ConflictType.updateUpdate) {
         _logger.fine('No field differences for operation ${operation.id}');
         return null;
       }
 
       // Calculate severity
-      final ConflictSeverity severity = _calculateSeverity(conflictingFields, operation.entityType);
+      final ConflictSeverity severity = _calculateSeverity(
+        conflictingFields,
+        operation.entityType,
+      );
 
       // Create conflict object
       final Conflict conflict = Conflict(
@@ -140,9 +147,7 @@ class ConflictDetector {
     }
 
     // UPDATE with no remote means remote was deleted
-    _logger.warning(
-      'Remote entity deleted for operation ${operation.id}',
-    );
+    _logger.warning('Remote entity deleted for operation ${operation.id}');
 
     return Conflict(
       id: _uuid.v4(),
@@ -163,8 +168,8 @@ class ConflictDetector {
     SyncOperation operation,
     Map<String, dynamic> remoteData,
   ) {
-    final bool isRemoteDeleted = remoteData['deleted_at'] != null ||
-        remoteData['is_deleted'] == true;
+    final bool isRemoteDeleted =
+        remoteData['deleted_at'] != null || remoteData['is_deleted'] == true;
 
     switch (operation.operation) {
       case SyncOperationType.create:
@@ -183,7 +188,8 @@ class ConflictDetector {
         return null; // No conflict
 
       case SyncOperationType.delete:
-        if (!isRemoteDeleted && _wasRemoteModified(operation.payload, remoteData)) {
+        if (!isRemoteDeleted &&
+            _wasRemoteModified(operation.payload, remoteData)) {
           // DELETE when remote was updated
           return ConflictType.deleteUpdate;
         }
@@ -361,13 +367,17 @@ class ConflictDetector {
 
     // Entity-specific severity rules
     if (entityType == 'account') {
-      if (conflictingFields.any((String f) => f.contains('balance') || f == 'iban')) {
+      if (conflictingFields.any(
+        (String f) => f.contains('balance') || f == 'iban',
+      )) {
         return ConflictSeverity.high;
       }
     }
 
     if (entityType == 'budget') {
-      if (conflictingFields.any((String f) => f.contains('amount') || f == 'period')) {
+      if (conflictingFields.any(
+        (String f) => f.contains('amount') || f == 'period',
+      )) {
         return ConflictSeverity.high;
       }
     }
@@ -390,13 +400,15 @@ class ConflictDetector {
   ///   Map of operation ID to detected conflict (null if no conflict)
   Future<Map<String, Conflict?>> detectConflictsBatch(
     List<SyncOperation> operations,
-    Future<Map<String, Map<String, dynamic>?>> Function(List<String> entityIds) fetchRemoteData,
+    Future<Map<String, Map<String, dynamic>?>> Function(List<String> entityIds)
+    fetchRemoteData,
   ) async {
     try {
       _logger.info('Detecting conflicts for ${operations.length} operations');
 
       // Group operations by entity type
-      final Map<String, List<SyncOperation>> byType = <String, List<SyncOperation>>{};
+      final Map<String, List<SyncOperation>> byType =
+          <String, List<SyncOperation>>{};
       for (final SyncOperation op in operations) {
         byType.putIfAbsent(op.entityType, () => <SyncOperation>[]).add(op);
       }
@@ -404,15 +416,20 @@ class ConflictDetector {
       final Map<String, Conflict?> results = <String, Conflict?>{};
 
       // Process each entity type
-      for (final MapEntry<String, List<SyncOperation>> entry in byType.entries) {
+      for (final MapEntry<String, List<SyncOperation>> entry
+          in byType.entries) {
         final String entityType = entry.key;
         final List<SyncOperation> ops = entry.value;
 
-        _logger.fine('Fetching remote data for ${ops.length} $entityType entities');
+        _logger.fine(
+          'Fetching remote data for ${ops.length} $entityType entities',
+        );
 
         // Fetch remote data for all entities of this type
-        final List<String> entityIds = ops.map((SyncOperation op) => op.entityId).toList();
-        final Map<String, Map<String, dynamic>?> remoteDataMap = await fetchRemoteData(entityIds);
+        final List<String> entityIds =
+            ops.map((SyncOperation op) => op.entityId).toList();
+        final Map<String, Map<String, dynamic>?> remoteDataMap =
+            await fetchRemoteData(entityIds);
 
         // Detect conflicts for each operation
         for (final SyncOperation op in ops) {
@@ -422,18 +439,15 @@ class ConflictDetector {
         }
       }
 
-      final int conflictCount = results.values.where((Conflict? c) => c != null).length;
+      final int conflictCount =
+          results.values.where((Conflict? c) => c != null).length;
       _logger.info(
         'Detected $conflictCount conflicts out of ${operations.length} operations',
       );
 
       return results;
     } catch (e, stackTrace) {
-      _logger.severe(
-        'Failed to detect conflicts in batch',
-        e,
-        stackTrace,
-      );
+      _logger.severe('Failed to detect conflicts in batch', e, stackTrace);
       rethrow;
     }
   }

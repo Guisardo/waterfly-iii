@@ -105,14 +105,11 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
     );
 
     // Update status periodically for relative time display
-    _statusUpdateTimer = Timer.periodic(
-      const Duration(seconds: 30),
-      (_) {
-        if (mounted) {
-          setState(() {});
-        }
-      },
-    );
+    _statusUpdateTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -125,7 +122,11 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
   @override
   Widget build(BuildContext context) {
     return Consumer<SyncStatusProvider>(
-      builder: (BuildContext context, SyncStatusProvider provider, Widget? child) {
+      builder: (
+        BuildContext context,
+        SyncStatusProvider provider,
+        Widget? child,
+      ) {
         final SyncStatus status = _getSyncStatus(provider);
         final int pendingCount = _getPendingCount(provider);
 
@@ -208,16 +209,14 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                       children: <Widget>[
                         Text(
                           _getStatusText(status, pendingCount),
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         if (widget.showLastSyncTime && lastSyncTime != null)
                           Text(
                             _formatLastSyncTime(lastSyncTime),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey[600],
-                                ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: Colors.grey[600]),
                           ),
                       ],
                     ),
@@ -309,7 +308,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
       context,
       listen: false,
     );
-    
+
     if (connectivity.isOffline) {
       return SyncStatus.offline;
     }
@@ -406,105 +405,114 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
   void _showQuickActions(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            ListTile(
-              leading: const Icon(Icons.sync),
-              title: const Text('Sync now'),
-              onTap: () async {
-                Navigator.pop(context);
-                _log.info('Manual sync triggered');
-                
-                try {
-                  final SyncStatusProvider syncStatusProvider = Provider.of<SyncStatusProvider>(
-                    context,
-                    listen: false,
-                  );
-                  
-                  // Trigger incremental sync
-                  await syncStatusProvider.syncManager.synchronize();
-                  
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Sync started'),
-                        backgroundColor: Colors.blue,
-                      ),
-                    );
-                  }
-                } catch (e, stackTrace) {
-                  _log.severe('Failed to start sync', e, stackTrace);
-                  
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to start sync: ${e.toString()}'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
+      builder:
+          (BuildContext context) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  leading: const Icon(Icons.sync),
+                  title: const Text('Sync now'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    _log.info('Manual sync triggered');
+
+                    try {
+                      final SyncStatusProvider syncStatusProvider =
+                          Provider.of<SyncStatusProvider>(
+                            context,
+                            listen: false,
+                          );
+
+                      // Trigger incremental sync
+                      await syncStatusProvider.syncManager.synchronize();
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Sync started'),
+                            backgroundColor: Colors.blue,
+                          ),
+                        );
+                      }
+                    } catch (e, stackTrace) {
+                      _log.severe('Failed to start sync', e, stackTrace);
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Failed to start sync: ${e.toString()}',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.sync_alt),
+                  title: const Text('Force full sync'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    _log.info('Full sync triggered');
+
+                    try {
+                      final SyncStatusProvider syncStatusProvider =
+                          Provider.of<SyncStatusProvider>(
+                            context,
+                            listen: false,
+                          );
+
+                      // Trigger full sync
+                      await syncStatusProvider.syncManager.synchronize(
+                        fullSync: true,
+                      );
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Full sync started'),
+                            backgroundColor: Colors.blue,
+                          ),
+                        );
+                      }
+                    } catch (e, stackTrace) {
+                      _log.severe('Failed to start full sync', e, stackTrace);
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Failed to start full sync: ${e.toString()}',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.info_outline),
+                  title: const Text('View sync status'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _navigateToSyncStatus(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.settings),
+                  title: const Text('Sync settings'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/offline-settings');
+                  },
+                ),
+              ],
             ),
-            ListTile(
-              leading: const Icon(Icons.sync_alt),
-              title: const Text('Force full sync'),
-              onTap: () async {
-                Navigator.pop(context);
-                _log.info('Full sync triggered');
-                
-                try {
-                  final SyncStatusProvider syncStatusProvider = Provider.of<SyncStatusProvider>(
-                    context,
-                    listen: false,
-                  );
-                  
-                  // Trigger full sync
-                  await syncStatusProvider.syncManager.synchronize(fullSync: true);
-                  
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Full sync started'),
-                        backgroundColor: Colors.blue,
-                      ),
-                    );
-                  }
-                } catch (e, stackTrace) {
-                  _log.severe('Failed to start full sync', e, stackTrace);
-                  
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to start full sync: ${e.toString()}'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.info_outline),
-              title: const Text('View sync status'),
-              onTap: () {
-                Navigator.pop(context);
-                _navigateToSyncStatus(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Sync settings'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/offline-settings');
-              },
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 }
@@ -515,9 +523,7 @@ class AppBarSyncIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SyncStatusIndicator(
-      variant: SyncStatusVariant.compact,
-    );
+    return const SyncStatusIndicator(variant: SyncStatusVariant.compact);
   }
 }
 
@@ -527,8 +533,6 @@ class DashboardSyncStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SyncStatusIndicator(
-      variant: SyncStatusVariant.full,
-    );
+    return const SyncStatusIndicator(variant: SyncStatusVariant.full);
   }
 }

@@ -244,9 +244,15 @@ class NavPageState extends State<NavPage> with TickerProviderStateMixin {
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 100),
                     switchInCurve: animCurveStandard,
-                    transitionBuilder: (Widget child, Animation<double> animation) {
+                    transitionBuilder: (
+                      Widget child,
+                      Animation<double> animation,
+                    ) {
                       return FadeTransition(
-                        opacity: Tween<double>(begin: 0, end: 1).animate(animation),
+                        opacity: Tween<double>(
+                          begin: 0,
+                          end: 1,
+                        ).animate(animation),
                         child: child,
                       );
                     },

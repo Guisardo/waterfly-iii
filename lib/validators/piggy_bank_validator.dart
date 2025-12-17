@@ -127,10 +127,7 @@ class PiggyBankValidator {
   }
 
   /// Validates removing money from piggy bank
-  ValidationResult validateRemoveMoney(
-    double amount,
-    double currentAmount,
-  ) {
+  ValidationResult validateRemoveMoney(double amount, double currentAmount) {
     _logger.fine('Validating remove money operation');
 
     final List<String> errors = <String>[];

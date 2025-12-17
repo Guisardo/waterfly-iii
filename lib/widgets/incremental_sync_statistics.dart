@@ -62,7 +62,11 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<OfflineSettingsProvider>(
-      builder: (BuildContext context, OfflineSettingsProvider settings, Widget? child) {
+      builder: (
+        BuildContext context,
+        OfflineSettingsProvider settings,
+        Widget? child,
+      ) {
         switch (mode) {
           case IncrementalSyncStatisticsMode.card:
             return _buildCard(context, settings);
@@ -77,7 +81,8 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
 
   /// Build full card display mode.
   Widget _buildCard(BuildContext context, OfflineSettingsProvider settings) {
-    final bool hasData = liveResult != null ||
+    final bool hasData =
+        liveResult != null ||
         settings.totalItemsFetched > 0 ||
         settings.incrementalSyncCount > 0;
 
@@ -112,7 +117,8 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
 
   /// Build compact display mode.
   Widget _buildCompact(BuildContext context, OfflineSettingsProvider settings) {
-    final double skipRate = liveResult?.overallSkipRate ?? settings.overallSkipRate;
+    final double skipRate =
+        liveResult?.overallSkipRate ?? settings.overallSkipRate;
     final String bandwidthSaved =
         liveResult?.bandwidthSavedFormatted ?? settings.formattedBandwidthSaved;
     final bool hasData = liveResult != null || settings.totalItemsFetched > 0;
@@ -121,7 +127,9 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -140,7 +148,9 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -174,7 +184,8 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
 
   /// Build summary display mode (single line).
   Widget _buildSummary(BuildContext context, OfflineSettingsProvider settings) {
-    final double skipRate = liveResult?.overallSkipRate ?? settings.overallSkipRate;
+    final double skipRate =
+        liveResult?.overallSkipRate ?? settings.overallSkipRate;
     final String bandwidthSaved =
         liveResult?.bandwidthSavedFormatted ?? settings.formattedBandwidthSaved;
     final bool hasData = liveResult != null || settings.totalItemsFetched > 0;
@@ -189,18 +200,14 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(
-          Icons.speed,
-          size: 16,
-          color: _getEfficiencyColor(skipRate),
-        ),
+        Icon(Icons.speed, size: 16, color: _getEfficiencyColor(skipRate)),
         const SizedBox(width: 4),
         Text(
           '${skipRate.toStringAsFixed(0)}% efficient',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: _getEfficiencyColor(skipRate),
-                fontWeight: FontWeight.w600,
-              ),
+            color: _getEfficiencyColor(skipRate),
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(width: 12),
         const Icon(Icons.data_saver_on, size: 16, color: Colors.blue),
@@ -208,9 +215,9 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
         Text(
           bandwidthSaved,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.blue,
-                fontWeight: FontWeight.w600,
-              ),
+            color: Colors.blue,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -239,17 +246,17 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
             children: <Widget>[
               Text(
                 'Sync Statistics',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               Text(
                 settings.incrementalSyncCount > 0
                     ? '${settings.incrementalSyncCount} incremental syncs performed'
                     : 'Track sync efficiency and bandwidth savings',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -274,21 +281,23 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
           Icon(
             Icons.analytics_outlined,
             size: 64,
-            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withOpacity(0.5),
           ),
           const SizedBox(height: 16),
           Text(
             'No Sync Statistics Yet',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Statistics will appear here after your first incremental sync.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -301,7 +310,8 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
     BuildContext context,
     OfflineSettingsProvider settings,
   ) {
-    final double skipRate = liveResult?.overallSkipRate ?? settings.overallSkipRate;
+    final double skipRate =
+        liveResult?.overallSkipRate ?? settings.overallSkipRate;
     final Color color = _getEfficiencyColor(skipRate);
     final String label = _getEfficiencyLabel(skipRate);
 
@@ -309,10 +319,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: <Color>[
-            color.withOpacity(0.1),
-            color.withOpacity(0.05),
-          ],
+          colors: <Color>[color.withOpacity(0.1), color.withOpacity(0.05)],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.3)),
@@ -337,9 +344,9 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
                     Text(
                       '${skipRate.toStringAsFixed(0)}%',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: color,
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
                     ),
                   ],
                 ),
@@ -354,16 +361,16 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
                 Text(
                   label,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   _getEfficiencyDescription(skipRate),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -374,7 +381,10 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
   }
 
   /// Build main statistics grid.
-  Widget _buildMainStats(BuildContext context, OfflineSettingsProvider settings) {
+  Widget _buildMainStats(
+    BuildContext context,
+    OfflineSettingsProvider settings,
+  ) {
     return Row(
       children: <Widget>[
         Expanded(
@@ -424,7 +434,9 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -433,7 +445,8 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
             context,
             icon: Icons.data_saver_on,
             label: 'Bandwidth Saved',
-            value: liveResult?.bandwidthSavedFormatted ??
+            value:
+                liveResult?.bandwidthSavedFormatted ??
                 settings.formattedBandwidthSaved,
             color: Colors.teal,
           ),
@@ -450,7 +463,8 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
             context,
             icon: Icons.trending_up,
             label: 'Update Rate',
-            value: '${(liveResult?.overallSkipRate ?? settings.overallUpdateRate).toStringAsFixed(1)}%',
+            value:
+                '${(liveResult?.overallSkipRate ?? settings.overallUpdateRate).toStringAsFixed(1)}%',
             color: Colors.amber,
           ),
         ],
@@ -467,9 +481,9 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
       children: <Widget>[
         Text(
           'Current Sync',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         Text(
@@ -480,28 +494,30 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
         Text(
           liveResult!.success ? 'Status: Success' : 'Status: Failed',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: liveResult!.success ? Colors.green : Colors.red,
-              ),
+            color: liveResult!.success ? Colors.green : Colors.red,
+          ),
         ),
         if (liveResult!.error != null) ...<Widget>[
           const SizedBox(height: 4),
           Text(
             'Error: ${liveResult!.error}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.red,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.red),
           ),
         ],
         if (liveResult!.statsByEntity.isNotEmpty) ...<Widget>[
           const SizedBox(height: 12),
           Text(
             'By Entity Type:',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          ...liveResult!.statsByEntity.entries.map((MapEntry<String, IncrementalSyncStats> entry) {
+          ...liveResult!.statsByEntity.entries.map((
+            MapEntry<String, IncrementalSyncStats> entry,
+          ) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(
@@ -516,8 +532,8 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
                   Text(
                     '${entry.value.itemsUpdated}/${entry.value.itemsFetched}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -543,15 +559,15 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
         Text(
           value,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -578,15 +594,15 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -613,17 +629,14 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
         ),
         Text(
           value,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
       ],
     );
@@ -732,4 +745,3 @@ enum IncrementalSyncStatisticsMode {
   /// Single-line summary.
   summary,
 }
-

@@ -89,9 +89,9 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
     UuidService? uuidService,
     SyncQueueManager? syncQueueManager,
     AccountValidator? validator,
-  })  : _uuidService = uuidService ?? UuidService(),
-        _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
-        _validator = validator ?? AccountValidator();
+  }) : _uuidService = uuidService ?? UuidService(),
+       _syncQueueManager = syncQueueManager ?? SyncQueueManager(database),
+       _validator = validator ?? AccountValidator();
 
   final UuidService _uuidService;
   final SyncQueueManager _syncQueueManager;
@@ -117,7 +117,8 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
   Future<List<AccountEntity>> getAll() async {
     try {
       logger.fine('Fetching all accounts');
-      final List<AccountEntity> accounts = await database.select(database.accounts).get();
+      final List<AccountEntity> accounts =
+          await database.select(database.accounts).get();
       logger.info('Retrieved ${accounts.length} accounts');
       return accounts;
     } catch (error, stackTrace) {
@@ -190,15 +191,15 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
       if (cacheService != null) {
         logger.finest('Using cache-first strategy for account $id');
 
-        final CacheResult<AccountEntity?> cacheResult =
-            await cacheService!.get<AccountEntity?>(
-          entityType: entityType,
-          entityId: id,
-          fetcher: () => _fetchAccountFromDb(id),
-          ttl: cacheTtl,
-          forceRefresh: forceRefresh,
-          backgroundRefresh: backgroundRefresh,
-        );
+        final CacheResult<AccountEntity?> cacheResult = await cacheService!
+            .get<AccountEntity?>(
+              entityType: entityType,
+              entityId: id,
+              fetcher: () => _fetchAccountFromDb(id),
+              ttl: cacheTtl,
+              forceRefresh: forceRefresh,
+              backgroundRefresh: backgroundRefresh,
+            );
 
         logger.info(
           'Account fetched: $id from ${cacheResult.source} '
@@ -250,11 +251,7 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
 
       return account;
     } catch (error, stackTrace) {
-      logger.severe(
-        'Database query failed for account $id',
-        error,
-        stackTrace,
-      );
+      logger.severe('Database query failed for account $id', error, stackTrace);
       throw DatabaseException.queryFailed(
         'SELECT * FROM accounts WHERE id = $id',
         error,
@@ -266,8 +263,8 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
   @override
   Stream<AccountEntity?> watchById(String id) {
     logger.fine('Watching account: $id');
-    final SimpleSelectStatement<$AccountsTable, AccountEntity> query = database.select(database.accounts)
-      ..where(($AccountsTable a) => a.id.equals(id));
+    final SimpleSelectStatement<$AccountsTable, AccountEntity> query = database
+      .select(database.accounts)..where(($AccountsTable a) => a.id.equals(id));
     return query.watchSingleOrNull();
   }
 
@@ -348,7 +345,9 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
         'active': entity.active,
       };
 
-      final ValidationResult validationResult = await _validator.validate(validationData);
+      final ValidationResult validationResult = await _validator.validate(
+        validationData,
+      );
 
       if (!validationResult.isValid) {
         final String errorMsg =
@@ -442,7 +441,9 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
 
       // Step 6: Trigger cascade invalidation for related entities
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation cascade for account creation');
+        logger.fine(
+          'Triggering cache invalidation cascade for account creation',
+        );
         await CacheInvalidationRules.onAccountMutation(
           cacheService!,
           created,
@@ -515,7 +516,9 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
         'active': entity.active,
       };
 
-      final ValidationResult validationResult = await _validator.validate(validationData);
+      final ValidationResult validationResult = await _validator.validate(
+        validationData,
+      );
 
       if (!validationResult.isValid) {
         final String errorMsg =
@@ -658,8 +661,7 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
 
       // Step 2: Delete from local database
       await (database.delete(database.accounts)
-            ..where(($AccountsTable a) => a.id.equals(id)))
-          .go();
+        ..where(($AccountsTable a) => a.id.equals(id))).go();
       logger.info('Account deleted from database: $id');
 
       // Step 3: Add to sync queue if account was synced (has serverId)
@@ -669,9 +671,7 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
           entityType: 'account',
           entityId: id,
           operation: SyncOperationType.delete,
-          payload: <String, dynamic>{
-            'server_id': existing.serverId,
-          },
+          payload: <String, dynamic>{'server_id': existing.serverId},
           status: SyncOperationStatus.pending,
           attempts: 0,
           priority: SyncPriority.high,
@@ -692,7 +692,9 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
 
       // Step 5: Trigger cascade invalidation for related entities
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation cascade for account deletion');
+        logger.fine(
+          'Triggering cache invalidation cascade for account deletion',
+        );
         await CacheInvalidationRules.onAccountMutation(
           cacheService!,
           existing,
@@ -713,8 +715,9 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
   Future<List<AccountEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced accounts');
-      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = database.select(database.accounts)
-        ..where(($AccountsTable a) => a.isSynced.equals(false));
+      final SimpleSelectStatement<$AccountsTable, AccountEntity> query =
+          database.select(database.accounts)
+            ..where(($AccountsTable a) => a.isSynced.equals(false));
       final List<AccountEntity> accounts = await query.get();
       logger.info('Found ${accounts.length} unsynced accounts');
       return accounts;
@@ -733,7 +736,8 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
     try {
       logger.info('Marking account as synced: $localId -> $serverId');
 
-      await (database.update(database.accounts)..where(($AccountsTable a) => a.id.equals(localId))).write(
+      await (database.update(database.accounts)
+        ..where(($AccountsTable a) => a.id.equals(localId))).write(
         AccountEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -744,7 +748,11 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
 
       logger.info('Account marked as synced: $localId');
     } catch (error, stackTrace) {
-      logger.severe('Failed to mark account as synced: $localId', error, stackTrace);
+      logger.severe(
+        'Failed to mark account as synced: $localId',
+        error,
+        stackTrace,
+      );
       throw DatabaseException('Failed to mark account as synced: $error');
     }
   }
@@ -758,7 +766,11 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
       }
       return account.syncStatus;
     } catch (error, stackTrace) {
-      logger.severe('Failed to get sync status for account $id', error, stackTrace);
+      logger.severe(
+        'Failed to get sync status for account $id',
+        error,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -779,7 +791,10 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
   Future<int> count() async {
     try {
       logger.fine('Counting accounts');
-      final int count = await database.select(database.accounts).get().then((List<AccountEntity> list) => list.length);
+      final int count = await database
+          .select(database.accounts)
+          .get()
+          .then((List<AccountEntity> list) => list.length);
       logger.fine('Account count: $count');
       return count;
     } catch (error, stackTrace) {
@@ -796,14 +811,21 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
   Future<List<AccountEntity>> getByType(String type) async {
     try {
       logger.fine('Fetching accounts by type: $type');
-      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = database.select(database.accounts)
-        ..where(($AccountsTable a) => a.type.equals(type))
-        ..orderBy(<OrderClauseGenerator<$AccountsTable>>[($AccountsTable a) => OrderingTerm.asc(a.name)]);
+      final SimpleSelectStatement<$AccountsTable, AccountEntity> query =
+          database.select(database.accounts)
+            ..where(($AccountsTable a) => a.type.equals(type))
+            ..orderBy(<OrderClauseGenerator<$AccountsTable>>[
+              ($AccountsTable a) => OrderingTerm.asc(a.name),
+            ]);
       final List<AccountEntity> accounts = await query.get();
       logger.info('Found ${accounts.length} accounts of type: $type');
       return accounts;
     } catch (error, stackTrace) {
-      logger.severe('Failed to fetch accounts by type: $type', error, stackTrace);
+      logger.severe(
+        'Failed to fetch accounts by type: $type',
+        error,
+        stackTrace,
+      );
       throw DatabaseException.queryFailed(
         'SELECT * FROM accounts WHERE type = $type',
         error,
@@ -816,9 +838,12 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
   Future<List<AccountEntity>> getActive() async {
     try {
       logger.fine('Fetching active accounts');
-      final SimpleSelectStatement<$AccountsTable, AccountEntity> query = database.select(database.accounts)
-        ..where(($AccountsTable a) => a.active.equals(true))
-        ..orderBy(<OrderClauseGenerator<$AccountsTable>>[($AccountsTable a) => OrderingTerm.asc(a.name)]);
+      final SimpleSelectStatement<$AccountsTable, AccountEntity> query =
+          database.select(database.accounts)
+            ..where(($AccountsTable a) => a.active.equals(true))
+            ..orderBy(<OrderClauseGenerator<$AccountsTable>>[
+              ($AccountsTable a) => OrderingTerm.asc(a.name),
+            ]);
       final List<AccountEntity> accounts = await query.get();
       logger.info('Found ${accounts.length} active accounts');
       return accounts;
@@ -837,12 +862,21 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
     try {
       logger.fine('Calculating total asset balance');
       final List<AccountEntity> assetAccounts = await getByType('asset');
-      final double total = assetAccounts.fold<double>(0.0, (double sum, AccountEntity account) => sum + account.currentBalance);
+      final double total = assetAccounts.fold<double>(
+        0.0,
+        (double sum, AccountEntity account) => sum + account.currentBalance,
+      );
       logger.info('Total asset balance: $total');
       return total;
     } catch (error, stackTrace) {
-      logger.severe('Failed to calculate total asset balance', error, stackTrace);
-      throw DatabaseException('Failed to calculate total asset balance: $error');
+      logger.severe(
+        'Failed to calculate total asset balance',
+        error,
+        stackTrace,
+      );
+      throw DatabaseException(
+        'Failed to calculate total asset balance: $error',
+      );
     }
   }
 
@@ -879,34 +913,38 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
     bool activeOnly = true,
   }) async {
     try {
-      logger.fine('Searching accounts: "$query" (types: $types, activeOnly: $activeOnly)');
+      logger.fine(
+        'Searching accounts: "$query" (types: $types, activeOnly: $activeOnly)',
+      );
       final String searchPattern = '%${query.toLowerCase()}%';
 
       var selectQuery = database.select(database.accounts);
-      
-      selectQuery = selectQuery..where(($AccountsTable a) {
-        // Build conditions
-        Expression<bool> condition = a.name.lower().like(searchPattern);
-        
-        // Filter by types if provided
-        if (types != null && types.isNotEmpty) {
-          condition = condition & a.type.isIn(types);
-        }
-        
-        // Filter active only if requested
-        if (activeOnly) {
-          condition = condition & a.active.equals(true);
-        }
-        
-        return condition;
-      });
 
-      final List<AccountEntity> accounts = await (selectQuery
-            ..orderBy(<OrderClauseGenerator<$AccountsTable>>[
-              ($AccountsTable a) => OrderingTerm.asc(a.name)
-            ])
-            ..limit(20))
-          .get();
+      selectQuery =
+          selectQuery..where(($AccountsTable a) {
+            // Build conditions
+            Expression<bool> condition = a.name.lower().like(searchPattern);
+
+            // Filter by types if provided
+            if (types != null && types.isNotEmpty) {
+              condition = condition & a.type.isIn(types);
+            }
+
+            // Filter active only if requested
+            if (activeOnly) {
+              condition = condition & a.active.equals(true);
+            }
+
+            return condition;
+          });
+
+      final List<AccountEntity> accounts =
+          await (selectQuery
+                ..orderBy(<OrderClauseGenerator<$AccountsTable>>[
+                  ($AccountsTable a) => OrderingTerm.asc(a.name),
+                ])
+                ..limit(20))
+              .get();
 
       logger.info('Found ${accounts.length} accounts matching: "$query"');
       return accounts;

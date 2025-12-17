@@ -50,7 +50,7 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
     required super.database,
     super.cacheService,
     UuidService? uuidService,
-  })  : _uuidService = uuidService ?? UuidService();
+  }) : _uuidService = uuidService ?? UuidService();
 
   final UuidService _uuidService;
 
@@ -74,9 +74,11 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
   Future<List<CategoryEntity>> getAll() async {
     try {
       logger.fine('Fetching all categories');
-      final List<CategoryEntity> categories = await (database.select(database.categories)
-            ..orderBy(<OrderClauseGenerator<$CategoriesTable>>[($CategoriesTable c) => OrderingTerm.asc(c.name)]))
-          .get();
+      final List<CategoryEntity> categories =
+          await (database.select(database.categories)
+            ..orderBy(<OrderClauseGenerator<$CategoriesTable>>[
+              ($CategoriesTable c) => OrderingTerm.asc(c.name),
+            ])).get();
       logger.info('Retrieved ${categories.length} categories');
       return categories;
     } catch (error, stackTrace) {
@@ -92,8 +94,10 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
   @override
   Stream<List<CategoryEntity>> watchAll() {
     logger.fine('Watching all categories');
-    return (database.select(database.categories)..orderBy(<OrderClauseGenerator<$CategoriesTable>>[($CategoriesTable c) => OrderingTerm.asc(c.name)]))
-        .watch();
+    return (database.select(database.categories)
+      ..orderBy(<OrderClauseGenerator<$CategoriesTable>>[
+        ($CategoriesTable c) => OrderingTerm.asc(c.name),
+      ])).watch();
   }
 
   /// Retrieves a category by ID with cache-first strategy.
@@ -117,15 +121,15 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
       if (cacheService != null) {
         logger.finest('Using cache-first strategy for category $id');
 
-        final CacheResult<CategoryEntity?> cacheResult =
-            await cacheService!.get<CategoryEntity?>(
-          entityType: entityType,
-          entityId: id,
-          fetcher: () => _fetchCategoryFromDb(id),
-          ttl: cacheTtl,
-          forceRefresh: forceRefresh,
-          backgroundRefresh: backgroundRefresh,
-        );
+        final CacheResult<CategoryEntity?> cacheResult = await cacheService!
+            .get<CategoryEntity?>(
+              entityType: entityType,
+              entityId: id,
+              fetcher: () => _fetchCategoryFromDb(id),
+              ttl: cacheTtl,
+              forceRefresh: forceRefresh,
+              backgroundRefresh: backgroundRefresh,
+            );
 
         logger.info(
           'Category fetched: $id from ${cacheResult.source} '
@@ -183,7 +187,9 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
   @override
   Stream<CategoryEntity?> watchById(String id) {
     logger.fine('Watching category: $id');
-    final SimpleSelectStatement<$CategoriesTable, CategoryEntity> query = database.select(database.categories)..where(($CategoriesTable c) => c.id.equals(id));
+    final SimpleSelectStatement<$CategoriesTable, CategoryEntity> query =
+        database.select(database.categories)
+          ..where(($CategoriesTable c) => c.id.equals(id));
     return query.watchSingleOrNull();
   }
 
@@ -236,7 +242,9 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
 
       // Trigger cascade invalidation
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation cascade for category creation');
+        logger.fine(
+          'Triggering cache invalidation cascade for category creation',
+        );
         await CacheInvalidationRules.onCategoryMutation(
           cacheService!,
           created,
@@ -301,7 +309,9 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
 
       // Trigger cascade invalidation
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation cascade for category update');
+        logger.fine(
+          'Triggering cache invalidation cascade for category update',
+        );
         await CacheInvalidationRules.onCategoryMutation(
           cacheService!,
           updated,
@@ -332,8 +342,7 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
       }
 
       await (database.delete(database.categories)
-            ..where(($CategoriesTable c) => c.id.equals(id)))
-          .go();
+        ..where(($CategoriesTable c) => c.id.equals(id))).go();
       logger.info('Category deleted from database: $id');
 
       // Invalidate cache
@@ -344,7 +353,9 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
 
       // Trigger cascade invalidation
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation cascade for category deletion');
+        logger.fine(
+          'Triggering cache invalidation cascade for category deletion',
+        );
         await CacheInvalidationRules.onCategoryMutation(
           cacheService!,
           existing,
@@ -365,8 +376,9 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
   Future<List<CategoryEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced categories');
-      final SimpleSelectStatement<$CategoriesTable, CategoryEntity> query = database.select(database.categories)
-        ..where(($CategoriesTable c) => c.isSynced.equals(false));
+      final SimpleSelectStatement<$CategoriesTable, CategoryEntity> query =
+          database.select(database.categories)
+            ..where(($CategoriesTable c) => c.isSynced.equals(false));
       final List<CategoryEntity> categories = await query.get();
       logger.info('Found ${categories.length} unsynced categories');
       return categories;
@@ -385,7 +397,8 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
     try {
       logger.info('Marking category as synced: $localId -> $serverId');
 
-      await (database.update(database.categories)..where(($CategoriesTable c) => c.id.equals(localId))).write(
+      await (database.update(database.categories)
+        ..where(($CategoriesTable c) => c.id.equals(localId))).write(
         CategoryEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -396,7 +409,11 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
 
       logger.info('Category marked as synced: $localId');
     } catch (error, stackTrace) {
-      logger.severe('Failed to mark category as synced: $localId', error, stackTrace);
+      logger.severe(
+        'Failed to mark category as synced: $localId',
+        error,
+        stackTrace,
+      );
       throw DatabaseException('Failed to mark category as synced: $error');
     }
   }
@@ -410,7 +427,11 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
       }
       return category.syncStatus;
     } catch (error, stackTrace) {
-      logger.severe('Failed to get sync status for category $id', error, stackTrace);
+      logger.severe(
+        'Failed to get sync status for category $id',
+        error,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -431,7 +452,10 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
   Future<int> count() async {
     try {
       logger.fine('Counting categories');
-      final int count = await database.select(database.categories).get().then((List<CategoryEntity> list) => list.length);
+      final int count = await database
+          .select(database.categories)
+          .get()
+          .then((List<CategoryEntity> list) => list.length);
       logger.fine('Category count: $count');
       return count;
     } catch (error, stackTrace) {
@@ -448,9 +472,13 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
   Future<List<CategoryEntity>> searchByName(String query) async {
     try {
       logger.fine('Searching categories by name: $query');
-      final SimpleSelectStatement<$CategoriesTable, CategoryEntity> searchQuery = database.select(database.categories)
-        ..where(($CategoriesTable c) => c.name.like('%$query%'))
-        ..orderBy(<OrderClauseGenerator<$CategoriesTable>>[($CategoriesTable c) => OrderingTerm.asc(c.name)]);
+      final SimpleSelectStatement<$CategoriesTable, CategoryEntity>
+      searchQuery =
+          database.select(database.categories)
+            ..where(($CategoriesTable c) => c.name.like('%$query%'))
+            ..orderBy(<OrderClauseGenerator<$CategoriesTable>>[
+              ($CategoriesTable c) => OrderingTerm.asc(c.name),
+            ]);
       final List<CategoryEntity> categories = await searchQuery.get();
       logger.info('Found ${categories.length} categories matching: $query');
       return categories;
@@ -468,14 +496,19 @@ class CategoryRepository extends BaseRepository<CategoryEntity, String> {
   Future<int> getTransactionCount(String categoryId) async {
     try {
       logger.fine('Counting transactions for category: $categoryId');
-      final List<TransactionEntity> transactions = await (database.select(database.transactions)
-            ..where(($TransactionsTable t) => t.categoryId.equals(categoryId)))
-          .get();
+      final List<TransactionEntity> transactions =
+          await (database.select(database.transactions)..where(
+            ($TransactionsTable t) => t.categoryId.equals(categoryId),
+          )).get();
       final int count = transactions.length;
       logger.fine('Category $categoryId has $count transactions');
       return count;
     } catch (error, stackTrace) {
-      logger.severe('Failed to count transactions for category: $categoryId', error, stackTrace);
+      logger.severe(
+        'Failed to count transactions for category: $categoryId',
+        error,
+        stackTrace,
+      );
       throw DatabaseException.queryFailed(
         'SELECT COUNT(*) FROM transactions WHERE category_id = $categoryId',
         error,

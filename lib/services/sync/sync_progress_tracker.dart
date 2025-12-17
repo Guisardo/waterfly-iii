@@ -33,10 +33,12 @@ class SyncProgressTracker {
   final Logger _logger = Logger('SyncProgressTracker');
 
   /// Progress stream controller
-  final BehaviorSubject<SyncProgress> _progressController = BehaviorSubject<SyncProgress>();
+  final BehaviorSubject<SyncProgress> _progressController =
+      BehaviorSubject<SyncProgress>();
 
   /// Event stream controller
-  final BehaviorSubject<SyncEvent> _eventController = BehaviorSubject<SyncEvent>();
+  final BehaviorSubject<SyncEvent> _eventController =
+      BehaviorSubject<SyncEvent>();
 
   /// Current progress state
   SyncProgress? _currentProgress;
@@ -77,7 +79,9 @@ class SyncProgressTracker {
     required int totalOperations,
     SyncPhase phase = SyncPhase.preparing,
   }) {
-    _logger.info('Starting sync progress tracking: $totalOperations operations');
+    _logger.info(
+      'Starting sync progress tracking: $totalOperations operations',
+    );
 
     _startTime = DateTime.now();
     _completionTimestamps.clear();
@@ -98,10 +102,12 @@ class SyncProgressTracker {
     );
 
     _emitProgress();
-    _emitEvent(SyncStartedEvent(
-      timestamp: DateTime.now(),
-      totalOperations: totalOperations,
-    ));
+    _emitEvent(
+      SyncStartedEvent(
+        timestamp: DateTime.now(),
+        totalOperations: totalOperations,
+      ),
+    );
   }
 
   /// Update current phase.
@@ -180,10 +186,9 @@ class SyncProgressTracker {
     _emitProgress();
 
     if (conflictId != null) {
-      _emitEvent(ConflictDetectedEvent(
-        timestamp: DateTime.now(),
-        conflict: conflictId,
-      ));
+      _emitEvent(
+        ConflictDetectedEvent(timestamp: DateTime.now(), conflict: conflictId),
+      );
     }
   }
 
@@ -305,15 +310,11 @@ class SyncProgressTracker {
 
     // Emit completion event
     if (success) {
-      _emitEvent(SyncCompletedEvent(
-        timestamp: DateTime.now(),
-        result: result,
-      ));
+      _emitEvent(SyncCompletedEvent(timestamp: DateTime.now(), result: result));
     } else {
-      _emitEvent(SyncFailedEvent(
-        timestamp: DateTime.now(),
-        error: 'Sync failed',
-      ));
+      _emitEvent(
+        SyncFailedEvent(timestamp: DateTime.now(), error: 'Sync failed'),
+      );
     }
 
     // Clear current progress
@@ -369,15 +370,15 @@ class SyncProgressTracker {
 
     _logger.warning('Sync progress tracking cancelled');
 
-    _currentProgress = _currentProgress!.copyWith(
-      phase: SyncPhase.failed,
-    );
+    _currentProgress = _currentProgress!.copyWith(phase: SyncPhase.failed);
     _emitProgress();
 
-    _emitEvent(SyncFailedEvent(
-      timestamp: DateTime.now(),
-      error: 'Sync cancelled by user',
-    ));
+    _emitEvent(
+      SyncFailedEvent(
+        timestamp: DateTime.now(),
+        error: 'Sync cancelled by user',
+      ),
+    );
 
     _currentProgress = null;
     _startTime = null;

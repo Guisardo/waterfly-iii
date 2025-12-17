@@ -24,9 +24,9 @@ class SyncStatusProvider extends ChangeNotifier {
     required SyncManager syncManager,
     required SyncStatisticsService statisticsService,
     required AppDatabase database,
-  })  : _syncManager = syncManager,
-        _statisticsService = statisticsService,
-        _database = database {
+  }) : _syncManager = syncManager,
+       _statisticsService = statisticsService,
+       _database = database {
     _initialize();
   }
 
@@ -83,13 +83,13 @@ class SyncStatusProvider extends ChangeNotifier {
 
     // Listen to sync events
     _syncEventSubscription = _syncManager.watchEvents().listen(
-          _handleSyncEvent,
-          onError: (error, stackTrace) {
-            _log.severe('Error in sync event stream', error, stackTrace);
-            _currentError = error.toString();
-            notifyListeners();
-          },
-        );
+      _handleSyncEvent,
+      onError: (error, stackTrace) {
+        _log.severe('Error in sync event stream', error, stackTrace);
+        _currentError = error.toString();
+        notifyListeners();
+      },
+    );
   }
 
   /// Load statistics from service.
@@ -264,22 +264,34 @@ class SyncStatusProvider extends ChangeNotifier {
 
   /// Get total operations for all entity types.
   int get totalOperations {
-    return _entityStats.values.fold(0, (int sum, EntitySyncStats stats) => sum + stats.total);
+    return _entityStats.values.fold(
+      0,
+      (int sum, EntitySyncStats stats) => sum + stats.total,
+    );
   }
 
   /// Get total successful operations for all entity types.
   int get totalSuccessful {
-    return _entityStats.values.fold(0, (int sum, EntitySyncStats stats) => sum + stats.successful);
+    return _entityStats.values.fold(
+      0,
+      (int sum, EntitySyncStats stats) => sum + stats.successful,
+    );
   }
 
   /// Get total failed operations for all entity types.
   int get totalFailed {
-    return _entityStats.values.fold(0, (int sum, EntitySyncStats stats) => sum + stats.failed);
+    return _entityStats.values.fold(
+      0,
+      (int sum, EntitySyncStats stats) => sum + stats.failed,
+    );
   }
 
   /// Get total conflicts for all entity types.
   int get totalConflicts {
-    return _entityStats.values.fold(0, (int sum, EntitySyncStats stats) => sum + stats.conflicts);
+    return _entityStats.values.fold(
+      0,
+      (int sum, EntitySyncStats stats) => sum + stats.conflicts,
+    );
   }
 
   /// Get overall success rate.
@@ -291,14 +303,17 @@ class SyncStatusProvider extends ChangeNotifier {
   /// Load conflicts from database.
   Future<void> _loadConflicts() async {
     try {
-      final List<ConflictEntity> conflicts = await (_database.select(_database.conflicts)
-            ..where(($ConflictsTable tbl) => tbl.status.equals('pending'))
-            ..orderBy(<OrderClauseGenerator<$ConflictsTable>>[($ConflictsTable tbl) => OrderingTerm.desc(tbl.detectedAt)]))
-          .get();
-      
+      final List<ConflictEntity> conflicts =
+          await (_database.select(_database.conflicts)
+                ..where(($ConflictsTable tbl) => tbl.status.equals('pending'))
+                ..orderBy(<OrderClauseGenerator<$ConflictsTable>>[
+                  ($ConflictsTable tbl) => OrderingTerm.desc(tbl.detectedAt),
+                ]))
+              .get();
+
       _unresolvedConflicts.clear();
       _unresolvedConflicts.addAll(conflicts);
-      
+
       _log.fine('Loaded ${conflicts.length} unresolved conflicts');
     } catch (e, stackTrace) {
       _log.warning('Failed to load conflicts', e, stackTrace);
@@ -308,20 +323,23 @@ class SyncStatusProvider extends ChangeNotifier {
   /// Load recent errors from database.
   Future<void> _loadRecentErrors() async {
     try {
-      final List<ErrorLogEntity> errors = await (_database.select(_database.errorLog)
-            ..where(($ErrorLogTable tbl) => tbl.resolved.equals(false))
-            ..orderBy(<OrderClauseGenerator<$ErrorLogTable>>[($ErrorLogTable tbl) => OrderingTerm.desc(tbl.occurredAt)])
-            ..limit(_maxErrorsSize))
-          .get();
-      
+      final List<ErrorLogEntity> errors =
+          await (_database.select(_database.errorLog)
+                ..where(($ErrorLogTable tbl) => tbl.resolved.equals(false))
+                ..orderBy(<OrderClauseGenerator<$ErrorLogTable>>[
+                  ($ErrorLogTable tbl) => OrderingTerm.desc(tbl.occurredAt),
+                ])
+                ..limit(_maxErrorsSize))
+              .get();
+
       _recentErrors.clear();
       _recentErrors.addAll(
-        errors.map((ErrorLogEntity e) => SyncError(
-          message: e.errorMessage,
-          timestamp: e.occurredAt,
-        )),
+        errors.map(
+          (ErrorLogEntity e) =>
+              SyncError(message: e.errorMessage, timestamp: e.occurredAt),
+        ),
       );
-      
+
       _log.fine('Loaded ${errors.length} recent errors');
     } catch (e, stackTrace) {
       _log.warning('Failed to load errors', e, stackTrace);

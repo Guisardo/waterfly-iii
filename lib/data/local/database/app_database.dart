@@ -40,31 +40,33 @@ part 'app_database.g.dart';
 /// - Error log for tracking sync errors
 /// - Cache metadata for cache-first architecture
 /// - Sync statistics for incremental sync tracking
-@DriftDatabase(tables: <Type>[
-  Transactions,
-  Accounts,
-  Categories,
-  Budgets,
-  Bills,
-  PiggyBanks,
-  Currencies,
-  Tags,
-  Attachments,
-  SyncQueue,
-  SyncMetadata,
-  IdMapping,
-  Conflicts,
-  ErrorLog,
-  SyncStatistics,
-  CacheMetadataTable,
-])
+@DriftDatabase(
+  tables: <Type>[
+    Transactions,
+    Accounts,
+    Categories,
+    Budgets,
+    Bills,
+    PiggyBanks,
+    Currencies,
+    Tags,
+    Attachments,
+    SyncQueue,
+    SyncMetadata,
+    IdMapping,
+    Conflicts,
+    ErrorLog,
+    SyncStatistics,
+    CacheMetadataTable,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   /// Singleton instance of the database.
   ///
   /// This ensures only one database connection exists throughout the app,
   /// preventing race conditions and data corruption issues.
   static AppDatabase? _instance;
-  
+
   /// Private constructor for singleton pattern.
   AppDatabase._internal() : super(_openConnection());
 
@@ -93,7 +95,7 @@ class AppDatabase extends _$AppDatabase {
   /// ```
   @visibleForTesting
   AppDatabase.forTesting(super.executor);
-  
+
   /// Resets the singleton instance.
   ///
   /// Used for testing to ensure a fresh database between tests.
@@ -128,11 +130,11 @@ class AppDatabase extends _$AppDatabase {
       onCreate: (Migrator m) async {
         // Create all tables
         await m.createAll();
-        
+
         // Create performance indexes (includes server_updated_at indexes)
         await _createIndexes();
         await _createServerUpdatedAtIndexes();
-        
+
         // Initialize sync metadata with default values
         await into(syncMetadata).insert(
           SyncMetadataEntityCompanion.insert(
@@ -155,7 +157,7 @@ class AppDatabase extends _$AppDatabase {
             updatedAt: DateTime.now(),
           ),
         );
-        
+
         // Initialize sync statistics for each entity type
         await _initializeSyncStatistics();
       },
@@ -166,18 +168,18 @@ class AppDatabase extends _$AppDatabase {
           // No data migration needed, constraints will be enforced on new operations
           // Existing data integrity will be checked on startup by ReferentialIntegrityService
           await customStatement('PRAGMA foreign_keys = OFF');
-          
+
           // Recreate tables with foreign key constraints
           // This is handled automatically by Drift when customConstraints are defined
-          
+
           await customStatement('PRAGMA foreign_keys = ON');
         }
-        
+
         if (from < 3) {
           // Version 3: Add conflicts and error_log tables
           await m.createTable(conflicts);
           await m.createTable(errorLog);
-          
+
           // Create indexes for performance
           await customStatement(
             'CREATE INDEX IF NOT EXISTS idx_conflicts_status ON conflicts(status)',
@@ -192,7 +194,7 @@ class AppDatabase extends _$AppDatabase {
             'CREATE INDEX IF NOT EXISTS idx_error_log_entity ON error_log(entity_type, entity_id)',
           );
         }
-        
+
         if (from < 4) {
           // Version 4: Add sync_statistics table (old schema - will be migrated in v6)
           // Note: This table was created with old schema in v4 and will be recreated in v6
@@ -246,7 +248,7 @@ class AppDatabase extends _$AppDatabase {
       beforeOpen: (OpeningDetails details) async {
         // Enable foreign key constraints
         await customStatement('PRAGMA foreign_keys = ON');
-        
+
         // Optimize database performance
         await customStatement('PRAGMA journal_mode = WAL');
         await customStatement('PRAGMA synchronous = NORMAL');
@@ -530,9 +532,10 @@ class AppDatabase extends _$AppDatabase {
     final Logger log = Logger('AppDatabase.Migration');
 
     // Check that sync_statistics table exists with new schema
-    final QueryRow? tableExists = await customSelect(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='sync_statistics'",
-    ).getSingleOrNull();
+    final QueryRow? tableExists =
+        await customSelect(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='sync_statistics'",
+        ).getSingleOrNull();
 
     if (tableExists == null) {
       throw MigrationException('sync_statistics table not created');
@@ -549,10 +552,11 @@ class AppDatabase extends _$AppDatabase {
     }
 
     // Verify indexes exist
-    final List<QueryRow> indexes = await customSelect(
-      "SELECT name FROM sqlite_master WHERE type='index' "
-      "AND name LIKE 'idx_%_server_updated_at'",
-    ).get();
+    final List<QueryRow> indexes =
+        await customSelect(
+          "SELECT name FROM sqlite_master WHERE type='index' "
+          "AND name LIKE 'idx_%_server_updated_at'",
+        ).get();
 
     if (indexes.length < 6) {
       throw MigrationException(
@@ -571,9 +575,8 @@ class AppDatabase extends _$AppDatabase {
     ];
 
     for (final String table in tables) {
-      final List<QueryRow> columns = await customSelect(
-        "PRAGMA table_info($table)",
-      ).get();
+      final List<QueryRow> columns =
+          await customSelect("PRAGMA table_info($table)").get();
 
       final bool hasServerUpdatedAt = columns.any(
         (QueryRow col) => col.read<String>('name') == 'server_updated_at',
@@ -744,7 +747,7 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final Directory dbFolder = await getApplicationDocumentsDirectory();
     final File file = File(p.join(dbFolder.path, 'waterfly_offline.db'));
-    
+
     return NativeDatabase.createInBackground(
       file,
       logStatements: true, // Enable SQL logging in debug mode

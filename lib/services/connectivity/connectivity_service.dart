@@ -34,7 +34,7 @@ import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
 /// ```
 class ConnectivityService {
   static final ConnectivityService _instance = ConnectivityService._internal();
-  
+
   /// Returns the singleton instance of [ConnectivityService].
   factory ConnectivityService() => _instance;
 
@@ -58,7 +58,9 @@ class ConnectivityService {
       BehaviorSubject<ConnectivityStatus>.seeded(ConnectivityStatus.unknown);
 
   /// Current network types (WiFi, mobile, ethernet, etc.)
-  List<ConnectivityResult> _currentNetworkTypes = <ConnectivityResult>[ConnectivityResult.none];
+  List<ConnectivityResult> _currentNetworkTypes = <ConnectivityResult>[
+    ConnectivityResult.none,
+  ];
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   StreamSubscription<InternetStatus>? _internetSubscription;
@@ -83,13 +85,14 @@ class ConnectivityService {
   /// Current network types.
   ///
   /// Returns list of active network connection types (WiFi, mobile, etc.).
-  List<ConnectivityResult> get currentNetworkTypes => List.unmodifiable(_currentNetworkTypes);
+  List<ConnectivityResult> get currentNetworkTypes =>
+      List.unmodifiable(_currentNetworkTypes);
 
   /// Detailed connectivity information including network type.
   ConnectivityInfo get connectivityInfo => ConnectivityInfo(
-        status: currentStatus,
-        networkTypes: currentNetworkTypes,
-      );
+    status: currentStatus,
+    networkTypes: currentNetworkTypes,
+  );
 
   /// Whether the service has been initialized.
   bool get isInitialized => _isInitialized;
@@ -114,11 +117,7 @@ class ConnectivityService {
       _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
         _onConnectivityChanged,
         onError: (error, stackTrace) {
-          _logger.severe(
-            'Error in connectivity stream',
-            error,
-            stackTrace,
-          );
+          _logger.severe('Error in connectivity stream', error, stackTrace);
         },
       );
 
@@ -127,11 +126,7 @@ class ConnectivityService {
       _internetSubscription = _internetChecker.onStatusChange.listen(
         _onInternetStatusChanged,
         onError: (error, stackTrace) {
-          _logger.severe(
-            'Error in internet status stream',
-            error,
-            stackTrace,
-          );
+          _logger.severe('Error in internet status stream', error, stackTrace);
         },
       );
 
@@ -209,13 +204,14 @@ class ConnectivityService {
       _logger.info('Step 1: Checking network connectivity...');
 
       // Check network connectivity
-      final List<ConnectivityResult> connectivityResults = await _connectivity.checkConnectivity();
-      
+      final List<ConnectivityResult> connectivityResults =
+          await _connectivity.checkConnectivity();
+
       _logger.info('Network connectivity results: $connectivityResults');
-      
+
       // Update current network types
       _currentNetworkTypes = connectivityResults;
-      
+
       if (connectivityResults.contains(ConnectivityResult.none)) {
         _logger.info('Result: No network connectivity detected');
         _updateStatus(ConnectivityStatus.offline);
@@ -224,12 +220,12 @@ class ConnectivityService {
       }
 
       _logger.info('Step 2: Checking internet access...');
-      
+
       // Check internet access
       final bool hasInternet = await _internetChecker.hasInternetAccess;
-      
+
       _logger.info('Internet access check result: $hasInternet');
-      
+
       if (!hasInternet) {
         _logger.info('Result: Network connected but no internet access');
         _updateStatus(ConnectivityStatus.offline);
@@ -238,13 +234,13 @@ class ConnectivityService {
       }
 
       _logger.info('Step 3: Checking server reachability...');
-      
+
       // Check server reachability if API client is available
       if (_apiClient != null) {
         _logger.info('API client is configured, checking server...');
         final bool serverReachable = await checkServerReachability();
         _logger.info('Server reachability result: $serverReachable');
-        
+
         if (!serverReachable) {
           _logger.info('Result: Internet available but server unreachable');
           _updateStatus(ConnectivityStatus.offline);
@@ -292,7 +288,7 @@ class ConnectivityService {
 
       // Ping server using API client's about endpoint
       final response = await _apiClient.v1AboutGet().timeout(timeout);
-      
+
       if (response.isSuccessful) {
         _logger.info('Server reachability check passed');
         return true;
@@ -301,11 +297,7 @@ class ConnectivityService {
         return false;
       }
     } catch (error, stackTrace) {
-      _logger.severe(
-        'Error checking server reachability',
-        error,
-        stackTrace,
-      );
+      _logger.severe('Error checking server reachability', error, stackTrace);
       return false;
     }
   }
@@ -359,7 +351,7 @@ class ConnectivityService {
     _logger.info('Resuming connectivity monitoring');
     _connectivitySubscription?.resume();
     _internetSubscription?.resume();
-    
+
     // Perform immediate connectivity check
     await checkConnectivity();
   }

@@ -52,10 +52,12 @@ void main() {
     }
 
     group('Card Mode', () {
-      testWidgets('renders empty state when no data', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-        ));
+      testWidgets('renders empty state when no data', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncStatisticsMode.card),
+        );
 
         expect(find.text('No Sync Statistics Yet'), findsOneWidget);
         expect(
@@ -67,42 +69,55 @@ void main() {
       });
 
       testWidgets('renders header with title', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-          showHeader: true,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncStatisticsMode.card,
+            showHeader: true,
+          ),
+        );
 
         expect(find.text('Sync Statistics'), findsOneWidget);
       });
 
-      testWidgets('hides header when showHeader is false', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-          showHeader: false,
-        ));
+      testWidgets('hides header when showHeader is false', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncStatisticsMode.card,
+            showHeader: false,
+          ),
+        );
 
         expect(find.text('Sync Statistics'), findsNothing);
       });
 
-      testWidgets('renders refresh button when onRefresh provided',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-          showHeader: true,
-          onRefresh: () {},
-        ));
+      testWidgets('renders refresh button when onRefresh provided', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncStatisticsMode.card,
+            showHeader: true,
+            onRefresh: () {},
+          ),
+        );
 
         expect(find.byIcon(Icons.refresh), findsOneWidget);
       });
 
-      testWidgets('refresh button triggers callback', (WidgetTester tester) async {
+      testWidgets('refresh button triggers callback', (
+        WidgetTester tester,
+      ) async {
         bool refreshTapped = false;
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-          showHeader: true,
-          onRefresh: () => refreshTapped = true,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncStatisticsMode.card,
+            showHeader: true,
+            onRefresh: () => refreshTapped = true,
+          ),
+        );
 
         await tester.tap(find.byIcon(Icons.refresh));
         await tester.pumpAndSettle();
@@ -110,7 +125,9 @@ void main() {
         expect(refreshTapped, true);
       });
 
-      testWidgets('renders statistics with live result', (WidgetTester tester) async {
+      testWidgets('renders statistics with live result', (
+        WidgetTester tester,
+      ) async {
         final IncrementalSyncResult liveResult = IncrementalSyncResult(
           isIncremental: true,
           success: true,
@@ -131,10 +148,12 @@ void main() {
           },
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-          liveResult: liveResult,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncStatisticsMode.card,
+            liveResult: liveResult,
+          ),
+        );
 
         // Should show main stats
         expect(find.text('Fetched'), findsOneWidget);
@@ -150,7 +169,9 @@ void main() {
         expect(find.text('Status: Success'), findsOneWidget);
       });
 
-      testWidgets('displays error when live result has error', (WidgetTester tester) async {
+      testWidgets('displays error when live result has error', (
+        WidgetTester tester,
+      ) async {
         final IncrementalSyncResult liveResult = const IncrementalSyncResult(
           isIncremental: true,
           success: false,
@@ -159,10 +180,12 @@ void main() {
           error: 'Network error occurred',
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-          liveResult: liveResult,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncStatisticsMode.card,
+            liveResult: liveResult,
+          ),
+        );
 
         expect(find.text('Status: Failed'), findsOneWidget);
         expect(find.text('Error: Network error occurred'), findsOneWidget);
@@ -170,15 +193,19 @@ void main() {
     });
 
     group('Compact Mode', () {
-      testWidgets('renders empty state when no data', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.compact,
-        ));
+      testWidgets('renders empty state when no data', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncStatisticsMode.compact),
+        );
 
         expect(find.text('No incremental sync data yet'), findsOneWidget);
       });
 
-      testWidgets('renders compact stats with data', (WidgetTester tester) async {
+      testWidgets('renders compact stats with data', (
+        WidgetTester tester,
+      ) async {
         // Set up some statistics
         await settingsProvider.updateIncrementalSyncStatistics(
           isIncremental: true,
@@ -188,9 +215,9 @@ void main() {
           bandwidthSaved: 163840, // 160 KB
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.compact,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncStatisticsMode.compact),
+        );
         await tester.pumpAndSettle();
 
         // Should show compact stat items
@@ -201,10 +228,12 @@ void main() {
     });
 
     group('Summary Mode', () {
-      testWidgets('renders no data message when empty', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.summary,
-        ));
+      testWidgets('renders no data message when empty', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncStatisticsMode.summary),
+        );
 
         expect(find.text('No sync data available'), findsOneWidget);
       });
@@ -218,9 +247,9 @@ void main() {
           bandwidthSaved: 163840,
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.summary,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncStatisticsMode.summary),
+        );
         await tester.pumpAndSettle();
 
         // Should show efficiency percentage and bandwidth saved
@@ -231,8 +260,9 @@ void main() {
     });
 
     group('Efficiency Indicators', () {
-      testWidgets('shows excellent efficiency for 80%+ skip rate',
-          (WidgetTester tester) async {
+      testWidgets('shows excellent efficiency for 80%+ skip rate', (
+        WidgetTester tester,
+      ) async {
         final IncrementalSyncResult liveResult = IncrementalSyncResult(
           isIncremental: true,
           success: true,
@@ -247,15 +277,19 @@ void main() {
           },
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-          liveResult: liveResult,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncStatisticsMode.card,
+            liveResult: liveResult,
+          ),
+        );
 
         expect(find.text('Excellent Efficiency'), findsOneWidget);
       });
 
-      testWidgets('shows good efficiency for 60-79% skip rate', (WidgetTester tester) async {
+      testWidgets('shows good efficiency for 60-79% skip rate', (
+        WidgetTester tester,
+      ) async {
         final IncrementalSyncResult liveResult = IncrementalSyncResult(
           isIncremental: true,
           success: true,
@@ -270,16 +304,19 @@ void main() {
           },
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-          liveResult: liveResult,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncStatisticsMode.card,
+            liveResult: liveResult,
+          ),
+        );
 
         expect(find.text('Good Efficiency'), findsOneWidget);
       });
 
-      testWidgets('shows moderate efficiency for 40-59% skip rate',
-          (WidgetTester tester) async {
+      testWidgets('shows moderate efficiency for 40-59% skip rate', (
+        WidgetTester tester,
+      ) async {
         final IncrementalSyncResult liveResult = IncrementalSyncResult(
           isIncremental: true,
           success: true,
@@ -294,15 +331,19 @@ void main() {
           },
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-          liveResult: liveResult,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncStatisticsMode.card,
+            liveResult: liveResult,
+          ),
+        );
 
         expect(find.text('Moderate Efficiency'), findsOneWidget);
       });
 
-      testWidgets('shows low efficiency for 20-39% skip rate', (WidgetTester tester) async {
+      testWidgets('shows low efficiency for 20-39% skip rate', (
+        WidgetTester tester,
+      ) async {
         final IncrementalSyncResult liveResult = IncrementalSyncResult(
           isIncremental: true,
           success: true,
@@ -317,16 +358,19 @@ void main() {
           },
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-          liveResult: liveResult,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncStatisticsMode.card,
+            liveResult: liveResult,
+          ),
+        );
 
         expect(find.text('Low Efficiency'), findsOneWidget);
       });
 
-      testWidgets('shows very low efficiency for <20% skip rate',
-          (WidgetTester tester) async {
+      testWidgets('shows very low efficiency for <20% skip rate', (
+        WidgetTester tester,
+      ) async {
         final IncrementalSyncResult liveResult = IncrementalSyncResult(
           isIncremental: true,
           success: true,
@@ -341,10 +385,12 @@ void main() {
           },
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.card,
-          liveResult: liveResult,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncStatisticsMode.card,
+            liveResult: liveResult,
+          ),
+        );
 
         expect(find.text('Very Low Efficiency'), findsOneWidget);
       });
@@ -358,9 +404,9 @@ void main() {
           bandwidthSaved: 512,
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.compact,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncStatisticsMode.compact),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('512 B'), findsOneWidget);
@@ -373,9 +419,9 @@ void main() {
           bandwidthSaved: 51200, // 50 KB
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.compact,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncStatisticsMode.compact),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('50.0 KB'), findsOneWidget);
@@ -388,9 +434,9 @@ void main() {
           bandwidthSaved: 5242880, // 5 MB
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncStatisticsMode.compact,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncStatisticsMode.compact),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('5.0 MB'), findsOneWidget);
@@ -398,4 +444,3 @@ void main() {
     });
   });
 }
-

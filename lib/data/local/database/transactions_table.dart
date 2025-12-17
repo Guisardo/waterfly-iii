@@ -78,8 +78,7 @@ class Transactions extends Table {
   BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 
   /// Sync status: 'pending', 'syncing', 'synced', 'error'.
-  TextColumn get syncStatus =>
-      text().withDefault(const Constant('pending'))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
 
   /// Timestamp of the last sync attempt, nullable.
   DateTimeColumn get lastSyncAttempt => dateTime().nullable()();
@@ -92,14 +91,14 @@ class Transactions extends Table {
 
   @override
   List<Set<Column>> get uniqueKeys => <Set<Column<Object>>>[
-        <Column<Object>>{serverId}
-      ];
+    <Column<Object>>{serverId},
+  ];
 
   @override
   List<String> get customConstraints => <String>[
-        'FOREIGN KEY (source_account_id) REFERENCES accounts(id) ON DELETE CASCADE',
-        'FOREIGN KEY (destination_account_id) REFERENCES accounts(id) ON DELETE CASCADE',
-        'FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL',
-        'FOREIGN KEY (budget_id) REFERENCES budgets(id) ON DELETE SET NULL',
-      ];
+    'FOREIGN KEY (source_account_id) REFERENCES accounts(id) ON DELETE CASCADE',
+    'FOREIGN KEY (destination_account_id) REFERENCES accounts(id) ON DELETE CASCADE',
+    'FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL',
+    'FOREIGN KEY (budget_id) REFERENCES budgets(id) ON DELETE SET NULL',
+  ];
 }

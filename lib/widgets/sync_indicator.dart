@@ -10,7 +10,11 @@ class SyncIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<SyncProvider>(
-      builder: (BuildContext context, SyncProvider syncProvider, Widget? child) {
+      builder: (
+        BuildContext context,
+        SyncProvider syncProvider,
+        Widget? child,
+      ) {
         if (!syncProvider.isSyncing) {
           return const SizedBox.shrink();
         }
@@ -106,7 +110,11 @@ class SyncIndicatorCompact extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<SyncProvider>(
-      builder: (BuildContext context, SyncProvider syncProvider, Widget? child) {
+      builder: (
+        BuildContext context,
+        SyncProvider syncProvider,
+        Widget? child,
+      ) {
         if (!syncProvider.isSyncing) {
           return const SizedBox.shrink();
         }
@@ -117,7 +125,8 @@ class SyncIndicatorCompact extends StatelessWidget {
         final Color primaryColor = theme.colorScheme.primary;
 
         return Tooltip(
-          message: syncProvider.currentOperation ?? 
+          message:
+              syncProvider.currentOperation ??
               'Syncing... ${syncProvider.progressPercent}%',
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),

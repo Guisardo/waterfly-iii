@@ -73,7 +73,11 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         ],
       ),
       body: Consumer<SyncStatusProvider>(
-        builder: (BuildContext context, SyncStatusProvider provider, Widget? child) {
+        builder: (
+          BuildContext context,
+          SyncStatusProvider provider,
+          Widget? child,
+        ) {
           final List<dynamic> conflicts = provider.unresolvedConflicts;
 
           if (conflicts.isEmpty) {
@@ -81,7 +85,9 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
           }
 
           final List<dynamic> filteredConflicts = _filterConflicts(conflicts);
-          final List<dynamic> sortedConflicts = _sortConflicts(filteredConflicts);
+          final List<dynamic> sortedConflicts = _sortConflicts(
+            filteredConflicts,
+          );
 
           return RefreshIndicator(
             onRefresh: () => provider.refresh(),
@@ -106,13 +112,14 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
           );
         },
       ),
-      floatingActionButton: _isSelectionMode && _selectedConflicts.isNotEmpty
-          ? FloatingActionButton.extended(
-              onPressed: () => _showBulkResolutionDialog(context),
-              icon: const Icon(Icons.done_all),
-              label: Text('Resolve ${_selectedConflicts.length}'),
-            )
-          : null,
+      floatingActionButton:
+          _isSelectionMode && _selectedConflicts.isNotEmpty
+              ? FloatingActionButton.extended(
+                onPressed: () => _showBulkResolutionDialog(context),
+                icon: const Icon(Icons.done_all),
+                label: Text('Resolve ${_selectedConflicts.length}'),
+              )
+              : null,
     );
   }
 
@@ -122,25 +129,21 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Icon(
-            Icons.check_circle_outline,
-            size: 80,
-            color: Colors.green[400],
-          ),
+          Icon(Icons.check_circle_outline, size: 80, color: Colors.green[400]),
           const SizedBox(height: 24),
           Text(
             'No Conflicts',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.green[700],
-                  fontWeight: FontWeight.bold,
-                ),
+              color: Colors.green[700],
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
             'All conflicts have been resolved',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
           ),
           const SizedBox(height: 32),
           OutlinedButton.icon(
@@ -184,9 +187,9 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         children: <Widget>[
           Text(
             '${_selectedConflicts.length} of $totalCount selected',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -194,17 +197,25 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   }
 
   /// Build conflict card.
-  Widget _buildConflictCard(BuildContext context, dynamic conflictEntity, int index) {
+  Widget _buildConflictCard(
+    BuildContext context,
+    dynamic conflictEntity,
+    int index,
+  ) {
     // Convert ConflictEntity to usable data
     final String conflictId = conflictEntity.id as String;
     final String entityType = conflictEntity.entityType as String;
     final String conflictType = conflictEntity.conflictType as String;
     final DateTime detectedAt = conflictEntity.detectedAt as DateTime;
-    
+
     // Parse conflicting fields to determine severity
-    final String conflictingFieldsJson = conflictEntity.conflictingFields as String;
-    final String severity = _determineSeverity(conflictingFieldsJson, entityType);
-    
+    final String conflictingFieldsJson =
+        conflictEntity.conflictingFields as String;
+    final String severity = _determineSeverity(
+      conflictingFieldsJson,
+      entityType,
+    );
+
     final bool isSelected = _selectedConflicts.contains(conflictId);
 
     return Card(
@@ -250,9 +261,8 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
                         Expanded(
                           child: Text(
                             _formatConflictTitle(conflictType, entityType),
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ),
                         _buildSeverityBadge(severity),
@@ -275,7 +285,11 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(width: 16),
-                        Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                        Icon(
+                          Icons.access_time,
+                          size: 14,
+                          color: Colors.grey[600],
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           _formatTimestamp(detectedAt),
@@ -287,7 +301,11 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
                 ),
               ),
               if (!_isSelectionMode)
-                Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Colors.grey[400],
+                ),
             ],
           ),
         ),
@@ -337,57 +355,66 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   void _showConflictDetails(BuildContext context, dynamic conflict) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Conflict Details'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              const Text(
-                'Local Version:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Conflict Details'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Text(
+                    'Local Version:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(conflict.toString()),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Remote Version:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(conflict.toString()),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Differences:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('Field changes will be highlighted here'),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(conflict.toString()),
-              const SizedBox(height: 16),
-              const Text(
-                'Remote Version:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
               ),
-              const SizedBox(height: 8),
-              Text(conflict.toString()),
-              const SizedBox(height: 16),
-              const Text(
-                'Differences:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _resolveConflict(
+                    context,
+                    conflict,
+                    ResolutionStrategy.remoteWins,
+                  );
+                },
+                child: const Text('Keep Remote'),
               ),
-              const SizedBox(height: 8),
-              const Text('Field changes will be highlighted here'),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _resolveConflict(
+                    context,
+                    conflict,
+                    ResolutionStrategy.localWins,
+                  );
+                },
+                child: const Text('Keep Local'),
+              ),
             ],
           ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _resolveConflict(context, conflict, ResolutionStrategy.remoteWins);
-            },
-            child: const Text('Keep Remote'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _resolveConflict(context, conflict, ResolutionStrategy.localWins);
-            },
-            child: const Text('Keep Local'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -395,62 +422,78 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   void _showFilterDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Filter Conflicts'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            ListTile(
-              title: const Text('Entity Type'),
-              trailing: DropdownButton<String?>(
-                value: _filterEntityType,
-                items: <DropdownMenuItem<String?>>[
-                  const DropdownMenuItem(value: null, child: Text('All')),
-                  const DropdownMenuItem(value: 'Transaction', child: Text('Transaction')),
-                  const DropdownMenuItem(value: 'Account', child: Text('Account')),
-                  const DropdownMenuItem(value: 'Category', child: Text('Category')),
-                ],
-                onChanged: (String? value) {
-                  setState(() => _filterEntityType = value);
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Filter Conflicts'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  title: const Text('Entity Type'),
+                  trailing: DropdownButton<String?>(
+                    value: _filterEntityType,
+                    items: <DropdownMenuItem<String?>>[
+                      const DropdownMenuItem(value: null, child: Text('All')),
+                      const DropdownMenuItem(
+                        value: 'Transaction',
+                        child: Text('Transaction'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'Account',
+                        child: Text('Account'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'Category',
+                        child: Text('Category'),
+                      ),
+                    ],
+                    onChanged: (String? value) {
+                      setState(() => _filterEntityType = value);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+                ListTile(
+                  title: const Text('Severity'),
+                  trailing: DropdownButton<String?>(
+                    value: _filterSeverity,
+                    items: <DropdownMenuItem<String?>>[
+                      const DropdownMenuItem(value: null, child: Text('All')),
+                      const DropdownMenuItem(value: 'Low', child: Text('Low')),
+                      const DropdownMenuItem(
+                        value: 'Medium',
+                        child: Text('Medium'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'High',
+                        child: Text('High'),
+                      ),
+                    ],
+                    onChanged: (String? value) {
+                      setState(() => _filterSeverity = value);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _filterEntityType = null;
+                    _filterSeverity = null;
+                  });
                   Navigator.pop(context);
                 },
+                child: const Text('Clear'),
               ),
-            ),
-            ListTile(
-              title: const Text('Severity'),
-              trailing: DropdownButton<String?>(
-                value: _filterSeverity,
-                items: <DropdownMenuItem<String?>>[
-                  const DropdownMenuItem(value: null, child: Text('All')),
-                  const DropdownMenuItem(value: 'Low', child: Text('Low')),
-                  const DropdownMenuItem(value: 'Medium', child: Text('Medium')),
-                  const DropdownMenuItem(value: 'High', child: Text('High')),
-                ],
-                onChanged: (String? value) {
-                  setState(() => _filterSeverity = value);
-                  Navigator.pop(context);
-                },
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
               ),
-            ),
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _filterEntityType = null;
-                _filterSeverity = null;
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Clear'),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -458,41 +501,42 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   void _showSortDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Sort By'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            RadioListTile<String>(
-              title: const Text('Date'),
-              value: 'date',
-              groupValue: _sortBy,
-              onChanged: (String? value) {
-                setState(() => _sortBy = value!);
-                Navigator.pop(context);
-              },
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Sort By'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                RadioListTile<String>(
+                  title: const Text('Date'),
+                  value: 'date',
+                  groupValue: _sortBy,
+                  onChanged: (String? value) {
+                    setState(() => _sortBy = value!);
+                    Navigator.pop(context);
+                  },
+                ),
+                RadioListTile<String>(
+                  title: const Text('Severity'),
+                  value: 'severity',
+                  groupValue: _sortBy,
+                  onChanged: (String? value) {
+                    setState(() => _sortBy = value!);
+                    Navigator.pop(context);
+                  },
+                ),
+                RadioListTile<String>(
+                  title: const Text('Entity Type'),
+                  value: 'type',
+                  groupValue: _sortBy,
+                  onChanged: (String? value) {
+                    setState(() => _sortBy = value!);
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
             ),
-            RadioListTile<String>(
-              title: const Text('Severity'),
-              value: 'severity',
-              groupValue: _sortBy,
-              onChanged: (String? value) {
-                setState(() => _sortBy = value!);
-                Navigator.pop(context);
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('Entity Type'),
-              value: 'type',
-              groupValue: _sortBy,
-              onChanged: (String? value) {
-                setState(() => _sortBy = value!);
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -500,32 +544,33 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   void _showBulkResolutionDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text('Resolve ${_selectedConflicts.length} Conflicts'),
-        content: const Text(
-          'Choose a resolution strategy to apply to all selected conflicts:',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: Text('Resolve ${_selectedConflicts.length} Conflicts'),
+            content: const Text(
+              'Choose a resolution strategy to apply to all selected conflicts:',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _resolveBulk(ResolutionStrategy.remoteWins);
+                },
+                child: const Text('Keep Remote'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _resolveBulk(ResolutionStrategy.localWins);
+                },
+                child: const Text('Keep Local'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _resolveBulk(ResolutionStrategy.remoteWins);
-            },
-            child: const Text('Keep Remote'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _resolveBulk(ResolutionStrategy.localWins);
-            },
-            child: const Text('Keep Local'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -539,17 +584,21 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
           return false;
         }
       }
-      
+
       // Filter by severity
       if (_filterSeverity != null) {
-        final String conflictingFieldsJson = conflictEntity.conflictingFields as String;
+        final String conflictingFieldsJson =
+            conflictEntity.conflictingFields as String;
         final String entityType = conflictEntity.entityType as String;
-        final String severity = _determineSeverity(conflictingFieldsJson, entityType);
+        final String severity = _determineSeverity(
+          conflictingFieldsJson,
+          entityType,
+        );
         if (severity != _filterSeverity) {
           return false;
         }
       }
-      
+
       return true;
     }).toList();
   }
@@ -557,7 +606,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   /// Sort conflicts based on current sort option.
   List<dynamic> _sortConflicts(List<dynamic> conflicts) {
     final List<dynamic> sortedList = List<dynamic>.from(conflicts);
-    
+
     switch (_sortBy) {
       case 'date':
         sortedList.sort((a, b) {
@@ -581,36 +630,51 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
           final String bType = b.entityType as String;
           final String aSeverity = _determineSeverity(aFields, aType);
           final String bSeverity = _determineSeverity(bFields, bType);
-          
+
           // High > Medium > Low
-          final Map<String, int> severityOrder = <String, int>{'High': 3, 'Medium': 2, 'Low': 1};
-          return (severityOrder[bSeverity] ?? 0).compareTo(severityOrder[aSeverity] ?? 0);
+          final Map<String, int> severityOrder = <String, int>{
+            'High': 3,
+            'Medium': 2,
+            'Low': 1,
+          };
+          return (severityOrder[bSeverity] ?? 0).compareTo(
+            severityOrder[aSeverity] ?? 0,
+          );
         });
         break;
     }
-    
+
     return sortedList;
   }
 
   /// Determine conflict severity based on conflicting fields and entity type.
   String _determineSeverity(String conflictingFieldsJson, String entityType) {
     try {
-      final List<String> fields = (jsonDecode(conflictingFieldsJson) as List).cast<String>();
-      
+      final List<String> fields =
+          (jsonDecode(conflictingFieldsJson) as List).cast<String>();
+
       // Critical fields that indicate high severity
       final Map<String, List<String>> criticalFields = <String, List<String>>{
-        'transaction': <String>['amount', 'date', 'source_id', 'destination_id'],
+        'transaction': <String>[
+          'amount',
+          'date',
+          'source_id',
+          'destination_id',
+        ],
         'account': <String>['account_number', 'iban', 'opening_balance'],
         'category': <String>['name'],
         'budget': <String>['amount', 'start', 'end'],
         'bill': <String>['amount_min', 'amount_max', 'date'],
         'piggy_bank': <String>['target_amount', 'current_amount'],
       };
-      
+
       // Check if any critical fields are in conflict
-      final List<String> entityCriticalFields = criticalFields[entityType] ?? <String>[];
-      final bool hasCriticalConflict = fields.any((String field) => entityCriticalFields.contains(field));
-      
+      final List<String> entityCriticalFields =
+          criticalFields[entityType] ?? <String>[];
+      final bool hasCriticalConflict = fields.any(
+        (String field) => entityCriticalFields.contains(field),
+      );
+
       if (hasCriticalConflict) {
         return 'High';
       } else if (fields.length > 3) {
@@ -641,7 +705,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   /// Format conflict title based on type and entity.
   String _formatConflictTitle(String conflictType, String entityType) {
     final String formattedEntity = _formatEntityType(entityType);
-    
+
     switch (conflictType) {
       case 'update_conflict':
         return '$formattedEntity Update Conflict';
@@ -657,7 +721,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   /// Format conflict description.
   String _formatConflictDescription(String conflictType, String entityType) {
     final String formattedEntity = _formatEntityType(entityType).toLowerCase();
-    
+
     switch (conflictType) {
       case 'update_conflict':
         return 'Both local and remote versions of this $formattedEntity were modified';
@@ -694,7 +758,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   String _formatTimestamp(DateTime timestamp) {
     final DateTime now = DateTime.now();
     final Duration difference = now.difference(timestamp);
-    
+
     if (difference.inMinutes < 1) {
       return 'Just now';
     } else if (difference.inMinutes < 60) {
@@ -725,17 +789,20 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   /// Select all visible conflicts.
   void _selectAll() {
     setState(() {
-      final SyncStatusProvider provider = Provider.of<SyncStatusProvider>(context, listen: false);
+      final SyncStatusProvider provider = Provider.of<SyncStatusProvider>(
+        context,
+        listen: false,
+      );
       final List<dynamic> conflicts = provider.unresolvedConflicts;
       final List<dynamic> filteredConflicts = _filterConflicts(conflicts);
-      
+
       // Add all visible conflict IDs to selection
       _selectedConflicts.clear();
       for (final conflictEntity in filteredConflicts) {
         final String conflictId = conflictEntity.id as String;
         _selectedConflicts.add(conflictId);
       }
-      
+
       _log.info('Selected ${_selectedConflicts.length} conflicts');
     });
   }
@@ -755,47 +822,63 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
     ResolutionStrategy strategy,
   ) async {
     try {
-      _log.info('Resolving conflict ${conflictEntity.id} with strategy: $strategy');
-      
+      _log.info(
+        'Resolving conflict ${conflictEntity.id} with strategy: $strategy',
+      );
+
       // Show loading indicator
       if (!mounted) return;
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder:
+            (BuildContext context) =>
+                const Center(child: CircularProgressIndicator()),
       );
-      
+
       // Convert ConflictEntity to Conflict model
       final Conflict conflict = _convertToConflictModel(conflictEntity);
-      
+
       // Get dependencies from context
-      final AppDatabase database = Provider.of<AppDatabase>(context, listen: false);
-      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
-      
+      final AppDatabase database = Provider.of<AppDatabase>(
+        context,
+        listen: false,
+      );
+      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(
+        context,
+        listen: false,
+      );
+
       // Create resolver and resolve conflict
       final ConflictResolver resolver = ConflictResolver(
         apiAdapter: apiAdapter,
         database: database,
         queueManager: SyncQueueManager(database),
       );
-      final Resolution resolution = await resolver.resolveConflict(conflict, strategy);
-      
+      final Resolution resolution = await resolver.resolveConflict(
+        conflict,
+        strategy,
+      );
+
       // Close loading indicator
       if (!mounted) return;
       Navigator.of(context).pop();
-      
+
       if (resolution.success) {
         // Refresh conflicts list
-        final SyncStatusProvider provider = Provider.of<SyncStatusProvider>(context, listen: false);
+        final SyncStatusProvider provider = Provider.of<SyncStatusProvider>(
+          context,
+          listen: false,
+        );
         await provider.refresh();
-        
+
         // Show success message
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Conflict resolved using ${_formatStrategy(strategy)}'),
+            content: Text(
+              'Conflict resolved using ${_formatStrategy(strategy)}',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -804,19 +887,21 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to resolve conflict: ${resolution.errorMessage}'),
+            content: Text(
+              'Failed to resolve conflict: ${resolution.errorMessage}',
+            ),
             backgroundColor: Colors.red,
           ),
         );
       }
     } catch (e, stackTrace) {
       _log.severe('Failed to resolve conflict', e, stackTrace);
-      
+
       // Close loading indicator if still showing
       if (mounted && Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
-      
+
       // Show error message
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -832,42 +917,55 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   /// Resolve multiple conflicts with comprehensive error handling.
   Future<void> _resolveBulk(ResolutionStrategy strategy) async {
     try {
-      _log.info('Resolving ${_selectedConflicts.length} conflicts with strategy: $strategy');
-      
+      _log.info(
+        'Resolving ${_selectedConflicts.length} conflicts with strategy: $strategy',
+      );
+
       // Show loading indicator
       if (!mounted) return;
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext context) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              const CircularProgressIndicator(),
-              const SizedBox(height: 16),
-              Text(
-                'Resolving ${_selectedConflicts.length} conflicts...',
-                style: const TextStyle(color: Colors.white),
+        builder:
+            (BuildContext context) => Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Resolving ${_selectedConflicts.length} conflicts...',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
       );
-      
+
       // Get all conflicts
-      final SyncStatusProvider provider = Provider.of<SyncStatusProvider>(context, listen: false);
+      final SyncStatusProvider provider = Provider.of<SyncStatusProvider>(
+        context,
+        listen: false,
+      );
       final List<dynamic> allConflicts = provider.unresolvedConflicts;
-      
+
       // Filter selected conflicts
-      final List<dynamic> selectedConflictEntities = allConflicts.where((conflictEntity) {
-        final String conflictId = conflictEntity.id as String;
-        return _selectedConflicts.contains(conflictId);
-      }).toList();
-      
+      final List<dynamic> selectedConflictEntities =
+          allConflicts.where((conflictEntity) {
+            final String conflictId = conflictEntity.id as String;
+            return _selectedConflicts.contains(conflictId);
+          }).toList();
+
       // Get dependencies from context
-      final AppDatabase database = Provider.of<AppDatabase>(context, listen: false);
-      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
-      
+      final AppDatabase database = Provider.of<AppDatabase>(
+        context,
+        listen: false,
+      );
+      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(
+        context,
+        listen: false,
+      );
+
       // Resolve each conflict
       final ConflictResolver resolver = ConflictResolver(
         apiAdapter: apiAdapter,
@@ -877,12 +975,15 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
       int successCount = 0;
       int failureCount = 0;
       final List<String> errors = <String>[];
-      
+
       for (final conflictEntity in selectedConflictEntities) {
         try {
           final Conflict conflict = _convertToConflictModel(conflictEntity);
-          final Resolution resolution = await resolver.resolveConflict(conflict, strategy);
-          
+          final Resolution resolution = await resolver.resolveConflict(
+            conflict,
+            strategy,
+          );
+
           if (resolution.success) {
             successCount++;
           } else {
@@ -895,17 +996,17 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
           _log.warning('Failed to resolve conflict ${conflictEntity.id}', e);
         }
       }
-      
+
       // Close loading indicator
       if (!mounted) return;
       Navigator.of(context).pop();
-      
+
       // Refresh conflicts list
       await provider.refresh();
-      
+
       // Exit selection mode
       _exitSelectionMode();
-      
+
       // Show results
       if (!mounted) return;
       if (failureCount == 0) {
@@ -919,46 +1020,57 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         // Show detailed error dialog
         showDialog(
           context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: const Text('Bulk Resolution Results'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text('✓ Resolved: $successCount'),
-                  Text('✗ Failed: $failureCount'),
-                  if (errors.isNotEmpty) ...<Widget>[
-                    const SizedBox(height: 16),
-                    const Text('Errors:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    ...errors.take(5).map((String error) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text('• $error', style: const TextStyle(fontSize: 12)),
-                    )),
-                    if (errors.length > 5)
-                      Text('... and ${errors.length - 5} more errors'),
-                  ],
+          builder:
+              (BuildContext context) => AlertDialog(
+                title: const Text('Bulk Resolution Results'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text('✓ Resolved: $successCount'),
+                      Text('✗ Failed: $failureCount'),
+                      if (errors.isNotEmpty) ...<Widget>[
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Errors:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        ...errors
+                            .take(5)
+                            .map(
+                              (String error) => Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Text(
+                                  '• $error',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ),
+                        if (errors.length > 5)
+                          Text('... and ${errors.length - 5} more errors'),
+                      ],
+                    ],
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('OK'),
+                  ),
                 ],
               ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
         );
       }
     } catch (e, stackTrace) {
       _log.severe('Failed to resolve conflicts in bulk', e, stackTrace);
-      
+
       // Close loading indicator if still showing
       if (mounted && Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
-      
+
       // Show error message
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -974,30 +1086,38 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
   /// Convert ConflictEntity from database to Conflict model.
   Conflict _convertToConflictModel(dynamic conflictEntity) {
     try {
-      final Map<String, dynamic> localData = jsonDecode(conflictEntity.localData as String) as Map<String, dynamic>;
-      final Map<String, dynamic> remoteData = jsonDecode(conflictEntity.serverData as String) as Map<String, dynamic>;
-      final List<String> conflictingFields = (jsonDecode(conflictEntity.conflictingFields as String) as List).cast<String>();
-      
+      final Map<String, dynamic> localData =
+          jsonDecode(conflictEntity.localData as String)
+              as Map<String, dynamic>;
+      final Map<String, dynamic> remoteData =
+          jsonDecode(conflictEntity.serverData as String)
+              as Map<String, dynamic>;
+      final List<String> conflictingFields =
+          (jsonDecode(conflictEntity.conflictingFields as String) as List)
+              .cast<String>();
+
       // Determine conflict type
       final String conflictTypeStr = conflictEntity.conflictType as String;
       final ConflictType conflictType = ConflictType.values.firstWhere(
         (ConflictType e) => e.name == conflictTypeStr.replaceAll('_', ''),
         orElse: () => ConflictType.updateUpdate,
       );
-      
+
       // Determine severity
       final String severityStr = _determineSeverity(
         conflictEntity.conflictingFields as String,
         conflictEntity.entityType as String,
       );
       final ConflictSeverity severity = ConflictSeverity.values.firstWhere(
-        (ConflictSeverity e) => e.name.toLowerCase() == severityStr.toLowerCase(),
+        (ConflictSeverity e) =>
+            e.name.toLowerCase() == severityStr.toLowerCase(),
         orElse: () => ConflictSeverity.medium,
       );
-      
+
       return Conflict(
         id: conflictEntity.id as String,
-        operationId: conflictEntity.entityId as String, // Using entityId as operationId
+        operationId:
+            conflictEntity.entityId as String, // Using entityId as operationId
         entityType: conflictEntity.entityType as String,
         entityId: conflictEntity.entityId as String,
         conflictType: conflictType,
@@ -1007,16 +1127,22 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
         severity: severity,
         detectedAt: conflictEntity.detectedAt as DateTime,
         resolvedAt: conflictEntity.resolvedAt as DateTime?,
-        resolutionStrategy: conflictEntity.resolutionStrategy != null
-            ? ResolutionStrategy.values.firstWhere(
-                (ResolutionStrategy e) => e.name == conflictEntity.resolutionStrategy,
-                orElse: () => ResolutionStrategy.manual,
-              )
-            : null,
+        resolutionStrategy:
+            conflictEntity.resolutionStrategy != null
+                ? ResolutionStrategy.values.firstWhere(
+                  (ResolutionStrategy e) =>
+                      e.name == conflictEntity.resolutionStrategy,
+                  orElse: () => ResolutionStrategy.manual,
+                )
+                : null,
         resolvedBy: conflictEntity.resolvedBy as String?,
       );
     } catch (e, stackTrace) {
-      _log.severe('Failed to convert ConflictEntity to Conflict model', e, stackTrace);
+      _log.severe(
+        'Failed to convert ConflictEntity to Conflict model',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }

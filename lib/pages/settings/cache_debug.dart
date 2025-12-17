@@ -115,10 +115,14 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
       final CacheStats stats = await cacheService.getStats();
 
       // Fetch all cache entries from database
-      final List<CacheMetadataEntity> entries = await database.select(database.cacheMetadataTable).get();
+      final List<CacheMetadataEntity> entries =
+          await database.select(database.cacheMetadataTable).get();
 
       // Sort by last accessed (most recent first)
-      entries.sort((CacheMetadataEntity a, CacheMetadataEntity b) => b.lastAccessedAt.compareTo(a.lastAccessedAt));
+      entries.sort(
+        (CacheMetadataEntity a, CacheMetadataEntity b) =>
+            b.lastAccessedAt.compareTo(a.lastAccessedAt),
+      );
 
       _log.info('Loaded cache data: ${entries.length} entries');
 
@@ -157,19 +161,26 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
 
     // Apply type filter
     if (_selectedTypeFilter != null) {
-      filtered = filtered
-          .where((CacheMetadataEntity entry) => entry.entityType == _selectedTypeFilter)
-          .toList();
+      filtered =
+          filtered
+              .where(
+                (CacheMetadataEntity entry) =>
+                    entry.entityType == _selectedTypeFilter,
+              )
+              .toList();
     }
 
     // Apply search query
     if (_searchQuery.isNotEmpty) {
       final String query = _searchQuery.toLowerCase();
-      filtered = filtered
-          .where((CacheMetadataEntity entry) =>
-              entry.entityType.toLowerCase().contains(query) ||
-              entry.entityId.toLowerCase().contains(query))
-          .toList();
+      filtered =
+          filtered
+              .where(
+                (CacheMetadataEntity entry) =>
+                    entry.entityType.toLowerCase().contains(query) ||
+                    entry.entityId.toLowerCase().contains(query),
+              )
+              .toList();
     }
 
     setState(() {
@@ -188,25 +199,26 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   Future<void> _clearAllCache() async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Clear All Cache?'),
-        content: const Text(
-          'This will clear all cache metadata. '
-          'Entity data will remain but be treated as uncached.\n\n'
-          'This action cannot be undone.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Clear All Cache?'),
+            content: const Text(
+              'This will clear all cache metadata. '
+              'Entity data will remain but be treated as uncached.\n\n'
+              'This action cannot be undone.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Clear All'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Clear All'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed != true || !mounted) return;
@@ -230,9 +242,9 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to clear cache: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to clear cache: $e')));
     }
   }
 
@@ -244,7 +256,9 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   /// Invalidates the entry and reloads UI.
   Future<void> _invalidateEntry(CacheMetadataEntity entry) async {
     try {
-      _log.info('Invalidating cache entry: ${entry.entityType}:${entry.entityId}');
+      _log.info(
+        'Invalidating cache entry: ${entry.entityType}:${entry.entityId}',
+      );
 
       final CacheService cacheService = context.read<CacheService>();
       await cacheService.invalidate(entry.entityType, entry.entityId);
@@ -264,9 +278,9 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to invalidate: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to invalidate: $e')));
     }
   }
 
@@ -278,27 +292,30 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   /// Shows confirmation dialog and invalidates all entries of type.
   Future<void> _invalidateType(String entityType) async {
     final int count =
-        _entries.where((CacheMetadataEntity e) => e.entityType == entityType).length;
+        _entries
+            .where((CacheMetadataEntity e) => e.entityType == entityType)
+            .length;
 
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text('Invalidate All $entityType?'),
-        content: Text(
-          'This will invalidate $count cache entries of type "$entityType".\n\n'
-          'Data will be refetched from API on next access.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: Text('Invalidate All $entityType?'),
+            content: Text(
+              'This will invalidate $count cache entries of type "$entityType".\n\n'
+              'Data will be refetched from API on next access.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Invalidate'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Invalidate'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed != true || !mounted) return;
@@ -312,7 +329,9 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalidated $count entries of type $entityType')),
+        SnackBar(
+          content: Text('Invalidated $count entries of type $entityType'),
+        ),
       );
 
       // Reload data
@@ -322,9 +341,9 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to invalidate type: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to invalidate type: $e')));
     }
   }
 
@@ -343,29 +362,30 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
         return AlertDialog(
           title: const Text('Manual LRU Eviction'),
           content: StatefulBuilder(
-            builder: (BuildContext context, setState) => Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text('Current limit: ${currentLimit}MB'),
-                Text('Current size: ${_stats?.totalCacheSizeMB ?? 0}MB'),
-                const SizedBox(height: 16),
-                const Text('Target size (MB):'),
-                Slider(
-                  value: targetSize.toDouble(),
-                  min: 1,
-                  max: currentLimit.toDouble(),
-                  divisions: currentLimit,
-                  label: '${targetSize}MB',
-                  onChanged: (double value) {
-                    setState(() {
-                      targetSize = value.round();
-                    });
-                  },
+            builder:
+                (BuildContext context, setState) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Current limit: ${currentLimit}MB'),
+                    Text('Current size: ${_stats?.totalCacheSizeMB ?? 0}MB'),
+                    const SizedBox(height: 16),
+                    const Text('Target size (MB):'),
+                    Slider(
+                      value: targetSize.toDouble(),
+                      min: 1,
+                      max: currentLimit.toDouble(),
+                      divisions: currentLimit,
+                      label: '${targetSize}MB',
+                      onChanged: (double value) {
+                        setState(() {
+                          targetSize = value.round();
+                        });
+                      },
+                    ),
+                    Text('Will evict down to ${targetSize}MB'),
+                  ],
                 ),
-                Text('Will evict down to ${targetSize}MB'),
-              ],
-            ),
           ),
           actions: <Widget>[
             TextButton(
@@ -391,7 +411,9 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('LRU eviction complete (target: ${targetSizeMB}MB)')),
+        SnackBar(
+          content: Text('LRU eviction complete (target: ${targetSizeMB}MB)'),
+        ),
       );
 
       // Reload data
@@ -401,9 +423,9 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to evict: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to evict: $e')));
     }
   }
 
@@ -422,29 +444,30 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
         return AlertDialog(
           title: const Text('Configure Cache Size Limit'),
           content: StatefulBuilder(
-            builder: (BuildContext context, setState) => Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text('Current limit: ${currentLimit}MB'),
-                Text('Current size: ${_stats?.totalCacheSizeMB ?? 0}MB'),
-                const SizedBox(height: 16),
-                const Text('New limit (MB):'),
-                Slider(
-                  value: limit.toDouble(),
-                  min: 10,
-                  max: 500,
-                  divisions: 49,
-                  label: '${limit}MB',
-                  onChanged: (double value) {
-                    setState(() {
-                      limit = value.round();
-                    });
-                  },
+            builder:
+                (BuildContext context, setState) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Current limit: ${currentLimit}MB'),
+                    Text('Current size: ${_stats?.totalCacheSizeMB ?? 0}MB'),
+                    const SizedBox(height: 16),
+                    const Text('New limit (MB):'),
+                    Slider(
+                      value: limit.toDouble(),
+                      min: 10,
+                      max: 500,
+                      divisions: 49,
+                      label: '${limit}MB',
+                      onChanged: (double value) {
+                        setState(() {
+                          limit = value.round();
+                        });
+                      },
+                    ),
+                    Text('New limit: ${limit}MB'),
+                  ],
                 ),
-                Text('New limit: ${limit}MB'),
-              ],
-            ),
           ),
           actions: <Widget>[
             TextButton(
@@ -480,9 +503,9 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to set limit: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to set limit: $e')));
     }
   }
 
@@ -504,43 +527,45 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMessage != null
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        const Icon(Icons.error, size: 64, color: Colors.red),
-                        const SizedBox(height: 16),
-                        Text(
-                          _errorMessage!,
-                          style: const TextStyle(color: Colors.red),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _loadCacheData,
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      const Icon(Icons.error, size: 64, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadCacheData,
+                        child: const Text('Retry'),
+                      ),
+                    ],
                   ),
-                )
+                ),
+              )
               : Column(
-                  children: <Widget>[
-                    // Statistics Card
-                    _buildStatisticsCard(),
+                children: <Widget>[
+                  // Statistics Card
+                  _buildStatisticsCard(),
 
-                    // Search and Filter Bar
-                    _buildSearchBar(),
+                  // Search and Filter Bar
+                  _buildSearchBar(),
 
-                    // Entry List
-                    Expanded(
-                      child: _filteredEntries.isEmpty
-                          ? Center(
+                  // Entry List
+                  Expanded(
+                    child:
+                        _filteredEntries.isEmpty
+                            ? Center(
                               child: Text(
                                 _searchQuery.isNotEmpty ||
                                         _selectedTypeFilter != null
@@ -549,18 +574,18 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
                                 style: const TextStyle(fontSize: 16),
                               ),
                             )
-                          : ListView.builder(
+                            : ListView.builder(
                               itemCount: _filteredEntries.length,
                               itemBuilder: (BuildContext context, int index) {
                                 return _buildEntryCard(_filteredEntries[index]);
                               },
                             ),
-                    ),
+                  ),
 
-                    // Bottom Action Bar
-                    _buildBottomActionBar(),
-                  ],
-                ),
+                  // Bottom Action Bar
+                  _buildBottomActionBar(),
+                ],
+              ),
     );
   }
 
@@ -589,7 +614,10 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            _buildStatRow('Hit Rate', '${_stats!.hitRatePercent.toStringAsFixed(1)}%'),
+            _buildStatRow(
+              'Hit Rate',
+              '${_stats!.hitRatePercent.toStringAsFixed(1)}%',
+            ),
             _buildStatRow('Total Entries', '${_stats!.totalEntries}'),
             _buildStatRow('Invalidated', '${_stats!.invalidatedEntries}'),
             _buildStatRow(
@@ -600,7 +628,10 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
             _buildStatRow('Cache Hits', '${_stats!.cacheHits}'),
             _buildStatRow('Cache Misses', '${_stats!.cacheMisses}'),
             _buildStatRow('Stale Served', '${_stats!.staleServed}'),
-            _buildStatRow('Background Refreshes', '${_stats!.backgroundRefreshes}'),
+            _buildStatRow(
+              'Background Refreshes',
+              '${_stats!.backgroundRefreshes}',
+            ),
             _buildStatRow('Evictions', '${_stats!.evictions}'),
             if (_stats!.etagRequests > 0) ...<Widget>[
               const Divider(),
@@ -645,8 +676,9 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   /// Build search and filter bar
   Widget _buildSearchBar() {
     // Get unique entity types for filter
-    final List<String> entityTypes = _entries.map((CacheMetadataEntity e) => e.entityType).toSet().toList()
-      ..sort();
+    final List<String> entityTypes =
+        _entries.map((CacheMetadataEntity e) => e.entityType).toSet().toList()
+          ..sort();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -679,10 +711,10 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
                 value: null,
                 child: Text('All Types'),
               ),
-              ...entityTypes.map((String type) => DropdownMenuItem(
-                    value: type,
-                    child: Text(type),
-                  )),
+              ...entityTypes.map(
+                (String type) =>
+                    DropdownMenuItem(value: type, child: Text(type)),
+              ),
             ],
             onChanged: (String? value) {
               setState(() {
@@ -708,7 +740,9 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
   Widget _buildEntryCard(CacheMetadataEntity entry) {
     final DateTime now = DateTime.now();
     final Duration age = now.difference(entry.cachedAt);
-    final DateTime expiresAt = entry.cachedAt.add(Duration(seconds: entry.ttlSeconds));
+    final DateTime expiresAt = entry.cachedAt.add(
+      Duration(seconds: entry.ttlSeconds),
+    );
     final bool isFresh = now.isBefore(expiresAt) && !entry.isInvalidated;
 
     Color freshnessColor;
@@ -751,7 +785,10 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
                 _buildInfoRow('Age', _formatDuration(age)),
                 _buildInfoRow('TTL', '${entry.ttlSeconds}s'),
                 _buildInfoRow('Expires At', _formatDateTime(expiresAt)),
-                _buildInfoRow('Last Accessed', _formatDateTime(entry.lastAccessedAt)),
+                _buildInfoRow(
+                  'Last Accessed',
+                  _formatDateTime(entry.lastAccessedAt),
+                ),
                 if (entry.etag != null) _buildInfoRow('ETag', entry.etag!),
                 if (entry.queryHash != null)
                   _buildInfoRow('Query Hash', entry.queryHash!),
@@ -789,10 +826,7 @@ class _CacheDebugPageState extends State<CacheDebugPage> {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontFamily: 'monospace'),
-            ),
+            child: Text(value, style: const TextStyle(fontFamily: 'monospace')),
           ),
         ],
       ),

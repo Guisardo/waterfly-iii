@@ -45,10 +45,7 @@ import 'package:waterflyiii/models/cache/cache_result.dart';
 /// - Currencies change extremely rarely, expect >95% cache hit rate
 class CurrencyRepository extends BaseRepository<CurrencyEntity, String> {
   /// Creates a currency repository with cache integration.
-  CurrencyRepository({
-    required super.database,
-    super.cacheService,
-  });
+  CurrencyRepository({required super.database, super.cacheService});
 
   @override
   final Logger logger = Logger('CurrencyRepository');
@@ -74,12 +71,11 @@ class CurrencyRepository extends BaseRepository<CurrencyEntity, String> {
   Future<List<CurrencyEntity>> getAll() async {
     try {
       logger.fine('Fetching all currencies');
-      final List<CurrencyEntity> currencies = await (database
-              .select(database.currencies)
+      final List<CurrencyEntity> currencies =
+          await (database.select(database.currencies)
             ..orderBy(<OrderClauseGenerator<$CurrenciesTable>>[
-              ($CurrenciesTable c) => OrderingTerm.asc(c.code)
-            ]))
-          .get();
+              ($CurrenciesTable c) => OrderingTerm.asc(c.code),
+            ])).get();
       logger.info('Retrieved ${currencies.length} currencies');
       return currencies;
     } catch (error, stackTrace) {
@@ -99,13 +95,13 @@ class CurrencyRepository extends BaseRepository<CurrencyEntity, String> {
   Future<List<CurrencyEntity>> getAllEnabled() async {
     try {
       logger.fine('Fetching enabled currencies');
-      final List<CurrencyEntity> currencies = await (database
-              .select(database.currencies)
-            ..where(($CurrenciesTable c) => c.enabled.equals(true))
-            ..orderBy(<OrderClauseGenerator<$CurrenciesTable>>[
-              ($CurrenciesTable c) => OrderingTerm.asc(c.code)
-            ]))
-          .get();
+      final List<CurrencyEntity> currencies =
+          await (database.select(database.currencies)
+                ..where(($CurrenciesTable c) => c.enabled.equals(true))
+                ..orderBy(<OrderClauseGenerator<$CurrenciesTable>>[
+                  ($CurrenciesTable c) => OrderingTerm.asc(c.code),
+                ]))
+              .get();
       logger.info('Retrieved ${currencies.length} enabled currencies');
       return currencies;
     } catch (error, stackTrace) {
@@ -122,10 +118,9 @@ class CurrencyRepository extends BaseRepository<CurrencyEntity, String> {
   Stream<List<CurrencyEntity>> watchAll() {
     logger.fine('Watching all currencies');
     return (database.select(database.currencies)
-          ..orderBy(<OrderClauseGenerator<$CurrenciesTable>>[
-            ($CurrenciesTable c) => OrderingTerm.asc(c.code)
-          ]))
-        .watch();
+      ..orderBy(<OrderClauseGenerator<$CurrenciesTable>>[
+        ($CurrenciesTable c) => OrderingTerm.asc(c.code),
+      ])).watch();
   }
 
   /// Retrieves a currency by ID with cache-first strategy.
@@ -141,15 +136,15 @@ class CurrencyRepository extends BaseRepository<CurrencyEntity, String> {
       if (cacheService != null) {
         logger.finest('Using cache-first strategy for currency $id');
 
-        final CacheResult<CurrencyEntity?> cacheResult =
-            await cacheService!.get<CurrencyEntity?>(
-          entityType: entityType,
-          entityId: id,
-          fetcher: () => _fetchCurrencyFromDb(id),
-          ttl: cacheTtl,
-          forceRefresh: forceRefresh,
-          backgroundRefresh: backgroundRefresh,
-        );
+        final CacheResult<CurrencyEntity?> cacheResult = await cacheService!
+            .get<CurrencyEntity?>(
+              entityType: entityType,
+              entityId: id,
+              fetcher: () => _fetchCurrencyFromDb(id),
+              ttl: cacheTtl,
+              forceRefresh: forceRefresh,
+              backgroundRefresh: backgroundRefresh,
+            );
 
         logger.info(
           'Currency fetched: $id from ${cacheResult.source} '
@@ -178,10 +173,10 @@ class CurrencyRepository extends BaseRepository<CurrencyEntity, String> {
   Future<CurrencyEntity?> getByCode(String code) async {
     try {
       logger.fine('Fetching currency by code: $code');
-      final CurrencyEntity? currency = await (database
-              .select(database.currencies)
-            ..where(($CurrenciesTable c) => c.code.equals(code.toUpperCase())))
-          .getSingleOrNull();
+      final CurrencyEntity? currency =
+          await (database.select(database.currencies)..where(
+            ($CurrenciesTable c) => c.code.equals(code.toUpperCase()),
+          )).getSingleOrNull();
 
       if (currency != null) {
         logger.fine('Found currency: $code');
@@ -191,7 +186,11 @@ class CurrencyRepository extends BaseRepository<CurrencyEntity, String> {
 
       return currency;
     } catch (error, stackTrace) {
-      logger.severe('Failed to fetch currency by code: $code', error, stackTrace);
+      logger.severe(
+        'Failed to fetch currency by code: $code',
+        error,
+        stackTrace,
+      );
       throw DatabaseException.queryFailed(
         'SELECT * FROM currencies WHERE code = $code',
         error,
@@ -206,10 +205,10 @@ class CurrencyRepository extends BaseRepository<CurrencyEntity, String> {
   Future<CurrencyEntity?> getDefault() async {
     try {
       logger.fine('Fetching default currency');
-      final CurrencyEntity? currency = await (database
-              .select(database.currencies)
-            ..where(($CurrenciesTable c) => c.isDefault.equals(true)))
-          .getSingleOrNull();
+      final CurrencyEntity? currency =
+          await (database.select(database.currencies)..where(
+            ($CurrenciesTable c) => c.isDefault.equals(true),
+          )).getSingleOrNull();
 
       if (currency != null) {
         logger.fine('Found default currency: ${currency.code}');
@@ -237,17 +236,19 @@ class CurrencyRepository extends BaseRepository<CurrencyEntity, String> {
       logger.fine('Searching currencies: $query');
       final String searchPattern = '%${query.toUpperCase()}%';
 
-      final List<CurrencyEntity> currencies = await (database
-              .select(database.currencies)
-            ..where(($CurrenciesTable c) =>
-                c.code.like(searchPattern) |
-                c.name.upper().like(searchPattern))
-            ..where(($CurrenciesTable c) => c.enabled.equals(true))
-            ..orderBy(<OrderClauseGenerator<$CurrenciesTable>>[
-              ($CurrenciesTable c) => OrderingTerm.asc(c.code)
-            ])
-            ..limit(10))
-          .get();
+      final List<CurrencyEntity> currencies =
+          await (database.select(database.currencies)
+                ..where(
+                  ($CurrenciesTable c) =>
+                      c.code.like(searchPattern) |
+                      c.name.upper().like(searchPattern),
+                )
+                ..where(($CurrenciesTable c) => c.enabled.equals(true))
+                ..orderBy(<OrderClauseGenerator<$CurrenciesTable>>[
+                  ($CurrenciesTable c) => OrderingTerm.asc(c.code),
+                ])
+                ..limit(10))
+              .get();
 
       logger.info('Found ${currencies.length} currencies matching: $query');
       return currencies;
@@ -391,8 +392,7 @@ class CurrencyRepository extends BaseRepository<CurrencyEntity, String> {
       logger.info('Deleting currency: $id');
 
       await (database.delete(database.currencies)
-            ..where(($CurrenciesTable c) => c.id.equals(id)))
-          .go();
+        ..where(($CurrenciesTable c) => c.id.equals(id))).go();
 
       if (cacheService != null) {
         await cacheService!.invalidate(entityType, id);
@@ -459,4 +459,3 @@ class CurrencyRepository extends BaseRepository<CurrencyEntity, String> {
     }
   }
 }
-

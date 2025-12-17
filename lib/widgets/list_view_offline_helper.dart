@@ -101,10 +101,7 @@ class ListViewOfflineHelper {
     required Widget child,
     required Future<void> Function() onRefresh,
   }) {
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: child,
-    );
+    return RefreshIndicator(onRefresh: onRefresh, child: child);
   }
 
   /// Build syncing overlay
@@ -142,8 +139,8 @@ class ListViewOfflineHelper {
                 child: Text(
                   'Syncing... $syncedCount of $totalCount',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ),
             ],
@@ -178,8 +175,8 @@ class ListViewOfflineHelper {
             Text(
               'You are offline. $entityType will appear here when you connect to the internet.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -200,11 +197,17 @@ class ListViewOfflineHelper {
 
     if (!isSynced) {
       if (hasSyncError) {
-        backgroundColor = Theme.of(context).colorScheme.errorContainer.withOpacity(0.05);
+        backgroundColor = Theme.of(
+          context,
+        ).colorScheme.errorContainer.withOpacity(0.05);
       } else if (isSyncing) {
-        backgroundColor = Theme.of(context).colorScheme.primaryContainer.withOpacity(0.05);
+        backgroundColor = Theme.of(
+          context,
+        ).colorScheme.primaryContainer.withOpacity(0.05);
       } else {
-        backgroundColor = Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.1);
+        backgroundColor = Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.1);
       }
     }
 
@@ -212,10 +215,7 @@ class ListViewOfflineHelper {
       return child;
     }
 
-    return Container(
-      color: backgroundColor,
-      child: child,
-    );
+    return Container(color: backgroundColor, child: child);
   }
 
   /// Build last updated indicator
@@ -240,8 +240,8 @@ class ListViewOfflineHelper {
           Text(
             'Last updated $ageText',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -253,13 +253,11 @@ class ListViewOfflineHelper {
     _logger.info('Pull-to-refresh triggered');
 
     try {
-      final SyncStatusProvider syncStatusProvider = Provider.of<SyncStatusProvider>(
-        context,
-        listen: false,
-      );
-      
+      final SyncStatusProvider syncStatusProvider =
+          Provider.of<SyncStatusProvider>(context, listen: false);
+
       await syncStatusProvider.syncManager.synchronize(fullSync: false);
-      
+
       _logger.info('Pull-to-refresh sync completed');
     } catch (e, stackTrace) {
       _logger.severe('Pull-to-refresh sync failed', e, stackTrace);

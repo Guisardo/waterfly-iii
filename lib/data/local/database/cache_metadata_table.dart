@@ -147,13 +147,14 @@ class CacheMetadataTable extends Table {
   /// This flag allows immediate cache invalidation without deleting the entry,
   /// preserving the cached data for potential stale-while-revalidate serving
   /// if API fetch fails.
-  BoolColumn get isInvalidated => boolean().withDefault(const Constant(false))();
+  BoolColumn get isInvalidated =>
+      boolean().withDefault(const Constant(false))();
 
   /// Optional ETag from HTTP response headers for cache validation.
   ///
   /// ETags enable efficient HTTP conditional requests:
   /// 1. Cache stores ETag from initial response
-  /// 2. Subsequent request includes If-None-Match: <etag>
+  /// 2. Subsequent request includes If-None-Match: `etag`
   /// 3. Server returns 304 Not Modified if unchanged (no body transfer)
   /// 4. Client reuses cached data, updates lastAccessedAt
   ///

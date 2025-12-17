@@ -76,11 +76,7 @@ class QueryCache {
   ///
   /// If cache is full, evicts least recently used entries.
   /// Optionally specify TTL (time to live) for the entry.
-  void put<T>(
-    String key,
-    T value, {
-    Duration? ttl,
-  }) {
+  void put<T>(String key, T value, {Duration? ttl}) {
     _logger.fine('Caching: $key');
 
     // Estimate size (simplified - actual size calculation would be more complex)
@@ -92,7 +88,8 @@ class QueryCache {
     }
 
     // Evict entries if necessary
-    while (_currentSizeBytes + estimatedSize > maxSizeBytes && _cache.isNotEmpty) {
+    while (_currentSizeBytes + estimatedSize > maxSizeBytes &&
+        _cache.isNotEmpty) {
       _evictLRU();
     }
 
@@ -108,8 +105,10 @@ class QueryCache {
     _cache[key] = entry;
     _currentSizeBytes += estimatedSize;
 
-    _logger.fine('Cached: $key (size: $estimatedSize bytes, '
-        'total: $_currentSizeBytes/$maxSizeBytes bytes)');
+    _logger.fine(
+      'Cached: $key (size: $estimatedSize bytes, '
+      'total: $_currentSizeBytes/$maxSizeBytes bytes)',
+    );
   }
 
   /// Removes an entry from the cache
@@ -140,9 +139,8 @@ class QueryCache {
   void invalidatePattern(String pattern) {
     _logger.fine('Invalidating cache pattern: $pattern');
 
-    final List<String> keysToRemove = _cache.keys
-        .where((String key) => key.contains(pattern))
-        .toList();
+    final List<String> keysToRemove =
+        _cache.keys.where((String key) => key.contains(pattern)).toList();
 
     for (final String key in keysToRemove) {
       remove(key);
@@ -154,7 +152,8 @@ class QueryCache {
   /// Gets cache statistics
   CacheStatistics getStatistics() {
     final int totalRequests = _hitCount + _missCount;
-    final double hitRate = totalRequests > 0 ? (_hitCount / totalRequests * 100) : 0.0;
+    final double hitRate =
+        totalRequests > 0 ? (_hitCount / totalRequests * 100) : 0.0;
 
     return CacheStatistics(
       entryCount: _cache.length,

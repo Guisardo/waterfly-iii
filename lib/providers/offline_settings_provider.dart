@@ -72,8 +72,8 @@ class OfflineSettingsProvider extends ChangeNotifier {
   OfflineSettingsProvider({
     required SharedPreferences prefs,
     BackgroundSyncScheduler? syncScheduler,
-  })  : _prefs = prefs,
-        _syncScheduler = syncScheduler {
+  }) : _prefs = prefs,
+       _syncScheduler = syncScheduler {
     _loadSettings();
   }
 
@@ -109,8 +109,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
   SyncInterval _syncInterval = SyncInterval.oneHour;
   bool _autoSyncEnabled = true;
   bool _wifiOnlyEnabled = false;
-  ResolutionStrategy _conflictStrategy =
-      ResolutionStrategy.lastWriteWins;
+  ResolutionStrategy _conflictStrategy = ResolutionStrategy.lastWriteWins;
   DateTime? _lastSyncTime;
   DateTime? _nextSyncTime;
   int _totalSyncs = 0;
@@ -148,7 +147,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   // Incremental sync getters
-  
+
   /// Whether incremental sync is enabled.
   ///
   /// When enabled, syncs fetch only changed data since last sync.
@@ -213,7 +212,8 @@ class OfflineSettingsProvider extends ChangeNotifier {
   /// Check if full sync is needed (>7 days since last full sync).
   bool get needsFullSync {
     if (_lastFullSyncTime == null) return true;
-    final int daysSinceFullSync = DateTime.now().difference(_lastFullSyncTime!).inDays;
+    final int daysSinceFullSync =
+        DateTime.now().difference(_lastFullSyncTime!).inDays;
     return daysSinceFullSync > 7;
   }
 
@@ -257,14 +257,18 @@ class OfflineSettingsProvider extends ChangeNotifier {
       // Load statistics
       final int? lastSyncMillis = _prefs.getInt(_keyLastSyncTime);
       if (lastSyncMillis != null) {
-        _lastSyncTime =
-            DateTime.fromMillisecondsSinceEpoch(lastSyncMillis, isUtc: true);
+        _lastSyncTime = DateTime.fromMillisecondsSinceEpoch(
+          lastSyncMillis,
+          isUtc: true,
+        );
       }
 
       final int? nextSyncMillis = _prefs.getInt(_keyNextSyncTime);
       if (nextSyncMillis != null) {
-        _nextSyncTime =
-            DateTime.fromMillisecondsSinceEpoch(nextSyncMillis, isUtc: true);
+        _nextSyncTime = DateTime.fromMillisecondsSinceEpoch(
+          nextSyncMillis,
+          isUtc: true,
+        );
       }
 
       _totalSyncs = _prefs.getInt(_keyTotalSyncs) ?? 0;
@@ -273,7 +277,8 @@ class OfflineSettingsProvider extends ChangeNotifier {
       _databaseSize = _prefs.getInt(_keyDatabaseSize) ?? 0;
 
       // Load incremental sync settings
-      _incrementalSyncEnabled = _prefs.getBool(_keyIncrementalSyncEnabled) ?? true;
+      _incrementalSyncEnabled =
+          _prefs.getBool(_keyIncrementalSyncEnabled) ?? true;
 
       final int? syncWindowIndex = _prefs.getInt(_keySyncWindow);
       if (syncWindowIndex != null &&
@@ -314,11 +319,13 @@ class OfflineSettingsProvider extends ChangeNotifier {
       _totalApiCallsSaved = _prefs.getInt(_keyTotalApiCallsSaved) ?? 0;
       _incrementalSyncCount = _prefs.getInt(_keyIncrementalSyncCount) ?? 0;
 
-      _log.info('Loaded settings: interval=$_syncInterval, '
-          'autoSync=$_autoSyncEnabled, wifiOnly=$_wifiOnlyEnabled, '
-          'strategy=$_conflictStrategy, '
-          'incrementalSync=$_incrementalSyncEnabled, '
-          'syncWindow=${_syncWindow.label}, cacheTtl=${_cacheTtl.label}');
+      _log.info(
+        'Loaded settings: interval=$_syncInterval, '
+        'autoSync=$_autoSyncEnabled, wifiOnly=$_wifiOnlyEnabled, '
+        'strategy=$_conflictStrategy, '
+        'incrementalSync=$_incrementalSyncEnabled, '
+        'syncWindow=${_syncWindow.label}, cacheTtl=${_cacheTtl.label}',
+      );
     } catch (e, stackTrace) {
       _log.severe('Failed to load offline settings', e, stackTrace);
     }
@@ -338,7 +345,9 @@ class OfflineSettingsProvider extends ChangeNotifier {
           await _syncScheduler.cancelAll();
           _log.info('Cancelled scheduled sync (manual mode)');
         } else if (interval.duration != null) {
-          await _syncScheduler.schedulePeriodicSync(interval: interval.duration!);
+          await _syncScheduler.schedulePeriodicSync(
+            interval: interval.duration!,
+          );
           _log.info('Scheduled periodic sync: ${interval.duration}');
         }
       }
@@ -361,7 +370,9 @@ class OfflineSettingsProvider extends ChangeNotifier {
       // Update background scheduler
       if (_syncScheduler != null) {
         if (enabled && _syncInterval.duration != null) {
-          await _syncScheduler.schedulePeriodicSync(interval: _syncInterval.duration!);
+          await _syncScheduler.schedulePeriodicSync(
+            interval: _syncInterval.duration!,
+          );
           _log.info('Enabled periodic sync: ${_syncInterval.duration}');
         } else {
           await _syncScheduler.cancelAll();
@@ -417,14 +428,12 @@ class OfflineSettingsProvider extends ChangeNotifier {
     try {
       if (lastSync != null) {
         _lastSyncTime = lastSync;
-        await _prefs.setInt(
-            _keyLastSyncTime, lastSync.millisecondsSinceEpoch);
+        await _prefs.setInt(_keyLastSyncTime, lastSync.millisecondsSinceEpoch);
       }
 
       if (nextSync != null) {
         _nextSyncTime = nextSync;
-        await _prefs.setInt(
-            _keyNextSyncTime, nextSync.millisecondsSinceEpoch);
+        await _prefs.setInt(_keyNextSyncTime, nextSync.millisecondsSinceEpoch);
       }
 
       if (totalSyncs != null) {
@@ -554,8 +563,10 @@ class OfflineSettingsProvider extends ChangeNotifier {
     int bandwidthSaved = 0,
     int apiCallsSaved = 0,
   }) async {
-    _log.fine('Updating incremental sync statistics: '
-        'fetched=$itemsFetched, updated=$itemsUpdated, skipped=$itemsSkipped');
+    _log.fine(
+      'Updating incremental sync statistics: '
+      'fetched=$itemsFetched, updated=$itemsUpdated, skipped=$itemsSkipped',
+    );
 
     try {
       // Update timestamps
@@ -589,7 +600,11 @@ class OfflineSettingsProvider extends ChangeNotifier {
 
       notifyListeners();
     } catch (e, stackTrace) {
-      _log.severe('Failed to update incremental sync statistics', e, stackTrace);
+      _log.severe(
+        'Failed to update incremental sync statistics',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -692,7 +707,9 @@ class OfflineSettingsProvider extends ChangeNotifier {
       await _prefs.remove(_keyLastIncrementalSync);
       await _prefs.remove(_keyLastFullSync);
 
-      _log.info('Cleared all offline data including incremental sync statistics');
+      _log.info(
+        'Cleared all offline data including incremental sync statistics',
+      );
     } catch (e, stackTrace) {
       _log.severe('Failed to clear offline data', e, stackTrace);
       rethrow;

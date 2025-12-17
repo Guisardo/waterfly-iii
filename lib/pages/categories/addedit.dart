@@ -38,31 +38,35 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
     titleController.text = widget.category!.attributes.name;
 
     // Use CategoryRepository instead of direct API call
-    final CategoryRepository? categoryRepo = context.read<CategoryRepository?>();
+    final CategoryRepository? categoryRepo =
+        context.read<CategoryRepository?>();
     if (categoryRepo != null) {
-      categoryRepo.getById(widget.category!.id).then((CategoryEntity? category) {
-        if (category == null) {
-          log.severe("Error fetching category from repository");
-          if (mounted) {
-            Navigator.of(context).pop();
-          }
-          return;
-        }
-        setState(() {
-          includeInSum =
-              !context
-                  .read<SettingsProvider>()
-                  .categoriesSumExcluded
-                  .contains(widget.category!.id);
-          notesController.text = category.notes ?? "";
-          loaded = true;
-        });
-      }).catchError((Object error, StackTrace stackTrace) {
-        log.severe("Error fetching category", error, stackTrace);
-        if (mounted) {
-          Navigator.of(context).pop();
-        }
-      });
+      categoryRepo
+          .getById(widget.category!.id)
+          .then((CategoryEntity? category) {
+            if (category == null) {
+              log.severe("Error fetching category from repository");
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
+              return;
+            }
+            setState(() {
+              includeInSum =
+                  !context
+                      .read<SettingsProvider>()
+                      .categoriesSumExcluded
+                      .contains(widget.category!.id);
+              notesController.text = category.notes ?? "";
+              loaded = true;
+            });
+          })
+          .catchError((Object error, StackTrace stackTrace) {
+            log.severe("Error fetching category", error, stackTrace);
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+          });
     } else {
       // Fallback: No repository available
       log.warning("CategoryRepository not available");
@@ -97,8 +101,9 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
             child: Text(MaterialLocalizations.of(context).deleteButtonTooltip),
             onPressed: () async {
               // Read repository before async gap
-              final CategoryRepository categoryRepo = context.read<CategoryRepository>();
-              
+              final CategoryRepository categoryRepo =
+                  context.read<CategoryRepository>();
+
               final bool? ok = await showDialog(
                 context: context,
                 builder:
@@ -111,7 +116,7 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
               // Use CategoryRepository instead of direct API call
               try {
                 await categoryRepo.delete(widget.category!.id);
-                
+
                 if (context.mounted) {
                   Navigator.of(context).pop(true);
                 }
@@ -140,7 +145,8 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
             final ScaffoldMessengerState msg = ScaffoldMessenger.of(context);
 
             try {
-              final CategoryRepository categoryRepo = context.read<CategoryRepository>();
+              final CategoryRepository categoryRepo =
+                  context.read<CategoryRepository>();
               final DateTime now = DateTime.now();
 
               if (widget.category == null) {
@@ -158,7 +164,9 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
                 await categoryRepo.create(newCategory);
               } else {
                 // Update existing category
-                final CategoryEntity? existing = await categoryRepo.getById(widget.category!.id);
+                final CategoryEntity? existing = await categoryRepo.getById(
+                  widget.category!.id,
+                );
                 if (existing != null) {
                   final CategoryEntity updatedCategory = CategoryEntity(
                     id: existing.id,
@@ -171,7 +179,10 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
                     isSynced: false,
                     syncStatus: 'pending',
                   );
-                  await categoryRepo.update(widget.category!.id, updatedCategory);
+                  await categoryRepo.update(
+                    widget.category!.id,
+                    updatedCategory,
+                  );
                 }
               }
 
@@ -182,9 +193,9 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
                         .read<SettingsProvider>()
                         .categoryRemoveSumExcluded(widget.category!.id);
                   } else {
-                    await context.read<SettingsProvider>().categoryAddSumExcluded(
-                      widget.category!.id,
-                    );
+                    await context
+                        .read<SettingsProvider>()
+                        .categoryAddSumExcluded(widget.category!.id);
                   }
                 }
               }

@@ -83,8 +83,8 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
     super.cacheService,
     UuidService? uuidService,
     SyncQueueManager? syncQueueManager,
-  })  : _uuidService = uuidService ?? UuidService(),
-        _syncQueueManager = syncQueueManager ?? SyncQueueManager(database);
+  }) : _uuidService = uuidService ?? UuidService(),
+       _syncQueueManager = syncQueueManager ?? SyncQueueManager(database);
 
   final UuidService _uuidService;
   final SyncQueueManager _syncQueueManager;
@@ -109,11 +109,11 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
   Future<List<AttachmentEntity>> getAll() async {
     try {
       logger.fine('Fetching all attachments');
-      final List<AttachmentEntity> attachments = await (database.select(database.attachments)
+      final List<AttachmentEntity> attachments =
+          await (database.select(database.attachments)
             ..orderBy(<OrderClauseGenerator<$AttachmentsTable>>[
-              ($AttachmentsTable a) => OrderingTerm.desc(a.createdAt)
-            ]))
-          .get();
+              ($AttachmentsTable a) => OrderingTerm.desc(a.createdAt),
+            ])).get();
       logger.info('Retrieved ${attachments.length} attachments');
       return attachments;
     } catch (error, stackTrace) {
@@ -130,10 +130,9 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
   Stream<List<AttachmentEntity>> watchAll() {
     logger.fine('Watching all attachments');
     return (database.select(database.attachments)
-          ..orderBy(<OrderClauseGenerator<$AttachmentsTable>>[
-            ($AttachmentsTable a) => OrderingTerm.desc(a.createdAt)
-          ]))
-        .watch();
+      ..orderBy(<OrderClauseGenerator<$AttachmentsTable>>[
+        ($AttachmentsTable a) => OrderingTerm.desc(a.createdAt),
+      ])).watch();
   }
 
   /// Retrieves an attachment by ID with cache-first strategy.
@@ -150,15 +149,15 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
       if (cacheService != null) {
         logger.finest('Using cache-first strategy for attachment $id');
 
-        final CacheResult<AttachmentEntity?> cacheResult =
-            await cacheService!.get<AttachmentEntity?>(
-          entityType: entityType,
-          entityId: id,
-          fetcher: () => _fetchAttachmentFromDb(id),
-          ttl: cacheTtl,
-          forceRefresh: forceRefresh,
-          backgroundRefresh: backgroundRefresh,
-        );
+        final CacheResult<AttachmentEntity?> cacheResult = await cacheService!
+            .get<AttachmentEntity?>(
+              entityType: entityType,
+              entityId: id,
+              fetcher: () => _fetchAttachmentFromDb(id),
+              ttl: cacheTtl,
+              forceRefresh: forceRefresh,
+              backgroundRefresh: backgroundRefresh,
+            );
 
         logger.info(
           'Attachment $id fetched from ${cacheResult.source} '
@@ -217,23 +216,34 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
   /// - [transactionId]: The ID of the transaction
   ///
   /// **Returns**: List of attachments for the transaction
-  Future<List<AttachmentEntity>> getByTransactionId(String transactionId) async {
+  Future<List<AttachmentEntity>> getByTransactionId(
+    String transactionId,
+  ) async {
     try {
       logger.fine('Fetching attachments for transaction: $transactionId');
 
-      final List<AttachmentEntity> attachments = await (database.select(database.attachments)
-            ..where(($AttachmentsTable a) =>
-                a.attachableType.equals('TransactionJournal') &
-                a.attachableId.equals(transactionId))
-            ..orderBy(<OrderClauseGenerator<$AttachmentsTable>>[
-              ($AttachmentsTable a) => OrderingTerm.desc(a.createdAt)
-            ]))
-          .get();
+      final List<AttachmentEntity> attachments =
+          await (database.select(database.attachments)
+                ..where(
+                  ($AttachmentsTable a) =>
+                      a.attachableType.equals('TransactionJournal') &
+                      a.attachableId.equals(transactionId),
+                )
+                ..orderBy(<OrderClauseGenerator<$AttachmentsTable>>[
+                  ($AttachmentsTable a) => OrderingTerm.desc(a.createdAt),
+                ]))
+              .get();
 
-      logger.info('Found ${attachments.length} attachments for transaction $transactionId');
+      logger.info(
+        'Found ${attachments.length} attachments for transaction $transactionId',
+      );
       return attachments;
     } catch (error, stackTrace) {
-      logger.severe('Failed to fetch attachments for transaction $transactionId', error, stackTrace);
+      logger.severe(
+        'Failed to fetch attachments for transaction $transactionId',
+        error,
+        stackTrace,
+      );
       throw DatabaseException.queryFailed(
         'SELECT * FROM attachments WHERE attachable_id = $transactionId',
         error,
@@ -248,32 +258,32 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
     try {
       logger.info('Creating attachment: ${entity.filename}');
 
-      final String id = entity.id.isEmpty
-          ? _uuidService.generateAttachmentId()
-          : entity.id;
+      final String id =
+          entity.id.isEmpty ? _uuidService.generateAttachmentId() : entity.id;
       final DateTime now = DateTime.now();
 
-      final AttachmentEntityCompanion companion = AttachmentEntityCompanion.insert(
-        id: id,
-        serverId: Value(entity.serverId),
-        attachableType: entity.attachableType,
-        attachableId: entity.attachableId,
-        filename: entity.filename,
-        title: Value(entity.title),
-        mimeType: Value(entity.mimeType),
-        size: Value(entity.size),
-        md5: Value(entity.md5),
-        downloadUrl: Value(entity.downloadUrl),
-        uploadUrl: Value(entity.uploadUrl),
-        localPath: Value(entity.localPath),
-        isDownloaded: Value(entity.isDownloaded),
-        isPendingUpload: Value(entity.isPendingUpload),
-        notes: Value(entity.notes),
-        createdAt: now,
-        updatedAt: now,
-        isSynced: const Value(false),
-        syncStatus: const Value('pending'),
-      );
+      final AttachmentEntityCompanion companion =
+          AttachmentEntityCompanion.insert(
+            id: id,
+            serverId: Value(entity.serverId),
+            attachableType: entity.attachableType,
+            attachableId: entity.attachableId,
+            filename: entity.filename,
+            title: Value(entity.title),
+            mimeType: Value(entity.mimeType),
+            size: Value(entity.size),
+            md5: Value(entity.md5),
+            downloadUrl: Value(entity.downloadUrl),
+            uploadUrl: Value(entity.uploadUrl),
+            localPath: Value(entity.localPath),
+            isDownloaded: Value(entity.isDownloaded),
+            isPendingUpload: Value(entity.isPendingUpload),
+            notes: Value(entity.notes),
+            createdAt: now,
+            updatedAt: now,
+            isSynced: const Value(false),
+            syncStatus: const Value('pending'),
+          );
 
       await database.into(database.attachments).insert(companion);
 
@@ -317,7 +327,9 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
 
       // Trigger cache invalidation for transaction list
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation for attachment creation: $id');
+        logger.fine(
+          'Triggering cache invalidation for attachment creation: $id',
+        );
         await CacheInvalidationRules.onTransactionMutation(
           cacheService!,
           null, // No specific transaction entity, just invalidate lists
@@ -406,7 +418,9 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
       // Verify existence
       final AttachmentEntity? existing = await _fetchAttachmentFromDb(id);
       if (existing == null) {
-        logger.warning('Attachment not found for deletion: $id (already deleted?)');
+        logger.warning(
+          'Attachment not found for deletion: $id (already deleted?)',
+        );
         return;
       }
 
@@ -418,8 +432,7 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
         // Soft delete: Mark as deleted and add to sync queue
         logger.fine('Soft deleting synced attachment: $id');
         await (database.update(database.attachments)
-              ..where(($AttachmentsTable a) => a.id.equals(id)))
-            .write(
+          ..where(($AttachmentsTable a) => a.id.equals(id))).write(
           AttachmentEntityCompanion(
             isSynced: const Value(false),
             syncStatus: const Value('pending_delete'),
@@ -444,8 +457,7 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
         // Hard delete: Not synced, just delete locally
         logger.fine('Hard deleting unsynced attachment: $id');
         await (database.delete(database.attachments)
-              ..where(($AttachmentsTable a) => a.id.equals(id)))
-            .go();
+          ..where(($AttachmentsTable a) => a.id.equals(id))).go();
       }
 
       // Invalidate attachment from cache
@@ -456,7 +468,9 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
 
       // Trigger cache invalidation for transaction list
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation for attachment deletion: $id');
+        logger.fine(
+          'Triggering cache invalidation for attachment deletion: $id',
+        );
         await CacheInvalidationRules.onTransactionMutation(
           cacheService!,
           null,
@@ -498,8 +512,7 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
       logger.info('Marking attachment as synced: $localId -> $serverId');
 
       await (database.update(database.attachments)
-            ..where(($AttachmentsTable a) => a.id.equals(localId)))
-          .write(
+        ..where(($AttachmentsTable a) => a.id.equals(localId))).write(
         AttachmentEntityCompanion(
           serverId: Value(serverId),
           isSynced: const Value(true),
@@ -510,7 +523,11 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
 
       logger.info('Attachment marked as synced: $localId');
     } catch (error, stackTrace) {
-      logger.severe('Failed to mark attachment as synced: $localId', error, stackTrace);
+      logger.severe(
+        'Failed to mark attachment as synced: $localId',
+        error,
+        stackTrace,
+      );
       throw DatabaseException('Failed to mark attachment as synced: $error');
     }
   }
@@ -524,7 +541,11 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
       }
       return attachment.syncStatus;
     } catch (error, stackTrace) {
-      logger.severe('Failed to get sync status for attachment $id', error, stackTrace);
+      logger.severe(
+        'Failed to get sync status for attachment $id',
+        error,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -565,13 +586,18 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
   Future<List<AttachmentEntity>> getPendingUploads() async {
     try {
       logger.fine('Fetching pending upload attachments');
-      final List<AttachmentEntity> attachments = await (database.select(database.attachments)
-            ..where(($AttachmentsTable a) => a.isPendingUpload.equals(true)))
-          .get();
+      final List<AttachmentEntity> attachments =
+          await (database.select(database.attachments)..where(
+            ($AttachmentsTable a) => a.isPendingUpload.equals(true),
+          )).get();
       logger.info('Found ${attachments.length} pending upload attachments');
       return attachments;
     } catch (error, stackTrace) {
-      logger.severe('Failed to fetch pending upload attachments', error, stackTrace);
+      logger.severe(
+        'Failed to fetch pending upload attachments',
+        error,
+        stackTrace,
+      );
       throw DatabaseException.queryFailed(
         'SELECT * FROM attachments WHERE is_pending_upload = true',
         error,
@@ -595,8 +621,7 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
       logger.info('Marking attachment for upload: $id');
 
       await (database.update(database.attachments)
-            ..where(($AttachmentsTable a) => a.id.equals(id)))
-          .write(
+        ..where(($AttachmentsTable a) => a.id.equals(id))).write(
         AttachmentEntityCompanion(
           localPath: Value(localPath),
           isPendingUpload: const Value(true),
@@ -613,7 +638,11 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
       logger.info('Attachment marked for upload: $id');
       return updated;
     } catch (error, stackTrace) {
-      logger.severe('Failed to mark attachment for upload: $id', error, stackTrace);
+      logger.severe(
+        'Failed to mark attachment for upload: $id',
+        error,
+        stackTrace,
+      );
       if (error is DatabaseException) rethrow;
       throw DatabaseException('Failed to mark attachment for upload: $error');
     }
@@ -638,8 +667,7 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
       logger.info('Marking attachment as uploaded: $id -> $serverId');
 
       await (database.update(database.attachments)
-            ..where(($AttachmentsTable a) => a.id.equals(id)))
-          .write(
+        ..where(($AttachmentsTable a) => a.id.equals(id))).write(
         AttachmentEntityCompanion(
           serverId: Value(serverId),
           downloadUrl: Value(downloadUrl),
@@ -658,10 +686,13 @@ class AttachmentRepository extends BaseRepository<AttachmentEntity, String> {
       logger.info('Attachment marked as uploaded: $id');
       return updated;
     } catch (error, stackTrace) {
-      logger.severe('Failed to mark attachment as uploaded: $id', error, stackTrace);
+      logger.severe(
+        'Failed to mark attachment as uploaded: $id',
+        error,
+        stackTrace,
+      );
       if (error is DatabaseException) rethrow;
       throw DatabaseException('Failed to mark attachment as uploaded: $error');
     }
   }
 }
-

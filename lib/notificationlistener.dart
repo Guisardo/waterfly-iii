@@ -221,11 +221,12 @@ void nlCallback() {
 
     if (showNotification) {
       // Show localized notification prompting user to create transaction
-      final String notificationSource = evt.title ?? evt.packageName ?? "unknown source";
-      
+      final String notificationSource =
+          evt.title ?? evt.packageName ?? "unknown source";
+
       // Load localized strings without context
       final S l10n = await LocalizationHelper.getLocalizations();
-      
+
       unawaited(
         FlutterLocalNotificationsPlugin().show(
           DateTime.now().millisecondsSinceEpoch ~/ 1000,

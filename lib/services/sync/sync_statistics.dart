@@ -125,7 +125,7 @@ class SyncStatisticsService {
     required double throughput,
   }) async {
     _totalSyncs++;
-    
+
     if (success) {
       _successfulSyncs++;
     } else {
@@ -173,7 +173,7 @@ class SyncStatisticsService {
   /// Reset all statistics.
   Future<void> resetStatistics() async {
     _logger.warning('Resetting all sync statistics');
-    
+
     _totalSyncs = 0;
     _successfulSyncs = 0;
     _failedSyncs = 0;
@@ -199,20 +199,23 @@ class SyncStatisticsService {
   /// Calculate average sync duration.
   Duration _calculateAverageDuration() {
     if (_syncDurations.isEmpty) return Duration.zero;
-    
+
     final int totalMs = _syncDurations.fold<int>(
       0,
       (int sum, Duration duration) => sum + duration.inMilliseconds,
     );
-    
+
     return Duration(milliseconds: totalMs ~/ _syncDurations.length);
   }
 
   /// Calculate average throughput.
   double _calculateAverageThroughput() {
     if (_throughputSamples.isEmpty) return 0.0;
-    
-    final double sum = _throughputSamples.fold<double>(0.0, (double a, double b) => a + b);
+
+    final double sum = _throughputSamples.fold<double>(
+      0.0,
+      (double a, double b) => a + b,
+    );
     return sum / _throughputSamples.length;
   }
 
@@ -220,44 +223,54 @@ class SyncStatisticsService {
   Future<void> _persistStatistics() async {
     try {
       final DateTime now = DateTime.now();
-      await _database.into(_database.syncMetadata).insertOnConflictUpdate(
-        SyncMetadataEntityCompanion.insert(
-          key: 'stats_total_syncs',
-          value: _totalSyncs.toString(),
-          updatedAt: now,
-        ),
-      );
-      await _database.into(_database.syncMetadata).insertOnConflictUpdate(
-        SyncMetadataEntityCompanion.insert(
-          key: 'stats_successful_syncs',
-          value: _successfulSyncs.toString(),
-          updatedAt: now,
-        ),
-      );
-      await _database.into(_database.syncMetadata).insertOnConflictUpdate(
-        SyncMetadataEntityCompanion.insert(
-          key: 'stats_failed_syncs',
-          value: _failedSyncs.toString(),
-          updatedAt: now,
-        ),
-      );
+      await _database
+          .into(_database.syncMetadata)
+          .insertOnConflictUpdate(
+            SyncMetadataEntityCompanion.insert(
+              key: 'stats_total_syncs',
+              value: _totalSyncs.toString(),
+              updatedAt: now,
+            ),
+          );
+      await _database
+          .into(_database.syncMetadata)
+          .insertOnConflictUpdate(
+            SyncMetadataEntityCompanion.insert(
+              key: 'stats_successful_syncs',
+              value: _successfulSyncs.toString(),
+              updatedAt: now,
+            ),
+          );
+      await _database
+          .into(_database.syncMetadata)
+          .insertOnConflictUpdate(
+            SyncMetadataEntityCompanion.insert(
+              key: 'stats_failed_syncs',
+              value: _failedSyncs.toString(),
+              updatedAt: now,
+            ),
+          );
       if (_lastSyncTime != null) {
-        await _database.into(_database.syncMetadata).insertOnConflictUpdate(
-          SyncMetadataEntityCompanion.insert(
-            key: 'stats_last_sync_time',
-            value: _lastSyncTime!.toIso8601String(),
-            updatedAt: now,
-          ),
-        );
+        await _database
+            .into(_database.syncMetadata)
+            .insertOnConflictUpdate(
+              SyncMetadataEntityCompanion.insert(
+                key: 'stats_last_sync_time',
+                value: _lastSyncTime!.toIso8601String(),
+                updatedAt: now,
+              ),
+            );
       }
       if (_lastFullSyncTime != null) {
-        await _database.into(_database.syncMetadata).insertOnConflictUpdate(
-          SyncMetadataEntityCompanion.insert(
-            key: 'stats_last_full_sync_time',
-            value: _lastFullSyncTime!.toIso8601String(),
-            updatedAt: now,
-          ),
-        );
+        await _database
+            .into(_database.syncMetadata)
+            .insertOnConflictUpdate(
+              SyncMetadataEntityCompanion.insert(
+                key: 'stats_last_full_sync_time',
+                value: _lastFullSyncTime!.toIso8601String(),
+                updatedAt: now,
+              ),
+            );
       }
     } catch (e, stackTrace) {
       _logger.warning('Failed to persist statistics', e, stackTrace);
@@ -277,8 +290,7 @@ class SyncStatisticsService {
       ];
       for (final String key in keysToDelete) {
         await (_database.delete(_database.syncMetadata)
-              ..where(($SyncMetadataTable t) => t.key.equals(key)))
-            .go();
+          ..where(($SyncMetadataTable t) => t.key.equals(key))).go();
       }
     } catch (e, stackTrace) {
       _logger.warning('Failed to clear statistics', e, stackTrace);

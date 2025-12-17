@@ -60,30 +60,37 @@ void main() {
 
     group('Standard Mode', () {
       testWidgets('renders header with title', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.standard),
+        );
 
         expect(find.text('Incremental Sync'), findsOneWidget);
       });
 
-      testWidgets('renders settings button when callback provided',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-          onSettingsTap: () {},
-        ));
+      testWidgets('renders settings button when callback provided', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.standard,
+            onSettingsTap: () {},
+          ),
+        );
 
         expect(find.byIcon(Icons.settings), findsOneWidget);
       });
 
-      testWidgets('settings button triggers callback', (WidgetTester tester) async {
+      testWidgets('settings button triggers callback', (
+        WidgetTester tester,
+      ) async {
         bool settingsTapped = false;
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-          onSettingsTap: () => settingsTapped = true,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.standard,
+            onSettingsTap: () => settingsTapped = true,
+          ),
+        );
 
         await tester.tap(find.byIcon(Icons.settings));
         await tester.pumpAndSettle();
@@ -95,10 +102,12 @@ void main() {
         // Mark full sync as done so needsFullSync = false
         await settingsProvider.recordFullSyncCompleted();
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-          onSyncTap: () {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.standard,
+            onSyncTap: () {},
+          ),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('Sync Now'), findsOneWidget);
@@ -111,10 +120,12 @@ void main() {
 
         bool syncTapped = false;
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-          onSyncTap: () => syncTapped = true,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.standard,
+            onSyncTap: () => syncTapped = true,
+          ),
+        );
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Sync Now'));
@@ -123,13 +134,14 @@ void main() {
         expect(syncTapped, true);
       });
 
-      testWidgets('shows disabled message when incremental sync disabled',
-          (WidgetTester tester) async {
+      testWidgets('shows disabled message when incremental sync disabled', (
+        WidgetTester tester,
+      ) async {
         await settingsProvider.setIncrementalSyncEnabled(false);
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.standard),
+        );
         await tester.pumpAndSettle();
 
         expect(
@@ -140,10 +152,12 @@ void main() {
         );
       });
 
-      testWidgets('shows first sync message when no syncs yet', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-        ));
+      testWidgets('shows first sync message when no syncs yet', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.standard),
+        );
 
         expect(
           find.text(
@@ -162,9 +176,9 @@ void main() {
           bandwidthSaved: 163840,
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.standard),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('Efficiency'), findsOneWidget);
@@ -172,24 +186,26 @@ void main() {
         expect(find.text('Syncs'), findsOneWidget);
       });
 
-      testWidgets('shows full sync warning when needed', (WidgetTester tester) async {
+      testWidgets('shows full sync warning when needed', (
+        WidgetTester tester,
+      ) async {
         // Simulate no full sync timestamp (needsFullSync = true)
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-        ));
-
-        expect(
-          find.text('Full sync recommended (>7 days)'),
-          findsOneWidget,
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.standard),
         );
+
+        expect(find.text('Full sync recommended (>7 days)'), findsOneWidget);
       });
 
-      testWidgets('shows Full Sync button when full sync needed',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-          onSyncTap: () {},
-        ));
+      testWidgets('shows Full Sync button when full sync needed', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.standard,
+            onSyncTap: () {},
+          ),
+        );
 
         // Since needsFullSync is true by default (no lastFullSyncTime)
         expect(find.text('Full Sync'), findsOneWidget);
@@ -198,55 +214,63 @@ void main() {
 
     group('Compact Mode', () {
       testWidgets('renders compact layout', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.compact,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.compact),
+        );
 
         expect(find.text('Sync'), findsOneWidget);
       });
 
       testWidgets('shows status badge', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.compact,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.compact),
+        );
 
         // Should show OUTDATED badge since no full sync
         expect(find.text('OUTDATED'), findsOneWidget);
       });
 
-      testWidgets('shows OK badge when sync is up to date', (WidgetTester tester) async {
+      testWidgets('shows OK badge when sync is up to date', (
+        WidgetTester tester,
+      ) async {
         // Set full sync timestamp to make needsFullSync = false
         await settingsProvider.recordFullSyncCompleted();
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.compact,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.compact),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('OK'), findsOneWidget);
       });
 
-      testWidgets('shows DISABLED badge when disabled', (WidgetTester tester) async {
+      testWidgets('shows DISABLED badge when disabled', (
+        WidgetTester tester,
+      ) async {
         // First record full sync to clear needsFullSync state
         // (otherwise OUTDATED takes precedence over DISABLED)
         await settingsProvider.recordFullSyncCompleted();
         await settingsProvider.setIncrementalSyncEnabled(false);
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.compact,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.compact),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('DISABLED'), findsOneWidget);
       });
 
-      testWidgets('sync icon button triggers callback', (WidgetTester tester) async {
+      testWidgets('sync icon button triggers callback', (
+        WidgetTester tester,
+      ) async {
         bool syncTapped = false;
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.compact,
-          onSyncTap: () => syncTapped = true,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.compact,
+            onSyncTap: () => syncTapped = true,
+          ),
+        );
 
         await tester.tap(find.byIcon(Icons.sync).last);
         await tester.pumpAndSettle();
@@ -257,9 +281,9 @@ void main() {
 
     group('Mini Mode', () {
       testWidgets('renders mini icon', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.mini,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.mini),
+        );
 
         expect(find.byIcon(Icons.sync_problem), findsOneWidget);
       });
@@ -267,10 +291,12 @@ void main() {
       testWidgets('tap triggers sync callback', (WidgetTester tester) async {
         bool syncTapped = false;
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.mini,
-          onSyncTap: () => syncTapped = true,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.mini,
+            onSyncTap: () => syncTapped = true,
+          ),
+        );
 
         await tester.tap(find.byType(InkWell).first);
         await tester.pumpAndSettle();
@@ -280,27 +306,36 @@ void main() {
     });
 
     group('Syncing State', () {
-      testWidgets('shows syncing indicator when isSyncing is true',
-          (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-          isSyncing: true,
-        ));
+      testWidgets('shows syncing indicator when isSyncing is true', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.standard,
+            isSyncing: true,
+          ),
+        );
 
         // Should show syncing status text
         expect(find.text('Syncing in progress...'), findsOneWidget);
       });
 
-      testWidgets('shows SYNCING badge in compact mode', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.compact,
-          isSyncing: true,
-        ));
+      testWidgets('shows SYNCING badge in compact mode', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.compact,
+            isSyncing: true,
+          ),
+        );
 
         expect(find.text('SYNCING'), findsOneWidget);
       });
 
-      testWidgets('shows progress with current progress event', (WidgetTester tester) async {
+      testWidgets('shows progress with current progress event', (
+        WidgetTester tester,
+      ) async {
         final SyncProgressEvent progressEvent = SyncProgressEvent.progress(
           'transaction',
           50,
@@ -309,11 +344,13 @@ void main() {
           total: 100,
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-          isSyncing: true,
-          currentProgress: progressEvent,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.standard,
+            isSyncing: true,
+            currentProgress: progressEvent,
+          ),
+        );
 
         // Should show progress indicator and stats
         expect(find.byType(LinearProgressIndicator), findsOneWidget);
@@ -323,22 +360,21 @@ void main() {
       });
 
       testWidgets('updates with progress stream', (WidgetTester tester) async {
-        final StreamController<SyncProgressEvent> streamController = StreamController<SyncProgressEvent>.broadcast();
+        final StreamController<SyncProgressEvent> streamController =
+            StreamController<SyncProgressEvent>.broadcast();
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-          isSyncing: true,
-          progressStream: streamController.stream,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.standard,
+            isSyncing: true,
+            progressStream: streamController.stream,
+          ),
+        );
 
         // Emit progress event
-        streamController.add(SyncProgressEvent.progress(
-          'transaction',
-          25,
-          5,
-          20,
-          total: 100,
-        ));
+        streamController.add(
+          SyncProgressEvent.progress('transaction', 25, 5, 20, total: 100),
+        );
         await tester.pump();
 
         // Should update display
@@ -347,14 +383,18 @@ void main() {
         await streamController.close();
       });
 
-      testWidgets('disables sync button when syncing', (WidgetTester tester) async {
+      testWidgets('disables sync button when syncing', (
+        WidgetTester tester,
+      ) async {
         bool syncTapped = false;
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.compact,
-          isSyncing: true,
-          onSyncTap: () => syncTapped = true,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.compact,
+            isSyncing: true,
+            onSyncTap: () => syncTapped = true,
+          ),
+        );
 
         // Use pump() instead of pumpAndSettle() because of animation
         await tester.pump();
@@ -375,50 +415,56 @@ void main() {
     });
 
     group('Status Messages', () {
-      testWidgets('shows "Ready to sync" when enabled and no last sync',
-          (WidgetTester tester) async {
+      testWidgets('shows "Ready to sync" when enabled and no last sync', (
+        WidgetTester tester,
+      ) async {
         await settingsProvider.recordFullSyncCompleted();
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.standard),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('Ready to sync'), findsOneWidget);
       });
 
-      testWidgets('shows relative time since last sync', (WidgetTester tester) async {
+      testWidgets('shows relative time since last sync', (
+        WidgetTester tester,
+      ) async {
         await settingsProvider.recordFullSyncCompleted();
         await settingsProvider.updateIncrementalSyncStatistics(
           isIncremental: true,
           itemsFetched: 10,
         );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.standard),
+        );
         await tester.pumpAndSettle();
 
         // Should show "Last sync: Just now" or similar
         expect(find.textContaining('Last sync:'), findsOneWidget);
       });
 
-      testWidgets('shows "Incremental sync disabled" when disabled',
-          (WidgetTester tester) async {
+      testWidgets('shows "Incremental sync disabled" when disabled', (
+        WidgetTester tester,
+      ) async {
         await settingsProvider.setIncrementalSyncEnabled(false);
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.standard),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('Incremental sync disabled'), findsOneWidget);
       });
 
-      testWidgets('shows "Full sync recommended" when needed', (WidgetTester tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-        ));
+      testWidgets('shows "Full sync recommended" when needed', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          buildTestWidget(mode: IncrementalSyncDashboardCardMode.standard),
+        );
 
         expect(find.text('Full sync recommended'), findsOneWidget);
       });
@@ -426,39 +472,50 @@ void main() {
 
     group('Entity Type Formatting', () {
       testWidgets('formats transaction correctly', (WidgetTester tester) async {
-        final SyncProgressEvent progressEvent = SyncProgressEvent.entityStarted('transaction');
+        final SyncProgressEvent progressEvent = SyncProgressEvent.entityStarted(
+          'transaction',
+        );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-          isSyncing: true,
-          currentProgress: progressEvent,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.standard,
+            isSyncing: true,
+            currentProgress: progressEvent,
+          ),
+        );
 
         expect(find.text('Syncing Transactions...'), findsOneWidget);
       });
 
       testWidgets('formats piggy_bank correctly', (WidgetTester tester) async {
-        final SyncProgressEvent progressEvent = SyncProgressEvent.entityStarted('piggy_bank');
+        final SyncProgressEvent progressEvent = SyncProgressEvent.entityStarted(
+          'piggy_bank',
+        );
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.standard,
-          isSyncing: true,
-          currentProgress: progressEvent,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.standard,
+            isSyncing: true,
+            currentProgress: progressEvent,
+          ),
+        );
 
         expect(find.text('Syncing Piggy Banks...'), findsOneWidget);
       });
     });
 
     group('Long Press Actions', () {
-      testWidgets('long press triggers settings callback in compact mode',
-          (WidgetTester tester) async {
+      testWidgets('long press triggers settings callback in compact mode', (
+        WidgetTester tester,
+      ) async {
         bool settingsTapped = false;
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.compact,
-          onSettingsTap: () => settingsTapped = true,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.compact,
+            onSettingsTap: () => settingsTapped = true,
+          ),
+        );
 
         await tester.longPress(find.byType(InkWell).first);
         await tester.pumpAndSettle();
@@ -466,14 +523,17 @@ void main() {
         expect(settingsTapped, true);
       });
 
-      testWidgets('long press triggers settings callback in mini mode',
-          (WidgetTester tester) async {
+      testWidgets('long press triggers settings callback in mini mode', (
+        WidgetTester tester,
+      ) async {
         bool settingsTapped = false;
 
-        await tester.pumpWidget(buildTestWidget(
-          mode: IncrementalSyncDashboardCardMode.mini,
-          onSettingsTap: () => settingsTapped = true,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            mode: IncrementalSyncDashboardCardMode.mini,
+            onSettingsTap: () => settingsTapped = true,
+          ),
+        );
 
         await tester.longPress(find.byType(InkWell).first);
         await tester.pumpAndSettle();
@@ -483,4 +543,3 @@ void main() {
     });
   });
 }
-

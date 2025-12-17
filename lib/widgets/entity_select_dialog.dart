@@ -8,10 +8,7 @@ import 'package:waterflyiii/widgets/autocompletetext.dart';
 /// in the [EntitySelectDialog], such as bills and piggy banks.
 class AutocompleteOption {
   /// Creates an autocomplete option with the given id and name.
-  const AutocompleteOption({
-    required this.id,
-    required this.name,
-  });
+  const AutocompleteOption({required this.id, required this.name});
 
   /// The unique identifier of the option.
   final String id;
@@ -70,7 +67,7 @@ class EntitySelectConfig<T> {
 
   /// Async function that fetches autocomplete options based on the query text.
   final Future<Iterable<AutocompleteOption>> Function(String query)
-      optionsBuilder;
+  optionsBuilder;
 
   /// The initial selected value, if any.
   final T? initialValue;
@@ -109,10 +106,7 @@ class EntitySelectConfig<T> {
 /// ```
 class EntitySelectDialog<T> extends StatefulWidget {
   /// Creates an entity selection dialog with the given configuration.
-  const EntitySelectDialog({
-    super.key,
-    required this.config,
-  });
+  const EntitySelectDialog({super.key, required this.config});
 
   /// The configuration for this dialog.
   final EntitySelectConfig<T> config;
@@ -123,7 +117,7 @@ class EntitySelectDialog<T> extends StatefulWidget {
 
 class _EntitySelectDialogState<T> extends State<EntitySelectDialog<T>> {
   final Logger _log = Logger('EntitySelectDialog');
-  
+
   late final TextEditingController _textController;
   final FocusNode _focusNode = FocusNode();
 
@@ -197,4 +191,3 @@ class _EntitySelectDialogState<T> extends State<EntitySelectDialog<T>> {
     );
   }
 }
-

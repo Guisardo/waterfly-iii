@@ -54,7 +54,11 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         ],
       ),
       body: Consumer<OfflineSettingsProvider>(
-        builder: (BuildContext context, OfflineSettingsProvider settings, Widget? child) {
+        builder: (
+          BuildContext context,
+          OfflineSettingsProvider settings,
+          Widget? child,
+        ) {
           if (settings.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -127,9 +131,10 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
               subtitle: Text(settings.syncInterval.label),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               enabled: settings.autoSyncEnabled,
-              onTap: settings.autoSyncEnabled
-                  ? () => _showSyncIntervalDialog(context, settings)
-                  : null,
+              onTap:
+                  settings.autoSyncEnabled
+                      ? () => _showSyncIntervalDialog(context, settings)
+                      : null,
             ),
             SwitchListTile(
               title: const Text('WiFi only'),
@@ -197,9 +202,8 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   ) {
     return IncrementalSyncSettingsSection(
       showAdvancedSettings: true,
-      onForceIncrementalSync: _isSyncing
-          ? null
-          : () => _triggerIncrementalSync(context),
+      onForceIncrementalSync:
+          _isSyncing ? null : () => _triggerIncrementalSync(context),
       onForceFullSync: _isSyncing ? null : () => _triggerFullSync(context),
     );
   }
@@ -233,25 +237,23 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
 
     try {
       // Get SyncManager from SyncStatusProvider
-      final SyncStatusProvider syncStatusProvider = Provider.of<SyncStatusProvider>(
-        context,
-        listen: false,
-      );
+      final SyncStatusProvider syncStatusProvider =
+          Provider.of<SyncStatusProvider>(context, listen: false);
 
       _log.info('Triggering incremental sync');
 
       // Start incremental sync in background and show progress dialog
-      final Future<SyncResult> syncFuture = syncStatusProvider.syncManager.synchronize(
-        fullSync: false,
-      );
+      final Future<SyncResult> syncFuture = syncStatusProvider.syncManager
+          .synchronize(fullSync: false);
 
       if (mounted) {
         await showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (BuildContext context) => const SyncProgressWidget(
-            displayMode: SyncProgressDisplayMode.dialog,
-          ),
+          builder:
+              (BuildContext context) => const SyncProgressWidget(
+                displayMode: SyncProgressDisplayMode.dialog,
+              ),
         );
       }
 
@@ -317,10 +319,7 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              'Storage',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Storage', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             ListTile(
               title: const Text('Database size'),
@@ -357,10 +356,7 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              'Statistics',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Statistics', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             _buildStatRow(
               context,
@@ -406,20 +402,18 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Text(
-              'Actions',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Actions', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: _isSyncing ? null : () => _triggerManualSync(context),
-              icon: _isSyncing
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.sync),
+              icon:
+                  _isSyncing
+                      ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                      : const Icon(Icons.sync),
               label: Text(_isSyncing ? 'Syncing...' : 'Sync now'),
             ),
             const SizedBox(height: 8),
@@ -430,20 +424,20 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
-              onPressed: _isCheckingConsistency
-                  ? null
-                  : () => _runConsistencyCheck(context),
-              icon: _isCheckingConsistency
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.fact_check),
+              onPressed:
+                  _isCheckingConsistency
+                      ? null
+                      : () => _runConsistencyCheck(context),
+              icon:
+                  _isCheckingConsistency
+                      ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                      : const Icon(Icons.fact_check),
               label: Text(
-                _isCheckingConsistency
-                    ? 'Checking...'
-                    : 'Check consistency',
+                _isCheckingConsistency ? 'Checking...' : 'Check consistency',
               ),
             ),
           ],
@@ -467,17 +461,14 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
           Icon(icon, size: 20, color: color),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
           ),
           Text(
             value,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -491,26 +482,30 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   ) async {
     final SyncInterval? selected = await showDialog<SyncInterval>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Sync Interval'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: SyncInterval.values.map((SyncInterval interval) {
-            return RadioListTile<SyncInterval>(
-              title: Text(interval.label),
-              value: interval,
-              groupValue: settings.syncInterval,
-              onChanged: (SyncInterval? value) => Navigator.pop(context, value),
-            );
-          }).toList(),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Sync Interval'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children:
+                  SyncInterval.values.map((SyncInterval interval) {
+                    return RadioListTile<SyncInterval>(
+                      title: Text(interval.label),
+                      value: interval,
+                      groupValue: settings.syncInterval,
+                      onChanged:
+                          (SyncInterval? value) =>
+                              Navigator.pop(context, value),
+                    );
+                  }).toList(),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (selected != null && selected != settings.syncInterval) {
@@ -518,9 +513,7 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         await settings.setSyncInterval(selected);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Sync interval set to ${selected.label}'),
-            ),
+            SnackBar(content: Text('Sync interval set to ${selected.label}')),
           );
         }
       } catch (e) {
@@ -539,29 +532,35 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   ) async {
     final ResolutionStrategy? selected = await showDialog<ResolutionStrategy>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Conflict Resolution Strategy'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: ResolutionStrategy.values.map((ResolutionStrategy strategy) {
-              return RadioListTile<ResolutionStrategy>(
-                title: Text(_getStrategyLabel(strategy)),
-                subtitle: Text(_getStrategyDescription(strategy)),
-                value: strategy,
-                groupValue: settings.conflictStrategy,
-                onChanged: (ResolutionStrategy? value) => Navigator.pop(context, value),
-              );
-            }).toList(),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Conflict Resolution Strategy'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children:
+                    ResolutionStrategy.values.map((
+                      ResolutionStrategy strategy,
+                    ) {
+                      return RadioListTile<ResolutionStrategy>(
+                        title: Text(_getStrategyLabel(strategy)),
+                        subtitle: Text(_getStrategyDescription(strategy)),
+                        value: strategy,
+                        groupValue: settings.conflictStrategy,
+                        onChanged:
+                            (ResolutionStrategy? value) =>
+                                Navigator.pop(context, value),
+                      );
+                    }).toList(),
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+            ],
           ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
     );
 
     if (selected != null && selected != settings.conflictStrategy) {
@@ -592,22 +591,23 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   ) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Clear Cache'),
-        content: const Text(
-          'This will remove temporary data. Your offline data will be preserved.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Clear Cache'),
+            content: const Text(
+              'This will remove temporary data. Your offline data will be preserved.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Clear'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Clear'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed ?? false) {
@@ -615,17 +615,17 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         // Clear query cache
         final QueryCache queryCache = QueryCache();
         queryCache.clear();
-        
+
         _log.info('Cache cleared successfully');
-        
+
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cache cleared')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Cache cleared')));
         }
       } catch (e, stackTrace) {
         _log.severe('Failed to clear cache', e, stackTrace);
-        
+
         if (mounted) {
           _showError(context, 'Failed to clear cache: ${e.toString()}');
         }
@@ -640,24 +640,25 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   ) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Clear All Data'),
-        content: const Text(
-          'This will remove ALL offline data. This action cannot be undone. '
-          'You will need to sync again to use offline mode.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Clear All Data'),
+            content: const Text(
+              'This will remove ALL offline data. This action cannot be undone. '
+              'You will need to sync again to use offline mode.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Clear All'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Clear All'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed ?? false) {
@@ -683,29 +684,29 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
 
     try {
       // Get SyncManager from SyncStatusProvider
-      final SyncStatusProvider syncStatusProvider = Provider.of<SyncStatusProvider>(
-        context,
-        listen: false,
-      );
-      
+      final SyncStatusProvider syncStatusProvider =
+          Provider.of<SyncStatusProvider>(context, listen: false);
+
       _log.info('Triggering manual sync');
-      
+
       // Start sync in background and show progress dialog
-      final Future<SyncResult> syncFuture = syncStatusProvider.syncManager.synchronize();
-      
+      final Future<SyncResult> syncFuture =
+          syncStatusProvider.syncManager.synchronize();
+
       if (mounted) {
         await showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (BuildContext context) => const SyncProgressWidget(
-            displayMode: SyncProgressDisplayMode.dialog,
-          ),
+          builder:
+              (BuildContext context) => const SyncProgressWidget(
+                displayMode: SyncProgressDisplayMode.dialog,
+              ),
         );
       }
-      
+
       // Wait for sync to complete
       await syncFuture;
-      
+
       _log.info('Manual sync completed successfully');
     } catch (e, stackTrace) {
       _log.severe('Manual sync failed', e, stackTrace);
@@ -723,23 +724,24 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   Future<void> _triggerFullSync(BuildContext context) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Force Full Sync'),
-        content: const Text(
-          'This will download all data from the server, replacing local data. '
-          'This may take several minutes.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Force Full Sync'),
+            content: const Text(
+              'This will download all data from the server, replacing local data. '
+              'This may take several minutes.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Sync'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sync'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed ?? false) {
@@ -747,29 +749,29 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
 
       try {
         // Get SyncManager from SyncStatusProvider
-        final SyncStatusProvider syncStatusProvider = Provider.of<SyncStatusProvider>(
-          context,
-          listen: false,
-        );
-        
+        final SyncStatusProvider syncStatusProvider =
+            Provider.of<SyncStatusProvider>(context, listen: false);
+
         _log.info('Triggering full sync');
-        
+
         // Start full sync in background and show progress dialog
-        final Future<SyncResult> syncFuture = syncStatusProvider.syncManager.synchronize(fullSync: true);
-        
+        final Future<SyncResult> syncFuture = syncStatusProvider.syncManager
+            .synchronize(fullSync: true);
+
         if (mounted) {
           await showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (BuildContext context) => const SyncProgressWidget(
-              displayMode: SyncProgressDisplayMode.dialog,
-            ),
+            builder:
+                (BuildContext context) => const SyncProgressWidget(
+                  displayMode: SyncProgressDisplayMode.dialog,
+                ),
           );
         }
-        
+
         // Wait for sync to complete
         await syncFuture;
-        
+
         _log.info('Full sync completed successfully');
       } catch (e, stackTrace) {
         _log.severe('Full sync failed', e, stackTrace);
@@ -790,72 +792,84 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
 
     try {
       // Get database from provider
-      final AppDatabase database = Provider.of<AppDatabase>(context, listen: false);
-      
+      final AppDatabase database = Provider.of<AppDatabase>(
+        context,
+        listen: false,
+      );
+
       // Create ConsistencyService
-      final ConsistencyService consistencyService = ConsistencyService(database: database);
-      
+      final ConsistencyService consistencyService = ConsistencyService(
+        database: database,
+      );
+
       _log.info('Running consistency check');
-      
+
       // Run check
       final List<InconsistencyIssue> issues = await consistencyService.check();
-      
+
       _log.info('Consistency check completed: ${issues.length} issues found');
 
       if (mounted) {
         showDialog(
           context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: const Text('Consistency Check Complete'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  issues.isEmpty
-                      ? 'No issues found. Your data is consistent.'
-                      : '${issues.length} issue(s) found.',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                if (issues.isNotEmpty) ...<Widget>[
-                  const SizedBox(height: 16),
-                  Text(
-                    'Issue breakdown:',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  ...issues.take(5).map((InconsistencyIssue issue) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          '• ${issue.description}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      )),
-                  if (issues.length > 5)
+          builder:
+              (BuildContext context) => AlertDialog(
+                title: const Text('Consistency Check Complete'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
                     Text(
-                      '... and ${issues.length - 5} more',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontStyle: FontStyle.italic,
-                          ),
+                      issues.isEmpty
+                          ? 'No issues found. Your data is consistent.'
+                          : '${issues.length} issue(s) found.',
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
-                ],
-              ],
-            ),
-            actions: <Widget>[
-              if (issues.isNotEmpty)
-                TextButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await _repairInconsistencies(context, consistencyService);
-                  },
-                  child: const Text('Repair'),
+                    if (issues.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 16),
+                      Text(
+                        'Issue breakdown:',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      ...issues
+                          .take(5)
+                          .map(
+                            (InconsistencyIssue issue) => Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Text(
+                                '• ${issue.description}',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                          ),
+                      if (issues.length > 5)
+                        Text(
+                          '... and ${issues.length - 5} more',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(fontStyle: FontStyle.italic),
+                        ),
+                    ],
+                  ],
                 ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
+                actions: <Widget>[
+                  if (issues.isNotEmpty)
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _repairInconsistencies(
+                          context,
+                          consistencyService,
+                        );
+                      },
+                      child: const Text('Repair'),
+                    ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
               ),
-            ],
-          ),
         );
       }
     } catch (e, stackTrace) {
@@ -877,49 +891,53 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   ) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Repair Inconsistencies'),
-        content: const Text(
-          'This will attempt to automatically fix detected issues. '
-          'Some issues may require manual intervention.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Repair Inconsistencies'),
+            content: const Text(
+              'This will attempt to automatically fix detected issues. '
+              'Some issues may require manual intervention.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Repair'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Repair'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed ?? false) {
       try {
         _log.info('Repairing inconsistencies');
-        
+
         final RepairResult result = await consistencyService.repairAll();
-        
-        _log.info('Repair completed: ${result.repaired} repaired, ${result.failed} failed');
+
+        _log.info(
+          'Repair completed: ${result.repaired} repaired, ${result.failed} failed',
+        );
 
         if (mounted) {
           showDialog(
             context: context,
-            builder: (BuildContext context) => AlertDialog(
-              title: const Text('Repair Complete'),
-              content: Text(
-                '${result.repaired} issue(s) repaired.\n'
-                '${result.failed} issue(s) could not be repaired.',
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
+            builder:
+                (BuildContext context) => AlertDialog(
+                  title: const Text('Repair Complete'),
+                  content: Text(
+                    '${result.repaired} issue(s) repaired.\n'
+                    '${result.failed} issue(s) could not be repaired.',
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Close'),
+                    ),
+                  ],
                 ),
-              ],
-            ),
           );
         }
       } catch (e, stackTrace) {
@@ -935,54 +953,53 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   void _showHelp() {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Offline Mode Help'),
-        content: const SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                'Auto-sync',
-                style: TextStyle(fontWeight: FontWeight.bold),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Offline Mode Help'),
+            content: const SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    'Auto-sync',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Automatically synchronize data in the background at the specified interval.',
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    'WiFi Only',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text('Only sync when connected to WiFi to save mobile data.'),
+                  SizedBox(height: 12),
+                  Text(
+                    'Conflict Resolution',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Choose how to handle conflicts when the same data is modified both locally and on the server.',
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    'Consistency Check',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Verify data integrity and fix any inconsistencies in the local database.',
+                  ),
+                ],
               ),
-              Text(
-                'Automatically synchronize data in the background at the specified interval.',
-              ),
-              SizedBox(height: 12),
-              Text(
-                'WiFi Only',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'Only sync when connected to WiFi to save mobile data.',
-              ),
-              SizedBox(height: 12),
-              Text(
-                'Conflict Resolution',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'Choose how to handle conflicts when the same data is modified both locally and on the server.',
-              ),
-              SizedBox(height: 12),
-              Text(
-                'Consistency Check',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'Verify data integrity and fix any inconsistencies in the local database.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
               ),
             ],
           ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
     );
   }
 

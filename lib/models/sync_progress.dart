@@ -75,7 +75,10 @@ class SyncProgress extends Equatable {
 
   /// Number of operations remaining
   int get remainingOperations =>
-      totalOperations - completedOperations - failedOperations - skippedOperations;
+      totalOperations -
+      completedOperations -
+      failedOperations -
+      skippedOperations;
 
   /// Whether sync is complete
   bool get isComplete => remainingOperations == 0;
@@ -134,7 +137,8 @@ class SyncProgress extends Equatable {
       currentEntityType: currentEntityType ?? this.currentEntityType,
       currentOperationType: currentOperationType ?? this.currentOperationType,
       percentage: percentage ?? this.percentage,
-      estimatedTimeRemaining: estimatedTimeRemaining ?? this.estimatedTimeRemaining,
+      estimatedTimeRemaining:
+          estimatedTimeRemaining ?? this.estimatedTimeRemaining,
       startTime: startTime ?? this.startTime,
       phase: phase ?? this.phase,
       errors: errors ?? this.errors,
@@ -145,21 +149,21 @@ class SyncProgress extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        totalOperations,
-        completedOperations,
-        failedOperations,
-        skippedOperations,
-        currentOperation,
-        currentEntityType,
-        currentOperationType,
-        percentage,
-        estimatedTimeRemaining,
-        startTime,
-        phase,
-        errors,
-        conflictsDetected,
-        throughput,
-      ];
+    totalOperations,
+    completedOperations,
+    failedOperations,
+    skippedOperations,
+    currentOperation,
+    currentEntityType,
+    currentOperationType,
+    percentage,
+    estimatedTimeRemaining,
+    startTime,
+    phase,
+    errors,
+    conflictsDetected,
+    throughput,
+  ];
 
   @override
   String toString() {
@@ -324,19 +328,19 @@ class SyncResult extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        success,
-        totalOperations,
-        successfulOperations,
-        failedOperations,
-        skippedOperations,
-        conflictsDetected,
-        conflictsResolved,
-        startTime,
-        endTime,
-        errors,
-        statsByEntity,
-        errorMessage,
-      ];
+    success,
+    totalOperations,
+    successfulOperations,
+    failedOperations,
+    skippedOperations,
+    conflictsDetected,
+    conflictsResolved,
+    startTime,
+    endTime,
+    errors,
+    statsByEntity,
+    errorMessage,
+  ];
 
   @override
   String toString() {
@@ -389,14 +393,14 @@ class EntitySyncStats extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        entityType,
-        creates,
-        updates,
-        deletes,
-        successful,
-        failed,
-        conflicts,
-      ];
+    entityType,
+    creates,
+    updates,
+    deletes,
+    successful,
+    failed,
+    conflicts,
+  ];
 
   @override
   String toString() {
@@ -438,10 +442,7 @@ class SyncProgressEvent extends SyncEvent {
   /// Current progress
   final SyncProgress progress;
 
-  const SyncProgressEvent({
-    required this.progress,
-    required super.timestamp,
-  });
+  const SyncProgressEvent({required this.progress, required super.timestamp});
 
   @override
   List<Object?> get props => <Object?>[...super.props, progress];
@@ -455,10 +456,7 @@ class SyncCompletedEvent extends SyncEvent {
   /// Sync result
   final SyncResult result;
 
-  const SyncCompletedEvent({
-    required this.result,
-    required super.timestamp,
-  });
+  const SyncCompletedEvent({required this.result, required super.timestamp});
 
   @override
   List<Object?> get props => <Object?>[...super.props, result];
@@ -523,5 +521,6 @@ class ConflictResolvedEvent extends SyncEvent {
   List<Object?> get props => <Object?>[...super.props, conflictId, strategy];
 
   @override
-  String toString() => 'ConflictResolvedEvent($conflictId, strategy: $strategy)';
+  String toString() =>
+      'ConflictResolvedEvent($conflictId, strategy: $strategy)';
 }

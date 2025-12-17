@@ -26,9 +26,10 @@ class DashboardOfflineHelper {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: hasUnsyncedData
-            ? Theme.of(context).colorScheme.tertiaryContainer
-            : Theme.of(context).colorScheme.surfaceContainerHighest,
+        color:
+            hasUnsyncedData
+                ? Theme.of(context).colorScheme.tertiaryContainer
+                : Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
@@ -37,18 +38,20 @@ class DashboardOfflineHelper {
           Icon(
             hasUnsyncedData ? Icons.cloud_queue : Icons.access_time,
             size: 12,
-            color: hasUnsyncedData
-                ? Theme.of(context).colorScheme.onTertiaryContainer
-                : Theme.of(context).colorScheme.onSurfaceVariant,
+            color:
+                hasUnsyncedData
+                    ? Theme.of(context).colorScheme.onTertiaryContainer
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 4),
           Text(
             hasUnsyncedData ? 'Includes unsynced data' : 'Data as of $ageText',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: hasUnsyncedData
+              color:
+                  hasUnsyncedData
                       ? Theme.of(context).colorScheme.onTertiaryContainer
                       : Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+            ),
           ),
         ],
       ),
@@ -73,10 +76,7 @@ class DashboardOfflineHelper {
           ),
         ),
         const SizedBox(width: 4),
-        Text(
-          'Unsynced',
-          style: Theme.of(context).textTheme.labelSmall,
-        ),
+        Text('Unsynced', style: Theme.of(context).textTheme.labelSmall),
       ],
     );
   }
@@ -112,8 +112,8 @@ class DashboardOfflineHelper {
             child: Text(
               'Viewing offline data. Some information may be outdated.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
             ),
           ),
         ],
@@ -146,8 +146,8 @@ class DashboardOfflineHelper {
             Text(
               'Connect to the internet to load $dataType',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -199,8 +199,8 @@ class DashboardOfflineHelper {
             child: Text(
               'Data may be outdated. Last updated ${_formatAge(DateTime.now().difference(lastUpdate))}.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onTertiaryContainer,
-                  ),
+                color: Theme.of(context).colorScheme.onTertiaryContainer,
+              ),
             ),
           ),
         ],

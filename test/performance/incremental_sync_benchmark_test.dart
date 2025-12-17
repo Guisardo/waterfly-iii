@@ -73,16 +73,20 @@ void main() {
       mockCacheService = MockCacheService();
 
       // Configure default cache behavior
-      when(() => mockCacheService.isFresh(any(), any()))
-          .thenAnswer((_) async => false);
-      when(() => mockCacheService.set<bool>(
-            entityType: any(named: 'entityType'),
-            entityId: any(named: 'entityId'),
-            data: any(named: 'data'),
-            ttl: any(named: 'ttl'),
-          )).thenAnswer((_) async {});
-      when(() => mockCacheService.invalidate(any(), any()))
-          .thenAnswer((_) async {});
+      when(
+        () => mockCacheService.isFresh(any(), any()),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockCacheService.set<bool>(
+          entityType: any(named: 'entityType'),
+          entityId: any(named: 'entityId'),
+          data: any(named: 'data'),
+          ttl: any(named: 'ttl'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockCacheService.invalidate(any(), any()),
+      ).thenAnswer((_) async {});
 
       // Create service instance
       syncService = IncrementalSyncService(
@@ -110,8 +114,9 @@ void main() {
         // Arrange: Create a large dataset of transactions
         const int totalTransactions = 500;
         const double changeRate = 0.1; // 10% changed
-        final DateTime oldTimestamp =
-            DateTime.now().subtract(const Duration(hours: 2));
+        final DateTime oldTimestamp = DateTime.now().subtract(
+          const Duration(hours: 2),
+        );
         final DateTime newTimestamp = DateTime.now();
 
         // Insert existing transactions with old timestamps
@@ -127,15 +132,18 @@ void main() {
         }
 
         // Create API response: 10% changed, 90% unchanged
-        final List<Map<String, dynamic>> serverTransactions = <Map<String, dynamic>>[];
+        final List<Map<String, dynamic>> serverTransactions =
+            <Map<String, dynamic>>[];
         for (int i = 0; i < totalTransactions; i++) {
           final bool isChanged = i < (totalTransactions * changeRate);
-          serverTransactions.add(_createServerTransaction(
-            'tx-$i',
-            'Transaction $i',
-            (i + 1) * 10.0,
-            isChanged ? newTimestamp : oldTimestamp,
-          ));
+          serverTransactions.add(
+            _createServerTransaction(
+              'tx-$i',
+              'Transaction $i',
+              (i + 1) * 10.0,
+              isChanged ? newTimestamp : oldTimestamp,
+            ),
+          );
         }
 
         _setupTransactionResponse(mockApiAdapter, serverTransactions);
@@ -150,7 +158,8 @@ void main() {
         // Assert: Verify performance
         expect(result.success, isTrue, reason: 'Error: ${result.error}');
 
-        final IncrementalSyncStats txStats = result.statsByEntity['transaction']!;
+        final IncrementalSyncStats txStats =
+            result.statsByEntity['transaction']!;
         expect(txStats.itemsFetched, equals(totalTransactions));
 
         // Verify skip rate meets target (should be ~90%)
@@ -158,7 +167,8 @@ void main() {
         expect(
           skipRate,
           greaterThanOrEqualTo(85.0),
-          reason: 'Skip rate should be >=85%, got ${skipRate.toStringAsFixed(1)}%',
+          reason:
+              'Skip rate should be >=85%, got ${skipRate.toStringAsFixed(1)}%',
         );
 
         // Verify bandwidth savings calculation
@@ -180,8 +190,9 @@ void main() {
         // Arrange: Create a very large dataset
         const int totalTransactions = 1000;
         const double changeRate = 0.05; // 5% changed
-        final DateTime oldTimestamp =
-            DateTime.now().subtract(const Duration(hours: 2));
+        final DateTime oldTimestamp = DateTime.now().subtract(
+          const Duration(hours: 2),
+        );
         final DateTime newTimestamp = DateTime.now();
 
         await _insertReferenceAccounts(database);
@@ -195,15 +206,18 @@ void main() {
           );
         }
 
-        final List<Map<String, dynamic>> serverTransactions = <Map<String, dynamic>>[];
+        final List<Map<String, dynamic>> serverTransactions =
+            <Map<String, dynamic>>[];
         for (int i = 0; i < totalTransactions; i++) {
           final bool isChanged = i < (totalTransactions * changeRate);
-          serverTransactions.add(_createServerTransaction(
-            'tx-$i',
-            'Transaction $i',
-            (i + 1) * 10.0,
-            isChanged ? newTimestamp : oldTimestamp,
-          ));
+          serverTransactions.add(
+            _createServerTransaction(
+              'tx-$i',
+              'Transaction $i',
+              (i + 1) * 10.0,
+              isChanged ? newTimestamp : oldTimestamp,
+            ),
+          );
         }
 
         _setupTransactionResponse(mockApiAdapter, serverTransactions);
@@ -218,14 +232,16 @@ void main() {
         // Assert
         expect(result.success, isTrue);
 
-        final IncrementalSyncStats txStats = result.statsByEntity['transaction']!;
+        final IncrementalSyncStats txStats =
+            result.statsByEntity['transaction']!;
 
         // Verify skip rate meets target (should be ~95%)
         final double skipRate = txStats.skipRate;
         expect(
           skipRate,
           greaterThanOrEqualTo(90.0),
-          reason: 'Skip rate should be >=90%, got ${skipRate.toStringAsFixed(1)}%',
+          reason:
+              'Skip rate should be >=90%, got ${skipRate.toStringAsFixed(1)}%',
         );
 
         _logBenchmarkResult(
@@ -239,126 +255,140 @@ void main() {
     // ==================== Benchmark 2: Bandwidth Reduction ====================
 
     group('Bandwidth Reduction', () {
-      test('should achieve 70%+ bandwidth reduction with 90% unchanged data',
-          () async {
-        // Arrange: 100 transactions, 90% unchanged
-        const int totalTransactions = 100;
-        const double changeRate = 0.10; // 10% changed
-        final DateTime oldTimestamp =
-            DateTime.now().subtract(const Duration(hours: 2));
-        final DateTime newTimestamp = DateTime.now();
-
-        await _insertReferenceAccounts(database);
-        for (int i = 0; i < totalTransactions; i++) {
-          await _insertTransaction(
-            database,
-            'tx-$i',
-            'Transaction $i',
-            (i + 1) * 10.0,
-            oldTimestamp,
+      test(
+        'should achieve 70%+ bandwidth reduction with 90% unchanged data',
+        () async {
+          // Arrange: 100 transactions, 90% unchanged
+          const int totalTransactions = 100;
+          const double changeRate = 0.10; // 10% changed
+          final DateTime oldTimestamp = DateTime.now().subtract(
+            const Duration(hours: 2),
           );
-        }
+          final DateTime newTimestamp = DateTime.now();
 
-        final List<Map<String, dynamic>> serverTransactions = <Map<String, dynamic>>[];
-        for (int i = 0; i < totalTransactions; i++) {
-          final bool isChanged = i < (totalTransactions * changeRate);
-          serverTransactions.add(_createServerTransaction(
-            'tx-$i',
-            'Transaction $i',
-            (i + 1) * 10.0,
-            isChanged ? newTimestamp : oldTimestamp,
-          ));
-        }
+          await _insertReferenceAccounts(database);
+          for (int i = 0; i < totalTransactions; i++) {
+            await _insertTransaction(
+              database,
+              'tx-$i',
+              'Transaction $i',
+              (i + 1) * 10.0,
+              oldTimestamp,
+            );
+          }
 
-        _setupTransactionResponse(mockApiAdapter, serverTransactions);
-        _setupEmptyOtherEntityResponses(mockApiAdapter);
+          final List<Map<String, dynamic>> serverTransactions =
+              <Map<String, dynamic>>[];
+          for (int i = 0; i < totalTransactions; i++) {
+            final bool isChanged = i < (totalTransactions * changeRate);
+            serverTransactions.add(
+              _createServerTransaction(
+                'tx-$i',
+                'Transaction $i',
+                (i + 1) * 10.0,
+                isChanged ? newTimestamp : oldTimestamp,
+              ),
+            );
+          }
 
-        // Act
-        final IncrementalSyncResult result =
-            await syncService.performIncrementalSync();
+          _setupTransactionResponse(mockApiAdapter, serverTransactions);
+          _setupEmptyOtherEntityResponses(mockApiAdapter);
 
-        // Assert
-        expect(result.success, isTrue);
+          // Act
+          final IncrementalSyncResult result =
+              await syncService.performIncrementalSync();
 
-        final IncrementalSyncStats txStats = result.statsByEntity['transaction']!;
+          // Assert
+          expect(result.success, isTrue);
 
-        // Calculate bandwidth reduction percentage
-        // Assume average transaction is ~2KB
-        const int avgTransactionSize = 2048;
-        final int totalBandwidthWithoutSkip =
-            totalTransactions * avgTransactionSize;
-        final int bandwidthSaved = txStats.bandwidthSavedBytes;
+          final IncrementalSyncStats txStats =
+              result.statsByEntity['transaction']!;
 
-        final double reductionPercent =
-            (bandwidthSaved / totalBandwidthWithoutSkip) * 100;
+          // Calculate bandwidth reduction percentage
+          // Assume average transaction is ~2KB
+          const int avgTransactionSize = 2048;
+          final int totalBandwidthWithoutSkip =
+              totalTransactions * avgTransactionSize;
+          final int bandwidthSaved = txStats.bandwidthSavedBytes;
 
-        expect(
-          reductionPercent,
-          greaterThanOrEqualTo(70.0),
-          reason:
-              'Bandwidth reduction should be >=70%, got ${reductionPercent.toStringAsFixed(1)}%',
-        );
+          final double reductionPercent =
+              (bandwidthSaved / totalBandwidthWithoutSkip) * 100;
 
-        _logBenchmarkResult(
-          'Bandwidth Reduction Test',
-          Duration.zero,
-          txStats,
-          additionalInfo:
-              'Reduction: ${reductionPercent.toStringAsFixed(1)}% ($bandwidthSaved bytes saved)',
-        );
-      });
-
-      test('should calculate correct bandwidth savings for skipped items',
-          () async {
-        // Arrange: All items unchanged
-        const int totalTransactions = 50;
-        final DateTime timestamp =
-            DateTime.now().subtract(const Duration(hours: 1));
-
-        await _insertReferenceAccounts(database);
-        for (int i = 0; i < totalTransactions; i++) {
-          await _insertTransaction(
-            database,
-            'tx-$i',
-            'Transaction $i',
-            (i + 1) * 10.0,
-            timestamp,
+          expect(
+            reductionPercent,
+            greaterThanOrEqualTo(70.0),
+            reason:
+                'Bandwidth reduction should be >=70%, got ${reductionPercent.toStringAsFixed(1)}%',
           );
-        }
 
-        final List<Map<String, dynamic>> serverTransactions = <Map<String, dynamic>>[];
-        for (int i = 0; i < totalTransactions; i++) {
-          serverTransactions.add(_createServerTransaction(
-            'tx-$i',
-            'Transaction $i',
-            (i + 1) * 10.0,
-            timestamp, // Same timestamp = unchanged
-          ));
-        }
+          _logBenchmarkResult(
+            'Bandwidth Reduction Test',
+            Duration.zero,
+            txStats,
+            additionalInfo:
+                'Reduction: ${reductionPercent.toStringAsFixed(1)}% ($bandwidthSaved bytes saved)',
+          );
+        },
+      );
 
-        _setupTransactionResponse(mockApiAdapter, serverTransactions);
-        _setupEmptyOtherEntityResponses(mockApiAdapter);
+      test(
+        'should calculate correct bandwidth savings for skipped items',
+        () async {
+          // Arrange: All items unchanged
+          const int totalTransactions = 50;
+          final DateTime timestamp = DateTime.now().subtract(
+            const Duration(hours: 1),
+          );
 
-        // Act
-        final IncrementalSyncResult result =
-            await syncService.performIncrementalSync();
+          await _insertReferenceAccounts(database);
+          for (int i = 0; i < totalTransactions; i++) {
+            await _insertTransaction(
+              database,
+              'tx-$i',
+              'Transaction $i',
+              (i + 1) * 10.0,
+              timestamp,
+            );
+          }
 
-        // Assert
-        expect(result.success, isTrue);
+          final List<Map<String, dynamic>> serverTransactions =
+              <Map<String, dynamic>>[];
+          for (int i = 0; i < totalTransactions; i++) {
+            serverTransactions.add(
+              _createServerTransaction(
+                'tx-$i',
+                'Transaction $i',
+                (i + 1) * 10.0,
+                timestamp, // Same timestamp = unchanged
+              ),
+            );
+          }
 
-        final IncrementalSyncStats txStats = result.statsByEntity['transaction']!;
+          _setupTransactionResponse(mockApiAdapter, serverTransactions);
+          _setupEmptyOtherEntityResponses(mockApiAdapter);
 
-        // All items should be skipped
-        expect(txStats.itemsSkipped, equals(totalTransactions));
-        expect(txStats.itemsUpdated, equals(0));
+          // Act
+          final IncrementalSyncResult result =
+              await syncService.performIncrementalSync();
 
-        // Bandwidth saved should be totalTransactions * avgSize
-        const int avgTransactionSize = 2048;
-        expect(
-          txStats.bandwidthSavedBytes,
-          equals(totalTransactions * avgTransactionSize),
-        );
-      });
+          // Assert
+          expect(result.success, isTrue);
+
+          final IncrementalSyncStats txStats =
+              result.statsByEntity['transaction']!;
+
+          // All items should be skipped
+          expect(txStats.itemsSkipped, equals(totalTransactions));
+          expect(txStats.itemsUpdated, equals(0));
+
+          // Bandwidth saved should be totalTransactions * avgSize
+          const int avgTransactionSize = 2048;
+          expect(
+            txStats.bandwidthSavedBytes,
+            equals(totalTransactions * avgTransactionSize),
+          );
+        },
+      );
     });
 
     // ==================== Benchmark 3: Cache Hit Performance ====================
@@ -366,12 +396,15 @@ void main() {
     group('Cache Hit Performance for Tier 2 Entities', () {
       test('should skip 95%+ API calls when Tier 2 cache is fresh', () async {
         // Arrange: Configure all Tier 2 caches as fresh
-        when(() => mockCacheService.isFresh('category_list', 'all'))
-            .thenAnswer((_) async => true);
-        when(() => mockCacheService.isFresh('bill_list', 'all'))
-            .thenAnswer((_) async => true);
-        when(() => mockCacheService.isFresh('piggy_bank_list', 'all'))
-            .thenAnswer((_) async => true);
+        when(
+          () => mockCacheService.isFresh('category_list', 'all'),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockCacheService.isFresh('bill_list', 'all'),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockCacheService.isFresh('piggy_bank_list', 'all'),
+        ).thenAnswer((_) async => true);
 
         // Only Tier 1 entities will be fetched
         _setupEmptyTransactionResponse(mockApiAdapter);
@@ -398,18 +431,24 @@ void main() {
         expect(totalApiCallsSaved, equals(3));
 
         // Verify no API calls were made for cached entities
-        verifyNever(() => mockApiAdapter.getCategoriesPaginated(
-              page: any(named: 'page'),
-              limit: any(named: 'limit'),
-            ));
-        verifyNever(() => mockApiAdapter.getBillsPaginated(
-              page: any(named: 'page'),
-              limit: any(named: 'limit'),
-            ));
-        verifyNever(() => mockApiAdapter.getPiggyBanksPaginated(
-              page: any(named: 'page'),
-              limit: any(named: 'limit'),
-            ));
+        verifyNever(
+          () => mockApiAdapter.getCategoriesPaginated(
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        );
+        verifyNever(
+          () => mockApiAdapter.getBillsPaginated(
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        );
+        verifyNever(
+          () => mockApiAdapter.getPiggyBanksPaginated(
+            page: any(named: 'page'),
+            limit: any(named: 'limit'),
+          ),
+        );
 
         _logBenchmarkResult(
           'Tier 2 Cache Hit Test',
@@ -421,12 +460,15 @@ void main() {
 
       test('should measure cache miss vs hit performance difference', () async {
         // Test 1: Cache Miss (stale cache)
-        when(() => mockCacheService.isFresh('category_list', 'all'))
-            .thenAnswer((_) async => false);
-        when(() => mockCacheService.isFresh('bill_list', 'all'))
-            .thenAnswer((_) async => false);
-        when(() => mockCacheService.isFresh('piggy_bank_list', 'all'))
-            .thenAnswer((_) async => false);
+        when(
+          () => mockCacheService.isFresh('category_list', 'all'),
+        ).thenAnswer((_) async => false);
+        when(
+          () => mockCacheService.isFresh('bill_list', 'all'),
+        ).thenAnswer((_) async => false);
+        when(
+          () => mockCacheService.isFresh('piggy_bank_list', 'all'),
+        ).thenAnswer((_) async => false);
 
         _setupEmptyApiResponses(mockApiAdapter);
 
@@ -438,12 +480,15 @@ void main() {
         expect(cacheMissResult.success, isTrue);
 
         // Test 2: Cache Hit (fresh cache)
-        when(() => mockCacheService.isFresh('category_list', 'all'))
-            .thenAnswer((_) async => true);
-        when(() => mockCacheService.isFresh('bill_list', 'all'))
-            .thenAnswer((_) async => true);
-        when(() => mockCacheService.isFresh('piggy_bank_list', 'all'))
-            .thenAnswer((_) async => true);
+        when(
+          () => mockCacheService.isFresh('category_list', 'all'),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockCacheService.isFresh('bill_list', 'all'),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockCacheService.isFresh('piggy_bank_list', 'all'),
+        ).thenAnswer((_) async => true);
 
         _setupEmptyTransactionResponse(mockApiAdapter);
         _setupEmptyAccountResponse(mockApiAdapter);
@@ -462,24 +507,20 @@ void main() {
           cacheMissStopwatch.elapsed,
           null,
         );
-        _logBenchmarkResult(
-          'Cache Hit Sync',
-          cacheHitStopwatch.elapsed,
-          null,
-        );
+        _logBenchmarkResult('Cache Hit Sync', cacheHitStopwatch.elapsed, null);
       });
     });
 
     // ==================== Benchmark 4: Database Write Reduction ====================
 
     group('Database Write Reduction', () {
-      test('should achieve 80%+ write reduction with 90% unchanged data',
-          () async {
+      test('should achieve 80%+ write reduction with 90% unchanged data', () async {
         // Arrange: 100 transactions, 90% unchanged
         const int totalTransactions = 100;
         const double changeRate = 0.10; // 10% changed
-        final DateTime oldTimestamp =
-            DateTime.now().subtract(const Duration(hours: 2));
+        final DateTime oldTimestamp = DateTime.now().subtract(
+          const Duration(hours: 2),
+        );
         final DateTime newTimestamp = DateTime.now();
 
         await _insertReferenceAccounts(database);
@@ -493,15 +534,18 @@ void main() {
           );
         }
 
-        final List<Map<String, dynamic>> serverTransactions = <Map<String, dynamic>>[];
+        final List<Map<String, dynamic>> serverTransactions =
+            <Map<String, dynamic>>[];
         for (int i = 0; i < totalTransactions; i++) {
           final bool isChanged = i < (totalTransactions * changeRate);
-          serverTransactions.add(_createServerTransaction(
-            'tx-$i',
-            'Transaction $i',
-            (i + 1) * 10.0,
-            isChanged ? newTimestamp : oldTimestamp,
-          ));
+          serverTransactions.add(
+            _createServerTransaction(
+              'tx-$i',
+              'Transaction $i',
+              (i + 1) * 10.0,
+              isChanged ? newTimestamp : oldTimestamp,
+            ),
+          );
         }
 
         _setupTransactionResponse(mockApiAdapter, serverTransactions);
@@ -514,14 +558,15 @@ void main() {
         // Assert
         expect(result.success, isTrue);
 
-        final IncrementalSyncStats txStats = result.statsByEntity['transaction']!;
+        final IncrementalSyncStats txStats =
+            result.statsByEntity['transaction']!;
 
         // Calculate write reduction
         final int totalWritesWithoutSkip = totalTransactions;
         final int actualWrites = txStats.itemsUpdated;
         final double writeReduction =
             ((totalWritesWithoutSkip - actualWrites) / totalWritesWithoutSkip) *
-                100;
+            100;
 
         expect(
           writeReduction,
@@ -545,8 +590,9 @@ void main() {
     group('Mixed Entity Performance', () {
       test('should efficiently sync all entity types together', () async {
         // Arrange: Create mixed data with varying change rates
-        final DateTime oldTimestamp =
-            DateTime.now().subtract(const Duration(hours: 2));
+        final DateTime oldTimestamp = DateTime.now().subtract(
+          const Duration(hours: 2),
+        );
         final DateTime newTimestamp = DateTime.now();
 
         await _insertReferenceAccounts(database);
@@ -575,27 +621,32 @@ void main() {
         }
 
         // Setup API responses with mixed change rates
-        final List<Map<String, dynamic>> transactions = <Map<String, dynamic>>[];
+        final List<Map<String, dynamic>> transactions =
+            <Map<String, dynamic>>[];
         for (int i = 0; i < 50; i++) {
           final bool isChanged = i < 5; // 10% changed
-          transactions.add(_createServerTransaction(
-            'tx-$i',
-            'Transaction $i',
-            (i + 1) * 10.0,
-            isChanged ? newTimestamp : oldTimestamp,
-          ));
+          transactions.add(
+            _createServerTransaction(
+              'tx-$i',
+              'Transaction $i',
+              (i + 1) * 10.0,
+              isChanged ? newTimestamp : oldTimestamp,
+            ),
+          );
         }
 
         final List<Map<String, dynamic>> accounts = <Map<String, dynamic>>[];
         for (int i = 0; i < 10; i++) {
           final bool isChanged = i < 2; // 20% changed
-          accounts.add(_createServerAccount(
-            'acc-extra-$i',
-            'Account $i',
-            'asset',
-            1000.0,
-            isChanged ? newTimestamp : oldTimestamp,
-          ));
+          accounts.add(
+            _createServerAccount(
+              'acc-extra-$i',
+              'Account $i',
+              'asset',
+              1000.0,
+              isChanged ? newTimestamp : oldTimestamp,
+            ),
+          );
         }
 
         _setupTransactionResponse(mockApiAdapter, transactions);
@@ -603,12 +654,15 @@ void main() {
         _setupEmptyBudgetResponse(mockApiAdapter);
 
         // Tier 2: All cache fresh
-        when(() => mockCacheService.isFresh('category_list', 'all'))
-            .thenAnswer((_) async => true);
-        when(() => mockCacheService.isFresh('bill_list', 'all'))
-            .thenAnswer((_) async => true);
-        when(() => mockCacheService.isFresh('piggy_bank_list', 'all'))
-            .thenAnswer((_) async => true);
+        when(
+          () => mockCacheService.isFresh('category_list', 'all'),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockCacheService.isFresh('bill_list', 'all'),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockCacheService.isFresh('piggy_bank_list', 'all'),
+        ).thenAnswer((_) async => true);
 
         // Act
         final Stopwatch stopwatch = Stopwatch()..start();
@@ -648,8 +702,9 @@ void main() {
       test('should perform timestamp comparison efficiently', () async {
         // Arrange: Large number of transactions to compare
         const int totalTransactions = 200;
-        final DateTime timestamp =
-            DateTime.now().subtract(const Duration(hours: 1));
+        final DateTime timestamp = DateTime.now().subtract(
+          const Duration(hours: 1),
+        );
 
         await _insertReferenceAccounts(database);
         for (int i = 0; i < totalTransactions; i++) {
@@ -662,15 +717,18 @@ void main() {
           );
         }
 
-        final List<Map<String, dynamic>> serverTransactions = <Map<String, dynamic>>[];
+        final List<Map<String, dynamic>> serverTransactions =
+            <Map<String, dynamic>>[];
         for (int i = 0; i < totalTransactions; i++) {
           // All unchanged - forces timestamp comparison for each
-          serverTransactions.add(_createServerTransaction(
-            'tx-$i',
-            'Transaction $i',
-            (i + 1) * 10.0,
-            timestamp,
-          ));
+          serverTransactions.add(
+            _createServerTransaction(
+              'tx-$i',
+              'Transaction $i',
+              (i + 1) * 10.0,
+              timestamp,
+            ),
+          );
         }
 
         _setupTransactionResponse(mockApiAdapter, serverTransactions);
@@ -685,7 +743,8 @@ void main() {
         // Assert
         expect(result.success, isTrue);
 
-        final IncrementalSyncStats txStats = result.statsByEntity['transaction']!;
+        final IncrementalSyncStats txStats =
+            result.statsByEntity['transaction']!;
 
         // All should be skipped (same timestamp)
         expect(txStats.itemsSkipped, equals(totalTransactions));
@@ -711,48 +770,57 @@ void main() {
 
 /// Initialize sync metadata for a fresh database.
 Future<void> _initializeSyncMetadata(AppDatabase database) async {
-  await database.into(database.syncMetadata).insertOnConflictUpdate(
-    SyncMetadataEntityCompanion.insert(
-      key: 'last_full_sync',
-      value: DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-      updatedAt: DateTime.now(),
-    ),
-  );
+  await database
+      .into(database.syncMetadata)
+      .insertOnConflictUpdate(
+        SyncMetadataEntityCompanion.insert(
+          key: 'last_full_sync',
+          value:
+              DateTime.now()
+                  .subtract(const Duration(days: 1))
+                  .toIso8601String(),
+          updatedAt: DateTime.now(),
+        ),
+      );
 }
 
 /// Insert required reference accounts used by transactions in tests.
 Future<void> _insertReferenceAccounts(AppDatabase database) async {
   final DateTime now = DateTime.now();
-  await database.into(database.accounts).insertOnConflictUpdate(
-    AccountEntityCompanion.insert(
-      id: 'acc-1',
-      serverId: const Value<String?>('acc-1'),
-      name: 'Test Source Account',
-      type: 'asset',
-      currencyCode: 'USD',
-      currentBalance: 1000.0,
-      createdAt: now,
-      updatedAt: now,
-      serverUpdatedAt: Value<DateTime?>(now),
-      isSynced: const Value<bool>(true),
-      syncStatus: const Value<String>('synced'),
-    ),
-  );
-  await database.into(database.accounts).insertOnConflictUpdate(
-    AccountEntityCompanion.insert(
-      id: 'acc-2',
-      serverId: const Value<String?>('acc-2'),
-      name: 'Test Destination Account',
-      type: 'expense',
-      currencyCode: 'USD',
-      currentBalance: 0.0,
-      createdAt: now,
-      updatedAt: now,
-      serverUpdatedAt: Value<DateTime?>(now),
-      isSynced: const Value<bool>(true),
-      syncStatus: const Value<String>('synced'),
-    ),
-  );
+  await database
+      .into(database.accounts)
+      .insertOnConflictUpdate(
+        AccountEntityCompanion.insert(
+          id: 'acc-1',
+          serverId: const Value<String?>('acc-1'),
+          name: 'Test Source Account',
+          type: 'asset',
+          currencyCode: 'USD',
+          currentBalance: 1000.0,
+          createdAt: now,
+          updatedAt: now,
+          serverUpdatedAt: Value<DateTime?>(now),
+          isSynced: const Value<bool>(true),
+          syncStatus: const Value<String>('synced'),
+        ),
+      );
+  await database
+      .into(database.accounts)
+      .insertOnConflictUpdate(
+        AccountEntityCompanion.insert(
+          id: 'acc-2',
+          serverId: const Value<String?>('acc-2'),
+          name: 'Test Destination Account',
+          type: 'expense',
+          currencyCode: 'USD',
+          currentBalance: 0.0,
+          createdAt: now,
+          updatedAt: now,
+          serverUpdatedAt: Value<DateTime?>(now),
+          isSynced: const Value<bool>(true),
+          syncStatus: const Value<String>('synced'),
+        ),
+      );
 }
 
 /// Insert a test transaction into the database.
@@ -763,24 +831,26 @@ Future<void> _insertTransaction(
   double amount,
   DateTime serverUpdatedAt,
 ) async {
-  await database.into(database.transactions).insertOnConflictUpdate(
-    TransactionEntityCompanion.insert(
-      id: serverId,
-      serverId: Value<String?>(serverId),
-      type: 'withdrawal',
-      date: DateTime.now(),
-      amount: amount,
-      description: description,
-      sourceAccountId: 'acc-1',
-      destinationAccountId: 'acc-2',
-      currencyCode: 'USD',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
-      isSynced: const Value<bool>(true),
-      syncStatus: const Value<String>('synced'),
-    ),
-  );
+  await database
+      .into(database.transactions)
+      .insertOnConflictUpdate(
+        TransactionEntityCompanion.insert(
+          id: serverId,
+          serverId: Value<String?>(serverId),
+          type: 'withdrawal',
+          date: DateTime.now(),
+          amount: amount,
+          description: description,
+          sourceAccountId: 'acc-1',
+          destinationAccountId: 'acc-2',
+          currencyCode: 'USD',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
+          isSynced: const Value<bool>(true),
+          syncStatus: const Value<String>('synced'),
+        ),
+      );
 }
 
 /// Insert a test account into the database.
@@ -792,21 +862,23 @@ Future<void> _insertAccount(
   double balance,
   DateTime serverUpdatedAt,
 ) async {
-  await database.into(database.accounts).insertOnConflictUpdate(
-    AccountEntityCompanion.insert(
-      id: serverId,
-      serverId: Value<String?>(serverId),
-      name: name,
-      type: type,
-      currencyCode: 'USD',
-      currentBalance: balance,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
-      isSynced: const Value<bool>(true),
-      syncStatus: const Value<String>('synced'),
-    ),
-  );
+  await database
+      .into(database.accounts)
+      .insertOnConflictUpdate(
+        AccountEntityCompanion.insert(
+          id: serverId,
+          serverId: Value<String?>(serverId),
+          name: name,
+          type: type,
+          currencyCode: 'USD',
+          currentBalance: balance,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          serverUpdatedAt: Value<DateTime?>(serverUpdatedAt),
+          isSynced: const Value<bool>(true),
+          syncStatus: const Value<String>('synced'),
+        ),
+      );
 }
 
 /// Setup empty API responses for all entity types.
@@ -837,57 +909,73 @@ void _setupEmptyAccountResponse(MockFireflyApiAdapter mockApi) {
 }
 
 void _setupEmptyBudgetResponse(MockFireflyApiAdapter mockApi) {
-  when(() => mockApi.getBudgetsPaginated(
-        page: any(named: 'page'),
-        start: any(named: 'start'),
-        end: any(named: 'end'),
-        limit: any(named: 'limit'),
-      )).thenAnswer((_) async => PaginatedResult<Map<String, dynamic>>(
-        data: <Map<String, dynamic>>[],
-        total: 0,
-        currentPage: 1,
-        totalPages: 1,
-        perPage: 50,
-      ));
+  when(
+    () => mockApi.getBudgetsPaginated(
+      page: any(named: 'page'),
+      start: any(named: 'start'),
+      end: any(named: 'end'),
+      limit: any(named: 'limit'),
+    ),
+  ).thenAnswer(
+    (_) async => PaginatedResult<Map<String, dynamic>>(
+      data: <Map<String, dynamic>>[],
+      total: 0,
+      currentPage: 1,
+      totalPages: 1,
+      perPage: 50,
+    ),
+  );
 }
 
 void _setupEmptyCategoryResponse(MockFireflyApiAdapter mockApi) {
-  when(() => mockApi.getCategoriesPaginated(
-        page: any(named: 'page'),
-        limit: any(named: 'limit'),
-      )).thenAnswer((_) async => PaginatedResult<Map<String, dynamic>>(
-        data: <Map<String, dynamic>>[],
-        total: 0,
-        currentPage: 1,
-        totalPages: 1,
-        perPage: 50,
-      ));
+  when(
+    () => mockApi.getCategoriesPaginated(
+      page: any(named: 'page'),
+      limit: any(named: 'limit'),
+    ),
+  ).thenAnswer(
+    (_) async => PaginatedResult<Map<String, dynamic>>(
+      data: <Map<String, dynamic>>[],
+      total: 0,
+      currentPage: 1,
+      totalPages: 1,
+      perPage: 50,
+    ),
+  );
 }
 
 void _setupEmptyBillResponse(MockFireflyApiAdapter mockApi) {
-  when(() => mockApi.getBillsPaginated(
-        page: any(named: 'page'),
-        limit: any(named: 'limit'),
-      )).thenAnswer((_) async => PaginatedResult<Map<String, dynamic>>(
-        data: <Map<String, dynamic>>[],
-        total: 0,
-        currentPage: 1,
-        totalPages: 1,
-        perPage: 50,
-      ));
+  when(
+    () => mockApi.getBillsPaginated(
+      page: any(named: 'page'),
+      limit: any(named: 'limit'),
+    ),
+  ).thenAnswer(
+    (_) async => PaginatedResult<Map<String, dynamic>>(
+      data: <Map<String, dynamic>>[],
+      total: 0,
+      currentPage: 1,
+      totalPages: 1,
+      perPage: 50,
+    ),
+  );
 }
 
 void _setupEmptyPiggyBankResponse(MockFireflyApiAdapter mockApi) {
-  when(() => mockApi.getPiggyBanksPaginated(
-        page: any(named: 'page'),
-        limit: any(named: 'limit'),
-      )).thenAnswer((_) async => PaginatedResult<Map<String, dynamic>>(
-        data: <Map<String, dynamic>>[],
-        total: 0,
-        currentPage: 1,
-        totalPages: 1,
-        perPage: 50,
-      ));
+  when(
+    () => mockApi.getPiggyBanksPaginated(
+      page: any(named: 'page'),
+      limit: any(named: 'limit'),
+    ),
+  ).thenAnswer(
+    (_) async => PaginatedResult<Map<String, dynamic>>(
+      data: <Map<String, dynamic>>[],
+      total: 0,
+      currentPage: 1,
+      totalPages: 1,
+      perPage: 50,
+    ),
+  );
 }
 
 /// Setup mock transaction API response.
@@ -895,18 +983,22 @@ void _setupTransactionResponse(
   MockFireflyApiAdapter mockApi,
   List<Map<String, dynamic>> transactions,
 ) {
-  when(() => mockApi.getTransactionsPaginated(
-        page: any(named: 'page'),
-        start: any(named: 'start'),
-        end: any(named: 'end'),
-        limit: any(named: 'limit'),
-      )).thenAnswer((_) async => PaginatedResult<Map<String, dynamic>>(
-        data: transactions,
-        total: transactions.length,
-        currentPage: 1,
-        totalPages: 1,
-        perPage: 50,
-      ));
+  when(
+    () => mockApi.getTransactionsPaginated(
+      page: any(named: 'page'),
+      start: any(named: 'start'),
+      end: any(named: 'end'),
+      limit: any(named: 'limit'),
+    ),
+  ).thenAnswer(
+    (_) async => PaginatedResult<Map<String, dynamic>>(
+      data: transactions,
+      total: transactions.length,
+      currentPage: 1,
+      totalPages: 1,
+      perPage: 50,
+    ),
+  );
 }
 
 /// Setup mock account API response.
@@ -914,17 +1006,21 @@ void _setupAccountResponse(
   MockFireflyApiAdapter mockApi,
   List<Map<String, dynamic>> accounts,
 ) {
-  when(() => mockApi.getAccountsPaginated(
-        page: any(named: 'page'),
-        start: any(named: 'start'),
-        limit: any(named: 'limit'),
-      )).thenAnswer((_) async => PaginatedResult<Map<String, dynamic>>(
-        data: accounts,
-        total: accounts.length,
-        currentPage: 1,
-        totalPages: 1,
-        perPage: 50,
-      ));
+  when(
+    () => mockApi.getAccountsPaginated(
+      page: any(named: 'page'),
+      start: any(named: 'start'),
+      limit: any(named: 'limit'),
+    ),
+  ).thenAnswer(
+    (_) async => PaginatedResult<Map<String, dynamic>>(
+      data: accounts,
+      total: accounts.length,
+      currentPage: 1,
+      totalPages: 1,
+      perPage: 50,
+    ),
+  );
 }
 
 // ==================== Server Data Factories ====================
@@ -957,7 +1053,8 @@ Map<String, dynamic> _createServerTransaction(
           'tags': '[]',
         },
       ],
-      'created_at': updatedAt.subtract(const Duration(days: 1)).toIso8601String(),
+      'created_at':
+          updatedAt.subtract(const Duration(days: 1)).toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     },
   };
@@ -987,7 +1084,8 @@ Map<String, dynamic> _createServerAccount(
       'opening_balance_date': null,
       'notes': null,
       'active': true,
-      'created_at': updatedAt.subtract(const Duration(days: 1)).toIso8601String(),
+      'created_at':
+          updatedAt.subtract(const Duration(days: 1)).toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     },
   };
@@ -1025,4 +1123,3 @@ void _logBenchmarkResult(
   // ignore: avoid_print
   print(output.toString());
 }
-

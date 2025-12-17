@@ -48,8 +48,9 @@ class AppModeManager {
   final ConnectivityService _connectivityService = ConnectivityService();
 
   /// Subject for broadcasting app mode changes.
-  final BehaviorSubject<AppMode> _modeSubject =
-      BehaviorSubject<AppMode>.seeded(AppMode.offline);
+  final BehaviorSubject<AppMode> _modeSubject = BehaviorSubject<AppMode>.seeded(
+    AppMode.offline,
+  );
 
   StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
   SharedPreferences? _prefs;
@@ -105,8 +106,9 @@ class AppModeManager {
       await _restoreState();
 
       // Set up connectivity monitoring
-      _connectivitySubscription =
-          _connectivityService.statusStream.listen(_onConnectivityChanged);
+      _connectivitySubscription = _connectivityService.statusStream.listen(
+        _onConnectivityChanged,
+      );
 
       // Determine initial mode based on current connectivity
       await _updateModeFromConnectivity();
@@ -116,11 +118,7 @@ class AppModeManager {
         'AppModeManager initialized successfully. Current mode: ${currentMode.displayName}',
       );
     } catch (error, stackTrace) {
-      _logger.severe(
-        'Failed to initialize AppModeManager',
-        error,
-        stackTrace,
-      );
+      _logger.severe('Failed to initialize AppModeManager', error, stackTrace);
       rethrow;
     }
   }
@@ -151,11 +149,7 @@ class AppModeManager {
         }
       }
     } catch (error, stackTrace) {
-      _logger.warning(
-        'Failed to restore app mode state',
-        error,
-        stackTrace,
-      );
+      _logger.warning('Failed to restore app mode state', error, stackTrace);
       // Continue with default mode (offline)
     }
   }
@@ -179,7 +173,8 @@ class AppModeManager {
       return; // Don't change mode if manual override is active
     }
 
-    final ConnectivityStatus connectivityStatus = _connectivityService.currentStatus;
+    final ConnectivityStatus connectivityStatus =
+        _connectivityService.currentStatus;
 
     final AppMode newMode = switch (connectivityStatus) {
       ConnectivityStatus.online => AppMode.online,

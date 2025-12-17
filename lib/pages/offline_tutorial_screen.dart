@@ -30,25 +30,29 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
     _TutorialPage(
       icon: Icons.cloud_off,
       title: 'Work Offline',
-      description: 'Continue using Waterfly III even without an internet connection. '
+      description:
+          'Continue using Waterfly III even without an internet connection. '
           'All your changes are saved locally and will sync automatically when you\'re back online.',
     ),
     _TutorialPage(
       icon: Icons.sync,
       title: 'Automatic Sync',
-      description: 'Your offline changes are queued and synced automatically when you reconnect. '
+      description:
+          'Your offline changes are queued and synced automatically when you reconnect. '
           'You can also manually trigger a sync anytime from the sync status screen.',
     ),
     _TutorialPage(
       icon: Icons.warning_amber,
       title: 'Conflict Resolution',
-      description: 'If the same data is modified both locally and on the server, you\'ll be notified '
+      description:
+          'If the same data is modified both locally and on the server, you\'ll be notified '
           'and can choose how to resolve the conflict.',
     ),
     _TutorialPage(
       icon: Icons.check_circle,
       title: 'You\'re All Set!',
-      description: 'Offline mode is now enabled. Look for the cloud icon in the app bar to see your sync status.',
+      description:
+          'Offline mode is now enabled. Look for the cloud icon in the app bar to see your sync status.',
     ),
   ];
 
@@ -67,10 +71,7 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
             // Skip button
             Align(
               alignment: Alignment.topRight,
-              child: TextButton(
-                onPressed: _finish,
-                child: const Text('Skip'),
-              ),
+              child: TextButton(onPressed: _finish, child: const Text('Skip')),
             ),
 
             // Page view
@@ -125,11 +126,12 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
                   else
                     const SizedBox(width: 80),
                   FilledButton(
-                    onPressed: _currentPage == _pages.length - 1
-                        ? _finish
-                        : _nextPage,
+                    onPressed:
+                        _currentPage == _pages.length - 1 ? _finish : _nextPage,
                     child: Text(
-                      _currentPage == _pages.length - 1 ? 'Get Started' : 'Next',
+                      _currentPage == _pages.length - 1
+                          ? 'Get Started'
+                          : 'Next',
                     ),
                   ),
                 ],
@@ -175,9 +177,10 @@ class _OfflineTutorialScreenState extends State<OfflineTutorialScreen> {
       width: _currentPage == index ? 24 : 8,
       height: 8,
       decoration: BoxDecoration(
-        color: _currentPage == index
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.outlineVariant,
+        color:
+            _currentPage == index
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outlineVariant,
         borderRadius: BorderRadius.circular(4),
       ),
     );

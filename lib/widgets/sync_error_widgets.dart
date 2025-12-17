@@ -45,8 +45,8 @@ class SyncErrorWidgets {
                   child: Text(
                     errorInfo['title'] as String,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
                   ),
                 ),
               ],
@@ -55,15 +55,15 @@ class SyncErrorWidgets {
             Text(
               errorInfo['message'] as String,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onErrorContainer,
-                  ),
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               _formatTimestamp(timestamp),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onErrorContainer,
-                  ),
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -73,7 +73,8 @@ class SyncErrorWidgets {
                   TextButton(
                     onPressed: onViewDetails,
                     style: TextButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+                      foregroundColor:
+                          Theme.of(context).colorScheme.onErrorContainer,
                     ),
                     child: const Text('View Details'),
                   ),
@@ -106,43 +107,44 @@ class SyncErrorWidgets {
 
     await showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        icon: Icon(
-          errorInfo['icon'] as IconData,
-          color: Theme.of(context).colorScheme.error,
-        ),
-        title: Text(errorInfo['title'] as String),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(errorInfo['message'] as String),
-            if (errorInfo['suggestion'] != null) ...<Widget>[
-              const SizedBox(height: 16),
-              Text(
-                'Suggestion:',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: 4),
-              Text(errorInfo['suggestion'] as String),
-            ],
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-          if (onRetry != null)
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(context);
-                onRetry();
-              },
-              child: const Text('Retry'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            icon: Icon(
+              errorInfo['icon'] as IconData,
+              color: Theme.of(context).colorScheme.error,
             ),
-        ],
-      ),
+            title: Text(errorInfo['title'] as String),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(errorInfo['message'] as String),
+                if (errorInfo['suggestion'] != null) ...<Widget>[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Suggestion:',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(errorInfo['suggestion'] as String),
+                ],
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+              if (onRetry != null)
+                FilledButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    onRetry();
+                  },
+                  child: const Text('Retry'),
+                ),
+            ],
+          ),
     );
   }
 
@@ -164,19 +166,18 @@ class SyncErrorWidgets {
               size: 20,
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(errorInfo['message'] as String),
-            ),
+            Expanded(child: Text(errorInfo['message'] as String)),
           ],
         ),
         backgroundColor: Theme.of(context).colorScheme.error,
-        action: onRetry != null
-            ? SnackBarAction(
-                label: 'Retry',
-                textColor: Theme.of(context).colorScheme.onError,
-                onPressed: onRetry,
-              )
-            : null,
+        action:
+            onRetry != null
+                ? SnackBarAction(
+                  label: 'Retry',
+                  textColor: Theme.of(context).colorScheme.onError,
+                  onPressed: onRetry,
+                )
+                : null,
         duration: const Duration(seconds: 5),
       ),
     );
@@ -188,8 +189,10 @@ class SyncErrorWidgets {
       return <String, dynamic>{
         'icon': Icons.wifi_off,
         'title': 'Network Error',
-        'message': 'Unable to connect to the server. Please check your internet connection.',
-        'suggestion': 'Make sure you are connected to the internet and try again.',
+        'message':
+            'Unable to connect to the server. Please check your internet connection.',
+        'suggestion':
+            'Make sure you are connected to the internet and try again.',
       };
     }
 
@@ -316,9 +319,9 @@ class ErrorDetailsDialog extends StatelessWidget {
                 ),
                 child: Text(
                   stackTrace!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontFamily: 'monospace',
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
                 ),
               ),
             ],
@@ -343,14 +346,11 @@ class ErrorDetailsDialog extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          Text(value, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
     );

@@ -271,7 +271,9 @@ class DateRangeIterator {
   /// }
   /// ```
   Stream<Map<String, dynamic>> iterate() async* {
-    _logger.fine('Starting iteration for $entityType (start: $start, end: $end)');
+    _logger.fine(
+      'Starting iteration for $entityType (start: $start, end: $end)',
+    );
 
     int page = 1;
     int totalFetched = 0;
@@ -296,7 +298,9 @@ class DateRangeIterator {
         );
 
         if (!result.hasMore) {
-          _logger.info('Completed iteration for $entityType: $totalFetched total items fetched');
+          _logger.info(
+            'Completed iteration for $entityType: $totalFetched total items fetched',
+          );
           break;
         }
 
@@ -321,7 +325,9 @@ class DateRangeIterator {
   /// Fetch a page with retry logic.
   ///
   /// Uses exponential backoff to retry failed API requests.
-  Future<PaginatedResult<Map<String, dynamic>>> _fetchPageWithRetry(int page) async {
+  Future<PaginatedResult<Map<String, dynamic>>> _fetchPageWithRetry(
+    int page,
+  ) async {
     int attemptCount = 0;
 
     return _retryOptions.retry(
@@ -425,13 +431,19 @@ class DateRangeIterator {
         onProgress(totalFetched, totalItems);
 
         if (!result.hasMore) {
-          _logger.info('Completed iteration for $entityType: $totalFetched total items');
+          _logger.info(
+            'Completed iteration for $entityType: $totalFetched total items',
+          );
           break;
         }
 
         page++;
       } catch (e, stackTrace) {
-        _logger.severe('Error fetching page $page for $entityType', e, stackTrace);
+        _logger.severe(
+          'Error fetching page $page for $entityType',
+          e,
+          stackTrace,
+        );
         rethrow;
       }
     }
@@ -471,8 +483,9 @@ class DateRangeIterator {
     required void Function(int itemsFetched, int totalItems) onProgress,
   }) async {
     final List<Map<String, dynamic>> results = <Map<String, dynamic>>[];
-    await for (final Map<String, dynamic> item
-        in iterateWithProgress(onProgress: onProgress)) {
+    await for (final Map<String, dynamic> item in iterateWithProgress(
+      onProgress: onProgress,
+    )) {
       results.add(item);
     }
     return results;
@@ -485,7 +498,8 @@ class DateRangeIterator {
   ///
   /// Returns the total number of entities matching the filter.
   Future<int> count() async {
-    final PaginatedResult<Map<String, dynamic>> result = await _fetchPageWithRetry(1);
+    final PaginatedResult<Map<String, dynamic>> result =
+        await _fetchPageWithRetry(1);
     return result.total;
   }
 
@@ -511,7 +525,9 @@ class DateRangeIterator {
     final int batchSize = size ?? batchConfig.batchSize;
     List<Map<String, dynamic>> currentBatch = <Map<String, dynamic>>[];
 
-    _logger.fine('Starting batch iteration for $entityType (batch size: $batchSize)');
+    _logger.fine(
+      'Starting batch iteration for $entityType (batch size: $batchSize)',
+    );
 
     await for (final Map<String, dynamic> item in iterate()) {
       currentBatch.add(item);
@@ -574,7 +590,9 @@ class DateRangeIterator {
     try {
       totalItems = await count();
       estimatedBatches = (totalItems / batchSize).ceil();
-      _logger.fine('Total items: $totalItems, estimated batches: $estimatedBatches');
+      _logger.fine(
+        'Total items: $totalItems, estimated batches: $estimatedBatches',
+      );
     } catch (e) {
       _logger.warning('Could not get total count for progress tracking: $e');
     }
@@ -607,7 +625,9 @@ class DateRangeIterator {
       onProgress?.call(totalFetched, totalItems ?? totalFetched);
     }
 
-    _logger.info('Batch iteration complete: $totalFetched items in $batchNumber batches');
+    _logger.info(
+      'Batch iteration complete: $totalFetched items in $batchNumber batches',
+    );
   }
 
   /// Process items in parallel batches.
@@ -642,7 +662,8 @@ class DateRangeIterator {
     void Function(int processed, int total)? onProgress,
   }) async {
     final int effectiveBatchSize = batchSize ?? batchConfig.batchSize;
-    final int effectiveConcurrency = maxConcurrency ?? batchConfig.maxConcurrency;
+    final int effectiveConcurrency =
+        maxConcurrency ?? batchConfig.maxConcurrency;
     final List<T> results = <T>[];
     int processed = 0;
     int? total;
@@ -659,7 +680,9 @@ class DateRangeIterator {
       _logger.warning('Could not get total count: $e');
     }
 
-    await for (final List<Map<String, dynamic>> batch in iterateBatches(size: effectiveBatchSize)) {
+    await for (final List<Map<String, dynamic>> batch in iterateBatches(
+      size: effectiveBatchSize,
+    )) {
       // Process batch in parallel with limited concurrency
       final List<T> batchResults = await _processWithConcurrencyLimit<T>(
         items: batch,
@@ -690,7 +713,9 @@ class DateRangeIterator {
         // Wait for one to complete before adding more
         final T result = await Future.any(pending);
         results.add(result);
-        pending.removeWhere((Future<T> future) => false); // Clean up completed futures
+        pending.removeWhere(
+          (Future<T> future) => false,
+        ); // Clean up completed futures
       }
 
       pending.add(processor(item));
@@ -725,7 +750,8 @@ class DateRangeIterator {
     int page = 1;
     while (true) {
       final DateTime pageStartTime = DateTime.now();
-      final PaginatedResult<Map<String, dynamic>> result = await _fetchPageWithRetry(page);
+      final PaginatedResult<Map<String, dynamic>> result =
+          await _fetchPageWithRetry(page);
       final Duration pageTime = DateTime.now().difference(pageStartTime);
 
       pagesRequested++;
@@ -733,9 +759,11 @@ class DateRangeIterator {
 
       items.addAll(result.data);
 
-      _logger.finest(() =>
-          'Page $page fetched in ${pageTime.inMilliseconds}ms '
-          '(${result.data.length} items)');
+      _logger.finest(
+        () =>
+            'Page $page fetched in ${pageTime.inMilliseconds}ms '
+            '(${result.data.length} items)',
+      );
 
       if (!result.hasMore) {
         break;
@@ -760,10 +788,7 @@ class DateRangeIterator {
 
     _logger.info('Iteration complete: ${stats.toString()}');
 
-    return IterationResult(
-      items: items,
-      stats: stats,
-    );
+    return IterationResult(items: items, stats: stats);
   }
 
   /// Fetch a single page of results.
@@ -793,20 +818,11 @@ class DateRangeIterator {
           limit: pageSize,
         );
       case 'category':
-        return apiClient.getCategoriesPaginated(
-          page: page,
-          limit: pageSize,
-        );
+        return apiClient.getCategoriesPaginated(page: page, limit: pageSize);
       case 'bill':
-        return apiClient.getBillsPaginated(
-          page: page,
-          limit: pageSize,
-        );
+        return apiClient.getBillsPaginated(page: page, limit: pageSize);
       case 'piggy_bank':
-        return apiClient.getPiggyBanksPaginated(
-          page: page,
-          limit: pageSize,
-        );
+        return apiClient.getPiggyBanksPaginated(page: page, limit: pageSize);
       default:
         throw ArgumentError('Unknown entity type: $entityType');
     }
@@ -887,20 +903,21 @@ class IterationStats {
 
   /// Convert to JSON for logging/storage.
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'itemsFetched': itemsFetched,
-        'pagesRequested': pagesRequested,
-        'serverTotal': serverTotal,
-        'durationMs': duration.inMilliseconds,
-        'retryAttempts': retryAttempts,
-        'failedRequests': failedRequests,
-        'averagePerPage': averagePerPage,
-        'averageTimePerPageMs': averageTimePerPageMs,
-        'itemsPerSecond': itemsPerSecond,
-        'successRate': successRate,
-      };
+    'itemsFetched': itemsFetched,
+    'pagesRequested': pagesRequested,
+    'serverTotal': serverTotal,
+    'durationMs': duration.inMilliseconds,
+    'retryAttempts': retryAttempts,
+    'failedRequests': failedRequests,
+    'averagePerPage': averagePerPage,
+    'averageTimePerPageMs': averageTimePerPageMs,
+    'itemsPerSecond': itemsPerSecond,
+    'successRate': successRate,
+  };
 
   @override
-  String toString() => 'IterationStats('
+  String toString() =>
+      'IterationStats('
       'fetched: $itemsFetched, '
       'pages: $pagesRequested, '
       'serverTotal: $serverTotal, '
@@ -921,20 +938,20 @@ class IterationResult {
   final IterationStats stats;
 
   /// Creates an iteration result.
-  const IterationResult({
-    required this.items,
-    required this.stats,
-  });
+  const IterationResult({required this.items, required this.stats});
 
   /// Whether the iteration was successful (all items fetched).
   bool get isComplete => items.length == stats.serverTotal;
 
   /// Percentage of items fetched relative to server total.
   double get completionPercent =>
-      stats.serverTotal > 0 ? (items.length / stats.serverTotal) * 100.0 : 100.0;
+      stats.serverTotal > 0
+          ? (items.length / stats.serverTotal) * 100.0
+          : 100.0;
 
   @override
-  String toString() => 'IterationResult('
+  String toString() =>
+      'IterationResult('
       'items: ${items.length}, '
       'complete: $isComplete, '
       'stats: $stats'
@@ -945,8 +962,9 @@ class IterationResult {
 typedef ProgressCallback = void Function(int itemsFetched, int totalItems);
 
 /// Callback type for batch completion reporting.
-typedef BatchCompleteCallback = void Function(int batchNumber, int estimatedTotalBatches);
+typedef BatchCompleteCallback =
+    void Function(int batchNumber, int estimatedTotalBatches);
 
 /// Callback type for error handling during iteration.
-typedef ErrorCallback = void Function(int page, Object error, StackTrace stackTrace);
-
+typedef ErrorCallback =
+    void Function(int page, Object error, StackTrace stackTrace);

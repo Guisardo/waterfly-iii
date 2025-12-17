@@ -28,7 +28,8 @@ class ConflictManualEditDialog extends StatefulWidget {
   });
 
   @override
-  State<ConflictManualEditDialog> createState() => _ConflictManualEditDialogState();
+  State<ConflictManualEditDialog> createState() =>
+      _ConflictManualEditDialogState();
 }
 
 class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
@@ -36,14 +37,21 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
 
   ConflictResolver? _resolver;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final Map<String, TextEditingController> _controllers = <String, TextEditingController>{};
+  final Map<String, TextEditingController> _controllers =
+      <String, TextEditingController>{};
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_resolver == null) {
-      final AppDatabase database = Provider.of<AppDatabase>(context, listen: false);
-      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
+      final AppDatabase database = Provider.of<AppDatabase>(
+        context,
+        listen: false,
+      );
+      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(
+        context,
+        listen: false,
+      );
       _resolver = ConflictResolver(
         apiAdapter: apiAdapter,
         database: database,
@@ -51,6 +59,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
       );
     }
   }
+
   final Map<String, bool> _fieldChanged = <String, bool>{};
   bool _isSaving = false;
 
@@ -73,13 +82,14 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
       final TextEditingController controller = TextEditingController(
         text: _formatValueForEditing(entry.value),
       );
-      
+
       controller.addListener(() {
         setState(() {
-          _fieldChanged[entry.key] = controller.text != _formatValueForEditing(entry.value);
+          _fieldChanged[entry.key] =
+              controller.text != _formatValueForEditing(entry.value);
         });
       });
-      
+
       _controllers[entry.key] = controller;
       _fieldChanged[entry.key] = false;
     }
@@ -114,15 +124,25 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                       children: <Widget>[
                         Text(
                           'Manual Edit',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                          ),
                         ),
                         Text(
                           'Edit fields to resolve conflict',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                          ),
                         ),
                       ],
                     ),
@@ -152,14 +172,22 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                               Icon(
                                 Icons.info_outline,
                                 size: 20,
-                                color: Theme.of(context).colorScheme.onTertiaryContainer,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.onTertiaryContainer,
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 '${_getChangedFieldsCount()} field${_getChangedFieldsCount() == 1 ? '' : 's'} modified',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.onTertiaryContainer,
-                                    ),
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.copyWith(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.onTertiaryContainer,
+                                ),
                               ),
                             ],
                           ),
@@ -186,19 +214,21 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
                   TextButton(
-                    onPressed: _isSaving ? null : () => Navigator.pop(context, false),
+                    onPressed:
+                        _isSaving ? null : () => Navigator.pop(context, false),
                     child: const Text('Cancel'),
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
                     onPressed: _isSaving ? null : _saveChanges,
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Save'),
+                    child:
+                        _isSaving
+                            ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : const Text('Save'),
                   ),
                 ],
               ),
@@ -211,9 +241,11 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
 
   List<Widget> _buildFieldEditors() {
     final List<String> fields = widget.initialData.keys.toList()..sort();
-    
+
     return fields.map((String field) {
-      final bool isConflicting = widget.conflict.conflictingFields.contains(field);
+      final bool isConflicting = widget.conflict.conflictingFields.contains(
+        field,
+      );
       final bool isChanged = _fieldChanged[field] ?? false;
 
       return Padding(
@@ -233,15 +265,19 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                 Text(
                   field,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: isConflicting
+                    color:
+                        isConflicting
                             ? Theme.of(context).colorScheme.error
                             : null,
-                      ),
+                  ),
                 ),
                 if (isChanged) ...<Widget>[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.tertiaryContainer,
                       borderRadius: BorderRadius.circular(4),
@@ -249,8 +285,9 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                     child: Text(
                       'Modified',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onTertiaryContainer,
-                          ),
+                        color:
+                            Theme.of(context).colorScheme.onTertiaryContainer,
+                      ),
                     ),
                   ),
                 ],
@@ -263,9 +300,12 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                 border: const OutlineInputBorder(),
                 hintText: 'Enter $field',
                 filled: isConflicting,
-                fillColor: isConflicting
-                    ? Theme.of(context).colorScheme.errorContainer.withOpacity(0.1)
-                    : null,
+                fillColor:
+                    isConflicting
+                        ? Theme.of(
+                          context,
+                        ).colorScheme.errorContainer.withOpacity(0.1)
+                        : null,
               ),
               validator: (String? value) => _validateField(field, value),
               maxLines: _isMultilineField(field) ? 3 : 1,
@@ -303,7 +343,8 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
     }
 
     // Type-specific validation
-    if (field.toLowerCase().contains('amount') || field.toLowerCase().contains('price')) {
+    if (field.toLowerCase().contains('amount') ||
+        field.toLowerCase().contains('price')) {
       final num? number = num.tryParse(value);
       if (number == null) {
         return 'Must be a valid number';
@@ -320,8 +361,15 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
   }
 
   bool _isRequiredField(String field) {
-    const List<String> requiredFields = <String>['name', 'title', 'amount', 'date'];
-    return requiredFields.any((String req) => field.toLowerCase().contains(req));
+    const List<String> requiredFields = <String>[
+      'name',
+      'title',
+      'amount',
+      'date',
+    ];
+    return requiredFields.any(
+      (String req) => field.toLowerCase().contains(req),
+    );
   }
 
   int _getChangedFieldsCount() {
@@ -335,31 +383,32 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
 
     final int changedCount = _getChangedFieldsCount();
     if (changedCount == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No changes to save')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No changes to save')));
       return;
     }
 
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Save Changes?'),
-        content: Text(
-          'You have modified $changedCount field${changedCount == 1 ? '' : 's'}. '
-          'This will resolve the conflict with your custom values.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Save Changes?'),
+            content: Text(
+              'You have modified $changedCount field${changedCount == 1 ? '' : 's'}. '
+              'This will resolve the conflict with your custom values.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Save'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed != true) return;
@@ -370,16 +419,14 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
 
     try {
       final Map<String, dynamic> customData = <String, dynamic>{};
-      for (final MapEntry<String, TextEditingController> entry in _controllers.entries) {
+      for (final MapEntry<String, TextEditingController> entry
+          in _controllers.entries) {
         customData[entry.key] = _parseValue(entry.key, entry.value.text);
       }
 
       _logger.info('Saving manual conflict resolution with custom data');
 
-      await _resolver!.resolveWithCustomData(
-        widget.conflict.id,
-        customData,
-      );
+      await _resolver!.resolveWithCustomData(widget.conflict.id, customData);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -395,9 +442,9 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
           _isSaving = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save: $e')));
       }
     }
   }
@@ -406,7 +453,8 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
     if (value.isEmpty) return null;
 
     // Try to parse as number
-    if (field.toLowerCase().contains('amount') || field.toLowerCase().contains('price')) {
+    if (field.toLowerCase().contains('amount') ||
+        field.toLowerCase().contains('price')) {
       return num.tryParse(value) ?? value;
     }
 

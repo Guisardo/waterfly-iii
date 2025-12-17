@@ -156,22 +156,27 @@ class Conflict extends Equatable {
       conflictType: ConflictType.values.firstWhere(
         (ConflictType e) => e.name == json['conflict_type'],
       ),
-      localData: jsonDecode(json['local_data'] as String) as Map<String, dynamic>,
-      remoteData: jsonDecode(json['remote_data'] as String) as Map<String, dynamic>,
-      conflictingFields: (jsonDecode(json['conflicting_fields'] as String) as List)
-          .cast<String>(),
+      localData:
+          jsonDecode(json['local_data'] as String) as Map<String, dynamic>,
+      remoteData:
+          jsonDecode(json['remote_data'] as String) as Map<String, dynamic>,
+      conflictingFields:
+          (jsonDecode(json['conflicting_fields'] as String) as List)
+              .cast<String>(),
       severity: ConflictSeverity.values.firstWhere(
         (ConflictSeverity e) => e.name == json['severity'],
       ),
       detectedAt: DateTime.parse(json['detected_at'] as String),
-      resolvedAt: json['resolved_at'] != null
-          ? DateTime.parse(json['resolved_at'] as String)
-          : null,
-      resolutionStrategy: json['resolution_strategy'] != null
-          ? ResolutionStrategy.values.firstWhere(
-              (ResolutionStrategy e) => e.name == json['resolution_strategy'],
-            )
-          : null,
+      resolvedAt:
+          json['resolved_at'] != null
+              ? DateTime.parse(json['resolved_at'] as String)
+              : null,
+      resolutionStrategy:
+          json['resolution_strategy'] != null
+              ? ResolutionStrategy.values.firstWhere(
+                (ResolutionStrategy e) => e.name == json['resolution_strategy'],
+              )
+              : null,
       resolvedBy: json['resolved_by'] as String?,
       notes: json['notes'] as String?,
     );
@@ -179,21 +184,21 @@ class Conflict extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        id,
-        operationId,
-        entityType,
-        entityId,
-        conflictType,
-        localData,
-        remoteData,
-        conflictingFields,
-        severity,
-        detectedAt,
-        resolvedAt,
-        resolutionStrategy,
-        resolvedBy,
-        notes,
-      ];
+    id,
+    operationId,
+    entityType,
+    entityId,
+    conflictType,
+    localData,
+    remoteData,
+    conflictingFields,
+    severity,
+    detectedAt,
+    resolvedAt,
+    resolutionStrategy,
+    resolvedBy,
+    notes,
+  ];
 
   @override
   String toString() {
@@ -284,13 +289,13 @@ class Resolution extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        conflict,
-        strategy,
-        resolvedData,
-        success,
-        errorMessage,
-        resolvedAt,
-      ];
+    conflict,
+    strategy,
+    resolvedData,
+    success,
+    errorMessage,
+    resolvedAt,
+  ];
 
   @override
   String toString() {
@@ -351,15 +356,15 @@ class ConflictStatistics extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        totalConflicts,
-        unresolvedConflicts,
-        autoResolvedConflicts,
-        manuallyResolvedConflicts,
-        bySeverity,
-        byType,
-        byEntityType,
-        averageResolutionTime,
-      ];
+    totalConflicts,
+    unresolvedConflicts,
+    autoResolvedConflicts,
+    manuallyResolvedConflicts,
+    bySeverity,
+    byType,
+    byEntityType,
+    averageResolutionTime,
+  ];
 
   @override
   String toString() {

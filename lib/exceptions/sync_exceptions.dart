@@ -31,11 +31,8 @@ abstract class SyncException implements Exception {
   /// Timestamp when the error occurred
   final DateTime timestamp;
 
-  SyncException(
-    this.message, {
-    this.cause,
-    this.context,
-  }) : timestamp = DateTime.now();
+  SyncException(this.message, {this.cause, this.context})
+    : timestamp = DateTime.now();
 
   /// Whether this error is retryable
   bool get isRetryable;
@@ -57,11 +54,7 @@ abstract class SyncException implements Exception {
 
   /// Log this exception with appropriate level
   void log(Logger logger) {
-    logger.severe(
-      message,
-      cause,
-      StackTrace.current,
-    );
+    logger.severe(message, cause, StackTrace.current);
   }
 }
 
@@ -69,11 +62,7 @@ abstract class SyncException implements Exception {
 ///
 /// These errors are typically retryable and should trigger exponential backoff.
 class NetworkError extends SyncException {
-  NetworkError(
-    super.message, {
-    super.cause,
-    super.context,
-  });
+  NetworkError(super.message, {super.cause, super.context});
 
   @override
   bool get isRetryable => true;
@@ -83,11 +72,7 @@ class NetworkError extends SyncException {
 
   @override
   void log(Logger logger) {
-    logger.warning(
-      'Network error: $message',
-      cause,
-      StackTrace.current,
-    );
+    logger.warning('Network error: $message', cause, StackTrace.current);
   }
 }
 
@@ -122,7 +107,9 @@ class ServerError extends SyncException {
       buffer.write('\nStatus Code: $statusCode');
     }
     if (responseBody != null) {
-      buffer.write('\nResponse: ${responseBody!.substring(0, responseBody!.length > 200 ? 200 : responseBody!.length)}');
+      buffer.write(
+        '\nResponse: ${responseBody!.substring(0, responseBody!.length > 200 ? 200 : responseBody!.length)}',
+      );
     }
     return buffer.toString();
   }
@@ -195,11 +182,7 @@ class ConflictError extends SyncException {
 
   @override
   void log(Logger logger) {
-    logger.warning(
-      'Conflict detected: $message',
-      cause,
-      StackTrace.current,
-    );
+    logger.warning('Conflict detected: $message', cause, StackTrace.current);
   }
 
   @override
@@ -219,22 +202,14 @@ class ConflictError extends SyncException {
 ///
 /// These errors are not retryable and require user intervention.
 class AuthenticationError extends SyncException {
-  AuthenticationError(
-    super.message, {
-    super.cause,
-    super.context,
-  });
+  AuthenticationError(super.message, {super.cause, super.context});
 
   @override
   bool get isRetryable => false;
 
   @override
   void log(Logger logger) {
-    logger.severe(
-      'Authentication error: $message',
-      cause,
-      StackTrace.current,
-    );
+    logger.severe('Authentication error: $message', cause, StackTrace.current);
   }
 }
 

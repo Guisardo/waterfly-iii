@@ -170,15 +170,15 @@ void main() {
         // Test with Map
         final PaginatedResult<Map<String, dynamic>> mapResult =
             const PaginatedResult<Map<String, dynamic>>(
-          data: <Map<String, dynamic>>[
-            <String, dynamic>{'id': '1'},
-            <String, dynamic>{'id': '2'},
-          ],
-          total: 2,
-          currentPage: 1,
-          totalPages: 1,
-          perPage: 50,
-        );
+              data: <Map<String, dynamic>>[
+                <String, dynamic>{'id': '1'},
+                <String, dynamic>{'id': '2'},
+              ],
+              total: 2,
+              currentPage: 1,
+              totalPages: 1,
+              perPage: 50,
+            );
         expect(mapResult.data.length, equals(2));
         expect(mapResult.data[0]['id'], equals('1'));
       });
@@ -307,8 +307,10 @@ void main() {
       });
 
       test('should contain status code when provided', () {
-        final ApiException exception =
-            ApiException('Not found', statusCode: 404);
+        final ApiException exception = ApiException(
+          'Not found',
+          statusCode: 404,
+        );
 
         expect(exception.statusCode, equals(404));
       });
@@ -331,8 +333,7 @@ void main() {
       });
 
       test('should allow null headers', () {
-        final ApiException exception =
-            ApiException('Error', statusCode: 500);
+        final ApiException exception = ApiException('Error', statusCode: 500);
 
         expect(exception.headers, isNull);
       });
@@ -346,8 +347,10 @@ void main() {
       });
 
       test('should include status code in toString when present', () {
-        final ApiException exception =
-            ApiException('Not found', statusCode: 404);
+        final ApiException exception = ApiException(
+          'Not found',
+          statusCode: 404,
+        );
 
         expect(exception.toString(), contains('404'));
       });
@@ -362,17 +365,11 @@ void main() {
 
     group('Exception implementation', () {
       test('should be throwable', () {
-        expect(
-          () => throw ApiException('Test'),
-          throwsA(isA<ApiException>()),
-        );
+        expect(() => throw ApiException('Test'), throwsA(isA<ApiException>()));
       });
 
       test('should be catchable as Exception', () {
-        expect(
-          () => throw ApiException('Test'),
-          throwsA(isA<Exception>()),
-        );
+        expect(() => throw ApiException('Test'), throwsA(isA<Exception>()));
       });
 
       test('should preserve message when caught', () {
@@ -387,13 +384,22 @@ void main() {
 
     group('HTTP status code semantics', () {
       test('should represent client errors (4xx)', () {
-        final ApiException badRequest =
-            ApiException('Bad request', statusCode: 400);
-        final ApiException unauthorized =
-            ApiException('Unauthorized', statusCode: 401);
-        final ApiException forbidden =
-            ApiException('Forbidden', statusCode: 403);
-        final ApiException notFound = ApiException('Not found', statusCode: 404);
+        final ApiException badRequest = ApiException(
+          'Bad request',
+          statusCode: 400,
+        );
+        final ApiException unauthorized = ApiException(
+          'Unauthorized',
+          statusCode: 401,
+        );
+        final ApiException forbidden = ApiException(
+          'Forbidden',
+          statusCode: 403,
+        );
+        final ApiException notFound = ApiException(
+          'Not found',
+          statusCode: 404,
+        );
 
         expect(badRequest.statusCode, equals(400));
         expect(unauthorized.statusCode, equals(401));
@@ -402,12 +408,18 @@ void main() {
       });
 
       test('should represent server errors (5xx)', () {
-        final ApiException internalError =
-            ApiException('Internal server error', statusCode: 500);
-        final ApiException badGateway =
-            ApiException('Bad gateway', statusCode: 502);
-        final ApiException serviceUnavailable =
-            ApiException('Service unavailable', statusCode: 503);
+        final ApiException internalError = ApiException(
+          'Internal server error',
+          statusCode: 500,
+        );
+        final ApiException badGateway = ApiException(
+          'Bad gateway',
+          statusCode: 502,
+        );
+        final ApiException serviceUnavailable = ApiException(
+          'Service unavailable',
+          statusCode: 503,
+        );
 
         expect(internalError.statusCode, equals(500));
         expect(badGateway.statusCode, equals(502));
@@ -435,61 +447,63 @@ void main() {
     test('should work with transaction-like data', () {
       final PaginatedResult<Map<String, dynamic>> result =
           const PaginatedResult<Map<String, dynamic>>(
-        data: <Map<String, dynamic>>[
-          <String, dynamic>{
-            'id': '123',
-            'type': 'transactions',
-            'attributes': <String, dynamic>{
-              'description': 'Test transaction',
-              'amount': '100.00',
-              'date': '2024-12-01',
-              'updated_at': '2024-12-15T10:00:00Z',
-            },
-          },
-          <String, dynamic>{
-            'id': '124',
-            'type': 'transactions',
-            'attributes': <String, dynamic>{
-              'description': 'Another transaction',
-              'amount': '50.00',
-              'date': '2024-12-02',
-              'updated_at': '2024-12-15T11:00:00Z',
-            },
-          },
-        ],
-        total: 150,
-        currentPage: 1,
-        totalPages: 3,
-        perPage: 50,
-      );
+            data: <Map<String, dynamic>>[
+              <String, dynamic>{
+                'id': '123',
+                'type': 'transactions',
+                'attributes': <String, dynamic>{
+                  'description': 'Test transaction',
+                  'amount': '100.00',
+                  'date': '2024-12-01',
+                  'updated_at': '2024-12-15T10:00:00Z',
+                },
+              },
+              <String, dynamic>{
+                'id': '124',
+                'type': 'transactions',
+                'attributes': <String, dynamic>{
+                  'description': 'Another transaction',
+                  'amount': '50.00',
+                  'date': '2024-12-02',
+                  'updated_at': '2024-12-15T11:00:00Z',
+                },
+              },
+            ],
+            total: 150,
+            currentPage: 1,
+            totalPages: 3,
+            perPage: 50,
+          );
 
       expect(result.data.length, equals(2));
       expect(result.hasMore, isTrue);
       expect(result.data[0]['id'], equals('123'));
-      expect(result.data[0]['attributes']['description'],
-          equals('Test transaction'));
+      expect(
+        result.data[0]['attributes']['description'],
+        equals('Test transaction'),
+      );
     });
 
     test('should work with account-like data', () {
       final PaginatedResult<Map<String, dynamic>> result =
           const PaginatedResult<Map<String, dynamic>>(
-        data: <Map<String, dynamic>>[
-          <String, dynamic>{
-            'id': 'acc-1',
-            'type': 'accounts',
-            'attributes': <String, dynamic>{
-              'name': 'Checking Account',
-              'type': 'asset',
-              'current_balance': '1000.00',
-              'updated_at': '2024-12-15T10:00:00Z',
-            },
-          },
-        ],
-        total: 10,
-        currentPage: 1,
-        totalPages: 1,
-        perPage: 50,
-      );
+            data: <Map<String, dynamic>>[
+              <String, dynamic>{
+                'id': 'acc-1',
+                'type': 'accounts',
+                'attributes': <String, dynamic>{
+                  'name': 'Checking Account',
+                  'type': 'asset',
+                  'current_balance': '1000.00',
+                  'updated_at': '2024-12-15T10:00:00Z',
+                },
+              },
+            ],
+            total: 10,
+            currentPage: 1,
+            totalPages: 1,
+            perPage: 50,
+          );
 
       expect(result.data.length, equals(1));
       expect(result.hasMore, isFalse);
@@ -499,42 +513,43 @@ void main() {
     test('should support extracting server_updated_at for sync', () {
       final PaginatedResult<Map<String, dynamic>> result =
           const PaginatedResult<Map<String, dynamic>>(
-        data: <Map<String, dynamic>>[
-          <String, dynamic>{
-            'id': '1',
-            'attributes': <String, dynamic>{
-              'updated_at': '2024-12-15T10:00:00Z',
-            },
-          },
-          <String, dynamic>{
-            'id': '2',
-            'attributes': <String, dynamic>{
-              'updated_at': '2024-12-15T11:00:00Z',
-            },
-          },
-          <String, dynamic>{
-            'id': '3',
-            'attributes': <String, dynamic>{
-              'updated_at': '2024-12-15T09:00:00Z',
-            },
-          },
-        ],
-        total: 3,
-        currentPage: 1,
-        totalPages: 1,
-        perPage: 50,
-      );
+            data: <Map<String, dynamic>>[
+              <String, dynamic>{
+                'id': '1',
+                'attributes': <String, dynamic>{
+                  'updated_at': '2024-12-15T10:00:00Z',
+                },
+              },
+              <String, dynamic>{
+                'id': '2',
+                'attributes': <String, dynamic>{
+                  'updated_at': '2024-12-15T11:00:00Z',
+                },
+              },
+              <String, dynamic>{
+                'id': '3',
+                'attributes': <String, dynamic>{
+                  'updated_at': '2024-12-15T09:00:00Z',
+                },
+              },
+            ],
+            total: 3,
+            currentPage: 1,
+            totalPages: 1,
+            perPage: 50,
+          );
 
       // Simulate incremental sync timestamp extraction
-      final List<DateTime> timestamps = result.data
-          .map((Map<String, dynamic> item) {
-            final String? updatedAt =
-                (item['attributes'] as Map<String, dynamic>?)?['updated_at']
-                    as String?;
-            return updatedAt != null ? DateTime.parse(updatedAt) : null;
-          })
-          .whereType<DateTime>()
-          .toList();
+      final List<DateTime> timestamps =
+          result.data
+              .map((Map<String, dynamic> item) {
+                final String? updatedAt =
+                    (item['attributes'] as Map<String, dynamic>?)?['updated_at']
+                        as String?;
+                return updatedAt != null ? DateTime.parse(updatedAt) : null;
+              })
+              .whereType<DateTime>()
+              .toList();
 
       expect(timestamps.length, equals(3));
       expect(timestamps[0], equals(DateTime.parse('2024-12-15T10:00:00Z')));

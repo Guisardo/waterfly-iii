@@ -44,10 +44,7 @@ import 'package:waterflyiii/services/cache/cache_service.dart';
 /// ```
 class ChartDataService {
   /// Creates a chart data service with cache support.
-  ChartDataService({
-    required this.fireflyService,
-    required this.cacheService,
-  });
+  ChartDataService({required this.fireflyService, required this.cacheService});
 
   /// Firefly III service for API access.
   final FireflyService fireflyService;
@@ -56,7 +53,7 @@ class ChartDataService {
   final CacheService cacheService;
 
   final Logger _log = Logger('ChartDataService');
-  
+
   /// Date formatter for API date parameters.
   final intl.DateFormat _dateFormat = intl.DateFormat('yyyy-MM-dd', 'en_US');
 
@@ -86,19 +83,23 @@ class ChartDataService {
       end,
       extra: preselected?.value,
     );
-    _log.fine('Getting account overview for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}');
+    _log.fine(
+      'Getting account overview for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
+    );
 
     try {
-      final CacheResult<List<ChartDataSet>> result =
-          await cacheService.get<List<ChartDataSet>>(
-        entityType: 'chart_account',
-        entityId: cacheKey,
-        fetcher: () => _fetchAccountOverview(start, end, preselected),
-        ttl: CacheTtlConfig.charts,
-        forceRefresh: forceRefresh,
-      );
+      final CacheResult<List<ChartDataSet>> result = await cacheService
+          .get<List<ChartDataSet>>(
+            entityType: 'chart_account',
+            entityId: cacheKey,
+            fetcher: () => _fetchAccountOverview(start, end, preselected),
+            ttl: CacheTtlConfig.charts,
+            forceRefresh: forceRefresh,
+          );
 
-      _log.info('Account overview fetched from ${result.source} (fresh: ${result.isFresh})');
+      _log.info(
+        'Account overview fetched from ${result.source} (fresh: ${result.isFresh})',
+      );
       return result.data ?? <ChartDataSet>[];
     } catch (error, stackTrace) {
       _log.severe('Failed to get account overview', error, stackTrace);
@@ -123,7 +124,8 @@ class ChartDataService {
   Future<List<ChartDataSet>> getDailyBalance({
     required DateTime start,
     required DateTime end,
-    V1ChartBalanceBalanceGetPeriod period = V1ChartBalanceBalanceGetPeriod.value_1d,
+    V1ChartBalanceBalanceGetPeriod period =
+        V1ChartBalanceBalanceGetPeriod.value_1d,
     bool forceRefresh = false,
   }) async {
     final String cacheKey = _buildCacheKey(
@@ -132,19 +134,23 @@ class ChartDataService {
       end,
       extra: period.value,
     );
-    _log.fine('Getting daily balance for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}');
+    _log.fine(
+      'Getting daily balance for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
+    );
 
     try {
-      final CacheResult<List<ChartDataSet>> result =
-          await cacheService.get<List<ChartDataSet>>(
-        entityType: 'chart_balance',
-        entityId: cacheKey,
-        fetcher: () => _fetchDailyBalance(start, end, period),
-        ttl: CacheTtlConfig.charts,
-        forceRefresh: forceRefresh,
-      );
+      final CacheResult<List<ChartDataSet>> result = await cacheService
+          .get<List<ChartDataSet>>(
+            entityType: 'chart_balance',
+            entityId: cacheKey,
+            fetcher: () => _fetchDailyBalance(start, end, period),
+            ttl: CacheTtlConfig.charts,
+            forceRefresh: forceRefresh,
+          );
 
-      _log.info('Daily balance fetched from ${result.source} (fresh: ${result.isFresh})');
+      _log.info(
+        'Daily balance fetched from ${result.source} (fresh: ${result.isFresh})',
+      );
       return result.data ?? <ChartDataSet>[];
     } catch (error, stackTrace) {
       _log.severe('Failed to get daily balance', error, stackTrace);
@@ -165,19 +171,23 @@ class ChartDataService {
     bool forceRefresh = false,
   }) async {
     final String cacheKey = _buildCacheKey('budget_limits', start, end);
-    _log.fine('Getting budget limits for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}');
+    _log.fine(
+      'Getting budget limits for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
+    );
 
     try {
-      final CacheResult<List<BudgetLimitRead>> result =
-          await cacheService.get<List<BudgetLimitRead>>(
-        entityType: 'chart_budget',
-        entityId: cacheKey,
-        fetcher: () => _fetchBudgetLimits(start, end),
-        ttl: CacheTtlConfig.charts,
-        forceRefresh: forceRefresh,
-      );
+      final CacheResult<List<BudgetLimitRead>> result = await cacheService
+          .get<List<BudgetLimitRead>>(
+            entityType: 'chart_budget',
+            entityId: cacheKey,
+            fetcher: () => _fetchBudgetLimits(start, end),
+            ttl: CacheTtlConfig.charts,
+            forceRefresh: forceRefresh,
+          );
 
-      _log.info('Budget limits fetched from ${result.source} (fresh: ${result.isFresh})');
+      _log.info(
+        'Budget limits fetched from ${result.source} (fresh: ${result.isFresh})',
+      );
       return result.data ?? <BudgetLimitRead>[];
     } catch (error, stackTrace) {
       _log.severe('Failed to get budget limits', error, stackTrace);
@@ -204,7 +214,9 @@ class ChartDataService {
     );
 
     if (response.isSuccessful && response.body != null) {
-      _log.fine('Account overview API response: ${response.body!.length} series');
+      _log.fine(
+        'Account overview API response: ${response.body!.length} series',
+      );
       return response.body!;
     }
 
@@ -220,11 +232,12 @@ class ChartDataService {
     _log.fine('Fetching daily balance from API');
     final FireflyIii api = fireflyService.api;
 
-    final Response<List<ChartDataSet>> response = await api.v1ChartBalanceBalanceGet(
-      start: _dateFormat.format(start),
-      end: _dateFormat.format(end),
-      period: period,
-    );
+    final Response<List<ChartDataSet>> response = await api
+        .v1ChartBalanceBalanceGet(
+          start: _dateFormat.format(start),
+          end: _dateFormat.format(end),
+          period: period,
+        );
 
     if (response.isSuccessful && response.body != null) {
       _log.fine('Daily balance API response: ${response.body!.length} entries');
@@ -248,7 +261,9 @@ class ChartDataService {
     );
 
     if (response.isSuccessful && response.body != null) {
-      _log.fine('Budget limits API response: ${response.body!.data.length} entries');
+      _log.fine(
+        'Budget limits API response: ${response.body!.data.length} entries',
+      );
       return response.body!.data;
     }
 
@@ -261,8 +276,14 @@ class ChartDataService {
   // ========================================================================
 
   /// Builds a cache key that includes the date range and optional parameters.
-  String _buildCacheKey(String type, DateTime start, DateTime end, {String? extra}) {
-    final String key = '${type}_${_dateFormat.format(start)}_${_dateFormat.format(end)}';
+  String _buildCacheKey(
+    String type,
+    DateTime start,
+    DateTime end, {
+    String? extra,
+  }) {
+    final String key =
+        '${type}_${_dateFormat.format(start)}_${_dateFormat.format(end)}';
     if (extra != null) {
       return '${key}_$extra';
     }
@@ -278,4 +299,3 @@ class ChartDataService {
     _log.info('All chart caches invalidated (via full cache clear if needed)');
   }
 }
-

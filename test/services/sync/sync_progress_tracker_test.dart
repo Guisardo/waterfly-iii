@@ -178,7 +178,8 @@ void main() {
         tracker.incrementConflicts(conflictId: 'conflict_1');
         await Future.delayed(const Duration(milliseconds: 10));
 
-        final List<ConflictDetectedEvent> conflictEvents = events.whereType<ConflictDetectedEvent>().toList();
+        final List<ConflictDetectedEvent> conflictEvents =
+            events.whereType<ConflictDetectedEvent>().toList();
         expect(conflictEvents, hasLength(1));
         expect(conflictEvents.first.conflict, 'conflict_1');
       });
@@ -230,7 +231,8 @@ void main() {
         tracker.complete(success: true);
         await Future.delayed(const Duration(milliseconds: 10));
 
-        final List<SyncCompletedEvent> completedEvents = events.whereType<SyncCompletedEvent>().toList();
+        final List<SyncCompletedEvent> completedEvents =
+            events.whereType<SyncCompletedEvent>().toList();
         expect(completedEvents, hasLength(1));
         expect(completedEvents.first.result.success, true);
       });
@@ -245,7 +247,8 @@ void main() {
         tracker.complete(success: false);
         await Future.delayed(const Duration(milliseconds: 10));
 
-        final List<SyncFailedEvent> failedEvents = events.whereType<SyncFailedEvent>().toList();
+        final List<SyncFailedEvent> failedEvents =
+            events.whereType<SyncFailedEvent>().toList();
         expect(failedEvents, hasLength(1));
       });
 
@@ -263,10 +266,7 @@ void main() {
       });
 
       test('throws if no sync in progress', () {
-        expect(
-          () => tracker.complete(success: true),
-          throwsStateError,
-        );
+        expect(() => tracker.complete(success: true), throwsStateError);
       });
     });
 
@@ -289,7 +289,8 @@ void main() {
         tracker.cancel();
         await Future.delayed(const Duration(milliseconds: 10));
 
-        final List<SyncFailedEvent> failedEvents = events.whereType<SyncFailedEvent>().toList();
+        final List<SyncFailedEvent> failedEvents =
+            events.whereType<SyncFailedEvent>().toList();
         expect(failedEvents, hasLength(1));
         expect(failedEvents.first.error, contains('cancelled'));
       });

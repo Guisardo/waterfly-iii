@@ -70,8 +70,7 @@ import 'package:waterflyiii/data/repositories/base_repository.dart';
 /// - Typical cache miss: 50-200ms API fetch time
 /// - Target cache hit rate: >75%
 /// - Expected API call reduction: 70-80%
-class TransactionRepository
-    extends BaseRepository<TransactionEntity, String> {
+class TransactionRepository extends BaseRepository<TransactionEntity, String> {
   /// Creates a transaction repository with comprehensive cache integration.
   ///
   /// Parameters:
@@ -97,10 +96,10 @@ class TransactionRepository
     QueryCache? queryCache,
     UuidService? uuidService,
     TransactionValidator? validator,
-  })  : _syncQueueManager = syncQueueManager,
-        _queryCache = queryCache,
-        _uuidService = uuidService ?? UuidService(),
-        _validator = validator ?? TransactionValidator();
+  }) : _syncQueueManager = syncQueueManager,
+       _queryCache = queryCache,
+       _uuidService = uuidService ?? UuidService(),
+       _validator = validator ?? TransactionValidator();
 
   final SyncQueueManager? _syncQueueManager;
   final QueryCache? _queryCache;
@@ -127,7 +126,8 @@ class TransactionRepository
   Future<List<TransactionEntity>> getAll() async {
     try {
       logger.fine('Fetching all transactions');
-      final List<TransactionEntity> transactions = await database.select(database.transactions).get();
+      final List<TransactionEntity> transactions =
+          await database.select(database.transactions).get();
       logger.info('Retrieved ${transactions.length} transactions');
       return transactions;
     } catch (error, stackTrace) {
@@ -193,22 +193,24 @@ class TransactionRepository
     bool forceRefresh = false,
     bool backgroundRefresh = true,
   }) async {
-    logger.fine('Fetching transaction by ID: $id (forceRefresh: $forceRefresh)');
+    logger.fine(
+      'Fetching transaction by ID: $id (forceRefresh: $forceRefresh)',
+    );
 
     try {
       // If CacheService available, use cache-first strategy
       if (cacheService != null) {
         logger.finest('Using cache-first strategy for transaction $id');
 
-        final CacheResult<TransactionEntity?> cacheResult =
-            await cacheService!.get<TransactionEntity?>(
-          entityType: entityType,
-          entityId: id,
-          fetcher: () => _fetchTransactionFromDb(id),
-          ttl: cacheTtl,
-          forceRefresh: forceRefresh,
-          backgroundRefresh: backgroundRefresh,
-        );
+        final CacheResult<TransactionEntity?> cacheResult = await cacheService!
+            .get<TransactionEntity?>(
+              entityType: entityType,
+              entityId: id,
+              fetcher: () => _fetchTransactionFromDb(id),
+              ttl: cacheTtl,
+              forceRefresh: forceRefresh,
+              backgroundRefresh: backgroundRefresh,
+            );
 
         logger.info(
           'Transaction fetched: $id from ${cacheResult.source} '
@@ -276,8 +278,9 @@ class TransactionRepository
   @override
   Stream<TransactionEntity?> watchById(String id) {
     logger.fine('Watching transaction: $id');
-    final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions)
-      ..where(($TransactionsTable t) => t.id.equals(id));
+    final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query =
+        database.select(database.transactions)
+          ..where(($TransactionsTable t) => t.id.equals(id));
     return query.watchSingleOrNull();
   }
 
@@ -347,28 +350,28 @@ class TransactionRepository
       final DateTime now = DateTime.now();
       final TransactionEntityCompanion companion =
           TransactionEntityCompanion.insert(
-        id: id,
-        serverId: Value(entity.serverId),
-        type: entity.type,
-        date: entity.date,
-        amount: entity.amount,
-        description: entity.description,
-        sourceAccountId: entity.sourceAccountId,
-        destinationAccountId: entity.destinationAccountId,
-        categoryId: Value(entity.categoryId),
-        budgetId: Value(entity.budgetId),
-        currencyCode: entity.currencyCode,
-        foreignAmount: Value(entity.foreignAmount),
-        foreignCurrencyCode: Value(entity.foreignCurrencyCode),
-        notes: Value(entity.notes),
-        tags: Value(entity.tags),
-        createdAt: now,
-        updatedAt: now,
-        isSynced: const Value(false),
-        syncStatus: const Value('pending'),
-        lastSyncAttempt: const Value.absent(),
-        syncError: const Value.absent(),
-      );
+            id: id,
+            serverId: Value(entity.serverId),
+            type: entity.type,
+            date: entity.date,
+            amount: entity.amount,
+            description: entity.description,
+            sourceAccountId: entity.sourceAccountId,
+            destinationAccountId: entity.destinationAccountId,
+            categoryId: Value(entity.categoryId),
+            budgetId: Value(entity.budgetId),
+            currencyCode: entity.currencyCode,
+            foreignAmount: Value(entity.foreignAmount),
+            foreignCurrencyCode: Value(entity.foreignCurrencyCode),
+            notes: Value(entity.notes),
+            tags: Value(entity.tags),
+            createdAt: now,
+            updatedAt: now,
+            isSynced: const Value(false),
+            syncStatus: const Value('pending'),
+            lastSyncAttempt: const Value.absent(),
+            syncError: const Value.absent(),
+          );
 
       await database.into(database.transactions).insert(companion);
       logger.info('Transaction inserted into database: $id');
@@ -428,7 +431,9 @@ class TransactionRepository
 
       // Step 5: Trigger cascade invalidation for related entities
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation cascade for transaction creation');
+        logger.fine(
+          'Triggering cache invalidation cascade for transaction creation',
+        );
         await CacheInvalidationRules.onTransactionMutation(
           cacheService!,
           created,
@@ -567,7 +572,9 @@ class TransactionRepository
 
       // Step 5: Trigger cascade invalidation for related entities
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation cascade for transaction update');
+        logger.fine(
+          'Triggering cache invalidation cascade for transaction update',
+        );
         await CacheInvalidationRules.onTransactionMutation(
           cacheService!,
           updated,
@@ -634,9 +641,7 @@ class TransactionRepository
             entityType: 'transaction',
             entityId: id,
             operation: SyncOperationType.delete,
-            payload: <String, dynamic>{
-              'server_id': existing.serverId,
-            },
+            payload: <String, dynamic>{'server_id': existing.serverId},
             createdAt: DateTime.now(),
             priority: SyncPriority.high,
             status: SyncOperationStatus.pending,
@@ -654,7 +659,9 @@ class TransactionRepository
 
       // Step 5: Trigger cascade invalidation for related entities
       if (cacheService != null) {
-        logger.fine('Triggering cache invalidation cascade for transaction deletion');
+        logger.fine(
+          'Triggering cache invalidation cascade for transaction deletion',
+        );
         await CacheInvalidationRules.onTransactionMutation(
           cacheService!,
           existing,
@@ -677,8 +684,9 @@ class TransactionRepository
   Future<List<TransactionEntity>> getUnsynced() async {
     try {
       logger.fine('Fetching unsynced transactions');
-      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions)
-        ..where(($TransactionsTable t) => t.isSynced.equals(false));
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query =
+          database.select(database.transactions)
+            ..where(($TransactionsTable t) => t.isSynced.equals(false));
       final List<TransactionEntity> transactions = await query.get();
       logger.info('Found ${transactions.length} unsynced transactions');
       return transactions;
@@ -705,8 +713,9 @@ class TransactionRepository
         syncError: const Value.absent(),
       );
 
-      final UpdateStatement<$TransactionsTable, TransactionEntity> query = database.update(database.transactions)
-        ..where(($TransactionsTable t) => t.id.equals(localId));
+      final UpdateStatement<$TransactionsTable, TransactionEntity> query =
+          database.update(database.transactions)
+            ..where(($TransactionsTable t) => t.id.equals(localId));
       await query.write(companion);
 
       logger.info('Transaction marked as synced: $localId');
@@ -755,8 +764,9 @@ class TransactionRepository
   Future<int> count() async {
     try {
       final Expression<int> countExp = database.transactions.id.count();
-      final JoinedSelectStatement<$TransactionsTable, TransactionEntity> query = database.selectOnly(database.transactions)
-        ..addColumns(<Expression<Object>>[countExp]);
+      final JoinedSelectStatement<$TransactionsTable, TransactionEntity> query =
+          database.selectOnly(database.transactions)
+            ..addColumns(<Expression<Object>>[countExp]);
       final TypedResult result = await query.getSingle();
       final int count = result.read(countExp) ?? 0;
       logger.fine('Transaction count: $count');
@@ -777,15 +787,26 @@ class TransactionRepository
   ) async {
     try {
       logger.fine('Fetching transactions from $startDate to $endDate');
-      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions)
-        ..where(($TransactionsTable t) => t.date.isBiggerOrEqualValue(startDate))
-        ..where(($TransactionsTable t) => t.date.isSmallerOrEqualValue(endDate))
-        ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[($TransactionsTable t) => OrderingTerm.desc(t.date)]);
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query =
+          database.select(database.transactions)
+            ..where(
+              ($TransactionsTable t) => t.date.isBiggerOrEqualValue(startDate),
+            )
+            ..where(
+              ($TransactionsTable t) => t.date.isSmallerOrEqualValue(endDate),
+            )
+            ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[
+              ($TransactionsTable t) => OrderingTerm.desc(t.date),
+            ]);
       final List<TransactionEntity> transactions = await query.get();
       logger.info('Found ${transactions.length} transactions in date range');
       return transactions;
     } catch (error, stackTrace) {
-      logger.severe('Failed to fetch transactions by date range', error, stackTrace);
+      logger.severe(
+        'Failed to fetch transactions by date range',
+        error,
+        stackTrace,
+      );
       throw DatabaseException.queryFailed(
         'SELECT * FROM transactions WHERE date BETWEEN $startDate AND $endDate',
         error,
@@ -800,11 +821,16 @@ class TransactionRepository
   Future<List<TransactionEntity>> getByAccount(String accountId) async {
     try {
       logger.fine('Fetching transactions for account: $accountId');
-      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions)
-        ..where(($TransactionsTable t) =>
-            t.sourceAccountId.equals(accountId) |
-            t.destinationAccountId.equals(accountId))
-        ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[($TransactionsTable t) => OrderingTerm.desc(t.date)]);
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query =
+          database.select(database.transactions)
+            ..where(
+              ($TransactionsTable t) =>
+                  t.sourceAccountId.equals(accountId) |
+                  t.destinationAccountId.equals(accountId),
+            )
+            ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[
+              ($TransactionsTable t) => OrderingTerm.desc(t.date),
+            ]);
       final List<TransactionEntity> transactions = await query.get();
       logger.info('Found ${transactions.length} transactions for account');
       return transactions;
@@ -828,9 +854,12 @@ class TransactionRepository
   Future<List<TransactionEntity>> getByCategory(String categoryId) async {
     try {
       logger.fine('Fetching transactions for category: $categoryId');
-      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions)
-        ..where(($TransactionsTable t) => t.categoryId.equals(categoryId))
-        ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[($TransactionsTable t) => OrderingTerm.desc(t.date)]);
+      final SimpleSelectStatement<$TransactionsTable, TransactionEntity> query =
+          database.select(database.transactions)
+            ..where(($TransactionsTable t) => t.categoryId.equals(categoryId))
+            ..orderBy(<OrderClauseGenerator<$TransactionsTable>>[
+              ($TransactionsTable t) => OrderingTerm.desc(t.date),
+            ]);
       final List<TransactionEntity> transactions = await query.get();
       logger.info('Found ${transactions.length} transactions for category');
       return transactions;
@@ -876,15 +905,14 @@ class TransactionRepository
 
       // Validate account references if provided
       if (data.containsKey('source_id') || data.containsKey('destination_id')) {
-        final ValidationResult accountValidation = await _validator.validateAccountReferences(
-          data,
-          (String accountId) async {
-            final List<AccountEntity> results = await (database
-                .select(database.accounts)
-                ..where(($AccountsTable t) => t.id.equals(accountId))).get();
-            return results.isNotEmpty;
-          },
-        );
+        final ValidationResult accountValidation = await _validator
+            .validateAccountReferences(data, (String accountId) async {
+              final List<AccountEntity> results =
+                  await (database.select(
+                    database.accounts,
+                  )..where(($AccountsTable t) => t.id.equals(accountId))).get();
+              return results.isNotEmpty;
+            });
         accountValidation.throwIfInvalid();
       }
 
@@ -893,30 +921,36 @@ class TransactionRepository
       final DateTime now = DateTime.now();
 
       // Step 3 & 4: Insert with sync flags
-      final TransactionEntityCompanion companion = TransactionEntityCompanion.insert(
-        id: id,
-        type: data['type'] as String,
-        date: data['date'] is DateTime
-            ? data['date'] as DateTime
-            : DateTime.parse(data['date'] as String),
-        amount: (data['amount'] is double
-            ? data['amount']
-            : double.parse(data['amount'].toString())) as double,
-        description: data['description'] as String,
-        sourceAccountId: data['source_id'] as String? ?? '',
-        destinationAccountId: data['destination_id'] as String? ?? '',
-        categoryId: Value(data['category_id'] as String?),
-        budgetId: Value(data['budget_id'] as String?),
-        currencyCode: data['currency_code'] as String? ?? 'USD',
-        foreignAmount: Value(data['foreign_amount'] as double?),
-        foreignCurrencyCode: Value(data['foreign_currency_code'] as String?),
-        notes: Value(data['notes'] as String?),
-        tags: Value(data['tags'] as String? ?? ''),
-        createdAt: now,
-        updatedAt: now,
-        isSynced: const Value(false),
-        syncStatus: const Value('pending'),
-      );
+      final TransactionEntityCompanion companion =
+          TransactionEntityCompanion.insert(
+            id: id,
+            type: data['type'] as String,
+            date:
+                data['date'] is DateTime
+                    ? data['date'] as DateTime
+                    : DateTime.parse(data['date'] as String),
+            amount:
+                (data['amount'] is double
+                        ? data['amount']
+                        : double.parse(data['amount'].toString()))
+                    as double,
+            description: data['description'] as String,
+            sourceAccountId: data['source_id'] as String? ?? '',
+            destinationAccountId: data['destination_id'] as String? ?? '',
+            categoryId: Value(data['category_id'] as String?),
+            budgetId: Value(data['budget_id'] as String?),
+            currencyCode: data['currency_code'] as String? ?? 'USD',
+            foreignAmount: Value(data['foreign_amount'] as double?),
+            foreignCurrencyCode: Value(
+              data['foreign_currency_code'] as String?,
+            ),
+            notes: Value(data['notes'] as String?),
+            tags: Value(data['tags'] as String? ?? ''),
+            createdAt: now,
+            updatedAt: now,
+            isSynced: const Value(false),
+            syncStatus: const Value('pending'),
+          );
 
       await database.into(database.transactions).insert(companion);
 
@@ -990,27 +1024,31 @@ class TransactionRepository
 
       // Validate account references if changed
       if (data.containsKey('source_id') || data.containsKey('destination_id')) {
-        final ValidationResult accountValidation = await _validator.validateAccountReferences(
-          data,
-          (String accountId) async {
-            final List<AccountEntity> results = await (database
-                .select(database.accounts)
-                ..where(($AccountsTable t) => t.id.equals(accountId))).get();
-            return results.isNotEmpty;
-          },
-        );
+        final ValidationResult accountValidation = await _validator
+            .validateAccountReferences(data, (String accountId) async {
+              final List<AccountEntity> results =
+                  await (database.select(
+                    database.accounts,
+                  )..where(($AccountsTable t) => t.id.equals(accountId))).get();
+              return results.isNotEmpty;
+            });
         accountValidation.throwIfInvalid();
       }
 
       // Step 3 & 4: Update with sync flags
       final TransactionEntityCompanion companion = TransactionEntityCompanion(
         type: Value(data['type'] as String),
-        date: Value(data['date'] is DateTime
-            ? data['date'] as DateTime
-            : DateTime.parse(data['date'] as String)),
-        amount: Value((data['amount'] is double
-            ? data['amount']
-            : double.parse(data['amount'].toString())) as double),
+        date: Value(
+          data['date'] is DateTime
+              ? data['date'] as DateTime
+              : DateTime.parse(data['date'] as String),
+        ),
+        amount: Value(
+          (data['amount'] is double
+                  ? data['amount']
+                  : double.parse(data['amount'].toString()))
+              as double,
+        ),
         description: Value(data['description'] as String),
         sourceAccountId: Value(data['source_id'] as String? ?? ''),
         destinationAccountId: Value(data['destination_id'] as String? ?? ''),
@@ -1026,8 +1064,9 @@ class TransactionRepository
         syncStatus: const Value('pending'),
       );
 
-      final UpdateStatement<$TransactionsTable, TransactionEntity> updateQuery = database.update(database.transactions)
-        ..where(($TransactionsTable t) => t.id.equals(id));
+      final UpdateStatement<$TransactionsTable, TransactionEntity> updateQuery =
+          database.update(database.transactions)
+            ..where(($TransactionsTable t) => t.id.equals(id));
       await updateQuery.write(companion);
 
       logger.info('Transaction updated in database: $id');
@@ -1091,7 +1130,8 @@ class TransactionRepository
       }
 
       // Step 2 & 3: Check sync status
-      final bool wasSynced = existing.serverId != null && existing.serverId!.isNotEmpty;
+      final bool wasSynced =
+          existing.serverId != null && existing.serverId!.isNotEmpty;
 
       if (wasSynced) {
         // Mark as deleted, will be synced later
@@ -1103,7 +1143,8 @@ class TransactionRepository
           updatedAt: Value(DateTime.now()),
         );
 
-        final UpdateStatement<$TransactionsTable, TransactionEntity> updateQuery = database.update(database.transactions)
+        final UpdateStatement<$TransactionsTable, TransactionEntity>
+        updateQuery = database.update(database.transactions)
           ..where(($TransactionsTable t) => t.id.equals(id));
         await updateQuery.write(companion);
 
@@ -1126,7 +1167,8 @@ class TransactionRepository
         // Step 4: Not synced, remove completely
         logger.info('Transaction not synced, removing from database: $id');
 
-        final DeleteStatement<$TransactionsTable, TransactionEntity> deleteQuery = database.delete(database.transactions)
+        final DeleteStatement<$TransactionsTable, TransactionEntity>
+        deleteQuery = database.delete(database.transactions)
           ..where(($TransactionsTable t) => t.id.equals(id));
         await deleteQuery.go();
 
@@ -1174,7 +1216,8 @@ class TransactionRepository
 
     try {
       // Build cache key
-      final String cacheKey = 'transactions_'
+      final String cacheKey =
+          'transactions_'
           '${startDate?.toIso8601String() ?? 'all'}_'
           '${endDate?.toIso8601String() ?? 'all'}_'
           '${accountId ?? 'all'}_'
@@ -1183,50 +1226,71 @@ class TransactionRepository
           '${limit}_$offset';
 
       // Check cache
-      final List<TransactionEntity>? cached = _queryCache?.get<List<TransactionEntity>>(cacheKey);
+      final List<TransactionEntity>? cached = _queryCache
+          ?.get<List<TransactionEntity>>(cacheKey);
       if (cached != null) {
         logger.fine('Returning cached transactions');
         return cached;
       }
 
       // Build query
-      SimpleSelectStatement<$TransactionsTable, TransactionEntity> query = database.select(database.transactions);
+      SimpleSelectStatement<$TransactionsTable, TransactionEntity> query =
+          database.select(database.transactions);
 
       // Apply filters
       if (startDate != null) {
-        query = query..where(($TransactionsTable t) => t.date.isBiggerOrEqualValue(startDate));
+        query =
+            query..where(
+              ($TransactionsTable t) => t.date.isBiggerOrEqualValue(startDate),
+            );
       }
 
       if (endDate != null) {
-        query = query..where(($TransactionsTable t) => t.date.isSmallerOrEqualValue(endDate));
+        query =
+            query..where(
+              ($TransactionsTable t) => t.date.isSmallerOrEqualValue(endDate),
+            );
       }
 
       if (accountId != null) {
-        query = query
-          ..where(($TransactionsTable t) =>
-              t.sourceAccountId.equals(accountId) |
-              t.destinationAccountId.equals(accountId));
+        query =
+            query..where(
+              ($TransactionsTable t) =>
+                  t.sourceAccountId.equals(accountId) |
+                  t.destinationAccountId.equals(accountId),
+            );
       }
 
       if (categoryId != null) {
-        query = query..where(($TransactionsTable t) => t.categoryId.equals(categoryId));
+        query =
+            query..where(
+              ($TransactionsTable t) => t.categoryId.equals(categoryId),
+            );
       }
 
       if (searchQuery != null && searchQuery.isNotEmpty) {
-        query = query
-          ..where(($TransactionsTable t) => t.description.contains(searchQuery) |
-              (t.notes.isNotNull() & t.notes.contains(searchQuery)));
+        query =
+            query..where(
+              ($TransactionsTable t) =>
+                  t.description.contains(searchQuery) |
+                  (t.notes.isNotNull() & t.notes.contains(searchQuery)),
+            );
       }
 
       // Exclude deleted transactions
-      query = query..where(($TransactionsTable t) => t.syncStatus.equals('deleted').not());
+      query =
+          query..where(
+            ($TransactionsTable t) => t.syncStatus.equals('deleted').not(),
+          );
 
       // Order by date (newest first)
-      query = query..orderBy(<OrderClauseGenerator<$TransactionsTable>>[($TransactionsTable t) => OrderingTerm.desc(t.date)]);
+      query =
+          query..orderBy(<OrderClauseGenerator<$TransactionsTable>>[
+            ($TransactionsTable t) => OrderingTerm.desc(t.date),
+          ]);
 
       // Apply pagination
-      query = query
-        ..limit(limit, offset: offset);
+      query = query..limit(limit, offset: offset);
 
       final List<TransactionEntity> transactions = await query.get();
 
@@ -1272,9 +1336,6 @@ class TransactionRepository
       return <TransactionEntity>[];
     }
 
-    return getTransactionsOffline(
-      searchQuery: query.trim(),
-      limit: limit,
-    );
+    return getTransactionsOffline(searchQuery: query.trim(), limit: limit);
   }
 }

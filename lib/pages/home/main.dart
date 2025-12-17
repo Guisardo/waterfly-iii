@@ -178,8 +178,10 @@ class _HomeMainState extends State<HomeMain>
       }
 
       // Use InsightsService with cache-first strategy
-      final (List<InsightTotalEntry> expenseData, List<InsightTotalEntry> incomeData) =
-          await (
+      final (
+        List<InsightTotalEntry> expenseData,
+        List<InsightTotalEntry> incomeData,
+      ) = await (
             insightsService.getExpenseTotal(start: start, end: end),
             insightsService.getIncomeTotal(start: start, end: end),
           ).wait;
@@ -230,16 +232,18 @@ class _HomeMainState extends State<HomeMain>
     final DateTime start = now.copyWith(day: 1);
 
     // Use InsightsService with cache-first strategy
-    final (List<InsightGroupEntry> incomeData, List<InsightGroupEntry> expenseData) =
-        !tags
+    final (
+      List<InsightGroupEntry> incomeData,
+      List<InsightGroupEntry> expenseData,
+    ) = !tags
             ? await (
-                insightsService.getIncomeByCategory(start: start, end: now),
-                insightsService.getExpenseByCategory(start: start, end: now),
-              ).wait
+              insightsService.getIncomeByCategory(start: start, end: now),
+              insightsService.getExpenseByCategory(start: start, end: now),
+            ).wait
             : await (
-                insightsService.getIncomeByTag(start: start, end: now),
-                insightsService.getExpenseByTag(start: start, end: now),
-              ).wait;
+              insightsService.getIncomeByTag(start: start, end: now),
+              insightsService.getExpenseByTag(start: start, end: now),
+            ).wait;
 
     final Map<String, double> incomes = <String, double>{};
     for (InsightGroupEntry entry in incomeData) {
@@ -297,10 +301,8 @@ class _HomeMainState extends State<HomeMain>
     log.fine('Loaded ${localBudgets.length} budgets from local repository');
 
     // Use ChartDataService for budget limits (cache-first)
-    final List<BudgetLimitRead> budgetLimits = await chartService.getBudgetLimits(
-      start: start,
-      end: now,
-    );
+    final List<BudgetLimitRead> budgetLimits = await chartService
+        .getBudgetLimits(start: start, end: now);
 
     budgetLimits.sort((BudgetLimitRead a, BudgetLimitRead b) {
       final BudgetProperties? budgetA = budgetInfos[a.attributes.budgetId];
@@ -345,7 +347,9 @@ class _HomeMainState extends State<HomeMain>
           .where((BillEntity e) {
             final DateTime? nextMatch = e.nextExpectedMatch;
             final DateTime checkDate =
-                (nextMatch != null ? tzHandler.sTime(nextMatch) : end.copyWith(day: end.day + 2))
+                (nextMatch != null
+                        ? tzHandler.sTime(nextMatch)
+                        : end.copyWith(day: end.day + 2))
                     .toLocal()
                     .clearTime();
             return checkDate.isBefore(end.copyWith(day: end.day + 1));
@@ -431,33 +435,35 @@ class _HomeMainState extends State<HomeMain>
       // Fetch accounts from repository
       final List<AccountEntity> allAccounts = await accountRepo.getAll();
 
-      assetAccounts = allAccounts
-          .where((AccountEntity a) => a.type == 'asset')
-          .map(
-            (AccountEntity a) => AccountRead(
-              id: a.serverId ?? a.id,
-              type: 'accounts',
-              attributes: AccountProperties(
-                name: a.name,
-                type: ShortAccountTypeProperty.asset,
-              ),
-            ),
-          )
-          .toList();
+      assetAccounts =
+          allAccounts
+              .where((AccountEntity a) => a.type == 'asset')
+              .map(
+                (AccountEntity a) => AccountRead(
+                  id: a.serverId ?? a.id,
+                  type: 'accounts',
+                  attributes: AccountProperties(
+                    name: a.name,
+                    type: ShortAccountTypeProperty.asset,
+                  ),
+                ),
+              )
+              .toList();
 
-      liabilityAccounts = allAccounts
-          .where((AccountEntity a) => a.type == 'liabilities')
-          .map(
-            (AccountEntity a) => AccountRead(
-              id: a.serverId ?? a.id,
-              type: 'accounts',
-              attributes: AccountProperties(
-                name: a.name,
-                type: ShortAccountTypeProperty.liabilities,
-              ),
-            ),
-          )
-          .toList();
+      liabilityAccounts =
+          allAccounts
+              .where((AccountEntity a) => a.type == 'liabilities')
+              .map(
+                (AccountEntity a) => AccountRead(
+                  id: a.serverId ?? a.id,
+                  type: 'accounts',
+                  attributes: AccountProperties(
+                    name: a.name,
+                    type: ShortAccountTypeProperty.liabilities,
+                  ),
+                ),
+              )
+              .toList();
 
       // Fetch chart data from ChartDataService
       final ChartLine chartLine = await chartService.getAccountOverview(

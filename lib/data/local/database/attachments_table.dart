@@ -55,7 +55,8 @@ class Attachments extends Table {
   BoolColumn get isDownloaded => boolean().withDefault(const Constant(false))();
 
   /// Whether the attachment content is pending upload.
-  BoolColumn get isPendingUpload => boolean().withDefault(const Constant(false))();
+  BoolColumn get isPendingUpload =>
+      boolean().withDefault(const Constant(false))();
 
   /// Optional notes about the attachment.
   TextColumn get notes => text().nullable()();
@@ -76,15 +77,13 @@ class Attachments extends Table {
   BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 
   /// Sync status: 'pending', 'syncing', 'synced', 'error', 'pending_upload', 'pending_delete'.
-  TextColumn get syncStatus =>
-      text().withDefault(const Constant('pending'))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
 
   @override
   Set<Column> get primaryKey => <Column<Object>>{id};
 
   @override
   List<Set<Column>> get uniqueKeys => <Set<Column<Object>>>[
-        <Column<Object>>{serverId},
-      ];
+    <Column<Object>>{serverId},
+  ];
 }
-

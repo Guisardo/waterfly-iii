@@ -34,21 +34,22 @@ class _HomeBalanceState extends State<HomeBalance>
       final List<AccountEntity> entities = await accountRepo.getAll();
 
       // Convert entities to AccountArray for UI compatibility
-      final List<AccountRead> assetAccounts = entities
-          .where((AccountEntity a) => a.type == 'asset')
-          .map(
-            (AccountEntity a) => AccountRead(
-              id: a.serverId ?? a.id,
-              type: 'accounts',
-              attributes: AccountProperties(
-                name: a.name,
-                type: ShortAccountTypeProperty.asset,
-                currentBalance: a.currentBalance.toString(),
-                currencyCode: a.currencyCode,
-              ),
-            ),
-          )
-          .toList();
+      final List<AccountRead> assetAccounts =
+          entities
+              .where((AccountEntity a) => a.type == 'asset')
+              .map(
+                (AccountEntity a) => AccountRead(
+                  id: a.serverId ?? a.id,
+                  type: 'accounts',
+                  attributes: AccountProperties(
+                    name: a.name,
+                    type: ShortAccountTypeProperty.asset,
+                    currentBalance: a.currentBalance.toString(),
+                    currencyCode: a.currencyCode,
+                  ),
+                ),
+              )
+              .toList();
 
       return AccountArray(data: assetAccounts, meta: const Meta());
     }

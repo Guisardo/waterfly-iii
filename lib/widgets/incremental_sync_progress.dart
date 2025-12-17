@@ -276,12 +276,9 @@ class _IncrementalSyncProgressWidgetState
     return FadeTransition(
       opacity: _fadeAnimation,
       child: switch (widget.displayMode) {
-        IncrementalSyncProgressDisplayMode.dialog =>
-          _buildDialog(context),
-        IncrementalSyncProgressDisplayMode.sheet =>
-          _buildSheet(context),
-        IncrementalSyncProgressDisplayMode.embedded =>
-          _buildEmbedded(context),
+        IncrementalSyncProgressDisplayMode.dialog => _buildDialog(context),
+        IncrementalSyncProgressDisplayMode.sheet => _buildSheet(context),
+        IncrementalSyncProgressDisplayMode.embedded => _buildEmbedded(context),
       },
     );
   }
@@ -292,9 +289,7 @@ class _IncrementalSyncProgressWidgetState
       title: _buildHeader(context),
       content: SizedBox(
         width: double.maxFinite,
-        child: SingleChildScrollView(
-          child: _buildContent(context),
-        ),
+        child: SingleChildScrollView(child: _buildContent(context)),
       ),
       actions: _buildActions(context),
     );
@@ -382,16 +377,16 @@ class _IncrementalSyncProgressWidgetState
             children: <Widget>[
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               if (_currentEntityType != null && !_isComplete && !_hasFailed)
                 Text(
                   'Syncing ${_formatEntityType(_currentEntityType!)}...',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
             ],
           ),
@@ -431,21 +426,22 @@ class _IncrementalSyncProgressWidgetState
   /// Build entity progress list.
   Widget _buildEntityProgressList(BuildContext context) {
     return Column(
-      children: _entityOrder.map((String entityType) {
-        final bool isCompleted = _completedEntities.contains(entityType);
-        final bool isCurrent = _currentEntityType == entityType;
-        final IncrementalSyncStats? stats = _entityStats[entityType];
-        final bool isCacheHit = isCompleted && stats == null;
+      children:
+          _entityOrder.map((String entityType) {
+            final bool isCompleted = _completedEntities.contains(entityType);
+            final bool isCurrent = _currentEntityType == entityType;
+            final IncrementalSyncStats? stats = _entityStats[entityType];
+            final bool isCacheHit = isCompleted && stats == null;
 
-        return _buildEntityProgressItem(
-          context,
-          entityType: entityType,
-          isCompleted: isCompleted,
-          isCurrent: isCurrent,
-          stats: stats,
-          isCacheHit: isCacheHit,
-        );
-      }).toList(),
+            return _buildEntityProgressItem(
+              context,
+              entityType: entityType,
+              isCompleted: isCompleted,
+              isCurrent: isCurrent,
+              stats: stats,
+              isCacheHit: isCacheHit,
+            );
+          }).toList(),
     );
   }
 
@@ -476,9 +472,9 @@ class _IncrementalSyncProgressWidgetState
               child: Text(
                 'CACHED',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -492,9 +488,9 @@ class _IncrementalSyncProgressWidgetState
             Text(
               '${stats.itemsUpdated}/${stats.itemsFetched}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.green,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: Colors.green,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(width: 8),
             const Icon(Icons.check, color: Colors.green, size: 20),
@@ -514,7 +510,9 @@ class _IncrementalSyncProgressWidgetState
         ),
       );
     } else {
-      iconColor = Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5);
+      iconColor = Theme.of(
+        context,
+      ).colorScheme.onSurfaceVariant.withOpacity(0.5);
       trailing = Icon(Icons.circle_outlined, color: iconColor, size: 20);
     }
 
@@ -531,24 +529,24 @@ class _IncrementalSyncProgressWidgetState
                 Text(
                   _formatEntityType(entityType),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: isCurrent ? FontWeight.bold : null,
-                        color: isCurrent
+                    fontWeight: isCurrent ? FontWeight.bold : null,
+                    color:
+                        isCurrent
                             ? Theme.of(context).colorScheme.primary
                             : isCompleted
-                                ? Colors.green
-                                : null,
-                      ),
+                            ? Colors.green
+                            : null,
+                  ),
                 ),
                 if (_isTier2Entity(entityType))
                   Text(
                     'Extended cache',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant
-                              .withOpacity(0.7),
-                          fontSize: 10,
-                        ),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                      fontSize: 10,
+                    ),
                   ),
               ],
             ),
@@ -611,15 +609,15 @@ class _IncrementalSyncProgressWidgetState
         Text(
           value,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -640,9 +638,9 @@ class _IncrementalSyncProgressWidgetState
           const SizedBox(width: 8),
           Text(
             '$_retryAttempts retry attempt${_retryAttempts > 1 ? "s" : ""}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.orange,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.orange),
           ),
         ],
       ),
@@ -664,9 +662,9 @@ class _IncrementalSyncProgressWidgetState
           const SizedBox(width: 8),
           Text(
             '$_cacheHits entity type${_cacheHits > 1 ? "s" : ""} served from cache',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.green,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.green),
           ),
         ],
       ),
@@ -690,25 +688,25 @@ class _IncrementalSyncProgressWidgetState
           Text(
             'Sync Failed',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red[900],
-                ),
+              fontWeight: FontWeight.bold,
+              color: Colors.red[900],
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             _errorMessage ?? 'An unknown error occurred',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.red[800],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.red[800]),
             textAlign: TextAlign.center,
           ),
           if (_completedEntities.isNotEmpty) ...<Widget>[
             const SizedBox(height: 16),
             Text(
               'Completed ${_completedEntities.length} entity types before failure',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.red[700],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.red[700]),
             ),
           ],
         ],
@@ -739,9 +737,9 @@ class _IncrementalSyncProgressWidgetState
               Text(
                 'Sync Completed Successfully',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green[900],
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green[900],
+                ),
               ),
             ],
           ),
@@ -780,9 +778,9 @@ class _IncrementalSyncProgressWidgetState
           const SizedBox(height: 12),
           Text(
             '$_cacheHits entity types served from cache',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.green,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.green),
             textAlign: TextAlign.center,
           ),
         ],
@@ -812,14 +810,11 @@ class _IncrementalSyncProgressWidgetState
         Text(
           value,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
@@ -842,28 +837,29 @@ class _IncrementalSyncProgressWidgetState
         onPressed: () {
           showDialog(
             context: context,
-            builder: (BuildContext context) => AlertDialog(
-              title: const Text('Cancel Sync?'),
-              content: const Text(
-                'Are you sure you want to cancel the sync? '
-                'Progress will be lost.',
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Continue'),
+            builder:
+                (BuildContext context) => AlertDialog(
+                  title: const Text('Cancel Sync?'),
+                  content: const Text(
+                    'Are you sure you want to cancel the sync? '
+                    'Progress will be lost.',
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Continue'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        widget.onCancel?.call();
+                        Navigator.of(context).pop();
+                      },
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      child: const Text('Cancel Sync'),
+                    ),
+                  ],
                 ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    widget.onCancel?.call();
-                    Navigator.of(context).pop();
-                  },
-                  style: TextButton.styleFrom(foregroundColor: Colors.red),
-                  child: const Text('Cancel Sync'),
-                ),
-              ],
-            ),
           );
         },
         child: const Text('Cancel'),
@@ -959,14 +955,15 @@ Future<void> showIncrementalSyncProgressDialog(
   return showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (BuildContext context) => IncrementalSyncProgressWidget(
-      progressStream: progressStream,
-      displayMode: IncrementalSyncProgressDisplayMode.dialog,
-      allowCancel: allowCancel,
-      onCancel: onCancel,
-      onComplete: onComplete,
-      autoDismissOnComplete: autoDismissOnComplete,
-    ),
+    builder:
+        (BuildContext context) => IncrementalSyncProgressWidget(
+          progressStream: progressStream,
+          displayMode: IncrementalSyncProgressDisplayMode.dialog,
+          allowCancel: allowCancel,
+          onCancel: onCancel,
+          onComplete: onComplete,
+          autoDismissOnComplete: autoDismissOnComplete,
+        ),
   );
 }
 
@@ -983,14 +980,14 @@ Future<void> showIncrementalSyncProgressSheet(
     context: context,
     isDismissible: false,
     enableDrag: false,
-    builder: (BuildContext context) => IncrementalSyncProgressWidget(
-      progressStream: progressStream,
-      displayMode: IncrementalSyncProgressDisplayMode.sheet,
-      allowCancel: allowCancel,
-      onCancel: onCancel,
-      onComplete: onComplete,
-      autoDismissOnComplete: autoDismissOnComplete,
-    ),
+    builder:
+        (BuildContext context) => IncrementalSyncProgressWidget(
+          progressStream: progressStream,
+          displayMode: IncrementalSyncProgressDisplayMode.sheet,
+          allowCancel: allowCancel,
+          onCancel: onCancel,
+          onComplete: onComplete,
+          autoDismissOnComplete: autoDismissOnComplete,
+        ),
   );
 }
-

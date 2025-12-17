@@ -40,7 +40,9 @@ class BillValidator {
         if (amountMax == null) {
           errors.add('Maximum amount must be a valid number');
         } else if (amountMin != null && amountMax < amountMin) {
-          errors.add('Maximum amount must be greater than or equal to minimum amount');
+          errors.add(
+            'Maximum amount must be greater than or equal to minimum amount',
+          );
         }
       }
     }
@@ -59,7 +61,12 @@ class BillValidator {
     if (data.containsKey('repeat_freq') && data['repeat_freq'] != null) {
       final String repeatFreq = data['repeat_freq'] as String;
       const List<String> validFrequencies = <String>[
-        'daily', 'weekly', 'monthly', 'quarterly', 'half-year', 'yearly'
+        'daily',
+        'weekly',
+        'monthly',
+        'quarterly',
+        'half-year',
+        'yearly',
       ];
       if (!validFrequencies.contains(repeatFreq.toLowerCase())) {
         errors.add('Invalid repeat frequency: $repeatFreq');
@@ -77,7 +84,8 @@ class BillValidator {
     // Currency validation
     if (data.containsKey('currency_code') && data['currency_code'] != null) {
       final String currencyCode = data['currency_code'] as String;
-      if (currencyCode.length != 3 || currencyCode != currencyCode.toUpperCase()) {
+      if (currencyCode.length != 3 ||
+          currencyCode != currencyCode.toUpperCase()) {
         errors.add('Invalid currency code format');
       }
     }

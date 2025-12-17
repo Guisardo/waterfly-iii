@@ -133,7 +133,9 @@ class _IncrementalSyncDashboardCardState
 
   void _subscribeToProgress() {
     if (widget.progressStream != null) {
-      _progressSubscription = widget.progressStream!.listen((SyncProgressEvent event) {
+      _progressSubscription = widget.progressStream!.listen((
+        SyncProgressEvent event,
+      ) {
         if (mounted) {
           setState(() {
             _latestProgress = event;
@@ -146,7 +148,11 @@ class _IncrementalSyncDashboardCardState
   @override
   Widget build(BuildContext context) {
     return Consumer<OfflineSettingsProvider>(
-      builder: (BuildContext context, OfflineSettingsProvider settings, Widget? child) {
+      builder: (
+        BuildContext context,
+        OfflineSettingsProvider settings,
+        Widget? child,
+      ) {
         switch (widget.mode) {
           case IncrementalSyncDashboardCardMode.standard:
             return _buildStandardCard(context, settings);
@@ -182,10 +188,9 @@ class _IncrementalSyncDashboardCardState
                 gradient: LinearGradient(
                   colors: <Color>[
                     Theme.of(context).colorScheme.primaryContainer,
-                    Theme.of(context)
-                        .colorScheme
-                        .primaryContainer
-                        .withOpacity(0.7),
+                    Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withOpacity(0.7),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -201,19 +206,18 @@ class _IncrementalSyncDashboardCardState
                       children: <Widget>[
                         Text(
                           'Incremental Sync',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(
                           _getStatusText(settings, isSyncing, progress),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer
-                                    .withOpacity(0.8),
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer.withOpacity(0.8),
+                          ),
                         ),
                       ],
                     ),
@@ -279,10 +283,8 @@ class _IncrementalSyncDashboardCardState
                       children: <Widget>[
                         Text(
                           'Sync',
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(width: 8),
                         _buildStatusBadge(context, settings, isSyncing),
@@ -290,9 +292,10 @@ class _IncrementalSyncDashboardCardState
                     ),
                     if (isSyncing && progress != null)
                       LinearProgressIndicator(
-                        value: progress.progressPercent != null
-                            ? progress.progressPercent! / 100.0
-                            : null,
+                        value:
+                            progress.progressPercent != null
+                                ? progress.progressPercent! / 100.0
+                                : null,
                         minHeight: 4,
                         borderRadius: BorderRadius.circular(2),
                       )
@@ -300,10 +303,8 @@ class _IncrementalSyncDashboardCardState
                       Text(
                         _getCompactStatusText(settings),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                   ],
                 ),
@@ -313,9 +314,10 @@ class _IncrementalSyncDashboardCardState
                   onPressed: widget.onSyncTap,
                   icon: Icon(
                     Icons.sync,
-                    color: settings.needsFullSync
-                        ? Colors.orange
-                        : Theme.of(context).colorScheme.primary,
+                    color:
+                        settings.needsFullSync
+                            ? Colors.orange
+                            : Theme.of(context).colorScheme.primary,
                   ),
                   tooltip: 'Sync now',
                 ),
@@ -384,10 +386,9 @@ class _IncrementalSyncDashboardCardState
     if (isSyncing) {
       iconWidget = AnimatedBuilder(
         animation: _pulseAnimation,
-        builder: (BuildContext context, Widget? child) => Transform.scale(
-          scale: _pulseAnimation.value,
-          child: child,
-        ),
+        builder:
+            (BuildContext context, Widget? child) =>
+                Transform.scale(scale: _pulseAnimation.value, child: child),
         child: iconWidget,
       );
     }
@@ -434,9 +435,9 @@ class _IncrementalSyncDashboardCardState
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.bold,
-            ),
+          color: color,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -466,9 +467,9 @@ class _IncrementalSyncDashboardCardState
               ),
               Text(
                 '${progress.progressPercent!.toStringAsFixed(0)}%',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -521,9 +522,9 @@ class _IncrementalSyncDashboardCardState
             Expanded(
               child: Text(
                 'Incremental sync is disabled. Enable it in settings for faster syncs.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.grey),
               ),
             ),
           ],
@@ -535,7 +536,9 @@ class _IncrementalSyncDashboardCardState
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+          color: Theme.of(
+            context,
+          ).colorScheme.primaryContainer.withOpacity(0.3),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -613,16 +616,16 @@ class _IncrementalSyncDashboardCardState
           Text(
             value,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: 10,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              fontSize: 10,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -641,15 +644,15 @@ class _IncrementalSyncDashboardCardState
         Text(
           value,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
@@ -672,9 +675,9 @@ class _IncrementalSyncDashboardCardState
           Expanded(
             child: Text(
               'Full sync recommended (>7 days)',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.orange[900],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.orange[900]),
             ),
           ),
         ],
@@ -691,18 +694,15 @@ class _IncrementalSyncDashboardCardState
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: widget.onSyncTap,
-        icon: Icon(
-          settings.needsFullSync ? Icons.sync_alt : Icons.sync,
-        ),
-        label: Text(
-          settings.needsFullSync ? 'Full Sync' : 'Sync Now',
-        ),
-        style: settings.needsFullSync
-            ? ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-              )
-            : null,
+        icon: Icon(settings.needsFullSync ? Icons.sync_alt : Icons.sync),
+        label: Text(settings.needsFullSync ? 'Full Sync' : 'Sync Now'),
+        style:
+            settings.needsFullSync
+                ? ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                )
+                : null,
       ),
     );
   }
@@ -830,4 +830,3 @@ enum IncrementalSyncDashboardCardMode {
   /// Icon-only mini display.
   mini,
 }
-

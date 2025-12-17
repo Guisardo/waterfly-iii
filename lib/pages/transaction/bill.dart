@@ -31,79 +31,84 @@ Future<BillRead?> showBillDialog({
 
   return showDialog<BillRead>(
     context: context,
-    builder: (BuildContext dialogContext) => EntitySelectDialog<BillRead>(
-      config: EntitySelectConfig<BillRead>(
-        icon: Icons.calendar_today,
-        title: S.of(context).transactionDialogBillTitle,
-        labelText: S.of(context).transactionDialogBillTitle,
-        clearButtonText: S.of(context).transactionDialogBillNoBill,
-        initialValue: currentBill,
-        initialDisplayText: currentBill?.attributes.name,
-        emptyResultFactory: () => BillRead(
-          type: 'bill',
-          id: '0',
-          attributes: BillProperties(
-            name: '',
-            amountMin: '',
-            amountMax: '',
-            date: DateTime.now(),
-            repeatFreq: BillRepeatFrequency.swaggerGeneratedUnknown,
+    builder:
+        (BuildContext dialogContext) => EntitySelectDialog<BillRead>(
+          config: EntitySelectConfig<BillRead>(
+            icon: Icons.calendar_today,
+            title: S.of(context).transactionDialogBillTitle,
+            labelText: S.of(context).transactionDialogBillTitle,
+            clearButtonText: S.of(context).transactionDialogBillNoBill,
+            initialValue: currentBill,
+            initialDisplayText: currentBill?.attributes.name,
+            emptyResultFactory:
+                () => BillRead(
+                  type: 'bill',
+                  id: '0',
+                  attributes: BillProperties(
+                    name: '',
+                    amountMin: '',
+                    amountMax: '',
+                    date: DateTime.now(),
+                    repeatFreq: BillRepeatFrequency.swaggerGeneratedUnknown,
+                  ),
+                ),
+            resultFactory:
+                (AutocompleteOption option) => BillRead(
+                  type: 'bill',
+                  id: option.id,
+                  attributes: BillProperties(
+                    name: option.name,
+                    amountMin: '',
+                    amountMax: '',
+                    date: DateTime.now(),
+                    repeatFreq: BillRepeatFrequency.swaggerGeneratedUnknown,
+                  ),
+                ),
+            optionsBuilder: (String query) async {
+              try {
+                // Try to use BillRepository for local data
+                final BillRepository? billRepository =
+                    context.read<BillRepository?>();
+
+                if (billRepository != null) {
+                  final List<BillEntity> entities =
+                      await billRepository.getAll();
+                  // Filter by query text
+                  final String lowerQuery = query.toLowerCase();
+                  return entities
+                      .where(
+                        (BillEntity e) =>
+                            e.name.toLowerCase().contains(lowerQuery),
+                      )
+                      .map(
+                        (BillEntity e) =>
+                            AutocompleteOption(id: e.id, name: e.name),
+                      )
+                      .toList();
+                }
+
+                // Fallback to direct API call
+                final FireflyIii api = context.read<FireflyService>().api;
+                final Response<List<AutocompleteBill>> response = await api
+                    .v1AutocompleteBillsGet(query: query);
+                apiThrowErrorIfEmpty(
+                  response,
+                  context.mounted ? context : null,
+                );
+
+                return response.body!
+                    .map(
+                      (AutocompleteBill e) =>
+                          AutocompleteOption(id: e.id, name: e.name),
+                    )
+                    .toList();
+              } catch (e, stackTrace) {
+                log.severe('Error while fetching bills', e, stackTrace);
+                return const <AutocompleteOption>[];
+              }
+            },
           ),
         ),
-        resultFactory: (AutocompleteOption option) => BillRead(
-          type: 'bill',
-          id: option.id,
-          attributes: BillProperties(
-            name: option.name,
-            amountMin: '',
-            amountMax: '',
-            date: DateTime.now(),
-            repeatFreq: BillRepeatFrequency.swaggerGeneratedUnknown,
-          ),
-        ),
-        optionsBuilder: (String query) async {
-          try {
-            // Try to use BillRepository for local data
-            final BillRepository? billRepository =
-                context.read<BillRepository?>();
-
-            if (billRepository != null) {
-              final List<BillEntity> entities = await billRepository.getAll();
-              // Filter by query text
-              final String lowerQuery = query.toLowerCase();
-              return entities
-                  .where((BillEntity e) =>
-                      e.name.toLowerCase().contains(lowerQuery))
-                  .map((BillEntity e) => AutocompleteOption(
-                        id: e.id,
-                        name: e.name,
-                      ))
-                  .toList();
-            }
-
-            // Fallback to direct API call
-            final FireflyIii api = context.read<FireflyService>().api;
-            final Response<List<AutocompleteBill>> response =
-                await api.v1AutocompleteBillsGet(query: query);
-            apiThrowErrorIfEmpty(response, context.mounted ? context : null);
-
-            return response.body!
-                .map((AutocompleteBill e) => AutocompleteOption(
-                      id: e.id,
-                      name: e.name,
-                    ))
-                .toList();
-          } catch (e, stackTrace) {
-            log.severe(
-              'Error while fetching bills',
-              e,
-              stackTrace,
-            );
-            return const <AutocompleteOption>[];
-          }
-        },
-      ),
-    ),
   );
 }
 
@@ -132,28 +137,30 @@ class BillDialog extends StatelessWidget {
         clearButtonText: S.of(context).transactionDialogBillNoBill,
         initialValue: currentBill,
         initialDisplayText: currentBill?.attributes.name,
-        emptyResultFactory: () => BillRead(
-          type: 'bill',
-          id: '0',
-          attributes: BillProperties(
-            name: '',
-            amountMin: '',
-            amountMax: '',
-            date: DateTime.now(),
-            repeatFreq: BillRepeatFrequency.swaggerGeneratedUnknown,
-          ),
-        ),
-        resultFactory: (AutocompleteOption option) => BillRead(
-          type: 'bill',
-          id: option.id,
-          attributes: BillProperties(
-            name: option.name,
-            amountMin: '',
-            amountMax: '',
-            date: DateTime.now(),
-            repeatFreq: BillRepeatFrequency.swaggerGeneratedUnknown,
-          ),
-        ),
+        emptyResultFactory:
+            () => BillRead(
+              type: 'bill',
+              id: '0',
+              attributes: BillProperties(
+                name: '',
+                amountMin: '',
+                amountMax: '',
+                date: DateTime.now(),
+                repeatFreq: BillRepeatFrequency.swaggerGeneratedUnknown,
+              ),
+            ),
+        resultFactory:
+            (AutocompleteOption option) => BillRead(
+              type: 'bill',
+              id: option.id,
+              attributes: BillProperties(
+                name: option.name,
+                amountMin: '',
+                amountMax: '',
+                date: DateTime.now(),
+                repeatFreq: BillRepeatFrequency.swaggerGeneratedUnknown,
+              ),
+            ),
         optionsBuilder: (String query) async {
           try {
             // Try to use BillRepository for local data
@@ -165,33 +172,30 @@ class BillDialog extends StatelessWidget {
               // Filter by query text
               final String lowerQuery = query.toLowerCase();
               return entities
-                  .where((BillEntity e) =>
-                      e.name.toLowerCase().contains(lowerQuery))
-                  .map((BillEntity e) => AutocompleteOption(
-                        id: e.id,
-                        name: e.name,
-                      ))
+                  .where(
+                    (BillEntity e) => e.name.toLowerCase().contains(lowerQuery),
+                  )
+                  .map(
+                    (BillEntity e) =>
+                        AutocompleteOption(id: e.id, name: e.name),
+                  )
                   .toList();
             }
 
             // Fallback to direct API call
             final FireflyIii api = context.read<FireflyService>().api;
-            final Response<List<AutocompleteBill>> response =
-                await api.v1AutocompleteBillsGet(query: query);
+            final Response<List<AutocompleteBill>> response = await api
+                .v1AutocompleteBillsGet(query: query);
             apiThrowErrorIfEmpty(response, context.mounted ? context : null);
 
             return response.body!
-                .map((AutocompleteBill e) => AutocompleteOption(
-                      id: e.id,
-                      name: e.name,
-                    ))
+                .map(
+                  (AutocompleteBill e) =>
+                      AutocompleteOption(id: e.id, name: e.name),
+                )
                 .toList();
           } catch (e, stackTrace) {
-            log.severe(
-              'Error while fetching bills',
-              e,
-              stackTrace,
-            );
+            log.severe('Error while fetching bills', e, stackTrace);
             return const <AutocompleteOption>[];
           }
         },

@@ -7,7 +7,8 @@ import 'package:waterflyiii/models/cache/cache_stats.dart';
 import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/models/cache/cache_result.dart';
 import 'package:waterflyiii/models/cache/cache_invalidation_event.dart';
-import 'package:drift/drift.dart' hide isNotNull; // Hide to avoid conflict with matcher
+import 'package:drift/drift.dart'
+    hide isNotNull; // Hide to avoid conflict with matcher
 import 'package:drift/native.dart';
 
 /// Mock classes for testing
@@ -19,11 +20,7 @@ class TestEntity {
   final String name;
   final int value;
 
-  TestEntity({
-    required this.id,
-    required this.name,
-    required this.value,
-  });
+  TestEntity({required this.id, required this.name, required this.value});
 
   @override
   bool operator ==(Object other) =>
@@ -78,7 +75,11 @@ void main() {
     group('get() - Cache-first retrieval', () {
       test('should return fresh cached data when available', () async {
         // Arrange: Store fresh data in cache metadata
-        final TestEntity testData = TestEntity(id: '123', name: 'Test', value: 42);
+        final TestEntity testData = TestEntity(
+          id: '123',
+          name: 'Test',
+          value: 42,
+        );
 
         await cacheService.set(
           entityType: 'test_entity',
@@ -89,12 +90,15 @@ void main() {
 
         // Store in "database" (simulate repository storing entity)
         // CacheService ALWAYS calls fetcher to get data from repository DB
-        final Map<String, TestEntity> dataStore = <String, TestEntity>{'123': testData};
+        final Map<String, TestEntity> dataStore = <String, TestEntity>{
+          '123': testData,
+        };
 
         bool fetcherCalled = false;
 
         // Act: Fetch with cache-first strategy
-        final CacheResult<TestEntity> result = await cacheService.get<TestEntity>(
+        final CacheResult<TestEntity>
+        result = await cacheService.get<TestEntity>(
           entityType: 'test_entity',
           entityId: '123',
           fetcher: () async {
@@ -109,41 +113,55 @@ void main() {
         expect(fetcherCalled, isTrue); // CORRECTED: Fetcher is called
         expect(result.data, isNotNull);
         expect(result.data, equals(testData));
-        expect(result.source, equals(CacheSource.cache)); // Metadata source is cache
+        expect(
+          result.source,
+          equals(CacheSource.cache),
+        ); // Metadata source is cache
         expect(result.isFresh, isTrue); // Metadata indicates fresh
         expect(result.isCacheHit, isTrue); // Cache metadata hit
       });
 
       test('should fetch and cache when cache miss', () async {
         // Arrange: No cache entry, simulate repository datastore
-        final TestEntity testData = TestEntity(id: '456', name: 'NewEntity', value: 99);
+        final TestEntity testData = TestEntity(
+          id: '456',
+          name: 'NewEntity',
+          value: 99,
+        );
         final Map<String, TestEntity> dataStore = <String, TestEntity>{};
         int firstFetchCount = 0;
 
         // Act: Fetch with cache-first strategy (cache miss)
-        final CacheResult<TestEntity> result = await cacheService.get<TestEntity>(
-          entityType: 'test_entity',
-          entityId: '456',
-          fetcher: () async {
-            firstFetchCount++;
-            await Future.delayed(const Duration(milliseconds: 10)); // Simulate API delay
-            // Simulate API storing to repository DB
-            dataStore['456'] = testData;
-            return testData;
-          },
-          ttl: const Duration(minutes: 30),
-        );
+        final CacheResult<TestEntity> result = await cacheService
+            .get<TestEntity>(
+              entityType: 'test_entity',
+              entityId: '456',
+              fetcher: () async {
+                firstFetchCount++;
+                await Future.delayed(
+                  const Duration(milliseconds: 10),
+                ); // Simulate API delay
+                // Simulate API storing to repository DB
+                dataStore['456'] = testData;
+                return testData;
+              },
+              ttl: const Duration(minutes: 30),
+            );
 
         // Assert: Calls fetcher and caches metadata
         expect(firstFetchCount, equals(1));
         expect(result.data, equals(testData));
-        expect(result.source, equals(CacheSource.api)); // First fetch is from API
+        expect(
+          result.source,
+          equals(CacheSource.api),
+        ); // First fetch is from API
         expect(result.isFresh, isTrue);
         expect(result.isCacheMiss, isTrue);
 
         // Verify metadata cached for next call
         int secondFetchCount = 0;
-        final CacheResult<TestEntity> cachedResult = await cacheService.get<TestEntity>(
+        final CacheResult<TestEntity>
+        cachedResult = await cacheService.get<TestEntity>(
           entityType: 'test_entity',
           entityId: '456',
           fetcher: () async {
@@ -154,19 +172,35 @@ void main() {
           ttl: const Duration(minutes: 30),
         );
 
-        expect(secondFetchCount, equals(1)); // CORRECTED: Fetcher called on cache hit too
+        expect(
+          secondFetchCount,
+          equals(1),
+        ); // CORRECTED: Fetcher called on cache hit too
         expect(cachedResult.data, equals(testData));
-        expect(cachedResult.source, equals(CacheSource.cache)); // Metadata from cache
+        expect(
+          cachedResult.source,
+          equals(CacheSource.cache),
+        ); // Metadata from cache
         expect(cachedResult.isFresh, isTrue); // Metadata indicates fresh
       });
 
       test('should serve stale data and trigger background refresh', () async {
         // Arrange: Cache metadata with very short TTL, data in "repository DB"
-        final TestEntity oldData = TestEntity(id: '789', name: 'OldData', value: 1);
-        final TestEntity newData = TestEntity(id: '789', name: 'NewData', value: 2);
+        final TestEntity oldData = TestEntity(
+          id: '789',
+          name: 'OldData',
+          value: 1,
+        );
+        final TestEntity newData = TestEntity(
+          id: '789',
+          name: 'NewData',
+          value: 2,
+        );
 
         // Simulate repository DB with stale data
-        final Map<String, TestEntity> dataStore = <String, TestEntity>{'789': oldData};
+        final Map<String, TestEntity> dataStore = <String, TestEntity>{
+          '789': oldData,
+        };
 
         await cacheService.set(
           entityType: 'test_entity',
@@ -180,26 +214,28 @@ void main() {
 
         int fetcherCallCount = 0;
         final List<CacheInvalidationEvent> events = <CacheInvalidationEvent>[];
-        final StreamSubscription<CacheInvalidationEvent> subscription = cacheService.invalidationStream.listen(events.add);
+        final StreamSubscription<CacheInvalidationEvent> subscription =
+            cacheService.invalidationStream.listen(events.add);
 
         // Act: Fetch with background refresh
-        final CacheResult<TestEntity> result = await cacheService.get<TestEntity>(
-          entityType: 'test_entity',
-          entityId: '789',
-          fetcher: () async {
-            fetcherCallCount++;
-            // CORRECTED: First call returns stale data from repository DB
-            // Second call (background) updates with new data from API
-            if (fetcherCallCount == 1) {
-              return dataStore['789']!; // Return stale data
-            } else {
-              await Future.delayed(const Duration(milliseconds: 50));
-              dataStore['789'] = newData; // Update repository DB
-              return newData;
-            }
-          },
-          backgroundRefresh: true,
-        );
+        final CacheResult<TestEntity> result = await cacheService
+            .get<TestEntity>(
+              entityType: 'test_entity',
+              entityId: '789',
+              fetcher: () async {
+                fetcherCallCount++;
+                // CORRECTED: First call returns stale data from repository DB
+                // Second call (background) updates with new data from API
+                if (fetcherCallCount == 1) {
+                  return dataStore['789']!; // Return stale data
+                } else {
+                  await Future.delayed(const Duration(milliseconds: 50));
+                  dataStore['789'] = newData; // Update repository DB
+                  return newData;
+                }
+              },
+              backgroundRefresh: true,
+            );
 
         // Assert: Returns stale data immediately from fetcher (repository DB)
         expect(result.data, isNotNull);
@@ -214,12 +250,15 @@ void main() {
         expect(fetcherCallCount, equals(2)); // CORRECTED: Called twice total
 
         // Verify refresh event was emitted
-        final List<CacheInvalidationEvent> refreshEvents = events
-            .where((CacheInvalidationEvent e) =>
-                e.entityType == 'test_entity' &&
-                e.entityId == '789' &&
-                e.eventType == CacheEventType.refreshed)
-            .toList();
+        final List<CacheInvalidationEvent> refreshEvents =
+            events
+                .where(
+                  (CacheInvalidationEvent e) =>
+                      e.entityType == 'test_entity' &&
+                      e.entityId == '789' &&
+                      e.eventType == CacheEventType.refreshed,
+                )
+                .toList();
         expect(refreshEvents, hasLength(1));
 
         await subscription.cancel();
@@ -240,15 +279,16 @@ void main() {
         bool fetcherCalled = false;
 
         // Act: Force refresh
-        final CacheResult<TestEntity> result = await cacheService.get<TestEntity>(
-          entityType: 'test_entity',
-          entityId: '111',
-          fetcher: () async {
-            fetcherCalled = true;
-            return newData;
-          },
-          forceRefresh: true,
-        );
+        final CacheResult<TestEntity> result = await cacheService
+            .get<TestEntity>(
+              entityType: 'test_entity',
+              entityId: '111',
+              fetcher: () async {
+                fetcherCalled = true;
+                return newData;
+              },
+              forceRefresh: true,
+            );
 
         // Assert: Bypasses cache and fetches fresh data
         expect(fetcherCalled, isTrue);
@@ -256,49 +296,69 @@ void main() {
         expect(result.source, equals(CacheSource.api));
       });
 
-      test('should disable background refresh when backgroundRefresh=false', () async {
-        // Arrange: Cache metadata with expired TTL, data in repository DB
-        final TestEntity oldData = TestEntity(id: '222', name: 'Old', value: 1);
-        final Map<String, TestEntity> dataStore = <String, TestEntity>{'222': oldData};
+      test(
+        'should disable background refresh when backgroundRefresh=false',
+        () async {
+          // Arrange: Cache metadata with expired TTL, data in repository DB
+          final TestEntity oldData = TestEntity(
+            id: '222',
+            name: 'Old',
+            value: 1,
+          );
+          final Map<String, TestEntity> dataStore = <String, TestEntity>{
+            '222': oldData,
+          };
 
-        await cacheService.set(
-          entityType: 'test_entity',
-          entityId: '222',
-          data: oldData,
-          ttl: const Duration(milliseconds: 1),
-        );
+          await cacheService.set(
+            entityType: 'test_entity',
+            entityId: '222',
+            data: oldData,
+            ttl: const Duration(milliseconds: 1),
+          );
 
-        await Future.delayed(const Duration(milliseconds: 50));
+          await Future.delayed(const Duration(milliseconds: 50));
 
-        int fetcherCallCount = 0;
+          int fetcherCallCount = 0;
 
-        // Act: Fetch with background refresh disabled
-        final CacheResult<TestEntity> result = await cacheService.get<TestEntity>(
-          entityType: 'test_entity',
-          entityId: '222',
-          fetcher: () async {
-            fetcherCallCount++;
-            return dataStore['222']!; // Return stale data from repository DB
-          },
-          backgroundRefresh: false,
-        );
+          // Act: Fetch with background refresh disabled
+          final CacheResult<TestEntity>
+          result = await cacheService.get<TestEntity>(
+            entityType: 'test_entity',
+            entityId: '222',
+            fetcher: () async {
+              fetcherCallCount++;
+              return dataStore['222']!; // Return stale data from repository DB
+            },
+            backgroundRefresh: false,
+          );
 
-        // Assert: Returns stale data from repository, NO background refresh
-        expect(result.data, isNotNull);
-        expect(result.data, equals(oldData));
-        expect(result.isFresh, isFalse);
-        expect(fetcherCallCount, equals(1)); // CORRECTED: Called once for stale data
+          // Assert: Returns stale data from repository, NO background refresh
+          expect(result.data, isNotNull);
+          expect(result.data, equals(oldData));
+          expect(result.isFresh, isFalse);
+          expect(
+            fetcherCallCount,
+            equals(1),
+          ); // CORRECTED: Called once for stale data
 
-        // Wait to ensure background refresh doesn't happen
-        await Future.delayed(const Duration(milliseconds: 100));
-        expect(fetcherCallCount, equals(1)); // CORRECTED: Still only called once (no background refresh)
-      });
+          // Wait to ensure background refresh doesn't happen
+          await Future.delayed(const Duration(milliseconds: 100));
+          expect(
+            fetcherCallCount,
+            equals(1),
+          ); // CORRECTED: Still only called once (no background refresh)
+        },
+      );
     });
 
     group('set() - Store data in cache', () {
       test('should store data with metadata', () async {
         // Arrange
-        final TestEntity testData = TestEntity(id: '333', name: 'Test', value: 3);
+        final TestEntity testData = TestEntity(
+          id: '333',
+          name: 'Test',
+          value: 3,
+        );
 
         // Act
         await cacheService.set(
@@ -340,7 +400,11 @@ void main() {
 
       test('should store ETag when provided', () async {
         // Arrange
-        final TestEntity testData = TestEntity(id: '555', name: 'Test', value: 5);
+        final TestEntity testData = TestEntity(
+          id: '555',
+          name: 'Test',
+          value: 5,
+        );
         const String etag = '"abc123"';
 
         // Act
@@ -353,11 +417,12 @@ void main() {
         );
 
         // Assert: Verify ETag stored (check via database query)
-        final CacheMetadataEntity? metadata = await (database.select(database.cacheMetadataTable)
-              ..where(($CacheMetadataTableTable tbl) =>
+        final CacheMetadataEntity? metadata =
+            await (database.select(database.cacheMetadataTable)..where(
+              ($CacheMetadataTableTable tbl) =>
                   tbl.entityType.equals('test_entity') &
-                  tbl.entityId.equals('555')))
-            .getSingleOrNull();
+                  tbl.entityId.equals('555'),
+            )).getSingleOrNull();
 
         expect(metadata, isNotNull);
         expect(metadata!.etag, equals(etag));
@@ -398,7 +463,10 @@ void main() {
 
       test('should return false for cache miss', () async {
         // Act & Assert
-        final bool isFresh = await cacheService.isFresh('test_entity', 'nonexistent');
+        final bool isFresh = await cacheService.isFresh(
+          'test_entity',
+          'nonexistent',
+        );
         expect(isFresh, isFalse);
       });
 
@@ -430,7 +498,8 @@ void main() {
         );
 
         final List<CacheInvalidationEvent> events = <CacheInvalidationEvent>[];
-        final StreamSubscription<CacheInvalidationEvent> subscription = cacheService.invalidationStream.listen(events.add);
+        final StreamSubscription<CacheInvalidationEvent> subscription =
+            cacheService.invalidationStream.listen(events.add);
 
         // Act: Invalidate
         await cacheService.invalidate('test_entity', '999');
@@ -443,12 +512,15 @@ void main() {
         expect(isFresh, isFalse);
 
         // Verify invalidation event emitted
-        final List<CacheInvalidationEvent> invalidationEvents = events
-            .where((CacheInvalidationEvent e) =>
-                e.entityType == 'test_entity' &&
-                e.entityId == '999' &&
-                e.eventType == CacheEventType.invalidated)
-            .toList();
+        final List<CacheInvalidationEvent> invalidationEvents =
+            events
+                .where(
+                  (CacheInvalidationEvent e) =>
+                      e.entityType == 'test_entity' &&
+                      e.entityId == '999' &&
+                      e.eventType == CacheEventType.invalidated,
+                )
+                .toList();
         expect(invalidationEvents, hasLength(1));
 
         await subscription.cancel();
@@ -506,19 +578,23 @@ void main() {
         );
 
         final List<CacheInvalidationEvent> events = <CacheInvalidationEvent>[];
-        final StreamSubscription<CacheInvalidationEvent> subscription = cacheService.invalidationStream.listen(events.add);
+        final StreamSubscription<CacheInvalidationEvent> subscription =
+            cacheService.invalidationStream.listen(events.add);
 
         // Act
         await cacheService.invalidateType('test_entity');
         await Future.delayed(const Duration(milliseconds: 10));
 
         // Assert: Type-level event emitted with '*' entityId
-        final List<CacheInvalidationEvent> typeEvents = events
-            .where((CacheInvalidationEvent e) =>
-                e.entityType == 'test_entity' &&
-                e.entityId == '*' &&
-                e.eventType == CacheEventType.invalidated)
-            .toList();
+        final List<CacheInvalidationEvent> typeEvents =
+            events
+                .where(
+                  (CacheInvalidationEvent e) =>
+                      e.entityType == 'test_entity' &&
+                      e.entityId == '*' &&
+                      e.eventType == CacheEventType.invalidated,
+                )
+                .toList();
         expect(typeEvents, hasLength(1));
 
         await subscription.cancel();
@@ -553,7 +629,8 @@ void main() {
         expect(await cacheService.isFresh('other_entity', 'e1'), isFalse);
 
         // Verify database is empty
-        final List<CacheMetadataEntity> entries = await database.select(database.cacheMetadataTable).get();
+        final List<CacheMetadataEntity> entries =
+            await database.select(database.cacheMetadataTable).get();
         expect(entries, isEmpty);
       });
     });
@@ -562,7 +639,10 @@ void main() {
       test('should track cache hits and misses', () async {
         // Arrange: Perform cache operations
         final TestEntity testData = TestEntity(id: 'f1', name: 'F1', value: 1);
-        final Map<String, TestEntity> dataStore = <String, TestEntity>{'f1': testData, 'f2': testData};
+        final Map<String, TestEntity> dataStore = <String, TestEntity>{
+          'f1': testData,
+          'f2': testData,
+        };
 
         // Cache miss
         await cacheService.get<TestEntity>(
@@ -582,7 +662,9 @@ void main() {
         await cacheService.get<TestEntity>(
           entityType: 'test_entity',
           entityId: 'f2',
-          fetcher: () async => dataStore['f2']!, // CORRECTED: Returns data from repository DB
+          fetcher:
+              () async =>
+                  dataStore['f2']!, // CORRECTED: Returns data from repository DB
         );
 
         // Act: Get statistics
@@ -673,16 +755,28 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 10));
 
         // Assert: Expired entry removed, fresh entry remains
-        final List<CacheMetadataEntity> entries = await database.select(database.cacheMetadataTable).get();
-        expect(entries.where((CacheMetadataEntity e) => e.entityId == 'i2'), hasLength(1));
+        final List<CacheMetadataEntity> entries =
+            await database.select(database.cacheMetadataTable).get();
+        expect(
+          entries.where((CacheMetadataEntity e) => e.entityId == 'i2'),
+          hasLength(1),
+        );
       });
     });
 
     group('generateCollectionCacheKey() - Query parameter hashing', () {
       test('should generate consistent cache keys', () async {
         // Arrange
-        final Map<String, String> filters1 = <String, String>{'start': '2024-01-01', 'end': '2024-12-31', 'account': '123'};
-        final Map<String, String> filters2 = <String, String>{'account': '123', 'end': '2024-12-31', 'start': '2024-01-01'}; // Different order
+        final Map<String, String> filters1 = <String, String>{
+          'start': '2024-01-01',
+          'end': '2024-12-31',
+          'account': '123',
+        };
+        final Map<String, String> filters2 = <String, String>{
+          'account': '123',
+          'end': '2024-12-31',
+          'start': '2024-01-01',
+        }; // Different order
 
         // Act
         final String key1 = cacheService.generateCollectionCacheKey(filters1);
@@ -695,8 +789,14 @@ void main() {
 
       test('should generate different keys for different parameters', () async {
         // Arrange
-        final Map<String, String> filters1 = <String, String>{'start': '2024-01-01', 'end': '2024-12-31'};
-        final Map<String, String> filters2 = <String, String>{'start': '2024-01-01', 'end': '2024-06-30'};
+        final Map<String, String> filters1 = <String, String>{
+          'start': '2024-01-01',
+          'end': '2024-12-31',
+        };
+        final Map<String, String> filters2 = <String, String>{
+          'start': '2024-01-01',
+          'end': '2024-06-30',
+        };
 
         // Act
         final String key1 = cacheService.generateCollectionCacheKey(filters1);
@@ -709,7 +809,9 @@ void main() {
       test('should handle null and empty filters', () async {
         // Act
         final String keyNull = cacheService.generateCollectionCacheKey(null);
-        final String keyEmpty = cacheService.generateCollectionCacheKey(<String, dynamic>{});
+        final String keyEmpty = cacheService.generateCollectionCacheKey(
+          <String, dynamic>{},
+        );
 
         // Assert: Both return default 'collection_all'
         expect(keyNull, equals('collection_all'));
@@ -718,41 +820,54 @@ void main() {
     });
 
     group('LRU Eviction', () {
-      test('should evict least recently used entries when size limit exceeded', () async {
-        // Arrange: Set cache size limit
-        // Each entry is ~2.2KB (200 bytes metadata + 2KB data)
-        // calculateCacheSizeMB() uses round(), so:
-        // - 500 entries = 1,100,000 bytes / 1,048,576 = 1.049MB → rounds to 1MB (no eviction)
-        // - 750 entries = 1,650,000 bytes / 1,048,576 = 1.573MB → rounds to 2MB (triggers eviction)
-        await cacheService.setMaxCacheSizeMB(1); // Set 1MB limit
+      test(
+        'should evict least recently used entries when size limit exceeded',
+        () async {
+          // Arrange: Set cache size limit
+          // Each entry is ~2.2KB (200 bytes metadata + 2KB data)
+          // calculateCacheSizeMB() uses round(), so:
+          // - 500 entries = 1,100,000 bytes / 1,048,576 = 1.049MB → rounds to 1MB (no eviction)
+          // - 750 entries = 1,650,000 bytes / 1,048,576 = 1.573MB → rounds to 2MB (triggers eviction)
+          await cacheService.setMaxCacheSizeMB(1); // Set 1MB limit
 
-        // Cache many entries (enough to exceed limit after rounding)
-        // 750 entries should round to 2MB, triggering eviction
-        for (int i = 0; i < 750; i++) {
-          await cacheService.set(
-            entityType: 'test_entity',
-            entityId: 'j$i',
-            data: TestEntity(id: 'j$i', name: 'J$i', value: i),
-            ttl: const Duration(hours: 1),
-          );
-        }
+          // Cache many entries (enough to exceed limit after rounding)
+          // 750 entries should round to 2MB, triggering eviction
+          for (int i = 0; i < 750; i++) {
+            await cacheService.set(
+              entityType: 'test_entity',
+              entityId: 'j$i',
+              data: TestEntity(id: 'j$i', name: 'J$i', value: i),
+              ttl: const Duration(hours: 1),
+            );
+          }
 
-        // Act: Trigger LRU eviction with setMaxCacheSizeMB (also triggers eviction)
-        await cacheService.setMaxCacheSizeMB(1); // This should trigger eviction
+          // Act: Trigger LRU eviction with setMaxCacheSizeMB (also triggers eviction)
+          await cacheService.setMaxCacheSizeMB(
+            1,
+          ); // This should trigger eviction
 
-        // Wait for eviction
-        await Future.delayed(const Duration(milliseconds: 200));
+          // Wait for eviction
+          await Future.delayed(const Duration(milliseconds: 200));
 
-        // Assert: Cache size within limit (after eviction)
-        final CacheStats stats = await cacheService.getStats();
-        expect(stats.totalCacheSizeMB, lessThanOrEqualTo(2)); // Allow some margin
-        expect(stats.evictions, greaterThan(0)); // Should have evicted some entries
-      });
+          // Assert: Cache size within limit (after eviction)
+          final CacheStats stats = await cacheService.getStats();
+          expect(
+            stats.totalCacheSizeMB,
+            lessThanOrEqualTo(2),
+          ); // Allow some margin
+          expect(
+            stats.evictions,
+            greaterThan(0),
+          ); // Should have evicted some entries
+        },
+      );
 
       test('should update lastAccessedAt on cache hit', () async {
         // Arrange: Cache entry with data in repository
         final TestEntity testData = TestEntity(id: 'k1', name: 'K1', value: 1);
-        final Map<String, TestEntity> dataStore = <String, TestEntity>{'k1': testData};
+        final Map<String, TestEntity> dataStore = <String, TestEntity>{
+          'k1': testData,
+        };
 
         // Set cache with initial timestamp
         await cacheService.set(
@@ -767,10 +882,12 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         // Get initial lastAccessedAt
-        CacheMetadataEntity metadata = await (database.select(database.cacheMetadataTable)
-              ..where(($CacheMetadataTableTable tbl) =>
-                  tbl.entityType.equals('test_entity') & tbl.entityId.equals('k1')))
-            .getSingle();
+        CacheMetadataEntity metadata =
+            await (database.select(database.cacheMetadataTable)..where(
+              ($CacheMetadataTableTable tbl) =>
+                  tbl.entityType.equals('test_entity') &
+                  tbl.entityId.equals('k1'),
+            )).getSingle();
         final DateTime initialLastAccessed = metadata.lastAccessedAt;
 
         // Critical: Wait to ensure DateTime.now() in get() will be different
@@ -782,22 +899,27 @@ void main() {
         await cacheService.get<TestEntity>(
           entityType: 'test_entity',
           entityId: 'k1',
-          fetcher: () async => dataStore['k1']!, // CORRECTED: Returns data from repository DB
+          fetcher:
+              () async =>
+                  dataStore['k1']!, // CORRECTED: Returns data from repository DB
         );
 
         // Wait for database write to complete and flush
         await Future.delayed(const Duration(milliseconds: 300));
 
         // Assert: lastAccessedAt should be updated to a later time
-        metadata = await (database.select(database.cacheMetadataTable)
-              ..where(($CacheMetadataTableTable tbl) =>
-                  tbl.entityType.equals('test_entity') & tbl.entityId.equals('k1')))
-            .getSingle();
+        metadata =
+            await (database.select(database.cacheMetadataTable)..where(
+              ($CacheMetadataTableTable tbl) =>
+                  tbl.entityType.equals('test_entity') &
+                  tbl.entityId.equals('k1'),
+            )).getSingle();
 
         expect(
           metadata.lastAccessedAt.isAfter(initialLastAccessed),
           isTrue,
-          reason: 'lastAccessedAt should be updated after cache access. '
+          reason:
+              'lastAccessedAt should be updated after cache access. '
               'Initial: $initialLastAccessed, Updated: ${metadata.lastAccessedAt}',
         );
       });
@@ -810,21 +932,25 @@ void main() {
 
         // Act: Concurrent set operations
         for (int i = 0; i < 10; i++) {
-          futures.add(cacheService.set(
-            entityType: 'test_entity',
-            entityId: 'l$i',
-            data: TestEntity(id: 'l$i', name: 'L$i', value: i),
-            ttl: const Duration(hours: 1),
-          ));
+          futures.add(
+            cacheService.set(
+              entityType: 'test_entity',
+              entityId: 'l$i',
+              data: TestEntity(id: 'l$i', name: 'L$i', value: i),
+              ttl: const Duration(hours: 1),
+            ),
+          );
         }
 
         // Concurrent get operations
         for (int i = 0; i < 10; i++) {
-          futures.add(cacheService.get<TestEntity>(
-            entityType: 'test_entity',
-            entityId: 'l$i',
-            fetcher: () async => TestEntity(id: 'l$i', name: 'L$i', value: i),
-          ));
+          futures.add(
+            cacheService.get<TestEntity>(
+              entityType: 'test_entity',
+              entityId: 'l$i',
+              fetcher: () async => TestEntity(id: 'l$i', name: 'L$i', value: i),
+            ),
+          );
         }
 
         // Concurrent invalidations
@@ -857,15 +983,17 @@ void main() {
         // Act: Trigger concurrent background refreshes
         final List<Future<dynamic>> futures = <Future>[];
         for (int i = 0; i < 5; i++) {
-          futures.add(cacheService.get<TestEntity>(
-            entityType: 'test_entity',
-            entityId: 'm$i',
-            fetcher: () async {
-              await Future.delayed(const Duration(milliseconds: 10));
-              return TestEntity(id: 'm$i', name: 'M${i}_new', value: i + 100);
-            },
-            backgroundRefresh: true,
-          ));
+          futures.add(
+            cacheService.get<TestEntity>(
+              entityType: 'test_entity',
+              entityId: 'm$i',
+              fetcher: () async {
+                await Future.delayed(const Duration(milliseconds: 10));
+                return TestEntity(id: 'm$i', name: 'M${i}_new', value: i + 100);
+              },
+              backgroundRefresh: true,
+            ),
+          );
         }
 
         // Assert: All complete without errors
@@ -893,7 +1021,9 @@ void main() {
       test('should not propagate background refresh errors', () async {
         // Arrange: Stale cache with data in repository
         final TestEntity testData = TestEntity(id: 'n1', name: 'N1', value: 1);
-        final Map<String, TestEntity> dataStore = <String, TestEntity>{'n1': testData};
+        final Map<String, TestEntity> dataStore = <String, TestEntity>{
+          'n1': testData,
+        };
 
         await cacheService.set(
           entityType: 'test_entity',
@@ -907,21 +1037,24 @@ void main() {
         int fetcherCallCount = 0;
 
         // Act: Fetch with failing background refresh (second call)
-        final CacheResult<TestEntity> result = await cacheService.get<TestEntity>(
-          entityType: 'test_entity',
-          entityId: 'n1',
-          fetcher: () async {
-            fetcherCallCount++;
-            // CORRECTED: First call returns stale data from repository
-            // Second call (background) throws error
-            if (fetcherCallCount == 1) {
-              return dataStore['n1']!; // Return stale data
-            } else {
-              throw Exception('Background refresh error'); // Background error
-            }
-          },
-          backgroundRefresh: true,
-        );
+        final CacheResult<TestEntity> result = await cacheService
+            .get<TestEntity>(
+              entityType: 'test_entity',
+              entityId: 'n1',
+              fetcher: () async {
+                fetcherCallCount++;
+                // CORRECTED: First call returns stale data from repository
+                // Second call (background) throws error
+                if (fetcherCallCount == 1) {
+                  return dataStore['n1']!; // Return stale data
+                } else {
+                  throw Exception(
+                    'Background refresh error',
+                  ); // Background error
+                }
+              },
+              backgroundRefresh: true,
+            );
 
         // Assert: Returns stale data from repository, first call succeeds
         expect(result.data, isNotNull);
@@ -943,7 +1076,8 @@ void main() {
       test('should emit invalidation events on invalidate', () async {
         // Arrange
         final List<CacheInvalidationEvent> events = <CacheInvalidationEvent>[];
-        final StreamSubscription<CacheInvalidationEvent> subscription = cacheService.invalidationStream.listen(events.add);
+        final StreamSubscription<CacheInvalidationEvent> subscription =
+            cacheService.invalidationStream.listen(events.add);
 
         await cacheService.set(
           entityType: 'test_entity',
@@ -960,56 +1094,75 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 10));
 
         // Assert: Events emitted
-        expect(events.where((CacheInvalidationEvent e) => e.eventType == CacheEventType.invalidated),
-            hasLength(greaterThanOrEqualTo(2)));
+        expect(
+          events.where(
+            (CacheInvalidationEvent e) =>
+                e.eventType == CacheEventType.invalidated,
+          ),
+          hasLength(greaterThanOrEqualTo(2)),
+        );
 
         await subscription.cancel();
       });
 
-      test('should emit refresh events on background refresh completion', () async {
-        // Arrange: Stale cache
-        await cacheService.set(
-          entityType: 'test_entity',
-          entityId: 'p1',
-          data: TestEntity(id: 'p1', name: 'P1', value: 1),
-          ttl: const Duration(milliseconds: 1),
-        );
+      test(
+        'should emit refresh events on background refresh completion',
+        () async {
+          // Arrange: Stale cache
+          await cacheService.set(
+            entityType: 'test_entity',
+            entityId: 'p1',
+            data: TestEntity(id: 'p1', name: 'P1', value: 1),
+            ttl: const Duration(milliseconds: 1),
+          );
 
-        await Future.delayed(const Duration(milliseconds: 50));
+          await Future.delayed(const Duration(milliseconds: 50));
 
-        final List<CacheInvalidationEvent> events = <CacheInvalidationEvent>[];
-        final StreamSubscription<CacheInvalidationEvent> subscription = cacheService.invalidationStream.listen(events.add);
+          final List<CacheInvalidationEvent> events =
+              <CacheInvalidationEvent>[];
+          final StreamSubscription<CacheInvalidationEvent> subscription =
+              cacheService.invalidationStream.listen(events.add);
 
-        // Act: Trigger background refresh
-        await cacheService.get<TestEntity>(
-          entityType: 'test_entity',
-          entityId: 'p1',
-          fetcher: () async {
-            await Future.delayed(const Duration(milliseconds: 10));
-            return TestEntity(id: 'p1', name: 'P1_new', value: 2);
-          },
-          backgroundRefresh: true,
-        );
+          // Act: Trigger background refresh
+          await cacheService.get<TestEntity>(
+            entityType: 'test_entity',
+            entityId: 'p1',
+            fetcher: () async {
+              await Future.delayed(const Duration(milliseconds: 10));
+              return TestEntity(id: 'p1', name: 'P1_new', value: 2);
+            },
+            backgroundRefresh: true,
+          );
 
-        // Wait for background refresh
-        await Future.delayed(const Duration(milliseconds: 100));
+          // Wait for background refresh
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // Assert: Refresh event emitted
-        final List<CacheInvalidationEvent> refreshEvents =
-            events.where((CacheInvalidationEvent e) => e.eventType == CacheEventType.refreshed).toList();
-        expect(refreshEvents, hasLength(1));
-        expect(refreshEvents.first.entityType, equals('test_entity'));
-        expect(refreshEvents.first.entityId, equals('p1'));
+          // Assert: Refresh event emitted
+          final List<CacheInvalidationEvent> refreshEvents =
+              events
+                  .where(
+                    (CacheInvalidationEvent e) =>
+                        e.eventType == CacheEventType.refreshed,
+                  )
+                  .toList();
+          expect(refreshEvents, hasLength(1));
+          expect(refreshEvents.first.entityType, equals('test_entity'));
+          expect(refreshEvents.first.entityId, equals('p1'));
 
-        await subscription.cancel();
-      });
+          await subscription.cancel();
+        },
+      );
     });
 
     group('Edge Cases', () {
       test('should handle very large entity IDs', () async {
         // Arrange: Large entity ID
         final String longId = 'x' * 1000;
-        final TestEntity testData = TestEntity(id: longId, name: 'Test', value: 1);
+        final TestEntity testData = TestEntity(
+          id: longId,
+          name: 'Test',
+          value: 1,
+        );
 
         // Act & Assert: Should handle without errors
         await cacheService.set(

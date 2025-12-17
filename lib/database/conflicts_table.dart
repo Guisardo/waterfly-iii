@@ -56,28 +56,24 @@ class ConflictsTable {
   static Future<void> insert(Database db, Conflict conflict) async {
     final int now = DateTime.now().millisecondsSinceEpoch;
 
-    await db.insert(
-      tableName,
-      <String, Object?>{
-        'id': conflict.id,
-        'operation_id': conflict.operationId,
-        'entity_type': conflict.entityType,
-        'entity_id': conflict.entityId,
-        'conflict_type': conflict.conflictType.name,
-        'local_data': jsonEncode(conflict.localData),
-        'remote_data': jsonEncode(conflict.remoteData),
-        'conflicting_fields': jsonEncode(conflict.conflictingFields),
-        'severity': conflict.severity.name,
-        'detected_at': conflict.detectedAt.millisecondsSinceEpoch,
-        'resolved_at': conflict.resolvedAt?.millisecondsSinceEpoch,
-        'resolution_strategy': null,
-        'resolved_by': null,
-        'resolved_data': null,
-        'created_at': now,
-        'updated_at': now,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert(tableName, <String, Object?>{
+      'id': conflict.id,
+      'operation_id': conflict.operationId,
+      'entity_type': conflict.entityType,
+      'entity_id': conflict.entityId,
+      'conflict_type': conflict.conflictType.name,
+      'local_data': jsonEncode(conflict.localData),
+      'remote_data': jsonEncode(conflict.remoteData),
+      'conflicting_fields': jsonEncode(conflict.conflictingFields),
+      'severity': conflict.severity.name,
+      'detected_at': conflict.detectedAt.millisecondsSinceEpoch,
+      'resolved_at': conflict.resolvedAt?.millisecondsSinceEpoch,
+      'resolution_strategy': null,
+      'resolved_by': null,
+      'resolved_data': null,
+      'created_at': now,
+      'updated_at': now,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   /// Update a conflict's resolution.
@@ -118,7 +114,10 @@ class ConflictsTable {
   }
 
   /// Get a conflict by operation ID.
-  static Future<Conflict?> getByOperationId(Database db, String operationId) async {
+  static Future<Conflict?> getByOperationId(
+    Database db,
+    String operationId,
+  ) async {
     final List<Map<String, Object?>> results = await db.query(
       tableName,
       where: 'operation_id = ?',
@@ -198,7 +197,8 @@ class ConflictsTable {
       'SELECT COUNT(*) as count FROM $tableName WHERE resolved_by = ?',
       <Object?>['user'],
     );
-    final int manuallyResolvedConflicts = manuallyResolvedResult.first['count'] as int;
+    final int manuallyResolvedConflicts =
+        manuallyResolvedResult.first['count'] as int;
 
     // By severity
     final List<Map<String, Object?>> severityResult = await db.rawQuery(
@@ -237,7 +237,8 @@ class ConflictsTable {
     final List<Map<String, Object?>> resolutionTimeResult = await db.rawQuery(
       'SELECT AVG(resolved_at - detected_at) as avg_time FROM $tableName WHERE resolved_at IS NOT NULL',
     );
-    final double avgResolutionTime = (resolutionTimeResult.first['avg_time'] as num?)?.toDouble() ?? 0.0;
+    final double avgResolutionTime =
+        (resolutionTimeResult.first['avg_time'] as num?)?.toDouble() ?? 0.0;
 
     return ConflictStatistics(
       totalConflicts: totalConflicts,
@@ -253,18 +254,12 @@ class ConflictsTable {
 
   /// Delete a conflict.
   static Future<void> delete(Database db, String id) async {
-    await db.delete(
-      tableName,
-      where: 'id = ?',
-      whereArgs: <Object?>[id],
-    );
+    await db.delete(tableName, where: 'id = ?', whereArgs: <Object?>[id]);
   }
 
   /// Delete all resolved conflicts older than the specified duration.
   static Future<int> deleteOldResolved(Database db, Duration age) async {
-    final int cutoffTime = DateTime.now()
-        .subtract(age)
-        .millisecondsSinceEpoch;
+    final int cutoffTime = DateTime.now().subtract(age).millisecondsSinceEpoch;
 
     return db.delete(
       tableName,
@@ -288,8 +283,10 @@ class ConflictsTable {
       conflictType: ConflictType.values.firstWhere(
         (ConflictType t) => t.name == map['conflict_type'],
       ),
-      localData: jsonDecode(map['local_data'] as String) as Map<String, dynamic>,
-      remoteData: jsonDecode(map['remote_data'] as String) as Map<String, dynamic>,
+      localData:
+          jsonDecode(map['local_data'] as String) as Map<String, dynamic>,
+      remoteData:
+          jsonDecode(map['remote_data'] as String) as Map<String, dynamic>,
       conflictingFields: List<String>.from(
         jsonDecode(map['conflicting_fields'] as String) as List,
       ),
@@ -299,9 +296,10 @@ class ConflictsTable {
       detectedAt: DateTime.fromMillisecondsSinceEpoch(
         map['detected_at'] as int,
       ),
-      resolvedAt: map['resolved_at'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['resolved_at'] as int)
-          : null,
+      resolvedAt:
+          map['resolved_at'] != null
+              ? DateTime.fromMillisecondsSinceEpoch(map['resolved_at'] as int)
+              : null,
     );
   }
 }

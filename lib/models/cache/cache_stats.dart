@@ -395,7 +395,8 @@ class CacheStats {
   /// }
   /// ```
   double get refreshSuccessRate {
-    if (staleServed == 0) return 1.0; // No stale served = 100% success (vacuous)
+    if (staleServed == 0)
+      return 1.0; // No stale served = 100% success (vacuous)
     return backgroundRefreshes / staleServed;
   }
 
@@ -570,9 +571,10 @@ class CacheStats {
   /// ```
   @override
   String toString() {
-    final String etagStats = etagRequests > 0
-        ? '  etag: $etagHits/$etagRequests (${etagHitRatePercent.toStringAsFixed(1)}%), saved ${etagBandwidthSavedMB.toStringAsFixed(2)} MB,\n'
-        : '';
+    final String etagStats =
+        etagRequests > 0
+            ? '  etag: $etagHits/$etagRequests (${etagHitRatePercent.toStringAsFixed(1)}%), saved ${etagBandwidthSavedMB.toStringAsFixed(2)} MB,\n'
+            : '';
 
     return 'CacheStats(\n'
         '  requests: $totalRequests,\n'

@@ -84,23 +84,24 @@ class AccountSelectionOffline {
   static Future<bool> showOfflineAccountWarning(BuildContext context) async {
     final bool? result = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Create Account Offline?'),
-        content: const Text(
-          'This account will be created locally and synced with the server '
-          'when you are back online. You can use it immediately for transactions.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Create Account Offline?'),
+            content: const Text(
+              'This account will be created locally and synced with the server '
+              'when you are back online. You can use it immediately for transactions.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Create'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Create'),
-          ),
-        ],
-      ),
     );
 
     return result ?? false;
@@ -197,23 +198,24 @@ class CategorySelectionOffline {
   static Future<bool> showOfflineCategoryWarning(BuildContext context) async {
     final bool? result = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Create Category Offline?'),
-        content: const Text(
-          'This category will be created locally and synced with the server '
-          'when you are back online. You can use it immediately for transactions.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Create Category Offline?'),
+            content: const Text(
+              'This category will be created locally and synced with the server '
+              'when you are back online. You can use it immediately for transactions.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Create'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Create'),
-          ),
-        ],
-      ),
     );
 
     return result ?? false;

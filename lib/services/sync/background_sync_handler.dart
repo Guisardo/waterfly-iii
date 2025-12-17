@@ -31,14 +31,10 @@ class _BackgroundSyncInterceptor implements Interceptor {
 
   @override
   FutureOr<Response<BodyType>> intercept<BodyType>(Chain<BodyType> chain) {
-    final Request request = applyHeaders(
-      chain.request,
-      <String, String>{
-        HttpHeaders.authorizationHeader: 'Bearer $apiKey',
-        HttpHeaders.acceptHeader: 'application/json',
-      },
-      override: true,
-    );
+    final Request request = applyHeaders(chain.request, <String, String>{
+      HttpHeaders.authorizationHeader: 'Bearer $apiKey',
+      HttpHeaders.acceptHeader: 'application/json',
+    }, override: true);
     request.followRedirects = true;
     request.maxRedirects = 5;
     return chain.proceed(request);
@@ -51,9 +47,12 @@ class _BackgroundSyncInterceptor implements Interceptor {
 /// It runs in a separate isolate and must be a top-level function.
 @pragma('vm:entry-point')
 void backgroundSyncCallback() {
-  Workmanager().executeTask((String task, Map<String, dynamic>? inputData) async {
+  Workmanager().executeTask((
+    String task,
+    Map<String, dynamic>? inputData,
+  ) async {
     final Logger logger = Logger('BackgroundSyncHandler');
-    
+
     try {
       logger.info('=== Background sync task started ===');
       logger.info('Task: $task');
@@ -61,25 +60,25 @@ void backgroundSyncCallback() {
 
       // Initialize dependencies for background sync
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      
+
       // Check if user is authenticated
       final String? apiUrl = prefs.getString('api_url');
       final String? apiToken = prefs.getString('api_token');
-      
+
       if (apiUrl == null || apiToken == null) {
         logger.warning('Background sync skipped: No credentials found');
         return Future<bool>.value(false);
       }
-      
+
       logger.info('API URL: $apiUrl');
-      
+
       // Parse API URL
       final Uri apiUri = Uri.parse(apiUrl);
-      
+
       // Initialize database connection
       // Note: AppDatabase uses its own connection management
       final AppDatabase database = AppDatabase();
-      
+
       try {
         // Initialize services
         logger.info('Initializing services...');
@@ -87,11 +86,12 @@ void backgroundSyncCallback() {
         final SyncQueueManager queueManager = SyncQueueManager(database);
         final IdMappingService idMapping = IdMappingService(database: database);
         final SyncProgressTracker progressTracker = SyncProgressTracker();
-        
+
         // Check pending operations
-        final List<SyncOperation> pendingOps = await queueManager.getPendingOperations();
+        final List<SyncOperation> pendingOps =
+            await queueManager.getPendingOperations();
         logger.info('Pending operations in queue: ${pendingOps.length}');
-        
+
         // Initialize API client with stored credentials
         logger.info('Creating API client...');
         final FireflyIii apiClient = FireflyIii.create(
@@ -99,10 +99,10 @@ void backgroundSyncCallback() {
           httpClient: _httpClient,
           interceptors: <Interceptor>[_BackgroundSyncInterceptor(apiToken)],
         );
-        
+
         // Create API adapter
         final FireflyApiAdapter apiAdapter = FireflyApiAdapter(apiClient);
-        
+
         // Create SyncManager instance
         logger.info('Creating SyncManager...');
         final SyncManager syncManager = SyncManager(
@@ -113,11 +113,13 @@ void backgroundSyncCallback() {
           idMapping: idMapping,
           progressTracker: progressTracker,
         );
-        
+
         // Perform incremental sync
         logger.info('Starting synchronization...');
-        final SyncResult result = await syncManager.synchronize(fullSync: false);
-        
+        final SyncResult result = await syncManager.synchronize(
+          fullSync: false,
+        );
+
         logger.info('=== Background sync completed ===');
         logger.info('Success: ${result.success}');
         logger.info('Total operations: ${result.totalOperations}');
@@ -126,7 +128,7 @@ void backgroundSyncCallback() {
         logger.info('Conflicts detected: ${result.conflictsDetected}');
         logger.info('Conflicts resolved: ${result.conflictsResolved}');
         logger.info('Errors: ${result.errors.length}');
-        
+
         return Future<bool>.value(true);
       } finally {
         // Clean up database connection
@@ -145,13 +147,13 @@ void backgroundSyncCallback() {
 /// Should be called once during app initialization.
 Future<void> initializeBackgroundSync() async {
   final Logger logger = Logger('BackgroundSyncHandler');
-  
+
   try {
     await Workmanager().initialize(
       backgroundSyncCallback,
       isInDebugMode: false,
     );
-    
+
     logger.info('Workmanager initialized successfully');
   } catch (e, stackTrace) {
     logger.severe('Failed to initialize workmanager', e, stackTrace);

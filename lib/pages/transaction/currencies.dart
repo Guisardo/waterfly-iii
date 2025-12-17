@@ -45,8 +45,8 @@ class CurrencyDialog extends StatelessWidget {
           return 1;
         } else {
           return a.attributes.code.toLowerCase().compareTo(
-                b.attributes.code.toLowerCase(),
-              );
+            b.attributes.code.toLowerCase(),
+          );
         }
       });
       return currencies;

@@ -281,9 +281,14 @@ class CacheWarmingService {
         final DateTime startTime = DateTime.now();
 
         // Check network connectivity
-        final List<ConnectivityResult> connectivityResult = await _connectivity.checkConnectivity();
-        final bool isOffline = connectivityResult.contains(ConnectivityResult.none);
-        final bool isWifi = connectivityResult.contains(ConnectivityResult.wifi);
+        final List<ConnectivityResult> connectivityResult =
+            await _connectivity.checkConnectivity();
+        final bool isOffline = connectivityResult.contains(
+          ConnectivityResult.none,
+        );
+        final bool isWifi = connectivityResult.contains(
+          ConnectivityResult.wifi,
+        );
 
         if (isOffline) {
           _log.info('Offline, skipping cache warming');
@@ -302,9 +307,7 @@ class CacheWarmingService {
 
         // Return early on cellular to save data
         if (!isWifi) {
-          _log.info(
-            'Cellular connection, limiting warming to accounts only',
-          );
+          _log.info('Cellular connection, limiting warming to accounts only');
           _lastWarmingTime = DateTime.now();
           return;
         }
@@ -395,8 +398,11 @@ class CacheWarmingService {
       _log.fine('Warming related data for $entityType:$entityId');
 
       // Check network connectivity
-      final List<ConnectivityResult> connectivityResult = await _connectivity.checkConnectivity();
-      final bool isOffline = connectivityResult.contains(ConnectivityResult.none);
+      final List<ConnectivityResult> connectivityResult =
+          await _connectivity.checkConnectivity();
+      final bool isOffline = connectivityResult.contains(
+        ConnectivityResult.none,
+      );
 
       if (isOffline) {
         _log.fine('Offline, skipping related warming');
@@ -472,7 +478,8 @@ class CacheWarmingService {
       _log.fine('Starting idle cache warming');
 
       // Check network connectivity (WiFi only for idle warming)
-      final List<ConnectivityResult> connectivityResult = await _connectivity.checkConnectivity();
+      final List<ConnectivityResult> connectivityResult =
+          await _connectivity.checkConnectivity();
       final bool isWifi = connectivityResult.contains(ConnectivityResult.wifi);
 
       if (!isWifi) {
@@ -571,9 +578,7 @@ class CacheWarmingService {
       final int duration = DateTime.now().difference(startTime).inMilliseconds;
       _itemsWarmed += accounts.length;
 
-      _log.fine(
-        'Warmed ${accounts.length} accounts in ${duration}ms',
-      );
+      _log.fine('Warmed ${accounts.length} accounts in ${duration}ms');
     } catch (e, stackTrace) {
       _log.warning('Failed to warm accounts', e, stackTrace);
       _warmingFailures++;
@@ -592,14 +597,13 @@ class CacheWarmingService {
       // Fetch all transactions (uses cache-first strategy)
       // Note: Repository currently doesn't support date filtering
       // This fetches all transactions and warms the cache
-      final List<TransactionEntity> transactions = await transactionRepository.getAll();
+      final List<TransactionEntity> transactions =
+          await transactionRepository.getAll();
 
       final int duration = DateTime.now().difference(startTime).inMilliseconds;
       _itemsWarmed += transactions.length;
 
-      _log.fine(
-        'Warmed ${transactions.length} transactions in ${duration}ms',
-      );
+      _log.fine('Warmed ${transactions.length} transactions in ${duration}ms');
     } catch (e, stackTrace) {
       _log.warning('Failed to warm recent transactions', e, stackTrace);
       _warmingFailures++;
@@ -619,7 +623,9 @@ class CacheWarmingService {
       // Fetch all transactions (uses cache-first strategy)
       // Note: Repository currently doesn't support date filtering
       // This operation is a no-op since _warmRecentTransactions already warmed all transactions
-      _log.fine('Historical transactions already warmed via recent transactions');
+      _log.fine(
+        'Historical transactions already warmed via recent transactions',
+      );
     } catch (e, stackTrace) {
       _log.warning('Failed to warm historical transactions', e, stackTrace);
       _warmingFailures++;
@@ -638,9 +644,7 @@ class CacheWarmingService {
       final int duration = DateTime.now().difference(startTime).inMilliseconds;
       _itemsWarmed += budgets.length;
 
-      _log.fine(
-        'Warmed ${budgets.length} budgets in ${duration}ms',
-      );
+      _log.fine('Warmed ${budgets.length} budgets in ${duration}ms');
     } catch (e, stackTrace) {
       _log.warning('Failed to warm budgets', e, stackTrace);
       _warmingFailures++;
@@ -659,9 +663,7 @@ class CacheWarmingService {
       final int duration = DateTime.now().difference(startTime).inMilliseconds;
       _itemsWarmed += categories.length;
 
-      _log.fine(
-        'Warmed ${categories.length} categories in ${duration}ms',
-      );
+      _log.fine('Warmed ${categories.length} categories in ${duration}ms');
     } catch (e, stackTrace) {
       _log.warning('Failed to warm categories', e, stackTrace);
       _warmingFailures++;
@@ -693,7 +695,8 @@ class CacheWarmingService {
       _log.fine('Warming related data for transaction: $transactionId');
 
       // Get transaction to find related entities
-      final TransactionEntity? transaction = await transactionRepository.getById(transactionId);
+      final TransactionEntity? transaction = await transactionRepository
+          .getById(transactionId);
 
       if (transaction == null) {
         _log.fine('Transaction not found: $transactionId');
@@ -709,7 +712,8 @@ class CacheWarmingService {
       }
 
       // Warm category
-      if (transaction.categoryId != null && transaction.categoryId!.isNotEmpty) {
+      if (transaction.categoryId != null &&
+          transaction.categoryId!.isNotEmpty) {
         await categoryRepository.getById(transaction.categoryId!);
         warmed++;
       }

@@ -69,7 +69,9 @@ class CloudBackupService {
       // Compress if requested
       if (compress) {
         data = await _compressData(data);
-        _logger.fine('Compressed backup from ${metadata.size} to ${data.length} bytes');
+        _logger.fine(
+          'Compressed backup from ${metadata.size} to ${data.length} bytes',
+        );
       }
 
       // Encrypt if enabled
@@ -111,7 +113,9 @@ class CloudBackupService {
       _logger.warning('Restoring from cloud backup: $backupId');
 
       // Download backup from cloud
-      final CloudBackupData backupData = await provider.downloadBackup(backupId);
+      final CloudBackupData backupData = await provider.downloadBackup(
+        backupId,
+      );
 
       // Decrypt if needed
       List<int> data = backupData.data;
@@ -136,7 +140,9 @@ class CloudBackupService {
       final File dbFile = File(p.join(dbFolder.path, 'waterfly_offline.db'));
 
       // Create backup of current database before restoring
-      final File currentBackup = File(p.join(dbFolder.path, 'waterfly_offline_pre_restore.db'));
+      final File currentBackup = File(
+        p.join(dbFolder.path, 'waterfly_offline_pre_restore.db'),
+      );
       if (await dbFile.exists()) {
         await dbFile.copy(currentBackup.path);
         _logger.info('Created backup of current database before restore');
@@ -167,11 +173,15 @@ class CloudBackupService {
   Future<DateTime?> getLastBackupTime() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final int? timestamp = prefs.getInt(_lastBackupKey);
-    return timestamp != null ? DateTime.fromMillisecondsSinceEpoch(timestamp) : null;
+    return timestamp != null
+        ? DateTime.fromMillisecondsSinceEpoch(timestamp)
+        : null;
   }
 
   /// Check if a backup is needed based on schedule.
-  Future<bool> isBackupNeeded({Duration interval = const Duration(days: 1)}) async {
+  Future<bool> isBackupNeeded({
+    Duration interval = const Duration(days: 1),
+  }) async {
     final DateTime? lastBackup = await getLastBackupTime();
     if (lastBackup == null) return true;
 
@@ -187,7 +197,10 @@ class CloudBackupService {
 
   Future<void> _updateBackupTracking(CloudBackupMetadata metadata) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_lastBackupKey, metadata.timestamp.millisecondsSinceEpoch);
+    await prefs.setInt(
+      _lastBackupKey,
+      metadata.timestamp.millisecondsSinceEpoch,
+    );
 
     final int count = prefs.getInt(_backupCountKey) ?? 0;
     await prefs.setInt(_backupCountKey, count + 1);
@@ -200,7 +213,10 @@ class CloudBackupService {
       if (backups.length <= maxBackups) return;
 
       // Sort by timestamp (oldest first)
-      backups.sort((CloudBackupMetadata a, CloudBackupMetadata b) => a.timestamp.compareTo(b.timestamp));
+      backups.sort(
+        (CloudBackupMetadata a, CloudBackupMetadata b) =>
+            a.timestamp.compareTo(b.timestamp),
+      );
 
       // Delete oldest backups
       final int toDelete = backups.length - maxBackups;
@@ -229,16 +245,21 @@ class CloudBackupService {
       // Use AES-256 encryption
       final encrypt_pkg.Key key = encrypt_pkg.Key.fromSecureRandom(32);
       final encrypt_pkg.IV iv = encrypt_pkg.IV.fromSecureRandom(16);
-      final encrypt_pkg.Encrypter encrypter = encrypt_pkg.Encrypter(encrypt_pkg.AES(key));
-      
-      final encrypt_pkg.Encrypted encrypted = encrypter.encryptBytes(Uint8List.fromList(data), iv: iv);
-      
+      final encrypt_pkg.Encrypter encrypter = encrypt_pkg.Encrypter(
+        encrypt_pkg.AES(key),
+      );
+
+      final encrypt_pkg.Encrypted encrypted = encrypter.encryptBytes(
+        Uint8List.fromList(data),
+        iv: iv,
+      );
+
       // Prepend IV and key for decryption (in production, store key securely)
       final List<int> result = <int>[];
       result.addAll(iv.bytes);
       result.addAll(key.bytes);
       result.addAll(encrypted.bytes);
-      
+
       _logger.fine('Data encrypted successfully');
       return result;
     } catch (e, stackTrace) {
@@ -253,17 +274,23 @@ class CloudBackupService {
       if (data.length < 48) {
         throw const StorageException('Invalid encrypted data format');
       }
-      
-      final encrypt_pkg.IV iv = encrypt_pkg.IV(Uint8List.fromList(data.sublist(0, 16)));
-      final encrypt_pkg.Key key = encrypt_pkg.Key(Uint8List.fromList(data.sublist(16, 48)));
+
+      final encrypt_pkg.IV iv = encrypt_pkg.IV(
+        Uint8List.fromList(data.sublist(0, 16)),
+      );
+      final encrypt_pkg.Key key = encrypt_pkg.Key(
+        Uint8List.fromList(data.sublist(16, 48)),
+      );
       final Uint8List encryptedData = Uint8List.fromList(data.sublist(48));
-      
-      final encrypt_pkg.Encrypter encrypter = encrypt_pkg.Encrypter(encrypt_pkg.AES(key));
+
+      final encrypt_pkg.Encrypter encrypter = encrypt_pkg.Encrypter(
+        encrypt_pkg.AES(key),
+      );
       final List<int> decrypted = encrypter.decryptBytes(
         encrypt_pkg.Encrypted(encryptedData),
         iv: iv,
       );
-      
+
       _logger.fine('Data decrypted successfully');
       return decrypted;
     } catch (e, stackTrace) {
@@ -284,7 +311,11 @@ class CloudBackupService {
 
 /// Abstract interface for cloud backup providers.
 abstract class CloudBackupProvider {
-  Future<void> uploadBackup(String backupId, List<int> data, CloudBackupMetadata metadata);
+  Future<void> uploadBackup(
+    String backupId,
+    List<int> data,
+    CloudBackupMetadata metadata,
+  );
   Future<CloudBackupData> downloadBackup(String backupId);
   Future<List<CloudBackupMetadata>> listBackups();
   Future<void> deleteBackup(String backupId);
@@ -313,7 +344,11 @@ class LocalFileBackupProvider implements CloudBackupProvider {
   }
 
   @override
-  Future<void> uploadBackup(String backupId, List<int> data, CloudBackupMetadata metadata) async {
+  Future<void> uploadBackup(
+    String backupId,
+    List<int> data,
+    CloudBackupMetadata metadata,
+  ) async {
     final Directory backupDir = await _getBackupDirectory();
     final File backupFile = File(p.join(backupDir.path, '$backupId.db'));
     final File metadataFile = File(p.join(backupDir.path, '$backupId.json'));
@@ -336,7 +371,9 @@ class LocalFileBackupProvider implements CloudBackupProvider {
 
     final List<int> data = await backupFile.readAsBytes();
     final String metadataJson = await metadataFile.readAsString();
-    final CloudBackupMetadata metadata = CloudBackupMetadata.fromJson(metadataJson);
+    final CloudBackupMetadata metadata = CloudBackupMetadata.fromJson(
+      metadataJson,
+    );
 
     return CloudBackupData(data: data, metadata: metadata);
   }
@@ -354,7 +391,10 @@ class LocalFileBackupProvider implements CloudBackupProvider {
           final String json = await file.readAsString();
           backups.add(CloudBackupMetadata.fromJson(json));
         } catch (error) {
-          _logger.warning('Failed to read backup metadata: ${file.path}', error);
+          _logger.warning(
+            'Failed to read backup metadata: ${file.path}',
+            error,
+          );
         }
       }
     }
@@ -423,10 +463,7 @@ class CloudBackupMetadata {
 
 /// Data from a cloud backup.
 class CloudBackupData {
-  CloudBackupData({
-    required this.data,
-    required this.metadata,
-  });
+  CloudBackupData({required this.data, required this.metadata});
 
   final List<int> data;
   final CloudBackupMetadata metadata;

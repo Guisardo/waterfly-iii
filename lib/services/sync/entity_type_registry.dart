@@ -62,7 +62,9 @@ class EntityTypeRegistry {
   /// Get entity type info by endpoint.
   static EntityTypeInfo? getByEndpoint(String endpoint) {
     try {
-      return allTypes.firstWhere((EntityTypeInfo info) => info.endpoint == endpoint);
+      return allTypes.firstWhere(
+        (EntityTypeInfo info) => info.endpoint == endpoint,
+      );
     } catch (e) {
       return null;
     }

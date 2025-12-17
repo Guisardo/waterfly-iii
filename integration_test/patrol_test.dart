@@ -4,107 +4,100 @@ import 'package:patrol/patrol.dart';
 import 'package:waterflyiii/main.dart' as app;
 
 /// Patrol-based E2E tests with native automation capabilities
-/// 
+///
 /// Patrol provides:
 /// - Native automation (permissions, notifications, etc.)
 /// - Better performance than integration_test
 /// - Hot restart support
 /// - Native gestures and interactions
 void main() {
-  patrolTest(
-    'Complete user journey - Login to Transaction Creation',
-    (PatrolIntegrationTester $) async {
-      // Launch app
-      app.main();
-      await $.pumpAndSettle();
+  patrolTest('Complete user journey - Login to Transaction Creation', (
+    PatrolIntegrationTester $,
+  ) async {
+    // Launch app
+    app.main();
+    await $.pumpAndSettle();
 
-      // Handle permissions if needed
-      await $.native.grantPermissionWhenInUse();
+    // Handle permissions if needed
+    await $.native.grantPermissionWhenInUse();
 
-      // Login flow
-      await _performLogin($);
+    // Login flow
+    await _performLogin($);
 
-      // Navigate and create transaction
-      await _createTransaction($);
+    // Navigate and create transaction
+    await _createTransaction($);
 
-      // Test offline mode
-      await _testOfflineMode($);
+    // Test offline mode
+    await _testOfflineMode($);
 
-      // Verify sync
-      await _verifySyncFunctionality($);
-    },
-  );
+    // Verify sync
+    await _verifySyncFunctionality($);
+  });
 
-  patrolTest(
-    'Test app navigation and screen transitions',
-    (PatrolIntegrationTester $) async {
-      app.main();
-      await $.pumpAndSettle();
+  patrolTest('Test app navigation and screen transitions', (
+    PatrolIntegrationTester $,
+  ) async {
+    app.main();
+    await $.pumpAndSettle();
 
-      // Test all bottom navigation items
-      await _testBottomNavigation($);
+    // Test all bottom navigation items
+    await _testBottomNavigation($);
 
-      // Test drawer navigation if exists
-      await _testDrawerNavigation($);
-    },
-  );
+    // Test drawer navigation if exists
+    await _testDrawerNavigation($);
+  });
 
-  patrolTest(
-    'Test transaction CRUD operations',
-    (PatrolIntegrationTester $) async {
-      app.main();
-      await $.pumpAndSettle();
+  patrolTest('Test transaction CRUD operations', (
+    PatrolIntegrationTester $,
+  ) async {
+    app.main();
+    await $.pumpAndSettle();
 
-      // Create transaction
-      final String transactionId = await _createTransaction($);
+    // Create transaction
+    final String transactionId = await _createTransaction($);
 
-      // Edit transaction
-      await _editTransaction($, transactionId);
+    // Edit transaction
+    await _editTransaction($, transactionId);
 
-      // Delete transaction
-      await _deleteTransaction($, transactionId);
-    },
-  );
+    // Delete transaction
+    await _deleteTransaction($, transactionId);
+  });
 
-  patrolTest(
-    'Test offline mode with sync',
-    (PatrolIntegrationTester $) async {
-      app.main();
-      await $.pumpAndSettle();
+  patrolTest('Test offline mode with sync', (PatrolIntegrationTester $) async {
+    app.main();
+    await $.pumpAndSettle();
 
-      // Enable offline mode
-      await _enableOfflineMode($);
+    // Enable offline mode
+    await _enableOfflineMode($);
 
-      // Create offline transaction
-      await _createTransaction($);
+    // Create offline transaction
+    await _createTransaction($);
 
-      // Disable offline mode
-      await _disableOfflineMode($);
+    // Disable offline mode
+    await _disableOfflineMode($);
 
-      // Verify sync occurs
-      await _verifySyncFunctionality($);
-    },
-  );
+    // Verify sync occurs
+    await _verifySyncFunctionality($);
+  });
 
-  patrolTest(
-    'Test notification listener functionality',
-    (PatrolIntegrationTester $) async {
-      app.main();
-      await $.pumpAndSettle();
+  patrolTest('Test notification listener functionality', (
+    PatrolIntegrationTester $,
+  ) async {
+    app.main();
+    await $.pumpAndSettle();
 
-      // Grant notification access
-      await $.native.grantPermissionWhenInUse();
+    // Grant notification access
+    await $.native.grantPermissionWhenInUse();
 
-      // Navigate to notification settings
-      await _navigateToNotificationSettings($);
+    // Navigate to notification settings
+    await _navigateToNotificationSettings($);
 
-      // Enable notification listener
-      await _enableNotificationListener($);
+    // Enable notification listener
+    await _enableNotificationListener($);
 
-      // Simulate notification (if possible)
-      // Note: This requires native code integration
-    },
-  );
+    // Simulate notification (if possible)
+    // Note: This requires native code integration
+  });
 }
 
 /// Helper function to perform login
@@ -178,7 +171,10 @@ Future<String> _createTransaction(PatrolIntegrationTester $) async {
 }
 
 /// Helper function to edit a transaction
-Future<void> _editTransaction(PatrolIntegrationTester $, String transactionId) async {
+Future<void> _editTransaction(
+  PatrolIntegrationTester $,
+  String transactionId,
+) async {
   // Find transaction in list
   final PatrolFinder transaction = $(Key('transaction_$transactionId'));
   if (transaction.exists) {
@@ -209,7 +205,10 @@ Future<void> _editTransaction(PatrolIntegrationTester $, String transactionId) a
 }
 
 /// Helper function to delete a transaction
-Future<void> _deleteTransaction(PatrolIntegrationTester $, String transactionId) async {
+Future<void> _deleteTransaction(
+  PatrolIntegrationTester $,
+  String transactionId,
+) async {
   // Find transaction in list
   final PatrolFinder transaction = $(Key('transaction_$transactionId'));
   if (transaction.exists) {
@@ -320,7 +319,11 @@ Future<void> _testOfflineMode(PatrolIntegrationTester $) async {
 
   // Verify offline indicator
   final PatrolFinder offlineIndicator = $(const Key('offlineIndicator'));
-  expect(offlineIndicator.exists, true, reason: 'Offline indicator should be visible');
+  expect(
+    offlineIndicator.exists,
+    true,
+    reason: 'Offline indicator should be visible',
+  );
 
   await _disableOfflineMode($);
 }
@@ -335,7 +338,11 @@ Future<void> _verifySyncFunctionality(PatrolIntegrationTester $) async {
 
     // Verify sync progress
     final PatrolFinder syncProgress = $(CircularProgressIndicator);
-    expect(syncProgress.exists, true, reason: 'Sync progress should be visible');
+    expect(
+      syncProgress.exists,
+      true,
+      reason: 'Sync progress should be visible',
+    );
   }
 }
 
@@ -349,7 +356,9 @@ Future<void> _navigateToNotificationSettings(PatrolIntegrationTester $) async {
   }
 
   // Find notification settings
-  final PatrolFinder notificationSettings = $(const Key('notificationSettings'));
+  final PatrolFinder notificationSettings = $(
+    const Key('notificationSettings'),
+  );
   if (notificationSettings.exists) {
     await notificationSettings.tap();
     await $.pumpAndSettle();
@@ -358,7 +367,9 @@ Future<void> _navigateToNotificationSettings(PatrolIntegrationTester $) async {
 
 /// Helper function to enable notification listener
 Future<void> _enableNotificationListener(PatrolIntegrationTester $) async {
-  final PatrolFinder notificationToggle = $(const Key('notificationListenerToggle'));
+  final PatrolFinder notificationToggle = $(
+    const Key('notificationListenerToggle'),
+  );
   if (notificationToggle.exists) {
     await notificationToggle.tap();
     await $.pumpAndSettle();

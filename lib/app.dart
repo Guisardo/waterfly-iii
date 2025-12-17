@@ -34,6 +34,8 @@ import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/services/cache/cache_warming_service.dart';
 import 'package:waterflyiii/services/data/chart_data_service.dart';
 import 'package:waterflyiii/services/data/insights_service.dart';
+import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/sync/incremental_sync_service.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/widgets/logo.dart';
 
@@ -236,9 +238,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
             ChangeNotifierProvider<ConnectivityProvider>(
               create: (_) => ConnectivityProvider()..initialize(),
             ),
-            ChangeNotifierProvider<SyncProvider>(
-              create: (_) => SyncProvider(),
-            ),
+            ChangeNotifierProvider<SyncProvider>(create: (_) => SyncProvider()),
 
             // Database and Cache (Phase 2-3: Cache-First Architecture)
             Provider<AppDatabase>(
@@ -246,9 +246,9 @@ class _WaterflyAppState extends State<WaterflyApp> {
               dispose: (_, AppDatabase db) => db.close(),
             ),
             Provider<CacheService>(
-              create: (BuildContext context) => CacheService(
-                database: context.read<AppDatabase>(),
-              ),
+              create:
+                  (BuildContext context) =>
+                      CacheService(database: context.read<AppDatabase>()),
               dispose: (_, CacheService cache) => cache.dispose(),
             ),
 
@@ -256,64 +256,73 @@ class _WaterflyAppState extends State<WaterflyApp> {
             // These repositories provide data access with cache-first strategy.
             // Pages should use these instead of direct API calls.
             Provider<TransactionRepository>(
-              create: (BuildContext context) => TransactionRepository(
-                database: context.read<AppDatabase>(),
-                cacheService: context.read<CacheService>(),
-              ),
+              create:
+                  (BuildContext context) => TransactionRepository(
+                    database: context.read<AppDatabase>(),
+                    cacheService: context.read<CacheService>(),
+                  ),
             ),
             Provider<AccountRepository>(
-              create: (BuildContext context) => AccountRepository(
-                database: context.read<AppDatabase>(),
-                cacheService: context.read<CacheService>(),
-              ),
+              create:
+                  (BuildContext context) => AccountRepository(
+                    database: context.read<AppDatabase>(),
+                    cacheService: context.read<CacheService>(),
+                  ),
             ),
             Provider<CategoryRepository>(
-              create: (BuildContext context) => CategoryRepository(
-                database: context.read<AppDatabase>(),
-                cacheService: context.read<CacheService>(),
-              ),
+              create:
+                  (BuildContext context) => CategoryRepository(
+                    database: context.read<AppDatabase>(),
+                    cacheService: context.read<CacheService>(),
+                  ),
             ),
             Provider<BudgetRepository>(
-              create: (BuildContext context) => BudgetRepository(
-                database: context.read<AppDatabase>(),
-                cacheService: context.read<CacheService>(),
-              ),
+              create:
+                  (BuildContext context) => BudgetRepository(
+                    database: context.read<AppDatabase>(),
+                    cacheService: context.read<CacheService>(),
+                  ),
             ),
             Provider<BillRepository>(
-              create: (BuildContext context) => BillRepository(
-                database: context.read<AppDatabase>(),
-                cacheService: context.read<CacheService>(),
-              ),
+              create:
+                  (BuildContext context) => BillRepository(
+                    database: context.read<AppDatabase>(),
+                    cacheService: context.read<CacheService>(),
+                  ),
             ),
             Provider<PiggyBankRepository>(
-              create: (BuildContext context) => PiggyBankRepository(
-                database: context.read<AppDatabase>(),
-                cacheService: context.read<CacheService>(),
-              ),
+              create:
+                  (BuildContext context) => PiggyBankRepository(
+                    database: context.read<AppDatabase>(),
+                    cacheService: context.read<CacheService>(),
+                  ),
             ),
             Provider<CurrencyRepository>(
-              create: (BuildContext context) => CurrencyRepository(
-                database: context.read<AppDatabase>(),
-                cacheService: context.read<CacheService>(),
-              ),
+              create:
+                  (BuildContext context) => CurrencyRepository(
+                    database: context.read<AppDatabase>(),
+                    cacheService: context.read<CacheService>(),
+                  ),
             ),
             Provider<TagRepository>(
-              create: (BuildContext context) => TagRepository(
-                database: context.read<AppDatabase>(),
-                cacheService: context.read<CacheService>(),
-              ),
+              create:
+                  (BuildContext context) => TagRepository(
+                    database: context.read<AppDatabase>(),
+                    cacheService: context.read<CacheService>(),
+                  ),
             ),
             Provider<AttachmentRepository>(
-              create: (BuildContext context) => AttachmentRepository(
-                database: context.read<AppDatabase>(),
-                cacheService: context.read<CacheService>(),
-              ),
+              create:
+                  (BuildContext context) => AttachmentRepository(
+                    database: context.read<AppDatabase>(),
+                    cacheService: context.read<CacheService>(),
+                  ),
             ),
 
             // Data Services (Phase 2: Cached API Access)
             // These services provide cached access to computed/aggregate data.
             ProxyProvider2<FireflyService, CacheService, InsightsService?>(
-              update: (_, FireflyService firefly, CacheService cache, __) {
+              update: (_, FireflyService firefly, CacheService cache, _) {
                 // Only create service when signed in
                 if (!firefly.signedIn) return null;
                 return InsightsService(
@@ -323,7 +332,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
               },
             ),
             ProxyProvider2<FireflyService, CacheService, ChartDataService?>(
-              update: (_, FireflyService firefly, CacheService cache, __) {
+              update: (_, FireflyService firefly, CacheService cache, _) {
                 // Only create service when signed in
                 if (!firefly.signedIn) return null;
                 return ChartDataService(
@@ -335,13 +344,43 @@ class _WaterflyAppState extends State<WaterflyApp> {
 
             // Cache Warming Service (Phase 3: Background Refresh)
             Provider<CacheWarmingService>(
-              create: (BuildContext context) => CacheWarmingService(
-                cacheService: context.read<CacheService>(),
-                transactionRepository: context.read<TransactionRepository>(),
-                accountRepository: context.read<AccountRepository>(),
-                budgetRepository: context.read<BudgetRepository>(),
-                categoryRepository: context.read<CategoryRepository>(),
-              ),
+              create:
+                  (BuildContext context) => CacheWarmingService(
+                    cacheService: context.read<CacheService>(),
+                    transactionRepository:
+                        context.read<TransactionRepository>(),
+                    accountRepository: context.read<AccountRepository>(),
+                    budgetRepository: context.read<BudgetRepository>(),
+                    categoryRepository: context.read<CategoryRepository>(),
+                  ),
+            ),
+
+            // Incremental Sync Service (Entity-Specific Sync)
+            // Provides force sync functionality for individual entity types.
+            // Only created when user is signed in.
+            ProxyProvider3<
+              FireflyService,
+              AppDatabase,
+              CacheService,
+              IncrementalSyncService?
+            >(
+              update: (
+                _,
+                FireflyService firefly,
+                AppDatabase database,
+                CacheService cache,
+                _,
+              ) {
+                // Only create service when signed in
+                if (!firefly.signedIn) return null;
+                return IncrementalSyncService(
+                  database: database,
+                  apiAdapter: FireflyApiAdapter(firefly.api),
+                  cacheService: cache,
+                );
+              },
+              dispose:
+                  (_, IncrementalSyncService? service) => service?.dispose(),
             ),
           ],
           builder: (BuildContext context, _) {
@@ -378,35 +417,36 @@ class _WaterflyAppState extends State<WaterflyApp> {
                   });
                 } else {
                   log.finest(() => "signing in");
-                  context.read<FireflyService>().signInFromStorage().then(
-                    (bool signedInSuccess) {
-                      log.finest(() => "set _startup = false");
-                      if (!mounted) return;
+                  // Store context-dependent value before async gap
+                  final CacheWarmingService? warmingService =
+                      mounted ? context.read<CacheWarmingService>() : null;
+                  context.read<FireflyService>().signInFromStorage().then((
+                    bool signedInSuccess,
+                  ) {
+                    log.finest(() => "set _startup = false");
+                    if (!mounted) return;
 
-                      setState(() {
-                        _authed = true;
-                        _startup = false;
-                      });
+                    setState(() {
+                      _authed = true;
+                      _startup = false;
+                    });
 
-                      // Trigger cache warming after successful sign-in (Phase 3)
-                      if (signedInSuccess && mounted) {
-                        log.fine('Triggering cache warming after sign-in');
-                        try {
-                          final CacheWarmingService warmingService =
-                              context.read<CacheWarmingService>();
-                          // Fire-and-forget: warm in background without blocking
-                          Future<void>.microtask(
-                            () => warmingService.warmOnStartup(),
-                          );
-                        } catch (e) {
-                          log.warning(
-                            'Failed to start cache warming: $e',
-                          );
-                          // Non-fatal: app continues normally
-                        }
+                    // Trigger cache warming after successful sign-in (Phase 3)
+                    if (signedInSuccess && mounted && warmingService != null) {
+                      log.fine('Triggering cache warming after sign-in');
+                      try {
+                        // Fire-and-forget: warm in background without blocking
+                        Future<void>.microtask(() {
+                          if (mounted) {
+                            warmingService.warmOnStartup();
+                          }
+                        });
+                      } catch (e) {
+                        log.warning('Failed to start cache warming: $e');
+                        // Non-fatal: app continues normally
                       }
-                    },
-                  );
+                    }
+                  });
                 }
               }
             } else {

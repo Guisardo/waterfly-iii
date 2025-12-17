@@ -81,9 +81,10 @@ class SyncOperation extends Equatable {
         (SyncOperationType e) => e.name == json['operation'],
         orElse: () => SyncOperationType.create,
       ),
-      payload: json['payload'] is String
-          ? jsonDecode(json['payload'] as String) as Map<String, dynamic>
-          : json['payload'] as Map<String, dynamic>,
+      payload:
+          json['payload'] is String
+              ? jsonDecode(json['payload'] as String) as Map<String, dynamic>
+              : json['payload'] as Map<String, dynamic>,
       status: SyncOperationStatus.values.firstWhere(
         (SyncOperationStatus e) => e.name == json['status'],
         orElse: () => SyncOperationStatus.pending,
@@ -95,12 +96,14 @@ class SyncOperation extends Equatable {
         orElse: () => SyncPriority.normal,
       ),
       createdAt: DateTime.parse(json['created_at'] as String),
-      lastAttemptAt: json['last_attempt_at'] != null
-          ? DateTime.parse(json['last_attempt_at'] as String)
-          : null,
-      completedAt: json['completed_at'] != null
-          ? DateTime.parse(json['completed_at'] as String)
-          : null,
+      lastAttemptAt:
+          json['last_attempt_at'] != null
+              ? DateTime.parse(json['last_attempt_at'] as String)
+              : null,
+      completedAt:
+          json['completed_at'] != null
+              ? DateTime.parse(json['completed_at'] as String)
+              : null,
     );
   }
 
@@ -175,25 +178,26 @@ class SyncOperation extends Equatable {
   /// Gets the effective priority considering operation age
   /// Older operations get higher priority
   int getEffectivePriority() {
-    final int ageBonus = (getAgeInMinutes() / 60).floor(); // +1 priority per hour
+    final int ageBonus =
+        (getAgeInMinutes() / 60).floor(); // +1 priority per hour
     return (priority.value - ageBonus).clamp(0, 10);
   }
 
   @override
   List<Object?> get props => <Object?>[
-        id,
-        entityType,
-        entityId,
-        operation,
-        payload,
-        status,
-        attempts,
-        errorMessage,
-        priority,
-        createdAt,
-        lastAttemptAt,
-        completedAt,
-      ];
+    id,
+    entityType,
+    entityId,
+    operation,
+    payload,
+    status,
+    attempts,
+    errorMessage,
+    priority,
+    createdAt,
+    lastAttemptAt,
+    completedAt,
+  ];
 
   @override
   String toString() {

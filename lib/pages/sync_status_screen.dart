@@ -63,7 +63,11 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
         ],
       ),
       body: Consumer<SyncStatusProvider>(
-        builder: (BuildContext context, SyncStatusProvider provider, Widget? child) {
+        builder: (
+          BuildContext context,
+          SyncStatusProvider provider,
+          Widget? child,
+        ) {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -86,10 +90,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
   }
 
   /// Build overview tab with current status and statistics.
-  Widget _buildOverviewTab(
-    BuildContext context,
-    SyncStatusProvider provider,
-  ) {
+  Widget _buildOverviewTab(BuildContext context, SyncStatusProvider provider) {
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: <Widget>[
@@ -231,10 +232,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              'Statistics',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Statistics', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             _buildStatRow(
               context,
@@ -328,7 +326,9 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
-            ...entityStats.entries.map((MapEntry<String, EntitySyncStats> entry) {
+            ...entityStats.entries.map((
+              MapEntry<String, EntitySyncStats> entry,
+            ) {
               final EntitySyncStats stats = entry.value;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
@@ -344,19 +344,28 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
                         ),
                         Text(
                           '${stats.successful}/${stats.total}',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: stats.failed > 0 ? Colors.orange : Colors.green,
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color:
+                                stats.failed > 0 ? Colors.orange : Colors.green,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: <Widget>[
-                        _buildEntityStatChip('C: ${stats.creates}', Colors.blue),
+                        _buildEntityStatChip(
+                          'C: ${stats.creates}',
+                          Colors.blue,
+                        ),
                         const SizedBox(width: 4),
-                        _buildEntityStatChip('U: ${stats.updates}', Colors.orange),
+                        _buildEntityStatChip(
+                          'U: ${stats.updates}',
+                          Colors.orange,
+                        ),
                         const SizedBox(width: 4),
                         _buildEntityStatChip('D: ${stats.deletes}', Colors.red),
                         if (stats.conflicts > 0) ...<Widget>[
@@ -379,10 +388,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
   }
 
   /// Build history tab with sync history list.
-  Widget _buildHistoryTab(
-    BuildContext context,
-    SyncStatusProvider provider,
-  ) {
+  Widget _buildHistoryTab(BuildContext context, SyncStatusProvider provider) {
     final List<SyncResult> history = provider.syncHistory;
 
     if (history.isEmpty) {
@@ -394,16 +400,16 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
             const SizedBox(height: 16),
             Text(
               'No sync history',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 8),
             Text(
               'Sync history will appear here',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[500],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
             ),
           ],
         ),
@@ -451,10 +457,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
   }
 
   /// Build conflicts tab.
-  Widget _buildConflictsTab(
-    BuildContext context,
-    SyncStatusProvider provider,
-  ) {
+  Widget _buildConflictsTab(BuildContext context, SyncStatusProvider provider) {
     final List<dynamic> conflicts = provider.unresolvedConflicts;
 
     if (conflicts.isEmpty) {
@@ -466,16 +469,16 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
             const SizedBox(height: 16),
             Text(
               'No conflicts',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.green[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: Colors.green[600]),
             ),
             const SizedBox(height: 8),
             Text(
               'All conflicts have been resolved',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
             ),
           ],
         ),
@@ -490,16 +493,17 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
         return Card(
           margin: const EdgeInsets.only(bottom: 12.0),
           child: ListTile(
-            leading: const Icon(Icons.warning_amber, color: Colors.orange, size: 32),
+            leading: const Icon(
+              Icons.warning_amber,
+              color: Colors.orange,
+              size: 32,
+            ),
             title: Text('Conflict #${index + 1}'),
             subtitle: Text(conflict.toString()),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () {
               // Navigate to conflict resolution screen
-              Navigator.pushNamed(
-                context,
-                '/conflicts',
-              );
+              Navigator.pushNamed(context, '/conflicts');
             },
           ),
         );
@@ -508,10 +512,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
   }
 
   /// Build errors tab.
-  Widget _buildErrorsTab(
-    BuildContext context,
-    SyncStatusProvider provider,
-  ) {
+  Widget _buildErrorsTab(BuildContext context, SyncStatusProvider provider) {
     final List<SyncError> errors = provider.recentErrors;
 
     if (errors.isEmpty) {
@@ -523,16 +524,16 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
             const SizedBox(height: 16),
             Text(
               'No errors',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.green[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: Colors.green[600]),
             ),
             const SizedBox(height: 8),
             Text(
               'No sync errors have occurred',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
             ),
           ],
         ),
@@ -607,17 +608,14 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
           Icon(icon, size: 20, color: color),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
           ),
           Text(
             value,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -648,43 +646,71 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
   void _showSyncResultDetails(BuildContext context, SyncResult result) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text(result.success ? 'Sync Successful' : 'Sync Failed'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              _buildDetailRow('Started', _formatDateTime(result.startTime)),
-              _buildDetailRow('Ended', _formatDateTime(result.endTime)),
-              _buildDetailRow('Duration', _formatDuration(result.duration)),
-              const Divider(),
-              _buildDetailRow('Total operations', result.totalOperations.toString()),
-              _buildDetailRow('Successful', result.successfulOperations.toString()),
-              _buildDetailRow('Failed', result.failedOperations.toString()),
-              _buildDetailRow('Skipped', result.skippedOperations.toString()),
-              const Divider(),
-              _buildDetailRow('Conflicts detected', result.conflictsDetected.toString()),
-              _buildDetailRow('Conflicts resolved', result.conflictsResolved.toString()),
-              const Divider(),
-              _buildDetailRow('Success rate', '${(result.successRate * 100).toStringAsFixed(1)}%'),
-              _buildDetailRow('Throughput', '${result.throughput.toStringAsFixed(2)} ops/s'),
-              if (result.errorMessage != null) ...<Widget>[
-                const Divider(),
-                const Text('Error:', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(result.errorMessage!, style: const TextStyle(color: Colors.red)),
-              ],
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: Text(result.success ? 'Sync Successful' : 'Sync Failed'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  _buildDetailRow('Started', _formatDateTime(result.startTime)),
+                  _buildDetailRow('Ended', _formatDateTime(result.endTime)),
+                  _buildDetailRow('Duration', _formatDuration(result.duration)),
+                  const Divider(),
+                  _buildDetailRow(
+                    'Total operations',
+                    result.totalOperations.toString(),
+                  ),
+                  _buildDetailRow(
+                    'Successful',
+                    result.successfulOperations.toString(),
+                  ),
+                  _buildDetailRow('Failed', result.failedOperations.toString()),
+                  _buildDetailRow(
+                    'Skipped',
+                    result.skippedOperations.toString(),
+                  ),
+                  const Divider(),
+                  _buildDetailRow(
+                    'Conflicts detected',
+                    result.conflictsDetected.toString(),
+                  ),
+                  _buildDetailRow(
+                    'Conflicts resolved',
+                    result.conflictsResolved.toString(),
+                  ),
+                  const Divider(),
+                  _buildDetailRow(
+                    'Success rate',
+                    '${(result.successRate * 100).toStringAsFixed(1)}%',
+                  ),
+                  _buildDetailRow(
+                    'Throughput',
+                    '${result.throughput.toStringAsFixed(2)} ops/s',
+                  ),
+                  if (result.errorMessage != null) ...<Widget>[
+                    const Divider(),
+                    const Text(
+                      'Error:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      result.errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
             ],
           ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -692,34 +718,41 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
   void _showErrorDetails(BuildContext context, SyncError error) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Error Details'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              _buildDetailRow('Time', _formatDateTime(error.timestamp)),
-              const Divider(),
-              const Text('Message:', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text(error.message),
-              if (error.exception != null) ...<Widget>[
-                const SizedBox(height: 12),
-                const Text('Exception:', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(error.exception.toString()),
-              ],
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Error Details'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  _buildDetailRow('Time', _formatDateTime(error.timestamp)),
+                  const Divider(),
+                  const Text(
+                    'Message:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(error.message),
+                  if (error.exception != null) ...<Widget>[
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Exception:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(error.exception.toString()),
+                  ],
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
             ],
           ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
     );
   }
 

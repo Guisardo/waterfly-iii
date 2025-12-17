@@ -35,10 +35,8 @@ class OperationTracker {
   final MetadataService _metadata;
   final Logger _logger = Logger('OperationTracker');
 
-  OperationTracker(
-    this._database, {
-    MetadataService? metadata,
-  }) : _metadata = metadata ?? MetadataService(_database);
+  OperationTracker(this._database, {MetadataService? metadata})
+    : _metadata = metadata ?? MetadataService(_database);
 
   /// Tracks an operation status change
   ///
@@ -58,11 +56,12 @@ class OperationTracker {
 
       // Get existing history
       final String? existingHistory = await _metadata.get(historyKey);
-      final List<Map<String, dynamic>> history = existingHistory != null
-          ? List<Map<String, dynamic>>.from(
-              jsonDecode(existingHistory) as List,
-            )
-          : <Map<String, dynamic>>[];
+      final List<Map<String, dynamic>> history =
+          existingHistory != null
+              ? List<Map<String, dynamic>>.from(
+                jsonDecode(existingHistory) as List,
+              )
+              : <Map<String, dynamic>>[];
 
       // Add new entry
       history.add(<String, dynamic>{
@@ -78,15 +77,10 @@ class OperationTracker {
 
       _logger.fine('Operation tracked: $operationId -> $status');
     } catch (e, stackTrace) {
-      _logger.severe(
-        'Failed to track operation: $operationId',
-        e,
-        stackTrace,
-      );
-      throw SyncException(
-        'Failed to track operation',
-        <String, dynamic>{"error": e.toString()},
-      );
+      _logger.severe('Failed to track operation: $operationId', e, stackTrace);
+      throw SyncException('Failed to track operation', <String, dynamic>{
+        "error": e.toString(),
+      });
     }
   }
 
@@ -103,11 +97,12 @@ class OperationTracker {
 
       // Update sync queue entry if exists
       await (_database.update(_database.syncQueue)
-            ..where(($SyncQueueTable t) => t.id.equals(operationId)))
-          .write(SyncQueueEntityCompanion(
-        status: Value(queueStatus),
-        lastAttemptAt: Value(timestamp),
-      ));
+        ..where(($SyncQueueTable t) => t.id.equals(operationId))).write(
+        SyncQueueEntityCompanion(
+          status: Value(queueStatus),
+          lastAttemptAt: Value(timestamp),
+        ),
+      );
 
       _logger.fine('Updated sync queue status for $operationId: $queueStatus');
     } catch (e) {
@@ -150,15 +145,16 @@ class OperationTracker {
         return <OperationHistoryEntry>[];
       }
 
-      final List<Map<String, dynamic>> history = List<Map<String, dynamic>>.from(
-        jsonDecode(historyJson) as List,
-      );
+      final List<Map<String, dynamic>> history =
+          List<Map<String, dynamic>>.from(jsonDecode(historyJson) as List);
 
       return history
-          .map((Map<String, dynamic> entry) => OperationHistoryEntry(
-                status: entry['status'] as String,
-                timestamp: DateTime.parse(entry['timestamp'] as String),
-              ))
+          .map(
+            (Map<String, dynamic> entry) => OperationHistoryEntry(
+              status: entry['status'] as String,
+              timestamp: DateTime.parse(entry['timestamp'] as String),
+            ),
+          )
           .toList();
     } catch (e, stackTrace) {
       _logger.severe(
@@ -191,7 +187,8 @@ class OperationTracker {
       final Map<String, String> allMetadata = await _metadata.getAll(
         prefix: MetadataKeys.operationHistoryPrefix,
       );
-      final List<MapEntry<String, String>> historyEntries = allMetadata.entries.toList();
+      final List<MapEntry<String, String>> historyEntries =
+          allMetadata.entries.toList();
 
       // Calculate timing statistics from history
       int totalFromHistory = 0;
@@ -201,9 +198,8 @@ class OperationTracker {
       final List<Duration> processingTimes = <Duration>[];
 
       for (final MapEntry<String, String> entry in historyEntries) {
-        final List<Map<String, dynamic>> history = List<Map<String, dynamic>>.from(
-          jsonDecode(entry.value) as List,
-        );
+        final List<Map<String, dynamic>> history =
+            List<Map<String, dynamic>>.from(jsonDecode(entry.value) as List);
 
         if (history.isEmpty) continue;
 
@@ -219,53 +215,65 @@ class OperationTracker {
 
         // Check for retries
         final int processingCount =
-            history.where((Map<String, dynamic> h) => h['status'] == 'processing').length;
+            history
+                .where((Map<String, dynamic> h) => h['status'] == 'processing')
+                .length;
         if (processingCount > 1) {
           retriedOperations++;
         }
 
         // Calculate processing time
         final Map<String, dynamic> createdEntry = history.firstWhere(
-          (Map<String, dynamic> h) => h['status'] == 'created' || h['status'] == 'queued',
+          (Map<String, dynamic> h) =>
+              h['status'] == 'created' || h['status'] == 'queued',
           orElse: () => history.first,
         );
         final Map<String, dynamic> completedEntry = history.lastWhere(
-          (Map<String, dynamic> h) => h['status'] == 'completed' || h['status'] == 'failed',
+          (Map<String, dynamic> h) =>
+              h['status'] == 'completed' || h['status'] == 'failed',
           orElse: () => history.last,
         );
 
-        final DateTime startTime = DateTime.parse(createdEntry['timestamp'] as String);
-        final DateTime endTime = DateTime.parse(completedEntry['timestamp'] as String);
+        final DateTime startTime = DateTime.parse(
+          createdEntry['timestamp'] as String,
+        );
+        final DateTime endTime = DateTime.parse(
+          completedEntry['timestamp'] as String,
+        );
         processingTimes.add(endTime.difference(startTime));
       }
 
       // Use queue stats if available, otherwise use history stats
-      final int totalOperations = queueStats.total > 0 
-          ? queueStats.total 
-          : totalFromHistory;
-      final int successfulOperations = queueStats.completed > 0 
-          ? queueStats.completed 
-          : successfulFromHistory;
-      final int failedOperations = queueStats.failed > 0 
-          ? queueStats.failed 
-          : failedFromHistory;
+      final int totalOperations =
+          queueStats.total > 0 ? queueStats.total : totalFromHistory;
+      final int successfulOperations =
+          queueStats.completed > 0
+              ? queueStats.completed
+              : successfulFromHistory;
+      final int failedOperations =
+          queueStats.failed > 0 ? queueStats.failed : failedFromHistory;
 
       // Calculate rates
-      final double successRate = totalOperations > 0
-          ? (successfulOperations / totalOperations * 100)
-          : 0.0;
+      final double successRate =
+          totalOperations > 0
+              ? (successfulOperations / totalOperations * 100)
+              : 0.0;
 
-      final double failureRate = totalOperations > 0
-          ? (failedOperations / totalOperations * 100)
-          : 0.0;
+      final double failureRate =
+          totalOperations > 0
+              ? (failedOperations / totalOperations * 100)
+              : 0.0;
 
-      final double retryRate = totalFromHistory > 0
-          ? (retriedOperations / totalFromHistory * 100)
-          : 0.0;
+      final double retryRate =
+          totalFromHistory > 0
+              ? (retriedOperations / totalFromHistory * 100)
+              : 0.0;
 
-      final Duration avgProcessingTime = processingTimes.isNotEmpty
-          ? processingTimes.reduce((Duration a, Duration b) => a + b) ~/ processingTimes.length
-          : Duration.zero;
+      final Duration avgProcessingTime =
+          processingTimes.isNotEmpty
+              ? processingTimes.reduce((Duration a, Duration b) => a + b) ~/
+                  processingTimes.length
+              : Duration.zero;
 
       final OperationStatistics stats = OperationStatistics(
         totalOperations: totalOperations,
@@ -296,40 +304,44 @@ class OperationTracker {
     try {
       // Count by status
       final Expression<int> countAll = _database.syncQueue.id.count();
-      
+
       // Get total count
-      final int total = await (_database.selectOnly(_database.syncQueue)
-            ..addColumns(<Expression<Object>>[countAll]))
-          .map((TypedResult row) => row.read(countAll) ?? 0)
-          .getSingle();
+      final int total =
+          await (_database.selectOnly(_database.syncQueue)..addColumns(
+            <Expression<Object>>[countAll],
+          )).map((TypedResult row) => row.read(countAll) ?? 0).getSingle();
 
       // Get pending count
-      final int pending = await (_database.selectOnly(_database.syncQueue)
-            ..addColumns(<Expression<Object>>[countAll])
-            ..where(_database.syncQueue.status.equals('pending')))
-          .map((TypedResult row) => row.read(countAll) ?? 0)
-          .getSingle();
+      final int pending =
+          await (_database.selectOnly(_database.syncQueue)
+                ..addColumns(<Expression<Object>>[countAll])
+                ..where(_database.syncQueue.status.equals('pending')))
+              .map((TypedResult row) => row.read(countAll) ?? 0)
+              .getSingle();
 
       // Get processing count
-      final int processing = await (_database.selectOnly(_database.syncQueue)
-            ..addColumns(<Expression<Object>>[countAll])
-            ..where(_database.syncQueue.status.equals('processing')))
-          .map((TypedResult row) => row.read(countAll) ?? 0)
-          .getSingle();
+      final int processing =
+          await (_database.selectOnly(_database.syncQueue)
+                ..addColumns(<Expression<Object>>[countAll])
+                ..where(_database.syncQueue.status.equals('processing')))
+              .map((TypedResult row) => row.read(countAll) ?? 0)
+              .getSingle();
 
       // Get completed count
-      final int completed = await (_database.selectOnly(_database.syncQueue)
-            ..addColumns(<Expression<Object>>[countAll])
-            ..where(_database.syncQueue.status.equals('completed')))
-          .map((TypedResult row) => row.read(countAll) ?? 0)
-          .getSingle();
+      final int completed =
+          await (_database.selectOnly(_database.syncQueue)
+                ..addColumns(<Expression<Object>>[countAll])
+                ..where(_database.syncQueue.status.equals('completed')))
+              .map((TypedResult row) => row.read(countAll) ?? 0)
+              .getSingle();
 
       // Get failed count
-      final int failed = await (_database.selectOnly(_database.syncQueue)
-            ..addColumns(<Expression<Object>>[countAll])
-            ..where(_database.syncQueue.status.equals('failed')))
-          .map((TypedResult row) => row.read(countAll) ?? 0)
-          .getSingle();
+      final int failed =
+          await (_database.selectOnly(_database.syncQueue)
+                ..addColumns(<Expression<Object>>[countAll])
+                ..where(_database.syncQueue.status.equals('failed')))
+              .map((TypedResult row) => row.read(countAll) ?? 0)
+              .getSingle();
 
       return SyncQueueStatistics(
         total: total,
@@ -349,13 +361,20 @@ class OperationTracker {
   /// Returns a list of operation IDs that are pending sync.
   Future<List<String>> getPendingOperations() async {
     try {
-      final List<SyncQueueEntity> entries = await (_database.select(_database.syncQueue)
-            ..where(($SyncQueueTable t) => t.status.equals('pending'))
-            ..orderBy(<OrderClauseGenerator<$SyncQueueTable>>[
-              ($SyncQueueTable t) => OrderingTerm(expression: t.priority, mode: OrderingMode.asc),
-              ($SyncQueueTable t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.asc),
-            ]))
-          .get();
+      final List<SyncQueueEntity> entries =
+          await (_database.select(_database.syncQueue)
+                ..where(($SyncQueueTable t) => t.status.equals('pending'))
+                ..orderBy(<OrderClauseGenerator<$SyncQueueTable>>[
+                  ($SyncQueueTable t) => OrderingTerm(
+                    expression: t.priority,
+                    mode: OrderingMode.asc,
+                  ),
+                  ($SyncQueueTable t) => OrderingTerm(
+                    expression: t.createdAt,
+                    mode: OrderingMode.asc,
+                  ),
+                ]))
+              .get();
 
       return entries.map((SyncQueueEntity e) => e.id).toList();
     } catch (e, stackTrace) {
@@ -369,9 +388,9 @@ class OperationTracker {
   /// Returns a list of operation IDs that failed sync.
   Future<List<String>> getFailedOperations() async {
     try {
-      final List<SyncQueueEntity> entries = await (_database.select(_database.syncQueue)
-            ..where(($SyncQueueTable t) => t.status.equals('failed')))
-          .get();
+      final List<SyncQueueEntity> entries =
+          await (_database.select(_database.syncQueue)
+            ..where(($SyncQueueTable t) => t.status.equals('failed'))).get();
 
       return entries.map((SyncQueueEntity e) => e.id).toList();
     } catch (e, stackTrace) {
@@ -386,23 +405,27 @@ class OperationTracker {
 
     try {
       await (_database.update(_database.syncQueue)
-            ..where(($SyncQueueTable t) => t.id.equals(operationId)))
-          .write(SyncQueueEntityCompanion(
-        status: const Value('pending'),
-        attempts: const Value(0),
-        lastAttemptAt: Value(DateTime.now()),
-      ));
+        ..where(($SyncQueueTable t) => t.id.equals(operationId))).write(
+        SyncQueueEntityCompanion(
+          status: const Value('pending'),
+          attempts: const Value(0),
+          lastAttemptAt: Value(DateTime.now()),
+        ),
+      );
 
       // Track the requeue
       await trackOperation(operationId, 'queued');
-      
+
       _logger.info('Operation requeued: $operationId');
     } catch (e, stackTrace) {
-      _logger.severe('Failed to requeue operation: $operationId', e, stackTrace);
-      throw SyncException(
-        'Failed to requeue operation',
-        <String, dynamic>{"error": e.toString()},
+      _logger.severe(
+        'Failed to requeue operation: $operationId',
+        e,
+        stackTrace,
       );
+      throw SyncException('Failed to requeue operation', <String, dynamic>{
+        "error": e.toString(),
+      });
     }
   }
 
@@ -414,16 +437,17 @@ class OperationTracker {
     _logger.info('Clearing operation history older than $retentionDays days');
 
     try {
-      final DateTime cutoffDate = DateTime.now().subtract(Duration(days: retentionDays));
+      final DateTime cutoffDate = DateTime.now().subtract(
+        Duration(days: retentionDays),
+      );
       final Map<String, String> allMetadata = await _metadata.getAll(
         prefix: MetadataKeys.operationHistoryPrefix,
       );
       int clearedCount = 0;
 
       for (final MapEntry<String, String> entry in allMetadata.entries) {
-        final List<Map<String, dynamic>> history = List<Map<String, dynamic>>.from(
-          jsonDecode(entry.value) as List,
-        );
+        final List<Map<String, dynamic>> history =
+            List<Map<String, dynamic>>.from(jsonDecode(entry.value) as List);
 
         if (history.isEmpty) continue;
 
@@ -441,23 +465,31 @@ class OperationTracker {
       // Also clear old completed/failed entries from sync queue
       final int queueCleared = await _clearOldQueueEntries(cutoffDate);
 
-      _logger.info('Cleared $clearedCount old operation histories and $queueCleared queue entries');
+      _logger.info(
+        'Cleared $clearedCount old operation histories and $queueCleared queue entries',
+      );
     } catch (e, stackTrace) {
       _logger.severe('Failed to clear old history', e, stackTrace);
-      throw SyncException(
-        'Failed to clear old history',
-        <String, dynamic>{"error": e.toString()},
-      );
+      throw SyncException('Failed to clear old history', <String, dynamic>{
+        "error": e.toString(),
+      });
     }
   }
 
   /// Clears old completed/failed entries from the sync queue.
   Future<int> _clearOldQueueEntries(DateTime cutoffDate) async {
     try {
-      final int deleted = await (_database.delete(_database.syncQueue)
-            ..where(($SyncQueueTable t) => t.status.isIn(<String>['completed', 'failed']))
-            ..where(($SyncQueueTable t) => t.createdAt.isSmallerThanValue(cutoffDate)))
-          .go();
+      final int deleted =
+          await (_database.delete(_database.syncQueue)
+                ..where(
+                  ($SyncQueueTable t) =>
+                      t.status.isIn(<String>['completed', 'failed']),
+                )
+                ..where(
+                  ($SyncQueueTable t) =>
+                      t.createdAt.isSmallerThanValue(cutoffDate),
+                ))
+              .go();
 
       return deleted;
     } catch (e) {
@@ -472,10 +504,7 @@ class OperationHistoryEntry {
   final String status;
   final DateTime timestamp;
 
-  const OperationHistoryEntry({
-    required this.status,
-    required this.timestamp,
-  });
+  const OperationHistoryEntry({required this.status, required this.timestamp});
 
   @override
   String toString() => '$status at ${timestamp.toIso8601String()}';

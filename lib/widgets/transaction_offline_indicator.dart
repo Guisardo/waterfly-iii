@@ -33,7 +33,11 @@ class TransactionOfflineIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<ConnectivityProvider>(
-      builder: (BuildContext context, ConnectivityProvider connectivityProvider, Widget? child) {
+      builder: (
+        BuildContext context,
+        ConnectivityProvider connectivityProvider,
+        Widget? child,
+      ) {
         final ConnectivityStatus status = connectivityProvider.status;
 
         if (status == ConnectivityStatus.online) {
@@ -61,9 +65,10 @@ class TransactionOfflineIndicator extends StatelessWidget {
                       Text(
                         'Offline Mode',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onTertiaryContainer,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          color:
+                              Theme.of(context).colorScheme.onTertiaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -71,8 +76,9 @@ class TransactionOfflineIndicator extends StatelessWidget {
                             ? 'Transaction will be saved locally and synced when online'
                             : 'Changes will be saved locally and synced when online',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onTertiaryContainer,
-                            ),
+                          color:
+                              Theme.of(context).colorScheme.onTertiaryContainer,
+                        ),
                       ),
                     ],
                   ),
@@ -81,7 +87,8 @@ class TransactionOfflineIndicator extends StatelessWidget {
                   TextButton(
                     onPressed: onLearnMore,
                     style: TextButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.onTertiaryContainer,
+                      foregroundColor:
+                          Theme.of(context).colorScheme.onTertiaryContainer,
                     ),
                     child: const Text('Learn More'),
                   ),
@@ -149,17 +156,14 @@ class TransactionSaveSuccessMessage extends StatelessWidget {
       color: backgroundColor,
       child: Row(
         children: <Widget>[
-          Icon(
-            icon,
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
-          ),
+          Icon(icon, color: Theme.of(context).colorScheme.onPrimaryContainer),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
             ),
           ),
         ],

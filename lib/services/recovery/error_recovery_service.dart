@@ -59,7 +59,8 @@ class ErrorRecoveryService {
     try {
       // Run integrity check
       _logger.info('Running PRAGMA integrity_check');
-      final List<QueryRow> integrityResult = await _database.customSelect('PRAGMA integrity_check').get();
+      final List<QueryRow> integrityResult =
+          await _database.customSelect('PRAGMA integrity_check').get();
       _logger.info('Integrity check result: $integrityResult');
 
       if (integrityResult.isNotEmpty &&
@@ -94,9 +95,15 @@ class ErrorRecoveryService {
       // Find and remove records with NULL required fields using Drift's customStatement
       _logger.info('Removing records with NULL required fields');
 
-      await _database.customStatement('DELETE FROM transactions WHERE description IS NULL OR amount IS NULL');
-      await _database.customStatement('DELETE FROM accounts WHERE name IS NULL');
-      await _database.customStatement('DELETE FROM categories WHERE name IS NULL');
+      await _database.customStatement(
+        'DELETE FROM transactions WHERE description IS NULL OR amount IS NULL',
+      );
+      await _database.customStatement(
+        'DELETE FROM accounts WHERE name IS NULL',
+      );
+      await _database.customStatement(
+        'DELETE FROM categories WHERE name IS NULL',
+      );
 
       _logger.info('Corrupted data cleared successfully');
     } catch (e, stackTrace) {
@@ -112,7 +119,10 @@ class ErrorRecoveryService {
     try {
       final String dbPath = await _getDatabasePath();
       final Directory backupDir = await _getBackupDirectory();
-      final String timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+      final String timestamp = DateTime.now().toIso8601String().replaceAll(
+        ':',
+        '-',
+      );
       final String backupName = '$_backupPrefix$timestamp.db.gz';
       final String backupPath = path.join(backupDir.path, backupName);
 
@@ -149,7 +159,9 @@ class ErrorRecoveryService {
       // Read and decompress backup
       final File backupFile = File(backupPath);
       final Uint8List compressed = await backupFile.readAsBytes();
-      final Uint8List decompressed = const GZipDecoder().decodeBytes(compressed);
+      final Uint8List decompressed = const GZipDecoder().decodeBytes(
+        compressed,
+      );
 
       // Restore database file
       final File dbFile = File(dbPath);
@@ -168,12 +180,17 @@ class ErrorRecoveryService {
       final Directory backupDir = await _getBackupDirectory();
       final List<FileSystemEntity> files = await backupDir.list().toList();
 
-      final List<File> backups = files
-          .whereType<File>()
-          .where((File f) => path.basename(f.path).startsWith(_backupPrefix))
-          .toList();
+      final List<File> backups =
+          files
+              .whereType<File>()
+              .where(
+                (File f) => path.basename(f.path).startsWith(_backupPrefix),
+              )
+              .toList();
 
-      backups.sort((File a, File b) => b.path.compareTo(a.path)); // Newest first
+      backups.sort(
+        (File a, File b) => b.path.compareTo(a.path),
+      ); // Newest first
 
       return backups;
     } catch (e, stackTrace) {
@@ -233,7 +250,8 @@ class ErrorRecoveryService {
     } else if (errorString.contains('validation') ||
         errorString.contains('invalid')) {
       return ErrorType.validation;
-    } else if (errorString.contains('sync') || errorString.contains('conflict')) {
+    } else if (errorString.contains('sync') ||
+        errorString.contains('conflict')) {
       return ErrorType.sync;
     }
 
@@ -300,10 +318,4 @@ class ErrorRecoveryService {
 }
 
 /// Error type classification for recovery strategies.
-enum ErrorType {
-  network,
-  database,
-  validation,
-  sync,
-  unknown,
-}
+enum ErrorType { network, database, validation, sync, unknown }

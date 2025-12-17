@@ -214,38 +214,36 @@ class NotificationApps extends StatelessWidget {
 
     if (accountRepository != null) {
       // Use local database with cache-first strategy
-      final List<AccountEntity> accountEntities =
-          await accountRepository.getByType('asset');
-      
+      final List<AccountEntity> accountEntities = await accountRepository
+          .getByType('asset');
+
       // Convert to AccountArray format for compatibility
-      final List<AccountRead> accounts = accountEntities.map((AccountEntity e) {
-        ShortAccountTypeProperty? accountType;
-        try {
-          accountType = ShortAccountTypeProperty.values.firstWhere(
-            (ShortAccountTypeProperty t) => t.value == e.type,
-            orElse: () => ShortAccountTypeProperty.asset,
-          );
-        } catch (_) {
-          accountType = ShortAccountTypeProperty.asset;
-        }
+      final List<AccountRead> accounts =
+          accountEntities.map((AccountEntity e) {
+            ShortAccountTypeProperty? accountType;
+            try {
+              accountType = ShortAccountTypeProperty.values.firstWhere(
+                (ShortAccountTypeProperty t) => t.value == e.type,
+                orElse: () => ShortAccountTypeProperty.asset,
+              );
+            } catch (_) {
+              accountType = ShortAccountTypeProperty.asset;
+            }
 
-        return AccountRead(
-          id: e.id,
-          type: 'accounts',
-          attributes: AccountProperties(
-            name: e.name,
-            type: accountType,
-            currencyCode: e.currencyCode,
-            currentBalance: e.currentBalance.toString(),
-            active: e.active,
-          ),
-        );
-      }).toList();
+            return AccountRead(
+              id: e.id,
+              type: 'accounts',
+              attributes: AccountProperties(
+                name: e.name,
+                type: accountType,
+                currencyCode: e.currencyCode,
+                currentBalance: e.currentBalance.toString(),
+                active: e.active,
+              ),
+            );
+          }).toList();
 
-      return AccountArray(
-        data: accounts,
-        meta: Meta(),
-      );
+      return AccountArray(data: accounts, meta: Meta());
     }
 
     // Fallback to direct API call if repository not available

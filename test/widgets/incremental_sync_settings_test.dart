@@ -48,7 +48,9 @@ void main() {
       );
     }
 
-    testWidgets('renders header with title and subtitle', (WidgetTester tester) async {
+    testWidgets('renders header with title and subtitle', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
 
       // "Incremental Sync" appears in both header title and action button label
@@ -66,7 +68,9 @@ void main() {
       expect(find.byType(SwitchListTile), findsAtLeast(1));
     });
 
-    testWidgets('toggle changes incremental sync setting', (WidgetTester tester) async {
+    testWidgets('toggle changes incremental sync setting', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
 
       // Initially enabled (default)
@@ -78,8 +82,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify setIncrementalSyncEnabled was called
-      verify(() => mockPrefs.setBool('incremental_sync_enabled', false))
-          .called(1);
+      verify(
+        () => mockPrefs.setBool('incremental_sync_enabled', false),
+      ).called(1);
     });
 
     testWidgets('renders sync window selector', (WidgetTester tester) async {
@@ -89,7 +94,9 @@ void main() {
       expect(find.text('How far back to look for changes'), findsOneWidget);
     });
 
-    testWidgets('sync window selector contains all options', (WidgetTester tester) async {
+    testWidgets('sync window selector contains all options', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
 
       // Find and tap the dropdown
@@ -102,20 +109,25 @@ void main() {
       // Verify all sync window options are present
       expect(find.text('7 days'), findsOneWidget);
       expect(find.text('14 days'), findsOneWidget);
-      expect(find.text('30 days'), findsAtLeast(1)); // May appear multiple times
+      expect(
+        find.text('30 days'),
+        findsAtLeast(1),
+      ); // May appear multiple times
       expect(find.text('60 days'), findsOneWidget);
       expect(find.text('90 days'), findsOneWidget);
     });
 
-    testWidgets('renders cache TTL selector when advanced settings enabled',
-        (WidgetTester tester) async {
+    testWidgets('renders cache TTL selector when advanced settings enabled', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget(showAdvancedSettings: true));
 
       expect(find.text('Cache Duration'), findsOneWidget);
     });
 
-    testWidgets('hides cache TTL selector when advanced settings disabled',
-        (WidgetTester tester) async {
+    testWidgets('hides cache TTL selector when advanced settings disabled', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget(showAdvancedSettings: false));
 
       expect(find.text('Cache Duration'), findsNothing);
@@ -129,24 +141,30 @@ void main() {
     });
 
     testWidgets('renders action buttons', (WidgetTester tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        onForceIncrementalSync: () {},
-        onForceFullSync: () {},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(onForceIncrementalSync: () {}, onForceFullSync: () {}),
+      );
 
       // Find the OutlinedButton widgets specifically for the sync action buttons
       // Note: "Incremental Sync" also appears in header and toggle, so use button finder
-      expect(find.widgetWithText(OutlinedButton, 'Incremental Sync'), findsOneWidget);
+      expect(
+        find.widgetWithText(OutlinedButton, 'Incremental Sync'),
+        findsOneWidget,
+      );
       expect(find.widgetWithText(OutlinedButton, 'Full Sync'), findsOneWidget);
     });
 
-    testWidgets('incremental sync button triggers callback', (WidgetTester tester) async {
+    testWidgets('incremental sync button triggers callback', (
+      WidgetTester tester,
+    ) async {
       bool syncTapped = false;
 
-      await tester.pumpWidget(buildTestWidget(
-        onForceIncrementalSync: () => syncTapped = true,
-        onForceFullSync: () {},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(
+          onForceIncrementalSync: () => syncTapped = true,
+          onForceFullSync: () {},
+        ),
+      );
 
       // Use OutlinedButton.icon with text 'Incremental Sync' to avoid ambiguity
       // with the header title
@@ -156,13 +174,17 @@ void main() {
       expect(syncTapped, true);
     });
 
-    testWidgets('full sync button triggers callback', (WidgetTester tester) async {
+    testWidgets('full sync button triggers callback', (
+      WidgetTester tester,
+    ) async {
       bool fullSyncTapped = false;
 
-      await tester.pumpWidget(buildTestWidget(
-        onForceIncrementalSync: () {},
-        onForceFullSync: () => fullSyncTapped = true,
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(
+          onForceIncrementalSync: () {},
+          onForceFullSync: () => fullSyncTapped = true,
+        ),
+      );
 
       // Use OutlinedButton.icon to find the button specifically
       await tester.tap(find.widgetWithText(OutlinedButton, 'Full Sync'));
@@ -171,30 +193,36 @@ void main() {
       expect(fullSyncTapped, true);
     });
 
-    testWidgets('renders reset statistics button when advanced settings enabled',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(buildTestWidget(showAdvancedSettings: true));
+    testWidgets(
+      'renders reset statistics button when advanced settings enabled',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(buildTestWidget(showAdvancedSettings: true));
 
-      // Scroll to find the Reset Statistics button
-      final Finder scrollable = find.byType(Scrollable);
-      await tester.scrollUntilVisible(
-        find.text('Reset Statistics'),
-        500.0,
-        scrollable: scrollable.first,
-      );
-      await tester.pumpAndSettle();
+        // Scroll to find the Reset Statistics button
+        final Finder scrollable = find.byType(Scrollable);
+        await tester.scrollUntilVisible(
+          find.text('Reset Statistics'),
+          500.0,
+          scrollable: scrollable.first,
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.text('Reset Statistics'), findsOneWidget);
-    });
+        expect(find.text('Reset Statistics'), findsOneWidget);
+      },
+    );
 
-    testWidgets('hides reset statistics button when advanced settings disabled',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(buildTestWidget(showAdvancedSettings: false));
+    testWidgets(
+      'hides reset statistics button when advanced settings disabled',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(buildTestWidget(showAdvancedSettings: false));
 
-      expect(find.text('Reset Statistics'), findsNothing);
-    });
+        expect(find.text('Reset Statistics'), findsNothing);
+      },
+    );
 
-    testWidgets('reset statistics shows confirmation dialog', (WidgetTester tester) async {
+    testWidgets('reset statistics shows confirmation dialog', (
+      WidgetTester tester,
+    ) async {
       // Set a larger screen size to ensure content fits without scrolling
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
@@ -213,32 +241,32 @@ void main() {
       // Dialog should appear - find its title (now there will be 2: button + dialog)
       expect(find.text('Reset Statistics'), findsNWidgets(2));
       expect(
-        find.textContaining(
-          'This will clear all incremental sync statistics',
-        ),
+        find.textContaining('This will clear all incremental sync statistics'),
         findsOneWidget,
       );
       expect(find.text('Cancel'), findsOneWidget);
       expect(find.text('Reset'), findsOneWidget);
     });
 
-    testWidgets('sync window dropdown is disabled when incremental sync is disabled',
-        (WidgetTester tester) async {
-      // Disable incremental sync
-      await settingsProvider.setIncrementalSyncEnabled(false);
+    testWidgets(
+      'sync window dropdown is disabled when incremental sync is disabled',
+      (WidgetTester tester) async {
+        // Disable incremental sync
+        await settingsProvider.setIncrementalSyncEnabled(false);
 
-      await tester.pumpWidget(buildTestWidget());
+        await tester.pumpWidget(buildTestWidget());
 
-      // Find the sync window list tile
-      final Finder listTileFinder = find.ancestor(
-        of: find.text('Sync Window'),
-        matching: find.byType(ListTile),
-      );
+        // Find the sync window list tile
+        final Finder listTileFinder = find.ancestor(
+          of: find.text('Sync Window'),
+          matching: find.byType(ListTile),
+        );
 
-      expect(listTileFinder, findsOneWidget);
-      final ListTile listTile = tester.widget<ListTile>(listTileFinder);
-      expect(listTile.enabled, false);
-    });
+        expect(listTileFinder, findsOneWidget);
+        final ListTile listTile = tester.widget<ListTile>(listTileFinder);
+        expect(listTile.enabled, false);
+      },
+    );
   });
 
   group('IncrementalSyncSettingsCompact', () {
@@ -273,25 +301,27 @@ void main() {
       expect(find.text('Enable Incremental Sync'), findsOneWidget);
     });
 
-    testWidgets('shows header when showHeader is true', (WidgetTester tester) async {
+    testWidgets('shows header when showHeader is true', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget(showHeader: true));
 
       expect(find.text('Incremental Sync'), findsOneWidget);
     });
 
-    testWidgets('hides header when showHeader is false', (WidgetTester tester) async {
+    testWidgets('hides header when showHeader is false', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget(showHeader: false));
 
       // The title "Incremental Sync" should not appear as a header
       // but may still appear in other context
-      expect(
-        find.text('Incremental Sync'),
-        findsNothing,
-      );
+      expect(find.text('Incremental Sync'), findsNothing);
     });
 
-    testWidgets('shows sync window dropdown when incremental sync enabled',
-        (WidgetTester tester) async {
+    testWidgets('shows sync window dropdown when incremental sync enabled', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
 
       // The widget shows "Sync window: " with a space before the dropdown
@@ -299,8 +329,9 @@ void main() {
       expect(find.byType(DropdownButton<SyncWindow>), findsOneWidget);
     });
 
-    testWidgets('hides sync window dropdown when incremental sync disabled',
-        (WidgetTester tester) async {
+    testWidgets('hides sync window dropdown when incremental sync disabled', (
+      WidgetTester tester,
+    ) async {
       await settingsProvider.setIncrementalSyncEnabled(false);
 
       await tester.pumpWidget(buildTestWidget());
@@ -310,4 +341,3 @@ void main() {
     });
   });
 }
-

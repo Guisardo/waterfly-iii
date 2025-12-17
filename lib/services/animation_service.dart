@@ -47,10 +47,9 @@ class AnimationService {
             position: Tween<Offset>(
               begin: const Offset(0, -0.1),
               end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: emphasizedDecelerate,
-            )),
+            ).animate(
+              CurvedAnimation(parent: animation, curve: emphasizedDecelerate),
+            ),
             child: child,
           ),
         );
@@ -77,9 +76,10 @@ class AnimationService {
 
   /// Pulse animation for syncing indicator
   Animation<double> createPulseAnimation(AnimationController controller) {
-    return Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-    );
+    return Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
   }
 
   /// Shimmer effect for loading states
@@ -100,11 +100,12 @@ class AnimationService {
                 Colors.white.withOpacity(0.3),
                 Colors.white.withOpacity(0.0),
               ],
-              stops: <double>[
-                controller.value - 0.3,
-                controller.value,
-                controller.value + 0.3,
-              ].map((double e) => e.clamp(0.0, 1.0)).toList(),
+              stops:
+                  <double>[
+                    controller.value - 0.3,
+                    controller.value,
+                    controller.value + 0.3,
+                  ].map((double e) => e.clamp(0.0, 1.0)).toList(),
             ).createShader(bounds);
           },
           child: child,
@@ -120,17 +121,11 @@ class AnimationService {
     Color? color,
   }) {
     return ScaleTransition(
-      scale: Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-          parent: controller,
-          curve: Curves.elasticOut,
-        ),
-      ),
-      child: Icon(
-        Icons.check_circle,
-        color: color ?? Colors.green,
-        size: 48,
-      ),
+      scale: Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(CurvedAnimation(parent: controller, curve: Curves.elasticOut)),
+      child: Icon(Icons.check_circle, color: color ?? Colors.green, size: 48),
     );
   }
 
@@ -139,12 +134,10 @@ class AnimationService {
     required Widget child,
     required AnimationController controller,
   }) {
-    final Animation<double> animation = Tween<double>(begin: 0, end: 10).animate(
-      CurvedAnimation(
-        parent: controller,
-        curve: Curves.elasticIn,
-      ),
-    );
+    final Animation<double> animation = Tween<double>(
+      begin: 0,
+      end: 10,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.elasticIn));
 
     return AnimatedBuilder(
       animation: animation,
@@ -173,14 +166,16 @@ class AnimationService {
         position: Tween<Offset>(
           begin: const Offset(0, 0.1),
           end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: Interval(
-            (index * 0.1).clamp(0.0, 1.0),
-            1.0,
-            curve: emphasizedDecelerate,
+        ).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: Interval(
+              (index * 0.1).clamp(0.0, 1.0),
+              1.0,
+              curve: emphasizedDecelerate,
+            ),
           ),
-        )),
+        ),
         child: child,
       ),
     );
@@ -193,16 +188,10 @@ class AnimationService {
     required Widget child,
   }) {
     return FadeTransition(
-      opacity: CurvedAnimation(
-        parent: animation,
-        curve: emphasizedDecelerate,
-      ),
+      opacity: CurvedAnimation(parent: animation, curve: emphasizedDecelerate),
       child: ScaleTransition(
         scale: Tween<double>(begin: 0.8, end: 1.0).animate(
-          CurvedAnimation(
-            parent: animation,
-            curve: emphasizedDecelerate,
-          ),
+          CurvedAnimation(parent: animation, curve: emphasizedDecelerate),
         ),
         child: child,
       ),
@@ -218,10 +207,9 @@ class AnimationService {
       position: Tween<Offset>(
         begin: const Offset(0, 1),
         end: Offset.zero,
-      ).animate(CurvedAnimation(
-        parent: animation,
-        curve: emphasizedDecelerate,
-      )),
+      ).animate(
+        CurvedAnimation(parent: animation, curve: emphasizedDecelerate),
+      ),
       child: child,
     );
   }
@@ -231,10 +219,7 @@ class AnimationService {
     required Widget child,
     required AnimationController controller,
   }) {
-    return RotationTransition(
-      turns: controller,
-      child: child,
-    );
+    return RotationTransition(turns: controller, child: child);
   }
 
   /// Smooth color transition
@@ -243,9 +228,10 @@ class AnimationService {
     required Color begin,
     required Color end,
   }) {
-    return ColorTween(begin: begin, end: end).animate(
-      CurvedAnimation(parent: controller, curve: standard),
-    );
+    return ColorTween(
+      begin: begin,
+      end: end,
+    ).animate(CurvedAnimation(parent: controller, curve: standard));
   }
 
   /// Page transition builder
@@ -261,10 +247,9 @@ class AnimationService {
         position: Tween<Offset>(
           begin: const Offset(0.1, 0),
           end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: emphasizedDecelerate,
-        )),
+        ).animate(
+          CurvedAnimation(parent: animation, curve: emphasizedDecelerate),
+        ),
         child: child,
       ),
     );
@@ -272,11 +257,13 @@ class AnimationService {
 }
 
 /// Mixin for widgets that need animation controllers
-mixin AnimationMixin<T extends StatefulWidget> on State<T>, TickerProviderStateMixin<T> {
+mixin AnimationMixin<T extends StatefulWidget>
+    on State<T>, TickerProviderStateMixin<T> {
   // Reserved for future centralized animation management
   // ignore: unused_field
   final AnimationService _animationService = AnimationService();
-  final Map<String, AnimationController> _controllers = <String, AnimationController>{};
+  final Map<String, AnimationController> _controllers =
+      <String, AnimationController>{};
 
   /// Create and register an animation controller
   AnimationController createController({

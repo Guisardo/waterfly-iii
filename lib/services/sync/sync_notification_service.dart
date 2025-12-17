@@ -14,17 +14,20 @@ import 'package:waterflyiii/models/sync_progress.dart';
 /// - Configurable notification settings
 class SyncNotificationService {
   static final Logger _logger = Logger('SyncNotificationService');
-  static final SyncNotificationService _instance = SyncNotificationService._internal();
+  static final SyncNotificationService _instance =
+      SyncNotificationService._internal();
 
   factory SyncNotificationService() => _instance;
 
   SyncNotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
-  
+  final FlutterLocalNotificationsPlugin _notifications =
+      FlutterLocalNotificationsPlugin();
+
   static const String _channelId = 'sync_channel';
   static const String _channelName = 'Sync Notifications';
-  static const String _channelDescription = 'Notifications for data synchronization';
+  static const String _channelDescription =
+      'Notifications for data synchronization';
   static const int _syncNotificationId = 1000;
 
   bool _isInitialized = false;
@@ -37,12 +40,14 @@ class SyncNotificationService {
     }
 
     try {
-      const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-      const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
-      );
+      const AndroidInitializationSettings androidSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const DarwinInitializationSettings iosSettings =
+          DarwinInitializationSettings(
+            requestAlertPermission: true,
+            requestBadgePermission: true,
+            requestSoundPermission: true,
+          );
 
       const InitializationSettings settings = InitializationSettings(
         android: androidSettings,
@@ -55,16 +60,19 @@ class SyncNotificationService {
       );
 
       // Create notification channel for Android
-      const AndroidNotificationChannel androidChannel = AndroidNotificationChannel(
-        _channelId,
-        _channelName,
-        description: _channelDescription,
-        importance: Importance.low,
-        showBadge: false,
-      );
+      const AndroidNotificationChannel androidChannel =
+          AndroidNotificationChannel(
+            _channelId,
+            _channelName,
+            description: _channelDescription,
+            importance: Importance.low,
+            showBadge: false,
+          );
 
       await _notifications
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.createNotificationChannel(androidChannel);
 
       _isInitialized = true;
@@ -96,7 +104,11 @@ class SyncNotificationService {
 
       _logger.fine('Showed sync started notification');
     } catch (e, stackTrace) {
-      _logger.warning('Failed to show sync started notification', e, stackTrace);
+      _logger.warning(
+        'Failed to show sync started notification',
+        e,
+        stackTrace,
+      );
     }
   }
 
@@ -108,7 +120,7 @@ class SyncNotificationService {
 
     try {
       final int percentage = progress.percentage.toInt();
-      
+
       await _notifications.show(
         _syncNotificationId,
         'Syncing data',
@@ -122,7 +134,11 @@ class SyncNotificationService {
 
       _logger.fine('Updated sync progress notification: $percentage%');
     } catch (e, stackTrace) {
-      _logger.warning('Failed to update sync progress notification', e, stackTrace);
+      _logger.warning(
+        'Failed to update sync progress notification',
+        e,
+        stackTrace,
+      );
     }
   }
 
@@ -140,7 +156,8 @@ class SyncNotificationService {
       if (failedCount > 0) {
         message = 'Synced $completedCount operations, $failedCount failed';
       } else {
-        message = 'Successfully synced $completedCount operation${completedCount == 1 ? '' : 's'}';
+        message =
+            'Successfully synced $completedCount operation${completedCount == 1 ? '' : 's'}';
       }
 
       await _notifications.show(
@@ -152,7 +169,11 @@ class SyncNotificationService {
 
       _logger.info('Showed sync completed notification');
     } catch (e, stackTrace) {
-      _logger.warning('Failed to show sync completed notification', e, stackTrace);
+      _logger.warning(
+        'Failed to show sync completed notification',
+        e,
+        stackTrace,
+      );
     }
   }
 
@@ -170,10 +191,7 @@ class SyncNotificationService {
         _syncNotificationId,
         'Sync failed',
         '$failedCount operation${failedCount == 1 ? '' : 's'} failed: $errorMessage',
-        _getNotificationDetails(
-          showProgress: false,
-          priority: Priority.high,
-        ),
+        _getNotificationDetails(showProgress: false, priority: Priority.high),
       );
 
       _logger.warning('Showed sync failed notification');
@@ -193,10 +211,7 @@ class SyncNotificationService {
         _syncNotificationId + 1,
         'Conflicts detected',
         '$conflictCount conflict${conflictCount == 1 ? '' : 's'} require${conflictCount == 1 ? 's' : ''} your attention',
-        _getNotificationDetails(
-          showProgress: false,
-          priority: Priority.high,
-        ),
+        _getNotificationDetails(showProgress: false, priority: Priority.high),
       );
 
       _logger.info('Showed conflicts detected notification');

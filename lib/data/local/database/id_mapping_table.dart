@@ -26,6 +26,6 @@ class IdMapping extends Table {
 
   @override
   List<Set<Column>> get uniqueKeys => <Set<Column<Object>>>[
-        <Column<Object>>{serverId, entityType}
-      ];
+    <Column<Object>>{serverId, entityType},
+  ];
 }

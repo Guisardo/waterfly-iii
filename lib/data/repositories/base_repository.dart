@@ -65,11 +65,9 @@ abstract class BaseRepository<T, ID> {
   ///
   /// The cache service is optional to maintain backward compatibility with
   /// repositories that haven't been migrated to the cache-first pattern yet.
-  BaseRepository({
-    required AppDatabase database,
-    CacheService? cacheService,
-  })  : _database = database,
-        _cacheService = cacheService;
+  BaseRepository({required AppDatabase database, CacheService? cacheService})
+    : _database = database,
+      _cacheService = cacheService;
 
   /// Drift database instance for local storage operations
   final AppDatabase _database;

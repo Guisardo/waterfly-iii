@@ -23,7 +23,10 @@ class AccessibilityService {
   /// Announce a message to screen readers.
   ///
   /// Messages are queued to avoid overlapping announcements.
-  void announceMessage(String message, {AnnouncementPriority priority = AnnouncementPriority.normal}) {
+  void announceMessage(
+    String message, {
+    AnnouncementPriority priority = AnnouncementPriority.normal,
+  }) {
     _logger.fine('Accessibility announcement: $message (priority: $priority)');
 
     if (priority == AnnouncementPriority.high) {

@@ -20,7 +20,8 @@ import 'package:logging/logging.dart';
 /// ```
 class VisualAccessibilityService {
   static final Logger _logger = Logger('VisualAccessibilityService');
-  static final VisualAccessibilityService _instance = VisualAccessibilityService._internal();
+  static final VisualAccessibilityService _instance =
+      VisualAccessibilityService._internal();
 
   factory VisualAccessibilityService() => _instance;
 
@@ -34,16 +35,16 @@ class VisualAccessibilityService {
   }) {
     final double contrast = calculateContrastRatio(foreground, background);
     final double requiredRatio = largeText ? 3.0 : 4.5;
-    
+
     final bool meetsRequirement = contrast >= requiredRatio;
-    
+
     if (!meetsRequirement) {
       _logger.warning(
         'Insufficient contrast: $contrast:1 (required: $requiredRatio:1) '
         'for ${foreground.value.toRadixString(16)} on ${background.value.toRadixString(16)}',
       );
     }
-    
+
     return meetsRequirement;
   }
 
@@ -55,7 +56,7 @@ class VisualAccessibilityService {
   }) {
     final double contrast = calculateContrastRatio(foreground, background);
     final double requiredRatio = largeText ? 4.5 : 7.0;
-    
+
     return contrast >= requiredRatio;
   }
 
@@ -63,17 +64,18 @@ class VisualAccessibilityService {
   double calculateContrastRatio(Color foreground, Color background) {
     final double fgLuminance = foreground.computeLuminance();
     final double bgLuminance = background.computeLuminance();
-    
-    final double lighter = fgLuminance > bgLuminance ? fgLuminance : bgLuminance;
+
+    final double lighter =
+        fgLuminance > bgLuminance ? fgLuminance : bgLuminance;
     final double darker = fgLuminance > bgLuminance ? bgLuminance : fgLuminance;
-    
+
     return (lighter + 0.05) / (darker + 0.05);
   }
 
   /// Get accessible color for text on given background
   Color getAccessibleTextColor(Color background) {
     final double luminance = background.computeLuminance();
-    
+
     // Use white text on dark backgrounds, black on light backgrounds
     return luminance > 0.5 ? Colors.black : Colors.white;
   }
@@ -89,24 +91,18 @@ class VisualAccessibilityService {
     MainAxisAlignment alignment = MainAxisAlignment.center,
     double spacing = 4.0,
   }) {
-    final Color effectiveIconColor = iconColor ?? Theme.of(context).colorScheme.onSurface;
-    final TextStyle? effectiveTextStyle = textStyle ?? Theme.of(context).textTheme.labelSmall;
-    
+    final Color effectiveIconColor =
+        iconColor ?? Theme.of(context).colorScheme.onSurface;
+    final TextStyle? effectiveTextStyle =
+        textStyle ?? Theme.of(context).textTheme.labelSmall;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: alignment,
       children: <Widget>[
-        Icon(
-          icon,
-          color: effectiveIconColor,
-          size: iconSize,
-        ),
+        Icon(icon, color: effectiveIconColor, size: iconSize),
         SizedBox(height: spacing),
-        Text(
-          label,
-          style: effectiveTextStyle,
-          textAlign: TextAlign.center,
-        ),
+        Text(label, style: effectiveTextStyle, textAlign: TextAlign.center),
       ],
     );
   }
@@ -122,17 +118,11 @@ class VisualAccessibilityService {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(
-          icon,
-          color: color,
-          size: 16,
-        ),
+        Icon(icon, color: color, size: 16),
         const SizedBox(width: 4),
         Text(
           label ?? status,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: color,
-              ),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
         ),
       ],
     );
@@ -141,45 +131,51 @@ class VisualAccessibilityService {
   /// Validate theme colors for accessibility
   Map<String, bool> validateThemeColors(ColorScheme colorScheme) {
     final Map<String, bool> results = <String, bool>{};
-    
+
     // Check primary text on primary background
     results['primary_text'] = checkContrast(
       foreground: colorScheme.onPrimary,
       background: colorScheme.primary,
     );
-    
+
     // Check secondary text on secondary background
     results['secondary_text'] = checkContrast(
       foreground: colorScheme.onSecondary,
       background: colorScheme.secondary,
     );
-    
+
     // Check surface text on surface background
     results['surface_text'] = checkContrast(
       foreground: colorScheme.onSurface,
       background: colorScheme.surface,
     );
-    
+
     // Check error text on error background
     results['error_text'] = checkContrast(
       foreground: colorScheme.onError,
       background: colorScheme.error,
     );
-    
+
     // Check body text on background
     results['body_text'] = checkContrast(
       foreground: colorScheme.onSurface,
       background: colorScheme.surface,
     );
-    
-    final List<String> failedChecks = results.entries.where((MapEntry<String, bool> e) => !e.value).map((MapEntry<String, bool> e) => e.key).toList();
-    
+
+    final List<String> failedChecks =
+        results.entries
+            .where((MapEntry<String, bool> e) => !e.value)
+            .map((MapEntry<String, bool> e) => e.key)
+            .toList();
+
     if (failedChecks.isNotEmpty) {
-      _logger.warning('Theme color contrast issues: ${failedChecks.join(", ")}');
+      _logger.warning(
+        'Theme color contrast issues: ${failedChecks.join(", ")}',
+      );
     } else {
       _logger.info('All theme colors meet WCAG AA contrast requirements');
     }
-    
+
     return results;
   }
 
@@ -204,13 +200,15 @@ class VisualAccessibilityService {
     TextOverflow? overflow,
   }) {
     final double textScaleFactor = getTextScaleFactor(context);
-    final TextStyle? effectiveStyle = style ?? Theme.of(context).textTheme.bodyMedium;
+    final TextStyle? effectiveStyle =
+        style ?? Theme.of(context).textTheme.bodyMedium;
     final double baseFontSize = effectiveStyle?.fontSize ?? 14.0;
     final double scaledFontSize = baseFontSize * textScaleFactor;
-    
+
     // Ensure minimum font size
-    final double finalFontSize = scaledFontSize < minFontSize ? minFontSize : scaledFontSize;
-    
+    final double finalFontSize =
+        scaledFontSize < minFontSize ? minFontSize : scaledFontSize;
+
     return Text(
       text,
       style: effectiveStyle?.copyWith(fontSize: finalFontSize),
@@ -229,10 +227,7 @@ class VisualAccessibilityService {
     EdgeInsets? padding,
   }) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        minWidth: minWidth,
-        minHeight: minHeight,
-      ),
+      constraints: BoxConstraints(minWidth: minWidth, minHeight: minHeight),
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
@@ -278,20 +273,25 @@ class VisualAccessibilityService {
   /// Log accessibility warnings for development
   void logAccessibilityWarnings(BuildContext context, ColorScheme colorScheme) {
     if (!kDebugMode) return;
-    
+
     _logger.info('=== Accessibility Check ===');
     _logger.info('Text scale factor: ${getTextScaleFactor(context)}');
     _logger.info('High contrast mode: ${isHighContrastEnabled(context)}');
-    
-    final Map<String, bool> validationResults = validateThemeColors(colorScheme);
-    final int failedChecks = validationResults.entries.where((MapEntry<String, bool> e) => !e.value).length;
-    
+
+    final Map<String, bool> validationResults = validateThemeColors(
+      colorScheme,
+    );
+    final int failedChecks =
+        validationResults.entries
+            .where((MapEntry<String, bool> e) => !e.value)
+            .length;
+
     if (failedChecks > 0) {
       _logger.warning('$failedChecks color contrast checks failed');
     } else {
       _logger.info('All color contrast checks passed');
     }
-    
+
     _logger.info('=========================');
   }
 }
@@ -312,10 +312,7 @@ class AccessibleTouchTarget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        minWidth: minWidth,
-        minHeight: minHeight,
-      ),
+      constraints: BoxConstraints(minWidth: minWidth, minHeight: minHeight),
       child: child,
     );
   }

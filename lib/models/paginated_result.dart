@@ -125,7 +125,8 @@ class PaginatedResult<T> {
   bool get isSinglePage => totalPages <= 1;
 
   /// Number of pages remaining after this one.
-  int get remainingPages => totalPages > currentPage ? totalPages - currentPage : 0;
+  int get remainingPages =>
+      totalPages > currentPage ? totalPages - currentPage : 0;
 
   /// Creates a copy with different data but same pagination metadata.
   ///
@@ -187,7 +188,8 @@ class PaginatedResult<T> {
   }
 
   @override
-  String toString() => 'PaginatedResult('
+  String toString() =>
+      'PaginatedResult('
       'page $currentPage/$totalPages, '
       '${data.length} items, '
       '$total total'
@@ -205,13 +207,8 @@ class PaginatedResult<T> {
   }
 
   @override
-  int get hashCode => Object.hash(
-        data.hashCode,
-        total,
-        currentPage,
-        totalPages,
-        perPage,
-      );
+  int get hashCode =>
+      Object.hash(data.hashCode, total, currentPage, totalPages, perPage);
 
   /// Deep equality check for lists.
   static bool _listEquals<E>(List<E>? a, List<E>? b) {
@@ -223,4 +220,3 @@ class PaginatedResult<T> {
     return true;
   }
 }
-

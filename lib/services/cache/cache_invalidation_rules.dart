@@ -166,10 +166,7 @@ class CacheInvalidationRules {
         _log.fine('Invalidated category: ${transaction.categoryId}');
 
         // Invalidate category's transaction list
-        await cache.invalidate(
-          'category_transactions',
-          transaction.categoryId,
-        );
+        await cache.invalidate('category_transactions', transaction.categoryId);
       }
 
       // Invalidate bill if present
@@ -210,11 +207,7 @@ class CacheInvalidationRules {
 
       _log.info('Transaction cache invalidation complete');
     } catch (e, stackTrace) {
-      _log.severe(
-        'Error during transaction cache invalidation',
-        e,
-        stackTrace,
-      );
+      _log.severe('Error during transaction cache invalidation', e, stackTrace);
       // Don't rethrow - invalidation errors shouldn't break transaction mutation
     }
   }
@@ -251,9 +244,7 @@ class CacheInvalidationRules {
     dynamic account,
     MutationType mutationType,
   ) async {
-    _log.info(
-      'Invalidating caches after account $mutationType: ${account.id}',
-    );
+    _log.info('Invalidating caches after account $mutationType: ${account.id}');
 
     try {
       // Invalidate the account itself
@@ -526,11 +517,7 @@ class CacheInvalidationRules {
 
       _log.info('Piggy bank cache invalidation complete');
     } catch (e, stackTrace) {
-      _log.severe(
-        'Error during piggy bank cache invalidation',
-        e,
-        stackTrace,
-      );
+      _log.severe('Error during piggy bank cache invalidation', e, stackTrace);
     }
   }
 
@@ -686,7 +673,9 @@ class CacheInvalidationRules {
     CacheService cache,
     List<dynamic> operations,
   ) async {
-    _log.info('Invalidating caches after sync: ${operations.length} operations');
+    _log.info(
+      'Invalidating caches after sync: ${operations.length} operations',
+    );
 
     try {
       // Group operations by entity type
@@ -818,7 +807,9 @@ class CacheInvalidationRules {
   static String _getCurrencyCode(dynamic currency) {
     try {
       if (currency is Map) {
-        return currency['code']?.toString() ?? currency['id']?.toString() ?? 'unknown';
+        return currency['code']?.toString() ??
+            currency['id']?.toString() ??
+            'unknown';
       }
       return currency.code?.toString() ?? currency.id?.toString() ?? 'unknown';
     } catch (e) {

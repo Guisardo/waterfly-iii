@@ -132,7 +132,9 @@ class CircuitBreaker {
 
       // Execute operation with timeout
       try {
-        _logger.fine('Executing $name through circuit breaker (state: $_state)');
+        _logger.fine(
+          'Executing $name through circuit breaker (state: $_state)',
+        );
 
         final T result = await operation().timeout(
           operationTimeout,

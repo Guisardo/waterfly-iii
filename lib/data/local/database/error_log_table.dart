@@ -50,6 +50,6 @@ class ErrorLog extends Table {
 
   @override
   List<String> get customConstraints => <String>[
-        'CHECK (error_type IN (\'validation\', \'network\', \'conflict\', \'server\', \'database\'))',
-      ];
+    'CHECK (error_type IN (\'validation\', \'network\', \'conflict\', \'server\', \'database\'))',
+  ];
 }

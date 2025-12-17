@@ -3,7 +3,8 @@ import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/models/cache/cache_stats.dart';
 import 'package:waterflyiii/services/cache/cache_service.dart';
-import 'package:drift/drift.dart' hide isNull, isNotNull; // Hide to avoid conflict with matcher
+import 'package:drift/drift.dart'
+    hide isNull, isNotNull; // Hide to avoid conflict with matcher
 import 'package:drift/native.dart';
 
 /// Comprehensive Integration Tests for TransactionRepository with Cache
@@ -50,7 +51,9 @@ void main() {
 
       // Create dummy accounts to satisfy foreign key constraints
       final DateTime now = DateTime.now();
-      await database.into(database.accounts).insert(
+      await database
+          .into(database.accounts)
+          .insert(
             AccountEntityCompanion.insert(
               id: '1',
               name: 'Test Checking Account',
@@ -62,7 +65,9 @@ void main() {
               updatedAt: now,
             ),
           );
-      await database.into(database.accounts).insert(
+      await database
+          .into(database.accounts)
+          .insert(
             AccountEntityCompanion.insert(
               id: '2',
               name: 'Test Expense Account',
@@ -74,7 +79,9 @@ void main() {
               updatedAt: now,
             ),
           );
-      await database.into(database.accounts).insert(
+      await database
+          .into(database.accounts)
+          .insert(
             AccountEntityCompanion.insert(
               id: '3',
               name: 'Test Revenue Account',
@@ -101,7 +108,9 @@ void main() {
       String type = 'withdrawal',
     }) async {
       final DateTime now = DateTime.now();
-      await database.into(database.transactions).insert(
+      await database
+          .into(database.transactions)
+          .insert(
             TransactionEntityCompanion.insert(
               id: id,
               type: type,
@@ -118,44 +127,51 @@ void main() {
     }
 
     group('Cache-first retrieval with real database', () {
-      test('should store transaction in database and create cache metadata',
-          () async {
-        // Arrange: Insert transaction directly into Drift database
-        final String testTransactionId = 'txn_test_001';
+      test(
+        'should store transaction in database and create cache metadata',
+        () async {
+          // Arrange: Insert transaction directly into Drift database
+          final String testTransactionId = 'txn_test_001';
 
-        await insertTestTransaction(
-          id: testTransactionId,
-          amount: 100.00,
-          description: 'Test Transaction',
-          type: 'withdrawal',
-        );
+          await insertTestTransaction(
+            id: testTransactionId,
+            amount: 100.00,
+            description: 'Test Transaction',
+            type: 'withdrawal',
+          );
 
-        // Act: Fetch transaction through repository (uses cache-first)
-        final TransactionEntity? transaction = await repository.getById(testTransactionId);
+          // Act: Fetch transaction through repository (uses cache-first)
+          final TransactionEntity? transaction = await repository.getById(
+            testTransactionId,
+          );
 
-        // Assert: Transaction retrieved from database
-        expect(transaction, isNotNull);
-        expect(transaction!.id, equals(testTransactionId));
-        expect(transaction.description, equals('Test Transaction'));
-        expect(transaction.amount, equals(100.00));
+          // Assert: Transaction retrieved from database
+          expect(transaction, isNotNull);
+          expect(transaction!.id, equals(testTransactionId));
+          expect(transaction.description, equals('Test Transaction'));
+          expect(transaction.amount, equals(100.00));
 
-        // Assert: Cache metadata created
-        final CacheMetadataEntity? metadata = await (database.select(database.cacheMetadataTable)
-              ..where(($CacheMetadataTableTable tbl) =>
-                  tbl.entityType.equals('transaction') &
-                  tbl.entityId.equals(testTransactionId)))
-            .getSingleOrNull();
+          // Assert: Cache metadata created
+          final CacheMetadataEntity? metadata =
+              await (database.select(database.cacheMetadataTable)..where(
+                ($CacheMetadataTableTable tbl) =>
+                    tbl.entityType.equals('transaction') &
+                    tbl.entityId.equals(testTransactionId),
+              )).getSingleOrNull();
 
-        expect(metadata, isNotNull);
-        expect(metadata!.entityType, equals('transaction'));
-        expect(metadata.entityId, equals(testTransactionId));
-        expect(metadata.isInvalidated, isFalse);
+          expect(metadata, isNotNull);
+          expect(metadata!.entityType, equals('transaction'));
+          expect(metadata.entityId, equals(testTransactionId));
+          expect(metadata.isInvalidated, isFalse);
 
-        // Assert: Cache is fresh
-        final bool isFresh =
-            await cacheService.isFresh('transaction', testTransactionId);
-        expect(isFresh, isTrue);
-      });
+          // Assert: Cache is fresh
+          final bool isFresh = await cacheService.isFresh(
+            'transaction',
+            testTransactionId,
+          );
+          expect(isFresh, isTrue);
+        },
+      );
 
       test('should return cached data on second fetch (cache hit)', () async {
         // Arrange: Insert and fetch once to populate cache
@@ -169,14 +185,17 @@ void main() {
         );
 
         // First fetch: Populates cache
-        final TransactionEntity? firstFetch = await repository.getById(testTransactionId);
+        final TransactionEntity? firstFetch = await repository.getById(
+          testTransactionId,
+        );
         expect(firstFetch, isNotNull);
         print('First fetch successful: ${firstFetch!.id}');
 
         // Verify transaction still in database
-        final TransactionEntity? dbCheck = await (database.select(database.transactions)
-              ..where(($TransactionsTable tbl) => tbl.id.equals(testTransactionId)))
-            .getSingleOrNull();
+        final TransactionEntity? dbCheck =
+            await (database.select(database.transactions)..where(
+              ($TransactionsTable tbl) => tbl.id.equals(testTransactionId),
+            )).getSingleOrNull();
         print('Transaction in DB after first fetch: ${dbCheck != null}');
 
         // Get initial cache stats
@@ -186,7 +205,9 @@ void main() {
 
         // Act: Second fetch (should be cache hit)
         print('Attempting second fetch...');
-        final TransactionEntity? secondFetch = await repository.getById(testTransactionId);
+        final TransactionEntity? secondFetch = await repository.getById(
+          testTransactionId,
+        );
         print('Second fetch result: ${secondFetch?.id ?? "null"}');
 
         // Assert: Data returned correctly
@@ -199,8 +220,10 @@ void main() {
         expect(statsAfter.cacheHits, equals(hitsBefore + 1));
 
         // Assert: Cache still fresh
-        final bool isFresh =
-            await cacheService.isFresh('transaction', testTransactionId);
+        final bool isFresh = await cacheService.isFresh(
+          'transaction',
+          testTransactionId,
+        );
         expect(isFresh, isTrue);
       });
 
@@ -216,11 +239,12 @@ void main() {
         );
 
         // Verify cache metadata doesn't exist yet
-        final CacheMetadataEntity? metadataBefore = await (database.select(database.cacheMetadataTable)
-              ..where(($CacheMetadataTableTable tbl) =>
+        final CacheMetadataEntity? metadataBefore =
+            await (database.select(database.cacheMetadataTable)..where(
+              ($CacheMetadataTableTable tbl) =>
                   tbl.entityType.equals('transaction') &
-                  tbl.entityId.equals(testTransactionId)))
-            .getSingleOrNull();
+                  tbl.entityId.equals(testTransactionId),
+            )).getSingleOrNull();
         expect(metadataBefore, isNull);
 
         // Get cache stats before
@@ -228,7 +252,9 @@ void main() {
         final int missesBefore = statsBefore.cacheMisses;
 
         // Act: Fetch transaction (cache miss)
-        final TransactionEntity? transaction = await repository.getById(testTransactionId);
+        final TransactionEntity? transaction = await repository.getById(
+          testTransactionId,
+        );
 
         // Assert: Transaction fetched correctly
         expect(transaction, isNotNull);
@@ -241,17 +267,20 @@ void main() {
         expect(statsAfter.cacheMisses, equals(missesBefore + 1));
 
         // Assert: Cache metadata now exists
-        final CacheMetadataEntity? metadataAfter = await (database.select(database.cacheMetadataTable)
-              ..where(($CacheMetadataTableTable tbl) =>
+        final CacheMetadataEntity? metadataAfter =
+            await (database.select(database.cacheMetadataTable)..where(
+              ($CacheMetadataTableTable tbl) =>
                   tbl.entityType.equals('transaction') &
-                  tbl.entityId.equals(testTransactionId)))
-            .getSingleOrNull();
+                  tbl.entityId.equals(testTransactionId),
+            )).getSingleOrNull();
         expect(metadataAfter, isNotNull);
         expect(metadataAfter!.isInvalidated, isFalse);
 
         // Assert: Cache is fresh
-        final bool isFresh =
-            await cacheService.isFresh('transaction', testTransactionId);
+        final bool isFresh = await cacheService.isFresh(
+          'transaction',
+          testTransactionId,
+        );
         expect(isFresh, isTrue);
       });
 
@@ -268,12 +297,16 @@ void main() {
         );
 
         // First fetch with short TTL
-        await database.into(database.cacheMetadataTable).insertOnConflictUpdate(
+        await database
+            .into(database.cacheMetadataTable)
+            .insertOnConflictUpdate(
               CacheMetadataEntityCompanion(
                 entityType: const Value('transaction'),
                 entityId: Value(testTransactionId),
                 cachedAt: Value(now.subtract(const Duration(seconds: 10))),
-                lastAccessedAt: Value(now.subtract(const Duration(seconds: 10))),
+                lastAccessedAt: Value(
+                  now.subtract(const Duration(seconds: 10)),
+                ),
                 ttlSeconds: const Value(1), // 1 second TTL - already expired
                 isInvalidated: const Value(false),
                 etag: const Value(null),
@@ -282,8 +315,10 @@ void main() {
             );
 
         // Verify cache is stale
-        final bool isFreshBefore =
-            await cacheService.isFresh('transaction', testTransactionId);
+        final bool isFreshBefore = await cacheService.isFresh(
+          'transaction',
+          testTransactionId,
+        );
         expect(isFreshBefore, isFalse);
 
         // Get stats before
@@ -318,12 +353,16 @@ void main() {
         );
 
         // First fetch to populate cache
-        final TransactionEntity? firstFetch = await repository.getById(testTransactionId);
+        final TransactionEntity? firstFetch = await repository.getById(
+          testTransactionId,
+        );
         expect(firstFetch, isNotNull);
 
         // Verify cache is fresh
-        final bool isFreshBefore =
-            await cacheService.isFresh('transaction', testTransactionId);
+        final bool isFreshBefore = await cacheService.isFresh(
+          'transaction',
+          testTransactionId,
+        );
         expect(isFreshBefore, isTrue);
 
         // Get stats before force refresh
@@ -345,8 +384,10 @@ void main() {
         expect(statsAfter.cacheHits, equals(hitsBefore)); // No new hit
 
         // Assert: Cache metadata refreshed
-        final bool isFreshAfter =
-            await cacheService.isFresh('transaction', testTransactionId);
+        final bool isFreshAfter = await cacheService.isFresh(
+          'transaction',
+          testTransactionId,
+        );
         expect(isFreshAfter, isTrue);
       });
     });
@@ -406,10 +447,11 @@ void main() {
     group('Repository integration without cache', () {
       test('should work correctly when CacheService is null', () async {
         // Arrange: Repository without cache service
-        final TransactionRepository repositoryWithoutCache = TransactionRepository(
-          database: database,
-          cacheService: null, // No cache
-        );
+        final TransactionRepository repositoryWithoutCache =
+            TransactionRepository(
+              database: database,
+              cacheService: null, // No cache
+            );
 
         final String testTransactionId = 'txn_no_cache_001';
 
@@ -421,8 +463,8 @@ void main() {
         );
 
         // Act: Fetch without cache
-        final TransactionEntity? transaction =
-            await repositoryWithoutCache.getById(testTransactionId);
+        final TransactionEntity? transaction = await repositoryWithoutCache
+            .getById(testTransactionId);
 
         // Assert: Data fetched correctly
         expect(transaction, isNotNull);
@@ -430,11 +472,12 @@ void main() {
         expect(transaction.description, equals('No Cache Test'));
 
         // Assert: No cache metadata created
-        final CacheMetadataEntity? metadata = await (database.select(database.cacheMetadataTable)
-              ..where(($CacheMetadataTableTable tbl) =>
+        final CacheMetadataEntity? metadata =
+            await (database.select(database.cacheMetadataTable)..where(
+              ($CacheMetadataTableTable tbl) =>
                   tbl.entityType.equals('transaction') &
-                  tbl.entityId.equals(testTransactionId)))
-            .getSingleOrNull();
+                  tbl.entityId.equals(testTransactionId),
+            )).getSingleOrNull();
         expect(metadata, isNull);
       });
     });

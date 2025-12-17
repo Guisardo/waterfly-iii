@@ -20,13 +20,11 @@ import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 class ConflictResolutionDialog extends StatefulWidget {
   final Conflict conflict;
 
-  const ConflictResolutionDialog({
-    super.key,
-    required this.conflict,
-  });
+  const ConflictResolutionDialog({super.key, required this.conflict});
 
   @override
-  State<ConflictResolutionDialog> createState() => _ConflictResolutionDialogState();
+  State<ConflictResolutionDialog> createState() =>
+      _ConflictResolutionDialogState();
 }
 
 class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
@@ -40,8 +38,14 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_resolver == null) {
-      final AppDatabase database = Provider.of<AppDatabase>(context, listen: false);
-      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(context, listen: false);
+      final AppDatabase database = Provider.of<AppDatabase>(
+        context,
+        listen: false,
+      );
+      final FireflyApiAdapter apiAdapter = Provider.of<FireflyApiAdapter>(
+        context,
+        listen: false,
+      );
       _resolver = ConflictResolver(
         apiAdapter: apiAdapter,
         database: database,
@@ -79,15 +83,25 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
                       children: <Widget>[
                         Text(
                           'Resolve Conflict',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                          ),
                         ),
                         Text(
                           widget.conflict.entityType,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                          ),
                         ),
                       ],
                     ),
@@ -129,21 +143,26 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
                   TextButton(
-                    onPressed: _isResolving ? null : () => Navigator.pop(context, false),
+                    onPressed:
+                        _isResolving
+                            ? null
+                            : () => Navigator.pop(context, false),
                     child: const Text('Cancel'),
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
-                    onPressed: _selectedStrategy == null || _isResolving
-                        ? null
-                        : _resolveConflict,
-                    child: _isResolving
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Apply'),
+                    onPressed:
+                        _selectedStrategy == null || _isResolving
+                            ? null
+                            : _resolveConflict,
+                    child:
+                        _isResolving
+                            ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : const Text('Apply'),
                   ),
                 ],
               ),
@@ -186,7 +205,11 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
     );
   }
 
-  Widget _buildVersionCard(String title, Map<String, dynamic> data, Color color) {
+  Widget _buildVersionCard(
+    String title,
+    Map<String, dynamic> data,
+    Color color,
+  ) {
     return Card(
       color: color,
       child: Padding(
@@ -194,10 +217,7 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
+            Text(title, style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             ...widget.conflict.conflictingFields.map((String field) {
               final value = data[field];
@@ -209,8 +229,8 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
                     Text(
                       field,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       value?.toString() ?? 'null',
@@ -285,23 +305,28 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.outlineVariant,
+            color:
+                isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.outlineVariant,
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: isSelected
-              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
-              : null,
+          color:
+              isSelected
+                  ? Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withOpacity(0.3)
+                  : null,
         ),
         child: Row(
           children: <Widget>[
             Icon(
               icon,
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              color:
+                  isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -311,10 +336,11 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: isSelected
+                      color:
+                          isSelected
                               ? Theme.of(context).colorScheme.primary
                               : null,
-                        ),
+                    ),
                   ),
                   Text(
                     description,
@@ -346,15 +372,12 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
         'Resolving conflict ${widget.conflict.id} with strategy $_selectedStrategy',
       );
 
-      await _resolver!.resolveConflict(
-        widget.conflict,
-        _selectedStrategy!,
-      );
+      await _resolver!.resolveConflict(widget.conflict, _selectedStrategy!);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Conflict resolved')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Conflict resolved')));
         Navigator.pop(context, true);
       }
     } catch (e, stackTrace) {
@@ -365,9 +388,9 @@ class _ConflictResolutionDialogState extends State<ConflictResolutionDialog> {
           _isResolving = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to resolve: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to resolve: $e')));
       }
     }
   }

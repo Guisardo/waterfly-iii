@@ -18,7 +18,7 @@ import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 enum SyncMode {
   /// Full synchronization - fetch all data from server
   full,
-  
+
   /// Incremental synchronization - fetch only changes since last sync
   incremental,
 }
@@ -54,7 +54,7 @@ enum SyncMode {
 /// ```
 class SyncService {
   final Logger _logger = Logger('SyncService');
-  
+
   final FireflyApiAdapter _apiAdapter;
   final DatabaseAdapter _dbAdapter;
   final AppDatabase _database;
@@ -62,16 +62,16 @@ class SyncService {
   final MetadataService _metadata;
   final ConflictDetector _conflictDetector;
   final ConflictResolver _conflictResolver;
-  
+
   /// Batch size for processing entities
   final int batchSize;
-  
+
   /// Page size for API pagination
   final int pageSize;
-  
+
   /// Timeout for sync operations
   final Duration timeout;
-  
+
   /// Whether to clear local data before full sync
   final bool clearLocalDataOnFullSync;
 
@@ -87,17 +87,19 @@ class SyncService {
     this.pageSize = 50,
     this.timeout = const Duration(minutes: 30),
     this.clearLocalDataOnFullSync = false,
-  })  : _apiAdapter = apiAdapter,
-        _dbAdapter = dbAdapter,
-        _database = database,
-        _progressTracker = progressTracker,
-        _metadata = metadata,
-        _conflictDetector = conflictDetector ?? ConflictDetector(),
-        _conflictResolver = conflictResolver ?? ConflictResolver(
-          apiAdapter: apiAdapter,
-          database: database,
-          queueManager: SyncQueueManager(database),
-        );
+  }) : _apiAdapter = apiAdapter,
+       _dbAdapter = dbAdapter,
+       _database = database,
+       _progressTracker = progressTracker,
+       _metadata = metadata,
+       _conflictDetector = conflictDetector ?? ConflictDetector(),
+       _conflictResolver =
+           conflictResolver ??
+           ConflictResolver(
+             apiAdapter: apiAdapter,
+             database: database,
+             queueManager: SyncQueueManager(database),
+           );
 
   /// Watch sync progress updates.
   Stream<SyncProgress> watchProgress() => _progressTracker.watchProgress();
@@ -115,20 +117,28 @@ class SyncService {
   }) async {
     final DateTime startTime = DateTime.now();
     _logger.info('Starting ${mode.name} sync');
-    
+
     try {
       final SyncResult result = await _performSyncWithTimeout(
         mode: mode,
         entityTypes: entityTypes,
         startTime: startTime,
       );
-      
-      _logger.info('${mode.name} sync completed: ${result.successfulOperations}/${result.totalOperations} successful');
+
+      _logger.info(
+        '${mode.name} sync completed: ${result.successfulOperations}/${result.totalOperations} successful',
+      );
       return result;
     } on TimeoutException catch (e, stackTrace) {
-      _logger.severe('Sync timeout after ${timeout.inMinutes} minutes', e, stackTrace);
+      _logger.severe(
+        'Sync timeout after ${timeout.inMinutes} minutes',
+        e,
+        stackTrace,
+      );
       _progressTracker.cancel();
-      throw sync_ex.NetworkError('Sync timeout after ${timeout.inMinutes} minutes');
+      throw sync_ex.NetworkError(
+        'Sync timeout after ${timeout.inMinutes} minutes',
+      );
     } catch (e, stackTrace) {
       _logger.severe('Sync failed', e, stackTrace);
       _progressTracker.cancel();
@@ -143,7 +153,10 @@ class SyncService {
   }) async {
     return Future.any(<Future<SyncResult>>[
       _performSync(mode: mode, entityTypes: entityTypes, startTime: startTime),
-      Future.delayed(timeout, () => throw TimeoutException('Sync timeout', timeout)),
+      Future.delayed(
+        timeout,
+        () => throw TimeoutException('Sync timeout', timeout),
+      ),
     ]);
   }
 
@@ -156,7 +169,10 @@ class SyncService {
       case SyncMode.full:
         return _performFullSync(entityTypes: entityTypes, startTime: startTime);
       case SyncMode.incremental:
-        return _performIncrementalSync(entityTypes: entityTypes, startTime: startTime);
+        return _performIncrementalSync(
+          entityTypes: entityTypes,
+          startTime: startTime,
+        );
     }
   }
 
@@ -173,9 +189,19 @@ class SyncService {
     required DateTime startTime,
   }) async {
     _logger.info('Performing full sync');
-    
-    final List<String> types = entityTypes ?? <String>['transactions', 'accounts', 'categories', 'budgets', 'bills', 'piggy_banks'];
-    final Map<String, EntitySyncStats> statsByEntity = <String, EntitySyncStats>{};
+
+    final List<String> types =
+        entityTypes ??
+        <String>[
+          'transactions',
+          'accounts',
+          'categories',
+          'budgets',
+          'bills',
+          'piggy_banks',
+        ];
+    final Map<String, EntitySyncStats> statsByEntity =
+        <String, EntitySyncStats>{};
     int totalOperations = 0;
     int successfulOperations = 0;
     int failedOperations = 0;
@@ -203,39 +229,43 @@ class SyncService {
       for (final String entityType in types) {
         _logger.info('Syncing $entityType');
         _progressTracker.updateCurrentOperation('Syncing $entityType');
-        
+
         try {
           final EntitySyncStats stats = await _syncEntityType(
             entityType: entityType,
             isIncremental: false,
           );
-          
+
           statsByEntity[entityType] = stats;
           totalOperations += stats.total;
           successfulOperations += stats.successful;
           failedOperations += stats.failed;
-          
+
           _progressTracker.addCompleted(stats.successful);
           for (int i = 0; i < stats.failed; i++) {
-            _progressTracker.incrementFailed(error: 'Failed to sync $entityType entity');
+            _progressTracker.incrementFailed(
+              error: 'Failed to sync $entityType entity',
+            );
           }
         } catch (e, stackTrace) {
           _logger.severe('Failed to sync $entityType', e, stackTrace);
           errors.add('$entityType: ${e.toString()}');
           failedOperations++;
-          _progressTracker.incrementFailed(error: '$entityType: ${e.toString()}');
+          _progressTracker.incrementFailed(
+            error: '$entityType: ${e.toString()}',
+          );
         }
       }
 
       // Update metadata
       await _metadata.set('last_full_sync', DateTime.now().toIso8601String());
-      
+
       // Complete progress tracking
       _progressTracker.complete(
         success: failedOperations == 0,
         entityStats: statsByEntity,
       );
-      
+
       return SyncResult(
         success: failedOperations == 0,
         totalOperations: totalOperations,
@@ -270,9 +300,19 @@ class SyncService {
     required DateTime startTime,
   }) async {
     _logger.info('Performing incremental sync');
-    
-    final List<String> types = entityTypes ?? <String>['transactions', 'accounts', 'categories', 'budgets', 'bills', 'piggy_banks'];
-    final Map<String, EntitySyncStats> statsByEntity = <String, EntitySyncStats>{};
+
+    final List<String> types =
+        entityTypes ??
+        <String>[
+          'transactions',
+          'accounts',
+          'categories',
+          'budgets',
+          'bills',
+          'piggy_banks',
+        ];
+    final Map<String, EntitySyncStats> statsByEntity =
+        <String, EntitySyncStats>{};
     int totalOperations = 0;
     int successfulOperations = 0;
     int failedOperations = 0;
@@ -289,12 +329,16 @@ class SyncService {
 
       // Get last sync timestamp
       final String? lastSyncStr = await _metadata.get('last_incremental_sync');
-      final DateTime? lastSync = lastSyncStr != null ? DateTime.tryParse(lastSyncStr) : null;
-      
+      final DateTime? lastSync =
+          lastSyncStr != null ? DateTime.tryParse(lastSyncStr) : null;
+
       if (lastSync == null) {
         _logger.warning('No last sync timestamp, performing full sync instead');
         _progressTracker.cancel();
-        return await _performFullSync(entityTypes: entityTypes, startTime: startTime);
+        return await _performFullSync(
+          entityTypes: entityTypes,
+          startTime: startTime,
+        );
       }
 
       // Update phase to pulling (fetching from server)
@@ -304,41 +348,48 @@ class SyncService {
       for (final String entityType in types) {
         _logger.info('Syncing $entityType (incremental)');
         _progressTracker.updateCurrentOperation('Syncing $entityType');
-        
+
         try {
           final EntitySyncStats stats = await _syncEntityType(
             entityType: entityType,
             isIncremental: true,
             since: lastSync,
           );
-          
+
           statsByEntity[entityType] = stats;
           totalOperations += stats.total;
           successfulOperations += stats.successful;
           failedOperations += stats.failed;
           conflictsDetected += stats.conflicts;
-          
+
           _progressTracker.addCompleted(stats.successful);
           for (int i = 0; i < stats.conflicts; i++) {
-            _progressTracker.incrementConflicts(conflictId: '$entityType-conflict-$i');
+            _progressTracker.incrementConflicts(
+              conflictId: '$entityType-conflict-$i',
+            );
           }
         } catch (e, stackTrace) {
           _logger.severe('Failed to sync $entityType', e, stackTrace);
           errors.add('$entityType: ${e.toString()}');
           failedOperations++;
-          _progressTracker.incrementFailed(error: '$entityType: ${e.toString()}');
+          _progressTracker.incrementFailed(
+            error: '$entityType: ${e.toString()}',
+          );
         }
       }
 
       // Update metadata
-      await _metadata.set('last_incremental_sync', DateTime.now().toIso8601String());
-      
+      await _metadata.set(
+        'last_incremental_sync',
+        DateTime.now().toIso8601String(),
+      );
+
       // Complete progress tracking
       _progressTracker.complete(
         success: failedOperations == 0,
         entityStats: statsByEntity,
       );
-      
+
       return SyncResult(
         success: failedOperations == 0,
         totalOperations: totalOperations,
@@ -376,7 +427,7 @@ class SyncService {
         entityType: entityType,
         since: since,
       );
-      
+
       total = entities.length;
       _logger.info('Fetched $total $entityType from server');
 
@@ -385,22 +436,33 @@ class SyncService {
 
       // Process in batches
       for (int i = 0; i < entities.length; i += batchSize) {
-        final int end = (i + batchSize < entities.length) ? i + batchSize : entities.length;
+        final int end =
+            (i + batchSize < entities.length) ? i + batchSize : entities.length;
         final List<Map<String, dynamic>> batch = entities.sublist(i, end);
-        
+
         for (final Map<String, dynamic> entity in batch) {
           try {
             // Check for conflicts if incremental
             if (isIncremental) {
-              final bool hasConflict = await _checkForConflict(entityType, entity);
+              final bool hasConflict = await _checkForConflict(
+                entityType,
+                entity,
+              );
               if (hasConflict) {
                 conflicts++;
-                _logger.warning('Conflict detected for $entityType ${entity['id']}');
-                
+                _logger.warning(
+                  'Conflict detected for $entityType ${entity['id']}',
+                );
+
                 // Attempt to resolve conflict
-                final bool resolved = await _resolveConflict(entityType, entity);
+                final bool resolved = await _resolveConflict(
+                  entityType,
+                  entity,
+                );
                 if (!resolved) {
-                  _logger.warning('Conflict not resolved for $entityType ${entity['id']}');
+                  _logger.warning(
+                    'Conflict not resolved for $entityType ${entity['id']}',
+                  );
                   continue;
                 }
               }
@@ -410,7 +472,11 @@ class SyncService {
             await _upsertEntity(entityType, entity);
             successful++;
           } catch (e, stackTrace) {
-            _logger.severe('Failed to sync entity ${entity['id']}', e, stackTrace);
+            _logger.severe(
+              'Failed to sync entity ${entity['id']}',
+              e,
+              stackTrace,
+            );
             failed++;
           }
         }
@@ -437,7 +503,7 @@ class SyncService {
     DateTime? since,
   }) async {
     _logger.fine('Fetching $entityType from API (since: $since)');
-    
+
     try {
       // Use incremental methods if since is provided, otherwise full fetch
       if (since != null) {
@@ -452,7 +518,9 @@ class SyncService {
   }
 
   /// Fetch all entities of a type using FireflyApiAdapter.
-  Future<List<Map<String, dynamic>>> _fetchAllEntities(String entityType) async {
+  Future<List<Map<String, dynamic>>> _fetchAllEntities(
+    String entityType,
+  ) async {
     switch (entityType) {
       case 'transactions':
         return await _apiAdapter.getAllTransactions();
@@ -497,18 +565,25 @@ class SyncService {
   }
 
   /// Check if entity has conflicts with local version using ConflictDetector.
-  Future<bool> _checkForConflict(String entityType, Map<String, dynamic> remoteEntity) async {
+  Future<bool> _checkForConflict(
+    String entityType,
+    Map<String, dynamic> remoteEntity,
+  ) async {
     try {
       final String? entityId = remoteEntity['id'] as String?;
       if (entityId == null) return false;
 
       // Get local entity from database
-      final Map<String, dynamic>? localEntity = await _getLocalEntity(entityType, entityId);
+      final Map<String, dynamic>? localEntity = await _getLocalEntity(
+        entityType,
+        entityId,
+      );
       if (localEntity == null) return false;
 
       // Check if local entity has pending changes (not yet synced)
-      final bool isPending = localEntity['is_synced'] == false || 
-                            localEntity['sync_status'] == 'pending';
+      final bool isPending =
+          localEntity['is_synced'] == false ||
+          localEntity['sync_status'] == 'pending';
       if (!isPending) return false;
 
       // Create a sync operation to use with ConflictDetector
@@ -529,7 +604,9 @@ class SyncService {
       );
 
       if (conflict != null) {
-        _logger.info('Conflict detected: ${conflict.id} (${conflict.conflictType})');
+        _logger.info(
+          'Conflict detected: ${conflict.id} (${conflict.conflictType})',
+        );
         _progressTracker.incrementConflicts(conflictId: conflict.id);
         return true;
       }
@@ -542,13 +619,19 @@ class SyncService {
   }
 
   /// Resolve a detected conflict using ConflictResolver.
-  Future<bool> _resolveConflict(String entityType, Map<String, dynamic> remoteEntity) async {
+  Future<bool> _resolveConflict(
+    String entityType,
+    Map<String, dynamic> remoteEntity,
+  ) async {
     try {
       final String? entityId = remoteEntity['id'] as String?;
       if (entityId == null) return false;
 
       // Get local entity
-      final Map<String, dynamic>? localEntity = await _getLocalEntity(entityType, entityId);
+      final Map<String, dynamic>? localEntity = await _getLocalEntity(
+        entityType,
+        entityId,
+      );
       if (localEntity == null) {
         // No local entity means we can just use remote
         return true;
@@ -583,7 +666,9 @@ class SyncService {
         ResolutionStrategy.remoteWins,
       );
 
-      _logger.info('Conflict resolved: ${conflict.id} with strategy remoteWins, result: ${result.success}');
+      _logger.info(
+        'Conflict resolved: ${conflict.id} with strategy remoteWins, result: ${result.success}',
+      );
       return result.success;
     } catch (e, stackTrace) {
       _logger.severe('Failed to resolve conflict', e, stackTrace);
@@ -592,7 +677,10 @@ class SyncService {
   }
 
   /// Get local entity from database using DatabaseAdapter.
-  Future<Map<String, dynamic>?> _getLocalEntity(String entityType, String entityId) async {
+  Future<Map<String, dynamic>?> _getLocalEntity(
+    String entityType,
+    String entityId,
+  ) async {
     try {
       switch (entityType) {
         case 'transactions':
@@ -612,16 +700,23 @@ class SyncService {
           return null;
       }
     } catch (e, stackTrace) {
-      _logger.warning('Failed to get local entity $entityType/$entityId', e, stackTrace);
+      _logger.warning(
+        'Failed to get local entity $entityType/$entityId',
+        e,
+        stackTrace,
+      );
       return null;
     }
   }
 
   /// Upsert entity to database using DatabaseAdapter.
-  Future<void> _upsertEntity(String entityType, Map<String, dynamic> entity) async {
+  Future<void> _upsertEntity(
+    String entityType,
+    Map<String, dynamic> entity,
+  ) async {
     // Transform API data to database format
     final Map<String, dynamic> dbEntity = _transformApiToDb(entityType, entity);
-    
+
     switch (entityType) {
       case 'transactions':
         await _dbAdapter.upsertTransaction(dbEntity);
@@ -647,19 +742,23 @@ class SyncService {
   }
 
   /// Transform API response data to database format.
-  Map<String, dynamic> _transformApiToDb(String entityType, Map<String, dynamic> apiData) {
+  Map<String, dynamic> _transformApiToDb(
+    String entityType,
+    Map<String, dynamic> apiData,
+  ) {
     // Extract attributes if present (API returns { id, type, attributes })
-    final Map<String, dynamic> attributes = apiData['attributes'] is Map
-        ? Map<String, dynamic>.from(apiData['attributes'] as Map)
-        : <String, dynamic>{};
-    
+    final Map<String, dynamic> attributes =
+        apiData['attributes'] is Map
+            ? Map<String, dynamic>.from(apiData['attributes'] as Map)
+            : <String, dynamic>{};
+
     // Merge id into attributes and set server_id
     final Map<String, dynamic> result = <String, dynamic>{
       'id': apiData['id'],
       'server_id': apiData['id'],
       ...attributes,
     };
-    
+
     // Entity-specific transformations
     switch (entityType) {
       case 'transactions':
@@ -667,8 +766,9 @@ class SyncService {
         if (attributes['transactions'] is List) {
           final List transactions = attributes['transactions'] as List;
           if (transactions.isNotEmpty) {
-            final Map<String, dynamic> firstSplit = 
-                Map<String, dynamic>.from(transactions.first as Map);
+            final Map<String, dynamic> firstSplit = Map<String, dynamic>.from(
+              transactions.first as Map,
+            );
             result.addAll(<String, dynamic>{
               'type': firstSplit['type'] ?? 'withdrawal',
               'date': firstSplit['date'],
@@ -699,7 +799,7 @@ class SyncService {
         result['current_amount'] = attributes['current_amount'];
         break;
     }
-    
+
     return result;
   }
 
@@ -714,7 +814,7 @@ class SyncService {
         await _database.delete(_database.budgets).go();
         await _database.delete(_database.bills).go();
         await _database.delete(_database.piggyBanks).go();
-        
+
         // Don't clear sync metadata or sync queue
         _logger.info('Local data cleared');
       });

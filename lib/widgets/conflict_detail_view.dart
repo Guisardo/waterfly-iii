@@ -29,7 +29,8 @@ class ConflictDetailView extends StatefulWidget {
 class _ConflictDetailViewState extends State<ConflictDetailView> {
   static final Logger _logger = Logger('ConflictDetailView');
 
-  final Map<String, String> _mergeSelection = <String, String>{}; // field -> 'local' or 'remote'
+  final Map<String, String> _mergeSelection =
+      <String, String>{}; // field -> 'local' or 'remote'
   final Set<String> _expandedFields = <String>{};
 
   @override
@@ -65,10 +66,22 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
-            _buildMetadataRow('Type', widget.conflict.conflictType.toString().split('.').last),
-            _buildMetadataRow('Severity', widget.conflict.severity.toString().split('.').last),
-            _buildMetadataRow('Detected', _formatDateTime(widget.conflict.detectedAt)),
-            _buildMetadataRow('Conflicting Fields', widget.conflict.conflictingFields.length.toString()),
+            _buildMetadataRow(
+              'Type',
+              widget.conflict.conflictType.toString().split('.').last,
+            ),
+            _buildMetadataRow(
+              'Severity',
+              widget.conflict.severity.toString().split('.').last,
+            ),
+            _buildMetadataRow(
+              'Detected',
+              _formatDateTime(widget.conflict.detectedAt),
+            ),
+            _buildMetadataRow(
+              'Conflicting Fields',
+              widget.conflict.conflictingFields.length.toString(),
+            ),
           ],
         ),
       ),
@@ -84,14 +97,14 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           Text(
             value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -99,11 +112,12 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
   }
 
   Widget _buildFieldsSection() {
-    final List<String> allFields = <String>{
-      ...widget.conflict.localData.keys,
-      ...widget.conflict.remoteData.keys,
-    }.toList()
-      ..sort();
+    final List<String> allFields =
+        <String>{
+            ...widget.conflict.localData.keys,
+            ...widget.conflict.remoteData.keys,
+          }.toList()
+          ..sort();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +133,9 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
   }
 
   Widget _buildFieldCard(String field) {
-    final bool isConflicting = widget.conflict.conflictingFields.contains(field);
+    final bool isConflicting = widget.conflict.conflictingFields.contains(
+      field,
+    );
     final bool isExpanded = _expandedFields.contains(field);
     final localValue = widget.conflict.localData[field];
     final remoteValue = widget.conflict.remoteData[field];
@@ -127,30 +143,30 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      color: isConflicting
-          ? Theme.of(context).colorScheme.errorContainer.withOpacity(0.3)
-          : null,
+      color:
+          isConflicting
+              ? Theme.of(context).colorScheme.errorContainer.withOpacity(0.3)
+              : null,
       child: Column(
         children: <Widget>[
           ListTile(
             leading: Icon(
               isConflicting ? Icons.warning_amber : Icons.check_circle_outline,
-              color: isConflicting
-                  ? Theme.of(context).colorScheme.error
-                  : Theme.of(context).colorScheme.tertiary,
+              color:
+                  isConflicting
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.tertiary,
             ),
-            title: Text(
-              field,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            subtitle: isConflicting
-                ? Text(
-                    'Values differ',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  )
-                : const Text('Values match'),
+            title: Text(field, style: Theme.of(context).textTheme.titleSmall),
+            subtitle:
+                isConflicting
+                    ? Text(
+                      'Values differ',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    )
+                    : const Text('Values match'),
             trailing: IconButton(
               icon: Icon(isExpanded ? Icons.expand_less : Icons.expand_more),
               onPressed: () {
@@ -219,15 +235,19 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.outlineVariant,
+            color:
+                isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.outlineVariant,
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
-          color: isSelected
-              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3)
-              : null,
+          color:
+              isSelected
+                  ? Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withOpacity(0.3)
+                  : null,
         ),
         child: Row(
           children: <Widget>[
@@ -238,10 +258,11 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
                   Text(
                     source,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: isSelected
+                      color:
+                          isSelected
                               ? Theme.of(context).colorScheme.primary
                               : Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -295,6 +316,8 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
     }
 
     widget.onMergeSelectionChanged!(mergedData);
-    _logger.fine('Merge selection changed: ${_mergeSelection.length} fields selected');
+    _logger.fine(
+      'Merge selection changed: ${_mergeSelection.length} fields selected',
+    );
   }
 }

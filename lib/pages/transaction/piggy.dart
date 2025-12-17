@@ -31,70 +31,74 @@ Future<PiggyBankRead?> showPiggyBankDialog({
 
   return showDialog<PiggyBankRead>(
     context: context,
-    builder: (BuildContext dialogContext) => EntitySelectDialog<PiggyBankRead>(
-      config: EntitySelectConfig<PiggyBankRead>(
-        icon: Icons.savings_outlined,
-        title: S.of(context).transactionDialogPiggyTitle,
-        labelText: S.of(context).transactionDialogPiggyTitle,
-        clearButtonText: S.of(context).transactionDialogPiggyNoPiggy,
-        initialValue: currentPiggy,
-        initialDisplayText: currentPiggy?.attributes.name,
-        emptyResultFactory: () => const PiggyBankRead(
-          type: 'piggybank',
-          id: '0',
-          attributes: PiggyBankProperties(name: ''),
-          links: ObjectLink(),
+    builder:
+        (BuildContext dialogContext) => EntitySelectDialog<PiggyBankRead>(
+          config: EntitySelectConfig<PiggyBankRead>(
+            icon: Icons.savings_outlined,
+            title: S.of(context).transactionDialogPiggyTitle,
+            labelText: S.of(context).transactionDialogPiggyTitle,
+            clearButtonText: S.of(context).transactionDialogPiggyNoPiggy,
+            initialValue: currentPiggy,
+            initialDisplayText: currentPiggy?.attributes.name,
+            emptyResultFactory:
+                () => const PiggyBankRead(
+                  type: 'piggybank',
+                  id: '0',
+                  attributes: PiggyBankProperties(name: ''),
+                  links: ObjectLink(),
+                ),
+            resultFactory:
+                (AutocompleteOption option) => PiggyBankRead(
+                  type: 'piggybank',
+                  id: option.id,
+                  attributes: PiggyBankProperties(name: option.name),
+                  links: const ObjectLink(),
+                ),
+            optionsBuilder: (String query) async {
+              try {
+                // Try to use PiggyBankRepository for local data
+                final PiggyBankRepository? piggyRepository =
+                    context.read<PiggyBankRepository?>();
+
+                if (piggyRepository != null) {
+                  final List<PiggyBankEntity> entities =
+                      await piggyRepository.getAll();
+                  // Filter by query text
+                  final String lowerQuery = query.toLowerCase();
+                  return entities
+                      .where(
+                        (PiggyBankEntity e) =>
+                            e.name.toLowerCase().contains(lowerQuery),
+                      )
+                      .map(
+                        (PiggyBankEntity e) =>
+                            AutocompleteOption(id: e.id, name: e.name),
+                      )
+                      .toList();
+                }
+
+                // Fallback to direct API call
+                final FireflyIii api = context.read<FireflyService>().api;
+                final Response<List<AutocompletePiggy>> response = await api
+                    .v1AutocompletePiggyBanksGet(query: query);
+                apiThrowErrorIfEmpty(
+                  response,
+                  context.mounted ? context : null,
+                );
+
+                return response.body!
+                    .map(
+                      (AutocompletePiggy e) =>
+                          AutocompleteOption(id: e.id, name: e.name),
+                    )
+                    .toList();
+              } catch (e, stackTrace) {
+                log.severe('Error while fetching piggy banks', e, stackTrace);
+                return const <AutocompleteOption>[];
+              }
+            },
+          ),
         ),
-        resultFactory: (AutocompleteOption option) => PiggyBankRead(
-          type: 'piggybank',
-          id: option.id,
-          attributes: PiggyBankProperties(name: option.name),
-          links: const ObjectLink(),
-        ),
-        optionsBuilder: (String query) async {
-          try {
-            // Try to use PiggyBankRepository for local data
-            final PiggyBankRepository? piggyRepository =
-                context.read<PiggyBankRepository?>();
-
-            if (piggyRepository != null) {
-              final List<PiggyBankEntity> entities =
-                  await piggyRepository.getAll();
-              // Filter by query text
-              final String lowerQuery = query.toLowerCase();
-              return entities
-                  .where((PiggyBankEntity e) =>
-                      e.name.toLowerCase().contains(lowerQuery))
-                  .map((PiggyBankEntity e) => AutocompleteOption(
-                        id: e.id,
-                        name: e.name,
-                      ))
-                  .toList();
-            }
-
-            // Fallback to direct API call
-            final FireflyIii api = context.read<FireflyService>().api;
-            final Response<List<AutocompletePiggy>> response =
-                await api.v1AutocompletePiggyBanksGet(query: query);
-            apiThrowErrorIfEmpty(response, context.mounted ? context : null);
-
-            return response.body!
-                .map((AutocompletePiggy e) => AutocompleteOption(
-                      id: e.id,
-                      name: e.name,
-                    ))
-                .toList();
-          } catch (e, stackTrace) {
-            log.severe(
-              'Error while fetching piggy banks',
-              e,
-              stackTrace,
-            );
-            return const <AutocompleteOption>[];
-          }
-        },
-      ),
-    ),
   );
 }
 
@@ -123,18 +127,20 @@ class PiggyDialog extends StatelessWidget {
         clearButtonText: S.of(context).transactionDialogPiggyNoPiggy,
         initialValue: currentPiggy,
         initialDisplayText: currentPiggy?.attributes.name,
-        emptyResultFactory: () => const PiggyBankRead(
-          type: 'piggybank',
-          id: '0',
-          attributes: PiggyBankProperties(name: ''),
-          links: ObjectLink(),
-        ),
-        resultFactory: (AutocompleteOption option) => PiggyBankRead(
-          type: 'piggybank',
-          id: option.id,
-          attributes: PiggyBankProperties(name: option.name),
-          links: const ObjectLink(),
-        ),
+        emptyResultFactory:
+            () => const PiggyBankRead(
+              type: 'piggybank',
+              id: '0',
+              attributes: PiggyBankProperties(name: ''),
+              links: ObjectLink(),
+            ),
+        resultFactory:
+            (AutocompleteOption option) => PiggyBankRead(
+              type: 'piggybank',
+              id: option.id,
+              attributes: PiggyBankProperties(name: option.name),
+              links: const ObjectLink(),
+            ),
         optionsBuilder: (String query) async {
           try {
             // Try to use PiggyBankRepository for local data
@@ -147,33 +153,31 @@ class PiggyDialog extends StatelessWidget {
               // Filter by query text
               final String lowerQuery = query.toLowerCase();
               return entities
-                  .where((PiggyBankEntity e) =>
-                      e.name.toLowerCase().contains(lowerQuery))
-                  .map((PiggyBankEntity e) => AutocompleteOption(
-                        id: e.id,
-                        name: e.name,
-                      ))
+                  .where(
+                    (PiggyBankEntity e) =>
+                        e.name.toLowerCase().contains(lowerQuery),
+                  )
+                  .map(
+                    (PiggyBankEntity e) =>
+                        AutocompleteOption(id: e.id, name: e.name),
+                  )
                   .toList();
             }
 
             // Fallback to direct API call
             final FireflyIii api = context.read<FireflyService>().api;
-            final Response<List<AutocompletePiggy>> response =
-                await api.v1AutocompletePiggyBanksGet(query: query);
+            final Response<List<AutocompletePiggy>> response = await api
+                .v1AutocompletePiggyBanksGet(query: query);
             apiThrowErrorIfEmpty(response, context.mounted ? context : null);
 
             return response.body!
-                .map((AutocompletePiggy e) => AutocompleteOption(
-                      id: e.id,
-                      name: e.name,
-                    ))
+                .map(
+                  (AutocompletePiggy e) =>
+                      AutocompleteOption(id: e.id, name: e.name),
+                )
                 .toList();
           } catch (e, stackTrace) {
-            log.severe(
-              'Error while fetching piggy banks',
-              e,
-              stackTrace,
-            );
+            log.severe('Error while fetching piggy banks', e, stackTrace);
             return const <AutocompleteOption>[];
           }
         },

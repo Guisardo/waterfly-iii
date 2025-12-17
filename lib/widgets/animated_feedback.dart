@@ -106,10 +106,7 @@ void showErrorSnackbar(BuildContext context, String message) {
     SnackBar(
       content: Row(
         children: <Widget>[
-          Icon(
-            Icons.error,
-            color: Theme.of(context).colorScheme.onError,
-          ),
+          Icon(Icons.error, color: Theme.of(context).colorScheme.onError),
           const SizedBox(width: 12),
           Expanded(child: Text(message)),
         ],

@@ -104,7 +104,11 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
   @override
   Widget build(BuildContext context) {
     return Consumer<SyncStatusProvider>(
-      builder: (BuildContext context, SyncStatusProvider provider, Widget? child) {
+      builder: (
+        BuildContext context,
+        SyncStatusProvider provider,
+        Widget? child,
+      ) {
         final SyncProgress? progress = provider.currentProgress;
         final bool isSyncing = provider.isSyncing;
         final String? error = provider.currentError;
@@ -123,9 +127,10 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
 
         return FadeTransition(
           opacity: _fadeAnimation,
-          child: widget.displayMode == SyncProgressDisplayMode.sheet
-              ? _buildSheet(context, progress, isSyncing, error)
-              : _buildDialog(context, progress, isSyncing, error),
+          child:
+              widget.displayMode == SyncProgressDisplayMode.sheet
+                  ? _buildSheet(context, progress, isSyncing, error)
+                  : _buildDialog(context, progress, isSyncing, error),
         );
       },
     );
@@ -170,14 +175,15 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
     return AlertDialog(
       title: _buildHeader(context, progress, isSyncing, error),
       content: _buildContent(context, progress, isSyncing, error),
-      actions: widget.allowCancel && isSyncing
-          ? <Widget>[
-              TextButton(
-                onPressed: () => _handleCancel(context),
-                child: const Text('Cancel'),
-              ),
-            ]
-          : null,
+      actions:
+          widget.allowCancel && isSyncing
+              ? <Widget>[
+                TextButton(
+                  onPressed: () => _handleCancel(context),
+                  child: const Text('Cancel'),
+                ),
+              ]
+              : null,
     );
   }
 
@@ -212,7 +218,9 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
 
     return Row(
       children: <Widget>[
-        if (isSyncing && error == null && (progress == null || !progress.isComplete))
+        if (isSyncing &&
+            error == null &&
+            (progress == null || !progress.isComplete))
           SizedBox(
             width: 32,
             height: 32,
@@ -227,9 +235,9 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
         Expanded(
           child: Text(
             title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
       ],
@@ -299,11 +307,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(
-          Icons.check_circle_outline,
-          color: Colors.green[600],
-          size: 64,
-        ),
+        Icon(Icons.check_circle_outline, color: Colors.green[600], size: 64),
         const SizedBox(height: 16),
         Text(
           'Successfully synced ${progress.completedOperations} operations',
@@ -353,9 +357,9 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
             ),
             Text(
               '${progress.percentage.toStringAsFixed(1)}%',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -366,7 +370,9 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withOpacity(0.3),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -374,9 +380,9 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
               children: <Widget>[
                 Text(
                   'Current operation:',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -474,9 +480,9 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
           child: Text(
             _formatSyncPhase(progress.phase),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
-                ),
+              color: Colors.grey[600],
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ),
       ],
@@ -505,14 +511,11 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
         Text(
           value,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
@@ -526,9 +529,9 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
         const SizedBox(width: 4),
         Text(
           text,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
         ),
       ],
     );
@@ -540,9 +543,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
       onPressed: () => _handleCancel(context),
       icon: const Icon(Icons.cancel),
       label: const Text('Cancel Sync'),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.red,
-      ),
+      style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
     );
   }
 
@@ -550,48 +551,46 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
   void _handleCancel(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Cancel Sync'),
-        content: const Text(
-          'Are you sure you want to cancel the sync? '
-          'Progress will be lost and you may need to sync again.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Continue Syncing'),
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Cancel Sync'),
+            content: const Text(
+              'Are you sure you want to cancel the sync? '
+              'Progress will be lost and you may need to sync again.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Continue Syncing'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context); // Close confirmation dialog
+                  if (widget.onCancel != null) {
+                    widget.onCancel!();
+                  } else {
+                    try {
+                      // Get SyncManager from provider and cancel sync
+                      final SyncStatusProvider syncStatusProvider =
+                          Provider.of<SyncStatusProvider>(
+                            context,
+                            listen: false,
+                          );
+
+                      _log.info('Cancelling sync via SyncManager');
+                      await syncStatusProvider.syncManager.cancelSync();
+                      _log.info('Sync cancelled successfully');
+                    } catch (e, stackTrace) {
+                      _log.severe('Failed to cancel sync', e, stackTrace);
+                    }
+                  }
+                  Navigator.pop(context); // Close progress widget
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Cancel Sync'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context); // Close confirmation dialog
-              if (widget.onCancel != null) {
-                widget.onCancel!();
-              } else {
-                try {
-                  // Get SyncManager from provider and cancel sync
-                  final SyncStatusProvider syncStatusProvider = Provider.of<SyncStatusProvider>(
-                    context,
-                    listen: false,
-                  );
-                  
-                  _log.info('Cancelling sync via SyncManager');
-                  await syncStatusProvider.syncManager.cancelSync();
-                  _log.info('Sync cancelled successfully');
-                } catch (e, stackTrace) {
-                  _log.severe(
-                    'Failed to cancel sync',
-                    e,
-                    stackTrace,
-                  );
-                }
-              }
-              Navigator.pop(context); // Close progress widget
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Cancel Sync'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -665,12 +664,13 @@ Future<void> showSyncProgressSheet(
     context: context,
     isDismissible: false,
     enableDrag: false,
-    builder: (BuildContext context) => SyncProgressWidget(
-      displayMode: SyncProgressDisplayMode.sheet,
-      allowCancel: allowCancel,
-      onCancel: onCancel,
-      autoDismissOnComplete: autoDismissOnComplete,
-    ),
+    builder:
+        (BuildContext context) => SyncProgressWidget(
+          displayMode: SyncProgressDisplayMode.sheet,
+          allowCancel: allowCancel,
+          onCancel: onCancel,
+          autoDismissOnComplete: autoDismissOnComplete,
+        ),
   );
 }
 
@@ -684,11 +684,12 @@ Future<void> showSyncProgressDialog(
   return showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (BuildContext context) => SyncProgressWidget(
-      displayMode: SyncProgressDisplayMode.dialog,
-      allowCancel: allowCancel,
-      onCancel: onCancel,
-      autoDismissOnComplete: autoDismissOnComplete,
-    ),
+    builder:
+        (BuildContext context) => SyncProgressWidget(
+          displayMode: SyncProgressDisplayMode.dialog,
+          allowCancel: allowCancel,
+          onCancel: onCancel,
+          autoDismissOnComplete: autoDismissOnComplete,
+        ),
   );
 }

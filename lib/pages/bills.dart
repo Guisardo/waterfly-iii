@@ -13,6 +13,7 @@ import 'package:waterflyiii/pages/bills/billdetails.dart';
 import 'package:waterflyiii/pages/navigation.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/timezonehandler.dart';
+import 'package:waterflyiii/widgets/entity_sync_button.dart';
 
 class BillsPage extends StatefulWidget {
   const BillsPage({super.key});
@@ -70,6 +71,10 @@ class _BillsPageState extends State<BillsPage>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NavPageElements>().appBarActions = <Widget>[
+        EntitySyncButton(
+          entityType: SyncableEntityType.bill,
+          onSyncComplete: () => setState(() {}),
+        ),
         IconButton(
           icon: const Icon(Icons.settings),
           tooltip: S.of(context).generalSettings,
@@ -623,8 +628,7 @@ class _BillsPageState extends State<BillsPage>
     final List<BillEntity> billEntities = await billRepository.getAll();
 
     // Convert to BillRead for UI compatibility
-    final List<BillRead> bills =
-        billEntities.map(_entityToBillRead).toList();
+    final List<BillRead> bills = billEntities.map(_entityToBillRead).toList();
 
     bills.sort(
       (BillRead a, BillRead b) => (a.attributes.objectGroupOrder ?? 0)

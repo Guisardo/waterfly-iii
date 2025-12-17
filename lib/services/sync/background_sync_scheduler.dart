@@ -53,7 +53,8 @@ class BackgroundSyncScheduler {
         _taskNamePeriodicSync,
         frequency: interval,
         constraints: Constraints(
-          networkType: requiresWifi ? NetworkType.unmetered : NetworkType.connected,
+          networkType:
+              requiresWifi ? NetworkType.unmetered : NetworkType.connected,
           requiresCharging: requiresCharging,
           requiresBatteryNotLow: true,
         ),
@@ -86,7 +87,8 @@ class BackgroundSyncScheduler {
         _taskNameOneTimeSync,
         initialDelay: delay,
         constraints: Constraints(
-          networkType: requiresWifi ? NetworkType.unmetered : NetworkType.connected,
+          networkType:
+              requiresWifi ? NetworkType.unmetered : NetworkType.connected,
           requiresBatteryNotLow: true,
         ),
         backoffPolicy: BackoffPolicy.exponential,
@@ -127,7 +129,10 @@ class BackgroundSyncScheduler {
   /// Record successful sync execution.
   Future<void> recordSuccess() async {
     try {
-      await _prefs.setInt(_keyLastSyncTime, DateTime.now().millisecondsSinceEpoch);
+      await _prefs.setInt(
+        _keyLastSyncTime,
+        DateTime.now().millisecondsSinceEpoch,
+      );
       await _prefs.setInt(_keyFailureCount, 0);
       _logger.info('Recorded successful sync');
     } catch (e, stackTrace) {
@@ -216,14 +221,17 @@ class BackgroundSyncContext {
 /// 6. Records success/failure for interval adjustment
 @pragma('vm:entry-point')
 void backgroundSyncCallback() {
-  Workmanager().executeTask((String task, Map<String, dynamic>? inputData) async {
+  Workmanager().executeTask((
+    String task,
+    Map<String, dynamic>? inputData,
+  ) async {
     final Logger logger = Logger('BackgroundSyncCallback');
     logger.info('Background sync task started: $task');
 
     try {
       // Initialize services for background sync
       final AppDatabase database = AppDatabase();
-      
+
       // Check if API client context is available
       if (!BackgroundSyncContext.isInitialized) {
         logger.warning('BackgroundSyncContext not initialized, skipping sync');
@@ -231,13 +239,13 @@ void backgroundSyncCallback() {
       }
 
       final dynamic apiClient = BackgroundSyncContext.instance!.apiClient;
-      
+
       // Create adapters and services
       final FireflyApiAdapter apiAdapter = FireflyApiAdapter(apiClient);
       final DatabaseAdapter dbAdapter = DatabaseAdapter(database: database);
       final SyncProgressTracker progressTracker = SyncProgressTracker();
       final MetadataService metadata = MetadataService(database);
-      
+
       // Create sync service
       final SyncService syncService = SyncService(
         apiAdapter: apiAdapter,
@@ -250,11 +258,11 @@ void backgroundSyncCallback() {
       // Perform incremental sync
       logger.info('Starting incremental sync from background task');
       final result = await syncService.sync(mode: SyncMode.incremental);
-      
+
       // Record result for interval adjustment
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final BackgroundSyncScheduler scheduler = BackgroundSyncScheduler(prefs);
-      
+
       if (result.success) {
         await scheduler.recordSuccess();
         logger.info(
@@ -276,16 +284,18 @@ void backgroundSyncCallback() {
       return Future.value(result.success);
     } catch (e, stackTrace) {
       logger.severe('Background sync task failed', e, stackTrace);
-      
+
       // Record failure
       try {
         final SharedPreferences prefs = await SharedPreferences.getInstance();
-        final BackgroundSyncScheduler scheduler = BackgroundSyncScheduler(prefs);
+        final BackgroundSyncScheduler scheduler = BackgroundSyncScheduler(
+          prefs,
+        );
         await scheduler.recordFailure();
       } catch (_) {
         // Ignore errors during failure recording
       }
-      
+
       return Future.value(false);
     }
   });

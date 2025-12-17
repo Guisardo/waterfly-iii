@@ -160,8 +160,9 @@ class ConsistencyService {
     List<InconsistencyType>? types,
   }) async {
     _logger.info('Checking consistency');
-    
-    final List<InconsistencyType> typesToCheck = types ?? InconsistencyType.values;
+
+    final List<InconsistencyType> typesToCheck =
+        types ?? InconsistencyType.values;
     final List<InconsistencyIssue> allIssues = <InconsistencyIssue>[];
 
     for (final InconsistencyType type in typesToCheck) {
@@ -187,8 +188,9 @@ class ConsistencyService {
     List<InconsistencyType>? types,
   }) async {
     _logger.info('Starting consistency repair${dryRun ? ' (dry run)' : ''}');
-    
-    final List<InconsistencyType> typesToRepair = types ?? InconsistencyType.values;
+
+    final List<InconsistencyType> typesToRepair =
+        types ?? InconsistencyType.values;
     int totalRepaired = 0;
     int totalFailed = 0;
     final List<String> errors = <String>[];
@@ -219,10 +221,7 @@ class ConsistencyService {
   }
 
   /// Repair specific type of consistency issue.
-  Future<int> repair(
-    InconsistencyType type, {
-    bool dryRun = false,
-  }) async {
+  Future<int> repair(InconsistencyType type, {bool dryRun = false}) async {
     _logger.info('Repairing ${type.name}${dryRun ? ' (dry run)' : ''}');
     return _repairType(type, dryRun: dryRun);
   }
@@ -246,7 +245,10 @@ class ConsistencyService {
   }
 
   /// Repair specific type of consistency issue.
-  Future<int> _repairType(InconsistencyType type, {required bool dryRun}) async {
+  Future<int> _repairType(
+    InconsistencyType type, {
+    required bool dryRun,
+  }) async {
     switch (type) {
       case InconsistencyType.missingSyncedServerId:
         return _repairMissingSyncedServerIds(dryRun: dryRun);
@@ -271,43 +273,54 @@ class ConsistencyService {
 
     try {
       // Check transactions
-      final List<TransactionEntity> transactions = await (_database.select(_database.transactions)
-            ..where(($TransactionsTable t) => t.isSynced.equals(true) & t.serverId.isNull()))
-          .get();
+      final List<TransactionEntity> transactions =
+          await (_database.select(_database.transactions)..where(
+            ($TransactionsTable t) =>
+                t.isSynced.equals(true) & t.serverId.isNull(),
+          )).get();
 
       for (final TransactionEntity t in transactions) {
-        issues.add(InconsistencyIssue(
-          type: InconsistencyType.missingSyncedServerId,
-          entityType: 'transaction',
-          entityId: t.id,
-          description: 'Transaction marked as synced but has no server ID',
-          suggestedFix: 'Mark as not synced or fetch server ID',
-          severity: InconsistencySeverity.medium,
-          context: <String, dynamic>{'local_id': t.id},
-        ));
+        issues.add(
+          InconsistencyIssue(
+            type: InconsistencyType.missingSyncedServerId,
+            entityType: 'transaction',
+            entityId: t.id,
+            description: 'Transaction marked as synced but has no server ID',
+            suggestedFix: 'Mark as not synced or fetch server ID',
+            severity: InconsistencySeverity.medium,
+            context: <String, dynamic>{'local_id': t.id},
+          ),
+        );
       }
 
       // Check accounts
-      final List<AccountEntity> accounts = await (_database.select(_database.accounts)
-            ..where(($AccountsTable a) => a.isSynced.equals(true) & a.serverId.isNull()))
-          .get();
+      final List<AccountEntity> accounts =
+          await (_database.select(_database.accounts)..where(
+            ($AccountsTable a) => a.isSynced.equals(true) & a.serverId.isNull(),
+          )).get();
 
       for (final AccountEntity a in accounts) {
-        issues.add(InconsistencyIssue(
-          type: InconsistencyType.missingSyncedServerId,
-          entityType: 'account',
-          entityId: a.id,
-          description: 'Account marked as synced but has no server ID',
-          suggestedFix: 'Mark as not synced or fetch server ID',
-          severity: InconsistencySeverity.medium,
-          context: <String, dynamic>{'local_id': a.id},
-        ));
+        issues.add(
+          InconsistencyIssue(
+            type: InconsistencyType.missingSyncedServerId,
+            entityType: 'account',
+            entityId: a.id,
+            description: 'Account marked as synced but has no server ID',
+            suggestedFix: 'Mark as not synced or fetch server ID',
+            severity: InconsistencySeverity.medium,
+            context: <String, dynamic>{'local_id': a.id},
+          ),
+        );
       }
 
       // Check other entity types similarly
       // Categories, budgets, bills, piggy banks
     } catch (e, stackTrace) {
-      _logger.severe('Failed to check missing synced server IDs', e, stackTrace);
+      _logger.severe(
+        'Failed to check missing synced server IDs',
+        e,
+        stackTrace,
+      );
     }
 
     return issues;
@@ -318,7 +331,8 @@ class ConsistencyService {
     final List<InconsistencyIssue> issues = <InconsistencyIssue>[];
 
     try {
-      final List<SyncQueueEntity> operations = await _database.select(_database.syncQueue).get();
+      final List<SyncQueueEntity> operations =
+          await _database.select(_database.syncQueue).get();
 
       for (final SyncQueueEntity op in operations) {
         bool entityExists = false;
@@ -326,31 +340,38 @@ class ConsistencyService {
         // Check if entity still exists based on entity type
         switch (op.entityType) {
           case 'transaction':
-            final TransactionEntity? entity = await (_database.select(_database.transactions)
-                  ..where(($TransactionsTable t) => t.id.equals(op.entityId)))
-                .getSingleOrNull();
+            final TransactionEntity? entity =
+                await (_database.select(_database.transactions)..where(
+                  ($TransactionsTable t) => t.id.equals(op.entityId),
+                )).getSingleOrNull();
             entityExists = entity != null;
             break;
           case 'account':
-            final AccountEntity? entity = await (_database.select(_database.accounts)
-                  ..where(($AccountsTable a) => a.id.equals(op.entityId)))
-                .getSingleOrNull();
+            final AccountEntity? entity =
+                await (_database.select(_database.accounts)..where(
+                  ($AccountsTable a) => a.id.equals(op.entityId),
+                )).getSingleOrNull();
             entityExists = entity != null;
             break;
           // Add other entity types
         }
 
         if (!entityExists) {
-          issues.add(InconsistencyIssue(
-            type: InconsistencyType.orphanedOperation,
-            entityType: op.entityType,
-            entityId: op.entityId,
-            operationId: op.id,
-            description: 'Operation exists for deleted ${op.entityType}',
-            suggestedFix: 'Remove orphaned operation',
-            severity: InconsistencySeverity.low,
-            context: <String, dynamic>{'operation_id': op.id, 'operation': op.operation},
-          ));
+          issues.add(
+            InconsistencyIssue(
+              type: InconsistencyType.orphanedOperation,
+              entityType: op.entityType,
+              entityId: op.entityId,
+              operationId: op.id,
+              description: 'Operation exists for deleted ${op.entityType}',
+              suggestedFix: 'Remove orphaned operation',
+              severity: InconsistencySeverity.low,
+              context: <String, dynamic>{
+                'operation_id': op.id,
+                'operation': op.operation,
+              },
+            ),
+          );
         }
       }
     } catch (e, stackTrace) {
@@ -365,8 +386,10 @@ class ConsistencyService {
     final List<InconsistencyIssue> issues = <InconsistencyIssue>[];
 
     try {
-      final List<SyncQueueEntity> operations = await _database.select(_database.syncQueue).get();
-      final Map<String, List<SyncQueueEntity>> grouped = <String, List<SyncQueueEntity>>{};
+      final List<SyncQueueEntity> operations =
+          await _database.select(_database.syncQueue).get();
+      final Map<String, List<SyncQueueEntity>> grouped =
+          <String, List<SyncQueueEntity>>{};
 
       // Group by entity type + entity ID + operation
       for (final SyncQueueEntity op in operations) {
@@ -376,21 +399,26 @@ class ConsistencyService {
       }
 
       // Find duplicates
-      for (final MapEntry<String, List<SyncQueueEntity>> entry in grouped.entries) {
+      for (final MapEntry<String, List<SyncQueueEntity>> entry
+          in grouped.entries) {
         if (entry.value.length > 1) {
           final SyncQueueEntity first = entry.value.first;
-          issues.add(InconsistencyIssue(
-            type: InconsistencyType.duplicateOperation,
-            entityType: first.entityType,
-            entityId: first.entityId,
-            description: '${entry.value.length} duplicate operations for same entity',
-            suggestedFix: 'Keep most recent, remove others',
-            severity: InconsistencySeverity.low,
-            context: <String, dynamic>{
-              'count': entry.value.length,
-              'operation_ids': entry.value.map((SyncQueueEntity o) => o.id).toList(),
-            },
-          ));
+          issues.add(
+            InconsistencyIssue(
+              type: InconsistencyType.duplicateOperation,
+              entityType: first.entityType,
+              entityId: first.entityId,
+              description:
+                  '${entry.value.length} duplicate operations for same entity',
+              suggestedFix: 'Keep most recent, remove others',
+              severity: InconsistencySeverity.low,
+              context: <String, dynamic>{
+                'count': entry.value.length,
+                'operation_ids':
+                    entry.value.map((SyncQueueEntity o) => o.id).toList(),
+              },
+            ),
+          );
         }
       }
     } catch (e, stackTrace) {
@@ -406,66 +434,83 @@ class ConsistencyService {
 
     try {
       // Check transactions with invalid account references
-      final List<TransactionEntity> transactions = await _database.select(_database.transactions).get();
+      final List<TransactionEntity> transactions =
+          await _database.select(_database.transactions).get();
 
       for (final TransactionEntity t in transactions) {
         // Check source account
         if (t.sourceAccountId.isNotEmpty) {
-          final AccountEntity? sourceAccount = await (_database.select(_database.accounts)
-                ..where(($AccountsTable a) => a.id.equals(t.sourceAccountId)))
-              .getSingleOrNull();
+          final AccountEntity? sourceAccount =
+              await (_database.select(_database.accounts)..where(
+                ($AccountsTable a) => a.id.equals(t.sourceAccountId),
+              )).getSingleOrNull();
 
           if (sourceAccount == null) {
-            issues.add(InconsistencyIssue(
-              type: InconsistencyType.brokenReference,
-              entityType: 'transaction',
-              entityId: t.id,
-              description: 'Transaction references non-existent source account',
-              suggestedFix: 'Remove transaction or fix account reference',
-              severity: InconsistencySeverity.high,
-              context: <String, dynamic>{'source_account_id': t.sourceAccountId},
-            ));
+            issues.add(
+              InconsistencyIssue(
+                type: InconsistencyType.brokenReference,
+                entityType: 'transaction',
+                entityId: t.id,
+                description:
+                    'Transaction references non-existent source account',
+                suggestedFix: 'Remove transaction or fix account reference',
+                severity: InconsistencySeverity.high,
+                context: <String, dynamic>{
+                  'source_account_id': t.sourceAccountId,
+                },
+              ),
+            );
           }
         }
 
         // Check destination account
         if (t.destinationAccountId.isNotEmpty) {
-          final AccountEntity? destAccount = await (_database.select(_database.accounts)
-                ..where(($AccountsTable a) => a.id.equals(t.destinationAccountId)))
-              .getSingleOrNull();
+          final AccountEntity? destAccount =
+              await (_database.select(_database.accounts)..where(
+                ($AccountsTable a) => a.id.equals(t.destinationAccountId),
+              )).getSingleOrNull();
 
           if (destAccount == null) {
-            issues.add(InconsistencyIssue(
-              type: InconsistencyType.brokenReference,
-              entityType: 'transaction',
-              entityId: t.id,
-              description: 'Transaction references non-existent destination account',
-              suggestedFix: 'Remove transaction or fix account reference',
-              severity: InconsistencySeverity.high,
-              context: <String, dynamic>{'destination_account_id': t.destinationAccountId},
-            ));
+            issues.add(
+              InconsistencyIssue(
+                type: InconsistencyType.brokenReference,
+                entityType: 'transaction',
+                entityId: t.id,
+                description:
+                    'Transaction references non-existent destination account',
+                suggestedFix: 'Remove transaction or fix account reference',
+                severity: InconsistencySeverity.high,
+                context: <String, dynamic>{
+                  'destination_account_id': t.destinationAccountId,
+                },
+              ),
+            );
           }
         }
       }
 
       // Check piggy banks with invalid account references
-      final List<PiggyBankEntity> piggyBanks = await _database.select(_database.piggyBanks).get();
+      final List<PiggyBankEntity> piggyBanks =
+          await _database.select(_database.piggyBanks).get();
 
       for (final PiggyBankEntity pb in piggyBanks) {
-        final AccountEntity? account = await (_database.select(_database.accounts)
-              ..where(($AccountsTable a) => a.id.equals(pb.accountId)))
-            .getSingleOrNull();
+        final AccountEntity? account =
+            await (_database.select(_database.accounts)..where(
+              ($AccountsTable a) => a.id.equals(pb.accountId),
+            )).getSingleOrNull();
 
         if (account == null) {
-          issues.add(InconsistencyIssue(
-            type: InconsistencyType.brokenReference,
-            entityType: 'piggy_bank',
-            entityId: pb.id,
-            description: 'Piggy bank references non-existent account',
-            suggestedFix: 'Remove piggy bank or fix account reference',
-            severity: InconsistencySeverity.high,
-            context: <String, dynamic>{'account_id': pb.accountId},
-          ));
+          issues.add(
+            InconsistencyIssue(
+              type: InconsistencyType.brokenReference,
+              entityType: 'piggy_bank',
+              entityId: pb.id,
+              description: 'Piggy bank references non-existent account',
+              suggestedFix: 'Remove piggy bank or fix account reference',
+              severity: InconsistencySeverity.high,
+              context: <String, dynamic>{'account_id': pb.accountId},
+            ),
+          );
         }
       }
     } catch (e, stackTrace) {
@@ -480,14 +525,17 @@ class ConsistencyService {
     final List<InconsistencyIssue> issues = <InconsistencyIssue>[];
 
     try {
-      final List<AccountEntity> accounts = await _database.select(_database.accounts).get();
+      final List<AccountEntity> accounts =
+          await _database.select(_database.accounts).get();
 
       for (final AccountEntity account in accounts) {
         // Calculate balance from transactions
-        final List<TransactionEntity> transactions = await (_database.select(_database.transactions)
-              ..where(($TransactionsTable t) =>
-                  t.sourceAccountId.equals(account.id) | t.destinationAccountId.equals(account.id)))
-            .get();
+        final List<TransactionEntity> transactions =
+            await (_database.select(_database.transactions)..where(
+              ($TransactionsTable t) =>
+                  t.sourceAccountId.equals(account.id) |
+                  t.destinationAccountId.equals(account.id),
+            )).get();
 
         double calculatedBalance = 0.0;
         for (final TransactionEntity t in transactions) {
@@ -505,19 +553,22 @@ class ConsistencyService {
 
         if (difference > 0.01) {
           // Allow 1 cent tolerance for rounding
-          issues.add(InconsistencyIssue(
-            type: InconsistencyType.balanceMismatch,
-            entityType: 'account',
-            entityId: account.id,
-            description: 'Account balance mismatch: stored=$storedBalance, calculated=$calculatedBalance',
-            suggestedFix: 'Recalculate balance from transactions',
-            severity: InconsistencySeverity.medium,
-            context: <String, dynamic>{
-              'stored_balance': storedBalance,
-              'calculated_balance': calculatedBalance,
-              'difference': difference,
-            },
-          ));
+          issues.add(
+            InconsistencyIssue(
+              type: InconsistencyType.balanceMismatch,
+              entityType: 'account',
+              entityId: account.id,
+              description:
+                  'Account balance mismatch: stored=$storedBalance, calculated=$calculatedBalance',
+              suggestedFix: 'Recalculate balance from transactions',
+              severity: InconsistencySeverity.medium,
+              context: <String, dynamic>{
+                'stored_balance': storedBalance,
+                'calculated_balance': calculatedBalance,
+                'difference': difference,
+              },
+            ),
+          );
         }
       }
     } catch (e, stackTrace) {
@@ -533,28 +584,35 @@ class ConsistencyService {
 
     try {
       // Check transactions with updatedAt < createdAt
-      final List<TransactionEntity> transactions = await _database.select(_database.transactions).get();
+      final List<TransactionEntity> transactions =
+          await _database.select(_database.transactions).get();
 
       for (final TransactionEntity t in transactions) {
         if (t.updatedAt.isBefore(t.createdAt)) {
-          issues.add(InconsistencyIssue(
-            type: InconsistencyType.timestampInconsistency,
-            entityType: 'transaction',
-            entityId: t.id,
-            description: 'Updated timestamp is before created timestamp',
-            suggestedFix: 'Set updatedAt = createdAt',
-            severity: InconsistencySeverity.low,
-            context: <String, dynamic>{
-              'created_at': t.createdAt.toIso8601String(),
-              'updated_at': t.updatedAt.toIso8601String(),
-            },
-          ));
+          issues.add(
+            InconsistencyIssue(
+              type: InconsistencyType.timestampInconsistency,
+              entityType: 'transaction',
+              entityId: t.id,
+              description: 'Updated timestamp is before created timestamp',
+              suggestedFix: 'Set updatedAt = createdAt',
+              severity: InconsistencySeverity.low,
+              context: <String, dynamic>{
+                'created_at': t.createdAt.toIso8601String(),
+                'updated_at': t.updatedAt.toIso8601String(),
+              },
+            ),
+          );
         }
       }
 
       // Check other entity types similarly
     } catch (e, stackTrace) {
-      _logger.severe('Failed to check timestamp inconsistencies', e, stackTrace);
+      _logger.severe(
+        'Failed to check timestamp inconsistencies',
+        e,
+        stackTrace,
+      );
     }
 
     return issues;
@@ -568,28 +626,36 @@ class ConsistencyService {
 
     try {
       if (dryRun) {
-        final List<InconsistencyIssue> issues = await _checkMissingSyncedServerIds();
+        final List<InconsistencyIssue> issues =
+            await _checkMissingSyncedServerIds();
         return issues.length;
       }
 
       await _database.transaction(() async {
         // Mark transactions as not synced
-        repaired += await (_database.update(_database.transactions)
-              ..where(($TransactionsTable t) => t.isSynced.equals(true) & t.serverId.isNull()))
-            .write(const TransactionEntityCompanion(isSynced: Value(false)));
+        repaired += await (_database.update(_database.transactions)..where(
+          ($TransactionsTable t) =>
+              t.isSynced.equals(true) & t.serverId.isNull(),
+        )).write(const TransactionEntityCompanion(isSynced: Value(false)));
 
         // Mark accounts as not synced
-        repaired += await (_database.update(_database.accounts)
-              ..where(($AccountsTable a) => a.isSynced.equals(true) & a.serverId.isNull()))
-            .write(const AccountEntityCompanion(isSynced: Value(false)));
+        repaired += await (_database.update(_database.accounts)..where(
+          ($AccountsTable a) => a.isSynced.equals(true) & a.serverId.isNull(),
+        )).write(const AccountEntityCompanion(isSynced: Value(false)));
 
         // Mark other entity types similarly
       });
 
       _logger.info('Marked $repaired entities as not synced');
     } catch (e, stackTrace) {
-      _logger.severe('Failed to repair missing synced server IDs', e, stackTrace);
-      throw DatabaseException('Failed to repair missing synced server IDs: ${e.toString()}');
+      _logger.severe(
+        'Failed to repair missing synced server IDs',
+        e,
+        stackTrace,
+      );
+      throw DatabaseException(
+        'Failed to repair missing synced server IDs: ${e.toString()}',
+      );
     }
 
     return repaired;
@@ -609,9 +675,9 @@ class ConsistencyService {
       await _database.transaction(() async {
         for (final InconsistencyIssue issue in issues) {
           if (issue.operationId != null) {
-            await (_database.delete(_database.syncQueue)
-                  ..where(($SyncQueueTable sq) => sq.id.equals(issue.operationId!)))
-                .go();
+            await (_database.delete(_database.syncQueue)..where(
+              ($SyncQueueTable sq) => sq.id.equals(issue.operationId!),
+            )).go();
             repaired++;
           }
         }
@@ -620,7 +686,9 @@ class ConsistencyService {
       _logger.info('Removed $repaired orphaned operations');
     } catch (e, stackTrace) {
       _logger.severe('Failed to repair orphaned operations', e, stackTrace);
-      throw DatabaseException('Failed to repair orphaned operations: ${e.toString()}');
+      throw DatabaseException(
+        'Failed to repair orphaned operations: ${e.toString()}',
+      );
     }
 
     return repaired;
@@ -639,13 +707,14 @@ class ConsistencyService {
 
       await _database.transaction(() async {
         for (final InconsistencyIssue issue in issues) {
-          final List<String> operationIds = (issue.context['operation_ids'] as List<dynamic>).cast<String>();
-          
+          final List<String> operationIds =
+              (issue.context['operation_ids'] as List<dynamic>).cast<String>();
+
           // Keep the most recent (last in list), remove others
           for (int i = 0; i < operationIds.length - 1; i++) {
-            await (_database.delete(_database.syncQueue)
-                  ..where(($SyncQueueTable sq) => sq.id.equals(operationIds[i])))
-                .go();
+            await (_database.delete(_database.syncQueue)..where(
+              ($SyncQueueTable sq) => sq.id.equals(operationIds[i]),
+            )).go();
             repaired++;
           }
         }
@@ -654,7 +723,9 @@ class ConsistencyService {
       _logger.info('Removed $repaired duplicate operations');
     } catch (e, stackTrace) {
       _logger.severe('Failed to repair duplicate operations', e, stackTrace);
-      throw DatabaseException('Failed to repair duplicate operations: ${e.toString()}');
+      throw DatabaseException(
+        'Failed to repair duplicate operations: ${e.toString()}',
+      );
     }
 
     return repaired;
@@ -676,14 +747,15 @@ class ConsistencyService {
           // For now, delete entities with broken references
           // In production, might want to prompt user or try to fix references
           if (issue.entityType == 'transaction' && issue.entityId != null) {
-            await (_database.delete(_database.transactions)
-                  ..where(($TransactionsTable t) => t.id.equals(issue.entityId!)))
-                .go();
+            await (_database.delete(_database.transactions)..where(
+              ($TransactionsTable t) => t.id.equals(issue.entityId!),
+            )).go();
             repaired++;
-          } else if (issue.entityType == 'piggy_bank' && issue.entityId != null) {
-            await (_database.delete(_database.piggyBanks)
-                  ..where(($PiggyBanksTable pb) => pb.id.equals(issue.entityId!)))
-                .go();
+          } else if (issue.entityType == 'piggy_bank' &&
+              issue.entityId != null) {
+            await (_database.delete(_database.piggyBanks)..where(
+              ($PiggyBanksTable pb) => pb.id.equals(issue.entityId!),
+            )).go();
             repaired++;
           }
         }
@@ -692,7 +764,9 @@ class ConsistencyService {
       _logger.info('Removed $repaired entities with broken references');
     } catch (e, stackTrace) {
       _logger.severe('Failed to repair broken references', e, stackTrace);
-      throw DatabaseException('Failed to repair broken references: ${e.toString()}');
+      throw DatabaseException(
+        'Failed to repair broken references: ${e.toString()}',
+      );
     }
 
     return repaired;
@@ -712,11 +786,14 @@ class ConsistencyService {
       await _database.transaction(() async {
         for (final InconsistencyIssue issue in issues) {
           if (issue.entityId != null) {
-            final double calculatedBalance = issue.context['calculated_balance'] as double;
-            
-            await (_database.update(_database.accounts)
-                  ..where(($AccountsTable a) => a.id.equals(issue.entityId!)))
-                .write(AccountEntityCompanion(currentBalance: Value(calculatedBalance)));
+            final double calculatedBalance =
+                issue.context['calculated_balance'] as double;
+
+            await (_database.update(
+              _database.accounts,
+            )..where(($AccountsTable a) => a.id.equals(issue.entityId!))).write(
+              AccountEntityCompanion(currentBalance: Value(calculatedBalance)),
+            );
             repaired++;
           }
         }
@@ -725,7 +802,9 @@ class ConsistencyService {
       _logger.info('Recalculated $repaired account balances');
     } catch (e, stackTrace) {
       _logger.severe('Failed to repair balance mismatches', e, stackTrace);
-      throw DatabaseException('Failed to repair balance mismatches: ${e.toString()}');
+      throw DatabaseException(
+        'Failed to repair balance mismatches: ${e.toString()}',
+      );
     }
 
     return repaired;
@@ -736,7 +815,8 @@ class ConsistencyService {
     int repaired = 0;
 
     try {
-      final List<InconsistencyIssue> issues = await _checkTimestampInconsistencies();
+      final List<InconsistencyIssue> issues =
+          await _checkTimestampInconsistencies();
 
       if (dryRun) {
         return issues.length;
@@ -746,14 +826,17 @@ class ConsistencyService {
         for (final InconsistencyIssue issue in issues) {
           if (issue.entityId != null && issue.entityType == 'transaction') {
             // Get the entity to access createdAt
-            final TransactionEntity? entity = await (_database.select(_database.transactions)
-                  ..where(($TransactionsTable t) => t.id.equals(issue.entityId!)))
-                .getSingleOrNull();
+            final TransactionEntity? entity =
+                await (_database.select(_database.transactions)..where(
+                  ($TransactionsTable t) => t.id.equals(issue.entityId!),
+                )).getSingleOrNull();
 
             if (entity != null) {
-              await (_database.update(_database.transactions)
-                    ..where(($TransactionsTable t) => t.id.equals(issue.entityId!)))
-                  .write(TransactionEntityCompanion(updatedAt: Value(entity.createdAt)));
+              await (_database.update(_database.transactions)..where(
+                ($TransactionsTable t) => t.id.equals(issue.entityId!),
+              )).write(
+                TransactionEntityCompanion(updatedAt: Value(entity.createdAt)),
+              );
               repaired++;
             }
           }
@@ -762,8 +845,14 @@ class ConsistencyService {
 
       _logger.info('Fixed $repaired timestamp inconsistencies');
     } catch (e, stackTrace) {
-      _logger.severe('Failed to repair timestamp inconsistencies', e, stackTrace);
-      throw DatabaseException('Failed to repair timestamp inconsistencies: ${e.toString()}');
+      _logger.severe(
+        'Failed to repair timestamp inconsistencies',
+        e,
+        stackTrace,
+      );
+      throw DatabaseException(
+        'Failed to repair timestamp inconsistencies: ${e.toString()}',
+      );
     }
 
     return repaired;

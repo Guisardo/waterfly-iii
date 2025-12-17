@@ -81,14 +81,13 @@ class Bills extends Table {
   BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 
   /// Sync status: 'pending', 'syncing', 'synced', 'error'.
-  TextColumn get syncStatus =>
-      text().withDefault(const Constant('pending'))();
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
 
   @override
   Set<Column> get primaryKey => <Column<Object>>{id};
 
   @override
   List<Set<Column>> get uniqueKeys => <Set<Column<Object>>>[
-        <Column<Object>>{serverId}
-      ];
+    <Column<Object>>{serverId},
+  ];
 }

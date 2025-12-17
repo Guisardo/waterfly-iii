@@ -36,14 +36,11 @@ class DatabaseException extends OfflineException {
     Object error, [
     StackTrace? stackTrace,
   ]) {
-    return DatabaseException(
-      'Database query failed: $error',
-      <String, dynamic>{
-        'query': query,
-        'error': error.toString(),
-        if (stackTrace != null) 'stackTrace': stackTrace.toString(),
-      },
-    );
+    return DatabaseException('Database query failed: $error', <String, dynamic>{
+      'query': query,
+      'error': error.toString(),
+      if (stackTrace != null) 'stackTrace': stackTrace.toString(),
+    });
   }
 
   /// Creates a database exception for a connection error.
@@ -55,16 +52,10 @@ class DatabaseException extends OfflineException {
   }
 
   /// Creates a database exception for a transaction error.
-  factory DatabaseException.transactionFailed(
-    String operation,
-    Object error,
-  ) {
+  factory DatabaseException.transactionFailed(String operation, Object error) {
     return DatabaseException(
       'Database transaction failed during $operation: $error',
-      <String, dynamic>{
-        'operation': operation,
-        'error': error.toString(),
-      },
+      <String, dynamic>{'operation': operation, 'error': error.toString()},
     );
   }
 }
@@ -83,28 +74,19 @@ class SyncException extends OfflineException {
     String entityType,
     Object error,
   ) {
-    return SyncException(
-      'Sync operation failed: $error',
-      <String, dynamic>{
-        'operationId': operationId,
-        'entityType': entityType,
-        'error': error.toString(),
-      },
-    );
+    return SyncException('Sync operation failed: $error', <String, dynamic>{
+      'operationId': operationId,
+      'entityType': entityType,
+      'error': error.toString(),
+    });
   }
 
   /// Creates a sync exception for a server error.
-  factory SyncException.serverError(
-    int statusCode,
-    String message,
-  ) {
-    return SyncException(
-      'Server returned error: $message',
-      <String, dynamic>{
-        'statusCode': statusCode,
-        'message': message,
-      },
-    );
+  factory SyncException.serverError(int statusCode, String message) {
+    return SyncException('Server returned error: $message', <String, dynamic>{
+      'statusCode': statusCode,
+      'message': message,
+    });
   }
 
   /// Creates a sync exception for a timeout.
@@ -116,17 +98,11 @@ class SyncException extends OfflineException {
   }
 
   /// Creates a sync exception for max retries exceeded.
-  factory SyncException.maxRetriesExceeded(
-    String operationId,
-    int attempts,
-  ) {
-    return SyncException(
-      'Max sync retries exceeded',
-      <String, dynamic>{
-        'operationId': operationId,
-        'attempts': attempts,
-      },
-    );
+  factory SyncException.maxRetriesExceeded(String operationId, int attempts) {
+    return SyncException('Max sync retries exceeded', <String, dynamic>{
+      'operationId': operationId,
+      'attempts': attempts,
+    });
   }
 }
 
@@ -140,17 +116,14 @@ class ConnectivityException extends OfflineException {
 
   /// Creates a connectivity exception for no network.
   factory ConnectivityException.noNetwork() {
-    return const ConnectivityException(
-      'No network connectivity available',
-    );
+    return const ConnectivityException('No network connectivity available');
   }
 
   /// Creates a connectivity exception for server unreachable.
   factory ConnectivityException.serverUnreachable(String serverUrl) {
-    return ConnectivityException(
-      'Server is unreachable',
-      <String, dynamic>{'serverUrl': serverUrl},
-    );
+    return ConnectivityException('Server is unreachable', <String, dynamic>{
+      'serverUrl': serverUrl,
+    });
   }
 
   /// Creates a connectivity exception for a timeout.
@@ -168,7 +141,12 @@ class ConnectivityException extends OfflineException {
 /// on the server, requiring conflict resolution.
 class ConflictException extends OfflineException {
   /// Creates a conflict exception.
-  const ConflictException(super.message, [super.context, this.localData, this.serverData]);
+  const ConflictException(
+    super.message, [
+    super.context,
+    this.localData,
+    this.serverData,
+  ]);
 
   /// The local version of the conflicting entity.
   final Map<String, dynamic>? localData;
@@ -195,24 +173,15 @@ class ConflictException extends OfflineException {
       'Entity was modified both locally and on server',
       localData,
       serverData,
-      <String, dynamic>{
-        'entityType': entityType,
-        'entityId': entityId,
-      },
+      <String, dynamic>{'entityType': entityType, 'entityId': entityId},
     );
   }
 
   /// Creates a conflict exception for a deleted entity.
-  factory ConflictException.entityDeleted(
-    String entityType,
-    String entityId,
-  ) {
+  factory ConflictException.entityDeleted(String entityType, String entityId) {
     return ConflictException(
       'Entity was deleted on server but modified locally',
-      <String, dynamic>{
-        'entityType': entityType,
-        'entityId': entityId,
-      },
+      <String, dynamic>{'entityType': entityType, 'entityId': entityId},
     );
   }
 }
@@ -223,7 +192,12 @@ class ConflictException extends OfflineException {
 /// violations, and data integrity checks.
 class ValidationException extends OfflineException {
   /// Creates a validation exception.
-  const ValidationException(super.message, [super.context, this.field, this.value]);
+  const ValidationException(
+    super.message, [
+    super.context,
+    this.field,
+    this.value,
+  ]);
 
   /// The field that failed validation.
   final String? field;
@@ -303,16 +277,10 @@ class ConfigurationException extends OfflineException {
   }
 
   /// Creates a configuration exception for invalid configuration.
-  factory ConfigurationException.invalidConfig(
-    String key,
-    String reason,
-  ) {
+  factory ConfigurationException.invalidConfig(String key, String reason) {
     return ConfigurationException(
       'Invalid configuration for $key: $reason',
-      <String, dynamic>{
-        'key': key,
-        'reason': reason,
-      },
+      <String, dynamic>{'key': key, 'reason': reason},
     );
   }
 }
@@ -326,13 +294,10 @@ class StorageException extends OfflineException {
 
   /// Creates a storage exception for insufficient space.
   factory StorageException.insufficientSpace(int required, int available) {
-    return StorageException(
-      'Insufficient storage space',
-      <String, dynamic>{
-        'required': required,
-        'available': available,
-      },
-    );
+    return StorageException('Insufficient storage space', <String, dynamic>{
+      'required': required,
+      'available': available,
+    });
   }
 
   /// Creates a storage exception for permission denied.
@@ -345,9 +310,8 @@ class StorageException extends OfflineException {
 
   /// Creates a storage exception for a corrupted database.
   factory StorageException.corruptedDatabase(String path) {
-    return StorageException(
-      'Database file is corrupted',
-      <String, dynamic>{'path': path},
-    );
+    return StorageException('Database file is corrupted', <String, dynamic>{
+      'path': path,
+    });
   }
 }

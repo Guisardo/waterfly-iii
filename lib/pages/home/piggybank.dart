@@ -16,6 +16,7 @@ import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/home.dart';
 import 'package:waterflyiii/pages/home/piggybank/chart.dart';
+import 'package:waterflyiii/widgets/entity_sync_button.dart';
 import 'package:waterflyiii/widgets/input_number.dart';
 import 'package:waterflyiii/widgets/materialiconbutton.dart';
 
@@ -55,9 +56,16 @@ class _HomePiggybankState extends State<HomePiggybank>
   @override
   void initState() {
     super.initState();
-    // Add top-right action to open Available Amounts bottom sheet
+    // Add top-right actions for sync and Available Amounts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PageActions>().set(widget.key!, <Widget>[
+        EntitySyncButton(
+          entityType: SyncableEntityType.piggyBank,
+          onSyncComplete:
+              () => setState(() {
+                _pagingState = _pagingState.reset();
+              }),
+        ),
         IconButton(
           icon: const Icon(Icons.account_balance_wallet_outlined),
           tooltip: S.of(context).homePiggyAvailableAmounts,
@@ -128,12 +136,13 @@ class _HomePiggybankState extends State<HomePiggybank>
       // Implement simple pagination over local data
       final int startIndex = (pageKey - 1) * _numberOfItemsPerRequest;
       final int endIndex = startIndex + _numberOfItemsPerRequest;
-      final List<PiggyBankRead> piggyList = allPiggies.length > startIndex
-          ? allPiggies.sublist(
-              startIndex,
-              endIndex > allPiggies.length ? allPiggies.length : endIndex,
-            )
-          : <PiggyBankRead>[];
+      final List<PiggyBankRead> piggyList =
+          allPiggies.length > startIndex
+              ? allPiggies.sublist(
+                startIndex,
+                endIndex > allPiggies.length ? allPiggies.length : endIndex,
+              )
+              : <PiggyBankRead>[];
 
       final bool isLastPage = endIndex >= allPiggies.length;
 
@@ -180,8 +189,9 @@ class _HomePiggybankState extends State<HomePiggybank>
           in accountIdToPiggyTotal.entries) {
         final String accountId = entry.key;
         // Use AccountRepository with cache-first strategy
-        final AccountEntity? accountEntity =
-            await accountRepository.getById(accountId);
+        final AccountEntity? accountEntity = await accountRepository.getById(
+          accountId,
+        );
 
         if (accountEntity == null) continue;
 

@@ -16,23 +16,27 @@ class IdMappingService {
   final Map<String, String> _serverToLocalCache = <String, String>{};
 
   /// Map a local ID to a server ID.
-  Future<void> mapIds(String localId, String serverId, String entityType) async {
+  Future<void> mapIds(
+    String localId,
+    String serverId,
+    String entityType,
+  ) async {
     try {
       _logger.info('Mapping IDs: $localId -> $serverId ($entityType)');
 
       final DateTime now = DateTime.now();
-      final IdMappingEntityCompanion companion = IdMappingEntityCompanion.insert(
-        localId: localId,
-        serverId: serverId,
-        entityType: entityType,
-        createdAt: now,
-        syncedAt: now,
-      );
-
-      await _database.into(_database.idMapping).insert(
-            companion,
-            mode: InsertMode.insertOrReplace,
+      final IdMappingEntityCompanion companion =
+          IdMappingEntityCompanion.insert(
+            localId: localId,
+            serverId: serverId,
+            entityType: entityType,
+            createdAt: now,
+            syncedAt: now,
           );
+
+      await _database
+          .into(_database.idMapping)
+          .insert(companion, mode: InsertMode.insertOrReplace);
 
       // Update caches
       _localToServerCache[localId] = serverId;
@@ -40,7 +44,11 @@ class IdMappingService {
 
       _logger.fine('ID mapping created successfully');
     } catch (error, stackTrace) {
-      _logger.severe('Failed to map IDs: $localId -> $serverId', error, stackTrace);
+      _logger.severe(
+        'Failed to map IDs: $localId -> $serverId',
+        error,
+        stackTrace,
+      );
       throw DatabaseException('Failed to create ID mapping: $error');
     }
   }
@@ -54,9 +62,10 @@ class IdMappingService {
       }
 
       _logger.fine('Looking up server ID for: $localId');
-      final IdMappingEntity? mapping = await (_database.select(_database.idMapping)
-            ..where(($IdMappingTable m) => m.localId.equals(localId)))
-          .getSingleOrNull();
+      final IdMappingEntity? mapping =
+          await (_database.select(_database.idMapping)..where(
+            ($IdMappingTable m) => m.localId.equals(localId),
+          )).getSingleOrNull();
 
       if (mapping != null) {
         _localToServerCache[localId] = mapping.serverId;
@@ -65,8 +74,16 @@ class IdMappingService {
 
       return null;
     } catch (error, stackTrace) {
-      _logger.severe('Failed to get server ID for: $localId', error, stackTrace);
-      throw DatabaseException.queryFailed('SELECT server_id FROM id_mapping WHERE local_id = $localId', error, stackTrace);
+      _logger.severe(
+        'Failed to get server ID for: $localId',
+        error,
+        stackTrace,
+      );
+      throw DatabaseException.queryFailed(
+        'SELECT server_id FROM id_mapping WHERE local_id = $localId',
+        error,
+        stackTrace,
+      );
     }
   }
 
@@ -79,9 +96,10 @@ class IdMappingService {
       }
 
       _logger.fine('Looking up local ID for: $serverId');
-      final IdMappingEntity? mapping = await (_database.select(_database.idMapping)
-            ..where(($IdMappingTable m) => m.serverId.equals(serverId)))
-          .getSingleOrNull();
+      final IdMappingEntity? mapping =
+          await (_database.select(_database.idMapping)..where(
+            ($IdMappingTable m) => m.serverId.equals(serverId),
+          )).getSingleOrNull();
 
       if (mapping != null) {
         _serverToLocalCache[serverId] = mapping.localId;
@@ -90,8 +108,16 @@ class IdMappingService {
 
       return null;
     } catch (error, stackTrace) {
-      _logger.severe('Failed to get local ID for: $serverId', error, stackTrace);
-      throw DatabaseException.queryFailed('SELECT local_id FROM id_mapping WHERE server_id = $serverId', error, stackTrace);
+      _logger.severe(
+        'Failed to get local ID for: $serverId',
+        error,
+        stackTrace,
+      );
+      throw DatabaseException.queryFailed(
+        'SELECT local_id FROM id_mapping WHERE server_id = $serverId',
+        error,
+        stackTrace,
+      );
     }
   }
 
@@ -99,10 +125,19 @@ class IdMappingService {
   Future<List<IdMappingEntity>> getMappingsByType(String entityType) async {
     try {
       _logger.fine('Fetching mappings for entity type: $entityType');
-      return await (_database.select(_database.idMapping)..where(($IdMappingTable m) => m.entityType.equals(entityType))).get();
+      return await (_database.select(_database.idMapping)
+        ..where(($IdMappingTable m) => m.entityType.equals(entityType))).get();
     } catch (error, stackTrace) {
-      _logger.severe('Failed to get mappings for type: $entityType', error, stackTrace);
-      throw DatabaseException.queryFailed('SELECT * FROM id_mapping WHERE entity_type = $entityType', error, stackTrace);
+      _logger.severe(
+        'Failed to get mappings for type: $entityType',
+        error,
+        stackTrace,
+      );
+      throw DatabaseException.queryFailed(
+        'SELECT * FROM id_mapping WHERE entity_type = $entityType',
+        error,
+        stackTrace,
+      );
     }
   }
 
@@ -131,28 +166,32 @@ class IdMappingService {
   Future<void> removeMapping(String localId) async {
     try {
       _logger.info('Removing ID mapping for: $localId');
-      
+
       // Get the mapping first to update cache
-      final IdMappingEntity? mapping = await (_database.select(_database.idMapping)
-            ..where(($IdMappingTable m) => m.localId.equals(localId)))
-          .getSingleOrNull();
-      
+      final IdMappingEntity? mapping =
+          await (_database.select(_database.idMapping)..where(
+            ($IdMappingTable m) => m.localId.equals(localId),
+          )).getSingleOrNull();
+
       if (mapping != null) {
         // Remove from database
         await (_database.delete(_database.idMapping)
-              ..where(($IdMappingTable m) => m.localId.equals(localId)))
-            .go();
-        
+          ..where(($IdMappingTable m) => m.localId.equals(localId))).go();
+
         // Remove from caches
         _localToServerCache.remove(localId);
         _serverToLocalCache.remove(mapping.serverId);
-        
+
         _logger.fine('ID mapping removed successfully');
       } else {
         _logger.fine('No mapping found for: $localId');
       }
     } catch (error, stackTrace) {
-      _logger.severe('Failed to remove ID mapping for: $localId', error, stackTrace);
+      _logger.severe(
+        'Failed to remove ID mapping for: $localId',
+        error,
+        stackTrace,
+      );
       throw DatabaseException('Failed to remove ID mapping: $error');
     }
   }

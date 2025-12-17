@@ -45,10 +45,7 @@ import 'package:waterflyiii/services/cache/cache_service.dart';
 /// ```
 class InsightsService {
   /// Creates an insights service with cache support.
-  InsightsService({
-    required this.fireflyService,
-    required this.cacheService,
-  });
+  InsightsService({required this.fireflyService, required this.cacheService});
 
   /// Firefly III service for API access.
   final FireflyService fireflyService;
@@ -57,7 +54,7 @@ class InsightsService {
   final CacheService cacheService;
 
   final Logger _log = Logger('InsightsService');
-  
+
   /// Date formatter for API date parameters.
   final intl.DateFormat _dateFormat = intl.DateFormat('yyyy-MM-dd', 'en_US');
 
@@ -80,19 +77,23 @@ class InsightsService {
     bool forceRefresh = false,
   }) async {
     final String cacheKey = _buildCacheKey('expense_total', start, end);
-    _log.fine('Getting expense total for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}');
+    _log.fine(
+      'Getting expense total for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
+    );
 
     try {
-      final CacheResult<List<InsightTotalEntry>> result =
-          await cacheService.get<List<InsightTotalEntry>>(
-        entityType: 'insight_expense_total',
-        entityId: cacheKey,
-        fetcher: () => _fetchExpenseTotal(start, end),
-        ttl: CacheTtlConfig.dashboard,
-        forceRefresh: forceRefresh,
-      );
+      final CacheResult<List<InsightTotalEntry>> result = await cacheService
+          .get<List<InsightTotalEntry>>(
+            entityType: 'insight_expense_total',
+            entityId: cacheKey,
+            fetcher: () => _fetchExpenseTotal(start, end),
+            ttl: CacheTtlConfig.dashboard,
+            forceRefresh: forceRefresh,
+          );
 
-      _log.info('Expense total fetched from ${result.source} (fresh: ${result.isFresh})');
+      _log.info(
+        'Expense total fetched from ${result.source} (fresh: ${result.isFresh})',
+      );
       return result.data ?? <InsightTotalEntry>[];
     } catch (error, stackTrace) {
       _log.severe('Failed to get expense total', error, stackTrace);
@@ -110,19 +111,23 @@ class InsightsService {
     bool forceRefresh = false,
   }) async {
     final String cacheKey = _buildCacheKey('income_total', start, end);
-    _log.fine('Getting income total for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}');
+    _log.fine(
+      'Getting income total for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
+    );
 
     try {
-      final CacheResult<List<InsightTotalEntry>> result =
-          await cacheService.get<List<InsightTotalEntry>>(
-        entityType: 'insight_income_total',
-        entityId: cacheKey,
-        fetcher: () => _fetchIncomeTotal(start, end),
-        ttl: CacheTtlConfig.dashboard,
-        forceRefresh: forceRefresh,
-      );
+      final CacheResult<List<InsightTotalEntry>> result = await cacheService
+          .get<List<InsightTotalEntry>>(
+            entityType: 'insight_income_total',
+            entityId: cacheKey,
+            fetcher: () => _fetchIncomeTotal(start, end),
+            ttl: CacheTtlConfig.dashboard,
+            forceRefresh: forceRefresh,
+          );
 
-      _log.info('Income total fetched from ${result.source} (fresh: ${result.isFresh})');
+      _log.info(
+        'Income total fetched from ${result.source} (fresh: ${result.isFresh})',
+      );
       return result.data ?? <InsightTotalEntry>[];
     } catch (error, stackTrace) {
       _log.severe('Failed to get income total', error, stackTrace);
@@ -143,19 +148,23 @@ class InsightsService {
     bool forceRefresh = false,
   }) async {
     final String cacheKey = _buildCacheKey('expense_category', start, end);
-    _log.fine('Getting expense by category for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}');
+    _log.fine(
+      'Getting expense by category for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
+    );
 
     try {
-      final CacheResult<List<InsightGroupEntry>> result =
-          await cacheService.get<List<InsightGroupEntry>>(
-        entityType: 'insight_expense_category',
-        entityId: cacheKey,
-        fetcher: () => _fetchExpenseByCategory(start, end),
-        ttl: CacheTtlConfig.dashboard,
-        forceRefresh: forceRefresh,
-      );
+      final CacheResult<List<InsightGroupEntry>> result = await cacheService
+          .get<List<InsightGroupEntry>>(
+            entityType: 'insight_expense_category',
+            entityId: cacheKey,
+            fetcher: () => _fetchExpenseByCategory(start, end),
+            ttl: CacheTtlConfig.dashboard,
+            forceRefresh: forceRefresh,
+          );
 
-      _log.info('Expense by category fetched from ${result.source} (fresh: ${result.isFresh})');
+      _log.info(
+        'Expense by category fetched from ${result.source} (fresh: ${result.isFresh})',
+      );
       return result.data ?? <InsightGroupEntry>[];
     } catch (error, stackTrace) {
       _log.severe('Failed to get expense by category', error, stackTrace);
@@ -170,19 +179,23 @@ class InsightsService {
     bool forceRefresh = false,
   }) async {
     final String cacheKey = _buildCacheKey('income_category', start, end);
-    _log.fine('Getting income by category for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}');
+    _log.fine(
+      'Getting income by category for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
+    );
 
     try {
-      final CacheResult<List<InsightGroupEntry>> result =
-          await cacheService.get<List<InsightGroupEntry>>(
-        entityType: 'insight_income_category',
-        entityId: cacheKey,
-        fetcher: () => _fetchIncomeByCategory(start, end),
-        ttl: CacheTtlConfig.dashboard,
-        forceRefresh: forceRefresh,
-      );
+      final CacheResult<List<InsightGroupEntry>> result = await cacheService
+          .get<List<InsightGroupEntry>>(
+            entityType: 'insight_income_category',
+            entityId: cacheKey,
+            fetcher: () => _fetchIncomeByCategory(start, end),
+            ttl: CacheTtlConfig.dashboard,
+            forceRefresh: forceRefresh,
+          );
 
-      _log.info('Income by category fetched from ${result.source} (fresh: ${result.isFresh})');
+      _log.info(
+        'Income by category fetched from ${result.source} (fresh: ${result.isFresh})',
+      );
       return result.data ?? <InsightGroupEntry>[];
     } catch (error, stackTrace) {
       _log.severe('Failed to get income by category', error, stackTrace);
@@ -201,19 +214,23 @@ class InsightsService {
     bool forceRefresh = false,
   }) async {
     final String cacheKey = _buildCacheKey('expense_tag', start, end);
-    _log.fine('Getting expense by tag for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}');
+    _log.fine(
+      'Getting expense by tag for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
+    );
 
     try {
-      final CacheResult<List<InsightGroupEntry>> result =
-          await cacheService.get<List<InsightGroupEntry>>(
-        entityType: 'insight_expense_tag',
-        entityId: cacheKey,
-        fetcher: () => _fetchExpenseByTag(start, end),
-        ttl: CacheTtlConfig.dashboard,
-        forceRefresh: forceRefresh,
-      );
+      final CacheResult<List<InsightGroupEntry>> result = await cacheService
+          .get<List<InsightGroupEntry>>(
+            entityType: 'insight_expense_tag',
+            entityId: cacheKey,
+            fetcher: () => _fetchExpenseByTag(start, end),
+            ttl: CacheTtlConfig.dashboard,
+            forceRefresh: forceRefresh,
+          );
 
-      _log.info('Expense by tag fetched from ${result.source} (fresh: ${result.isFresh})');
+      _log.info(
+        'Expense by tag fetched from ${result.source} (fresh: ${result.isFresh})',
+      );
       return result.data ?? <InsightGroupEntry>[];
     } catch (error, stackTrace) {
       _log.severe('Failed to get expense by tag', error, stackTrace);
@@ -228,19 +245,23 @@ class InsightsService {
     bool forceRefresh = false,
   }) async {
     final String cacheKey = _buildCacheKey('income_tag', start, end);
-    _log.fine('Getting income by tag for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}');
+    _log.fine(
+      'Getting income by tag for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
+    );
 
     try {
-      final CacheResult<List<InsightGroupEntry>> result =
-          await cacheService.get<List<InsightGroupEntry>>(
-        entityType: 'insight_income_tag',
-        entityId: cacheKey,
-        fetcher: () => _fetchIncomeByTag(start, end),
-        ttl: CacheTtlConfig.dashboard,
-        forceRefresh: forceRefresh,
-      );
+      final CacheResult<List<InsightGroupEntry>> result = await cacheService
+          .get<List<InsightGroupEntry>>(
+            entityType: 'insight_income_tag',
+            entityId: cacheKey,
+            fetcher: () => _fetchIncomeByTag(start, end),
+            ttl: CacheTtlConfig.dashboard,
+            forceRefresh: forceRefresh,
+          );
 
-      _log.info('Income by tag fetched from ${result.source} (fresh: ${result.isFresh})');
+      _log.info(
+        'Income by tag fetched from ${result.source} (fresh: ${result.isFresh})',
+      );
       return result.data ?? <InsightGroupEntry>[];
     } catch (error, stackTrace) {
       _log.severe('Failed to get income by tag', error, stackTrace);
@@ -301,13 +322,16 @@ class InsightsService {
     _log.fine('Fetching expense by category from API');
     final FireflyIii api = fireflyService.api;
 
-    final Response<InsightGroup> response = await api.v1InsightExpenseCategoryGet(
-      start: _dateFormat.format(start),
-      end: _dateFormat.format(end),
-    );
+    final Response<InsightGroup> response = await api
+        .v1InsightExpenseCategoryGet(
+          start: _dateFormat.format(start),
+          end: _dateFormat.format(end),
+        );
 
     if (response.isSuccessful && response.body != null) {
-      _log.fine('Expense by category API response: ${response.body!.length} entries');
+      _log.fine(
+        'Expense by category API response: ${response.body!.length} entries',
+      );
       return response.body!;
     }
 
@@ -322,13 +346,16 @@ class InsightsService {
     _log.fine('Fetching income by category from API');
     final FireflyIii api = fireflyService.api;
 
-    final Response<InsightGroup> response = await api.v1InsightIncomeCategoryGet(
-      start: _dateFormat.format(start),
-      end: _dateFormat.format(end),
-    );
+    final Response<InsightGroup> response = await api
+        .v1InsightIncomeCategoryGet(
+          start: _dateFormat.format(start),
+          end: _dateFormat.format(end),
+        );
 
     if (response.isSuccessful && response.body != null) {
-      _log.fine('Income by category API response: ${response.body!.length} entries');
+      _log.fine(
+        'Income by category API response: ${response.body!.length} entries',
+      );
       return response.body!;
     }
 
@@ -349,7 +376,9 @@ class InsightsService {
     );
 
     if (response.isSuccessful && response.body != null) {
-      _log.fine('Expense by tag API response: ${response.body!.length} entries');
+      _log.fine(
+        'Expense by tag API response: ${response.body!.length} entries',
+      );
       return response.body!;
     }
 
@@ -396,7 +425,8 @@ class InsightsService {
     _log.info('Invalidating all insight caches');
     // Note: CacheService.invalidateAll() can be used if available
     // For now, individual invalidation would require iterating cache metadata
-    _log.info('All insight caches invalidated (via full cache clear if needed)');
+    _log.info(
+      'All insight caches invalidated (via full cache clear if needed)',
+    );
   }
 }
-

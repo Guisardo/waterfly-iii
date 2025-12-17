@@ -4,7 +4,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:waterflyiii/main.dart' as app;
 
 /// Comprehensive E2E test suite for Waterfly III
-/// 
+///
 /// Tests cover:
 /// - App initialization and splash screen
 /// - Login flow with valid/invalid credentials
@@ -16,7 +16,9 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Waterfly III E2E Tests', () {
-    testWidgets('App launches and shows splash screen', (WidgetTester tester) async {
+    testWidgets('App launches and shows splash screen', (
+      WidgetTester tester,
+    ) async {
       app.main();
       await tester.pumpAndSettle();
 
@@ -28,7 +30,9 @@ void main() {
       );
     });
 
-    testWidgets('Login flow with valid credentials', (WidgetTester tester) async {
+    testWidgets('Login flow with valid credentials', (
+      WidgetTester tester,
+    ) async {
       app.main();
       await tester.pumpAndSettle();
 
@@ -97,7 +101,9 @@ void main() {
         await tester.pumpAndSettle();
 
         // Fill transaction details
-        final Finder descriptionField = find.byKey(const Key('transactionDescription'));
+        final Finder descriptionField = find.byKey(
+          const Key('transactionDescription'),
+        );
         if (descriptionField.evaluate().isNotEmpty) {
           await tester.enterText(descriptionField, 'Test Transaction');
           await tester.pumpAndSettle();

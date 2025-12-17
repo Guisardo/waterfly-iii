@@ -16,7 +16,8 @@ import 'package:waterflyiii/models/sync_progress.dart';
 /// - Visual accessibility (contrast, labels)
 class OfflineAccessibilityService {
   static final Logger _logger = Logger('OfflineAccessibilityService');
-  static final OfflineAccessibilityService _instance = OfflineAccessibilityService._internal();
+  static final OfflineAccessibilityService _instance =
+      OfflineAccessibilityService._internal();
 
   factory OfflineAccessibilityService() => _instance;
 
@@ -35,7 +36,8 @@ class OfflineAccessibilityService {
         announcement = 'You are now online. Data will sync automatically.';
         break;
       case ConnectivityStatus.offline:
-        announcement = 'You are now offline. Changes will be saved locally and synced when you reconnect.';
+        announcement =
+            'You are now offline. Changes will be saved locally and synced when you reconnect.';
         break;
       case ConnectivityStatus.unknown:
         announcement = 'Checking internet connection.';
@@ -52,12 +54,14 @@ class OfflineAccessibilityService {
     SyncProgress progress,
   ) {
     if (progress.completedOperations == progress.totalOperations) {
-      final String announcement = 'Sync complete. ${progress.completedOperations} operations synced successfully.';
+      final String announcement =
+          'Sync complete. ${progress.completedOperations} operations synced successfully.';
       _logger.fine('Announcing sync completion: $announcement');
       SemanticsService.announce(announcement, TextDirection.ltr);
     } else if (progress.completedOperations % 10 == 0) {
       // Announce every 10 operations to avoid spam
-      final String announcement = 'Syncing. ${progress.completedOperations} of ${progress.totalOperations} operations complete.';
+      final String announcement =
+          'Syncing. ${progress.completedOperations} of ${progress.totalOperations} operations complete.';
       _logger.fine('Announcing sync progress: $announcement');
       SemanticsService.announce(announcement, TextDirection.ltr);
     }
@@ -68,18 +72,16 @@ class OfflineAccessibilityService {
     BuildContext context,
     int conflictCount,
   ) {
-    final String announcement = '$conflictCount conflict${conflictCount == 1 ? '' : 's'} detected. '
+    final String announcement =
+        '$conflictCount conflict${conflictCount == 1 ? '' : 's'} detected. '
         'Your attention is required to resolve ${conflictCount == 1 ? 'it' : 'them'}.';
-    
+
     _logger.info('Announcing conflicts: $announcement');
     SemanticsService.announce(announcement, TextDirection.ltr);
   }
 
   /// Announce sync error
-  static void announceSyncError(
-    BuildContext context,
-    String errorMessage,
-  ) {
+  static void announceSyncError(BuildContext context, String errorMessage) {
     final String announcement = 'Sync error: $errorMessage';
     _logger.warning('Announcing sync error: $announcement');
     SemanticsService.announce(announcement, TextDirection.ltr);
@@ -104,10 +106,7 @@ class OfflineAccessibilityService {
       label = 'Pending sync. Will sync when online.';
     }
 
-    return Semantics(
-      label: label,
-      child: child,
-    );
+    return Semantics(label: label, child: child);
   }
 
   /// Build keyboard shortcut hints
@@ -123,9 +122,9 @@ class OfflineAccessibilityService {
         child: Text(
           shortcut,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontFamily: 'monospace',
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontFamily: 'monospace',
+          ),
         ),
       ),
     );
@@ -135,12 +134,13 @@ class OfflineAccessibilityService {
   static bool hasGoodContrast(Color foreground, Color background) {
     final double fgLuminance = foreground.computeLuminance();
     final double bgLuminance = background.computeLuminance();
-    
-    final double lighter = fgLuminance > bgLuminance ? fgLuminance : bgLuminance;
+
+    final double lighter =
+        fgLuminance > bgLuminance ? fgLuminance : bgLuminance;
     final double darker = fgLuminance > bgLuminance ? bgLuminance : fgLuminance;
-    
+
     final double contrast = (lighter + 0.05) / (darker + 0.05);
-    
+
     // WCAG AA requires 4.5:1 for normal text
     return contrast >= 4.5;
   }
@@ -153,14 +153,7 @@ class OfflineAccessibilityService {
     Color? color,
     double? size,
   }) {
-    return Semantics(
-      label: label,
-      child: Icon(
-        icon,
-        color: color,
-        size: size,
-      ),
-    );
+    return Semantics(label: label, child: Icon(icon, color: color, size: size));
   }
 
   /// Build accessible button with semantic label
@@ -185,12 +178,16 @@ class OfflineAccessibilityService {
     int itemCount,
     String entityType,
   ) {
-    final String announcement = '$itemCount $entityType${itemCount == 1 ? '' : 's'} in list.';
+    final String announcement =
+        '$itemCount $entityType${itemCount == 1 ? '' : 's'} in list.';
     SemanticsService.announce(announcement, TextDirection.ltr);
   }
 
   /// Build focus indicator for keyboard navigation
-  static BoxDecoration buildFocusIndicator(BuildContext context, bool hasFocus) {
+  static BoxDecoration buildFocusIndicator(
+    BuildContext context,
+    bool hasFocus,
+  ) {
     if (!hasFocus) {
       return const BoxDecoration();
     }
@@ -207,7 +204,8 @@ class OfflineAccessibilityService {
 
 /// Mixin for keyboard navigation support
 mixin KeyboardNavigationMixin<T extends StatefulWidget> on State<T> {
-  final Map<LogicalKeySet, VoidCallback> _shortcuts = <LogicalKeySet, VoidCallback>{};
+  final Map<LogicalKeySet, VoidCallback> _shortcuts =
+      <LogicalKeySet, VoidCallback>{};
 
   /// Register keyboard shortcut
   void registerShortcut(LogicalKeySet keys, VoidCallback callback) {
@@ -226,10 +224,7 @@ mixin KeyboardNavigationMixin<T extends StatefulWidget> on State<T> {
             onInvoke: (VoidCallbackIntent intent) => intent.callback(),
           ),
         },
-        child: Focus(
-          autofocus: true,
-          child: child,
-        ),
+        child: Focus(autofocus: true, child: child),
       ),
     );
   }

@@ -257,7 +257,8 @@ class ETagResponse<T> {
   }
 
   /// Get Cache-Control header value
-  String? get cacheControl => headers?['cache-control'] ?? headers?['Cache-Control'];
+  String? get cacheControl =>
+      headers?['cache-control'] ?? headers?['Cache-Control'];
 
   /// Get max-age from Cache-Control header (in seconds)
   ///

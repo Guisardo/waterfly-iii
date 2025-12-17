@@ -419,9 +419,7 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
   /// already handle via the invalidation stream (CacheEventType.refreshed).
   Future<void> _loadData() async {
     try {
-      _log.fine(
-        'Loading data for ${widget.entityType}:${widget.entityId}',
-      );
+      _log.fine('Loading data for ${widget.entityType}:${widget.entityId}');
 
       setState(() {
         _isLoading = true;
@@ -451,7 +449,8 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
         setState(() {
           _data = data;
           _isLoading = false;
-          _isFresh = true; // Always report as fresh (see architectural note above)
+          _isFresh =
+              true; // Always report as fresh (see architectural note above)
           _error = null;
         });
       }
@@ -500,7 +499,8 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
       _subscription = cacheService.invalidationStream
           .where((CacheInvalidationEvent event) {
             // Match specific entity OR type-level invalidation
-            final bool matchesEntity = event.entityType == widget.entityType &&
+            final bool matchesEntity =
+                event.entityType == widget.entityType &&
                 (event.entityId == widget.entityId || event.entityId == '*');
 
             // Only interested in refresh events (not just invalidations)
@@ -518,11 +518,7 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
         'Subscribed to cache updates for ${widget.entityType}:${widget.entityId}',
       );
     } catch (e, stackTrace) {
-      _log.severe(
-        'Failed to subscribe to cache updates',
-        e,
-        stackTrace,
-      );
+      _log.severe('Failed to subscribe to cache updates', e, stackTrace);
       // Non-fatal: widget still works without reactive updates
     }
   }
@@ -532,9 +528,7 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
   /// Called when background refresh completes.
   /// Updates widget state with fresh data.
   void _handleCacheUpdate(CacheInvalidationEvent event) {
-    _log.fine(
-      'Cache updated: ${widget.entityType}:${widget.entityId}',
-    );
+    _log.fine('Cache updated: ${widget.entityType}:${widget.entityId}');
 
     // Update state if widget still mounted
     if (mounted && event.data != null) {
@@ -549,11 +543,7 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
           'UI updated with fresh data: ${widget.entityType}:${widget.entityId}',
         );
       } catch (e, stackTrace) {
-        _log.severe(
-          'Failed to update UI with cache data',
-          e,
-          stackTrace,
-        );
+        _log.severe('Failed to update UI with cache data', e, stackTrace);
         // Non-fatal: keep current data
       }
     }
@@ -601,9 +591,7 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
   ///
   /// Used when loadingBuilder not provided.
   Widget _buildDefaultLoadingWidget() {
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
   /// Build default error widget
@@ -614,11 +602,7 @@ class _CacheStreamBuilderState<T> extends State<CacheStreamBuilder<T>> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Colors.red,
-          ),
+          const Icon(Icons.error_outline, size: 64, color: Colors.red),
           const SizedBox(height: 16),
           Text(
             'Error loading data',

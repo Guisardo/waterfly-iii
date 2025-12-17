@@ -84,7 +84,7 @@ class _SummaryChartPopupState extends State<SummaryChartPopup> {
     final DateTime now = DateTime.now().toLocal().clearTime();
 
     List<ChartDataSet> chartData;
-    
+
     // Use ChartDataService with cache-first strategy
     if (chartService != null) {
       final ChartLine chartLine = await chartService.getAccountOverview(

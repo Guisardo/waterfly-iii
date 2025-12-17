@@ -25,7 +25,7 @@ import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
 class ConnectivityProvider extends ChangeNotifier {
   /// Creates a connectivity provider.
   ConnectivityProvider({ConnectivityService? connectivityService})
-      : _connectivityService = connectivityService ?? ConnectivityService();
+    : _connectivityService = connectivityService ?? ConnectivityService();
 
   final ConnectivityService _connectivityService;
 
@@ -51,10 +51,12 @@ class ConnectivityProvider extends ChangeNotifier {
   String get statusText => _status.displayName;
 
   /// Current network types (WiFi, mobile, ethernet, etc.).
-  List<ConnectivityResult> get networkTypes => _connectivityService.currentNetworkTypes;
+  List<ConnectivityResult> get networkTypes =>
+      _connectivityService.currentNetworkTypes;
 
   /// Detailed connectivity information including network type.
-  ConnectivityInfo get connectivityInfo => _connectivityService.connectivityInfo;
+  ConnectivityInfo get connectivityInfo =>
+      _connectivityService.connectivityInfo;
 
   /// Human-readable network type description.
   String get networkTypeDescription => connectivityInfo.networkTypeDescription;
@@ -67,13 +69,13 @@ class ConnectivityProvider extends ChangeNotifier {
     if (_isInitialized) return;
 
     await _connectivityService.initialize();
-    
+
     // Set initial status
     _status = _connectivityService.currentStatus;
-    
+
     // Listen to status changes
     _connectivityService.statusStream.listen(_onStatusChanged);
-    
+
     _isInitialized = true;
     notifyListeners();
   }

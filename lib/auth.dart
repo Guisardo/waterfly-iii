@@ -70,7 +70,7 @@ class AuthError implements Exception {
   /// Localization key for the error message.
   /// Should be translated using the app's localization system.
   final String cause;
-  
+
   @override
   String toString() => 'AuthError: $cause';
 }
@@ -289,7 +289,9 @@ class FireflyService with ChangeNotifier {
       return true;
     } catch (e) {
       // Try offline mode if network error
-      if (e is SocketException || e is TimeoutException || e is http.ClientException) {
+      if (e is SocketException ||
+          e is TimeoutException ||
+          e is http.ClientException) {
         log.info("Network error during sign in, attempting offline mode");
         return _signInOffline(apiHost, apiKey);
       }
@@ -302,38 +304,40 @@ class FireflyService with ChangeNotifier {
 
   Future<bool> _signInOffline(String host, String apiKey) async {
     log.config("FireflyService->_signInOffline($host)");
-    
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    
+
     // Check if we have cached data
     final String? cachedCurrency = prefs.getString('cached_default_currency');
     final String? cachedApiVersion = prefs.getString('cached_api_version');
     final String? cachedTimezone = prefs.getString('cached_timezone');
-    
-    if (cachedCurrency == null || cachedApiVersion == null || cachedTimezone == null) {
+
+    if (cachedCurrency == null ||
+        cachedApiVersion == null ||
+        cachedTimezone == null) {
       log.warning("Missing cached data for offline mode");
       return false;
     }
-    
+
     try {
       host = host.strip().rightStrip('/');
       apiKey = apiKey.strip();
-      
+
       final Uri uri = Uri.parse(host);
       _currentUser = AuthUser._create(uri, apiKey);
-      
+
       // Restore cached data
       defaultCurrency = CurrencyRead.fromJson(json.decode(cachedCurrency));
       _apiVersion = Version.parse(cachedApiVersion);
       tzHandler = TimeZoneHandler(cachedTimezone);
-      
+
       _signedIn = true;
       _transStock = TransStock(api);
-      
+
       log.info("Signed in offline mode with cached data");
       log.finest(() => "notify FireflyService->_signInOffline");
       notifyListeners();
-      
+
       return true;
     } catch (e, stackTrace) {
       log.warning("Failed to sign in offline", e, stackTrace);
@@ -410,52 +414,57 @@ class FireflyService with ChangeNotifier {
 
     await storage.write(key: 'api_host', value: host);
     await storage.write(key: 'api_key', value: apiKey);
-    
+
     // Cache data for offline mode
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('cached_default_currency', json.encode(defaultCurrency.toJson()));
+    await prefs.setString(
+      'cached_default_currency',
+      json.encode(defaultCurrency.toJson()),
+    );
     await prefs.setString('cached_api_version', _apiVersion.toString());
     await prefs.setString('cached_timezone', tzHandler.sLocation.name);
-    
+
     // Trigger initial sync to populate local database for offline use
     _triggerInitialSync();
 
     return true;
   }
-  
+
   /// Triggers initial full sync in background to populate local database
   void _triggerInitialSync() {
     // Delay sync to not interfere with initial app loading
     Future<void>.delayed(const Duration(seconds: 5), () async {
       try {
         log.info('Triggering initial sync to populate local database...');
-        
+
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         final int lastSyncTime = prefs.getInt('last_full_sync_time') ?? 0;
         final int now = DateTime.now().millisecondsSinceEpoch;
-        
-        log.fine('Sync time check: lastSyncTime=$lastSyncTime, now=$now, diff=${now - lastSyncTime}, threshold=3600000');
-        
+
+        log.fine(
+          'Sync time check: lastSyncTime=$lastSyncTime, now=$now, diff=${now - lastSyncTime}, threshold=3600000',
+        );
+
         // Only sync if last sync was more than 1 hour ago
         if (now - lastSyncTime > 3600000) {
           // Notify sync started with estimated operations
           // 6 entity types: accounts, categories, budgets, bills, piggy_banks, transactions
           notifyGlobalSyncState(true, totalOperations: 6);
           updateGlobalSyncProgress(currentOperation: 'Preparing...');
-          
+
           // Use singleton database instance (same as Provider's)
           final AppDatabase database = AppDatabase();
           log.fine('Using database instance: ${database.hashCode}');
           final FireflyApiAdapter apiAdapter = FireflyApiAdapter(api);
-          
+
           // Perform sync with progress tracking
           await _performSyncWithProgress(database, apiAdapter);
-          
+
           await prefs.setInt('last_full_sync_time', now);
-          
+
           // Notify sync completed
           notifyGlobalSyncState(false);
-          
+
           log.info('Initial sync completed successfully');
         } else {
           log.info('Skipping initial sync - recent sync exists');
@@ -466,7 +475,7 @@ class FireflyService with ChangeNotifier {
       }
     });
   }
-  
+
   /// Performs full sync with granular progress reporting
   Future<void> _performSyncWithProgress(
     AppDatabase database,
@@ -474,7 +483,7 @@ class FireflyService with ChangeNotifier {
   ) async {
     int completedSteps = 0;
     const int totalSteps = 6;
-    
+
     void updateStep(String operation) {
       completedSteps++;
       updateGlobalSyncProgress(
@@ -484,50 +493,54 @@ class FireflyService with ChangeNotifier {
       );
       log.info('Sync progress: $completedSteps/$totalSteps - $operation');
     }
-    
+
     // Sync order: accounts first, then categories, piggy banks, budgets, bills, transactions last
     // Each entity type is saved immediately after fetching for better UX
-    
+
     // Step 1: Fetch and save accounts (most important - needed for other views)
     updateGlobalSyncProgress(currentOperation: 'Syncing accounts...');
-    final List<Map<String, dynamic>> accounts = await apiAdapter.getAllAccounts();
+    final List<Map<String, dynamic>> accounts =
+        await apiAdapter.getAllAccounts();
     log.fine('Fetched ${accounts.length} accounts from API');
     await _saveAccounts(database, accounts);
     updateStep('Accounts: ${accounts.length}');
-    
+
     // Step 2: Fetch and save categories
     updateGlobalSyncProgress(currentOperation: 'Syncing categories...');
-    final List<Map<String, dynamic>> categories = await apiAdapter.getAllCategories();
+    final List<Map<String, dynamic>> categories =
+        await apiAdapter.getAllCategories();
     await _saveCategories(database, categories);
     updateStep('Categories: ${categories.length}');
-    
+
     // Step 3: Fetch and save piggy banks (depends on accounts)
     updateGlobalSyncProgress(currentOperation: 'Syncing piggy banks...');
-    final List<Map<String, dynamic>> piggyBanks = await apiAdapter.getAllPiggyBanks();
+    final List<Map<String, dynamic>> piggyBanks =
+        await apiAdapter.getAllPiggyBanks();
     await _savePiggyBanks(database, piggyBanks);
     updateStep('Piggy banks: ${piggyBanks.length}');
-    
+
     // Step 4: Fetch and save budgets
     updateGlobalSyncProgress(currentOperation: 'Syncing budgets...');
     final List<Map<String, dynamic>> budgets = await apiAdapter.getAllBudgets();
     await _saveBudgets(database, budgets);
     updateStep('Budgets: ${budgets.length}');
-    
+
     // Step 5: Fetch and save bills
     updateGlobalSyncProgress(currentOperation: 'Syncing bills...');
     final List<Map<String, dynamic>> bills = await apiAdapter.getAllBills();
     await _saveBills(database, bills);
     updateStep('Bills: ${bills.length}');
-    
+
     // Step 6: Fetch and save transactions (slowest - done last)
     updateGlobalSyncProgress(currentOperation: 'Syncing transactions...');
-    final List<Map<String, dynamic>> transactions = await _fetchTransactionsWithProgress(apiAdapter);
+    final List<Map<String, dynamic>> transactions =
+        await _fetchTransactionsWithProgress(apiAdapter);
     await _saveTransactions(database, transactions);
     updateStep('Transactions: ${transactions.length}');
-    
+
     updateGlobalSyncProgress(currentOperation: 'Sync complete!');
   }
-  
+
   /// Fetch transactions with progress reporting for pagination
   Future<List<Map<String, dynamic>>> _fetchTransactionsWithProgress(
     FireflyApiAdapter apiAdapter,
@@ -535,22 +548,21 @@ class FireflyService with ChangeNotifier {
     final List<Map<String, dynamic>> allTransactions = <Map<String, dynamic>>[];
     int page = 1;
     int? totalPages;
-    
+
     while (true) {
       // Update progress with page info
-      final String pageInfo = totalPages != null 
-          ? 'page $page/$totalPages'
-          : 'page $page';
-      updateGlobalSyncProgress(
-        currentOperation: 'Transactions ($pageInfo)...',
+      final String pageInfo =
+          totalPages != null ? 'page $page/$totalPages' : 'page $page';
+      updateGlobalSyncProgress(currentOperation: 'Transactions ($pageInfo)...');
+
+      final Response<TransactionArray> response = await api.v1TransactionsGet(
+        page: page,
       );
-      
-      final Response<TransactionArray> response = await api.v1TransactionsGet(page: page);
-      
+
       if (!response.isSuccessful || response.body == null) {
         throw Exception('Failed to fetch transactions: ${response.error}');
       }
-      
+
       // Try to get total pages from pagination meta
       if (totalPages == null) {
         final Meta meta = response.body!.meta;
@@ -559,10 +571,10 @@ class FireflyService with ChangeNotifier {
           totalPages = pagination.totalPages;
         }
       }
-      
+
       final List<TransactionRead> transactions = response.body!.data;
       if (transactions.isEmpty) break;
-      
+
       for (final TransactionRead transaction in transactions) {
         allTransactions.add(<String, dynamic>{
           'id': transaction.id,
@@ -570,7 +582,7 @@ class FireflyService with ChangeNotifier {
           'attributes': transaction.attributes.toJson(),
         });
       }
-      
+
       // Update progress based on pages if we know total
       if (totalPages != null && totalPages > 0) {
         // Keep base progress at step 5 (out of 6), add fractional progress for pages
@@ -578,35 +590,46 @@ class FireflyService with ChangeNotifier {
         final double overallProgress = (5 + pageProgress) / 6;
         updateGlobalSyncProgress(progress: overallProgress);
       }
-      
+
       page++;
     }
-    
-    log.info('Fetched ${allTransactions.length} transactions in ${page - 1} pages');
-    updateGlobalSyncProgress(currentOperation: 'Transactions: ${allTransactions.length}');
+
+    log.info(
+      'Fetched ${allTransactions.length} transactions in ${page - 1} pages',
+    );
+    updateGlobalSyncProgress(
+      currentOperation: 'Transactions: ${allTransactions.length}',
+    );
     return allTransactions;
   }
-  
+
   /// Save accounts to local database (uses insertOnConflictUpdate to preserve existing data)
-  Future<void> _saveAccounts(AppDatabase database, List<Map<String, dynamic>> accounts) async {
+  Future<void> _saveAccounts(
+    AppDatabase database,
+    List<Map<String, dynamic>> accounts,
+  ) async {
     log.fine('Saving ${accounts.length} accounts to database');
     try {
       // Log first account for debugging
       if (accounts.isNotEmpty) {
         final first = accounts.first;
-        log.fine('First account sample: id=${first['id']}, attrs keys=${(first['attributes'] as Map?)?.keys.toList()}');
+        log.fine(
+          'First account sample: id=${first['id']}, attrs keys=${(first['attributes'] as Map?)?.keys.toList()}',
+        );
       }
-      
+
       await database.batch((Batch batch) {
         for (final Map<String, dynamic> account in accounts) {
-          final Map<String, dynamic> attrs = account['attributes'] as Map<String, dynamic>;
+          final Map<String, dynamic> attrs =
+              account['attributes'] as Map<String, dynamic>;
           // Parse current_balance - API returns it as String, not num
-        final dynamic rawBalance = attrs['current_balance'];
-        final double balance = rawBalance is num 
-            ? rawBalance.toDouble() 
-            : double.tryParse(rawBalance?.toString() ?? '') ?? 0.0;
-        
-        batch.insert(
+          final dynamic rawBalance = attrs['current_balance'];
+          final double balance =
+              rawBalance is num
+                  ? rawBalance.toDouble()
+                  : double.tryParse(rawBalance?.toString() ?? '') ?? 0.0;
+
+          batch.insert(
             database.accounts,
             AccountEntityCompanion.insert(
               id: account['id'] as String,
@@ -619,8 +642,12 @@ class FireflyService with ChangeNotifier {
               currencyCode: attrs['currency_code'] as String? ?? 'USD',
               currentBalance: balance,
               notes: Value(attrs['notes'] as String?),
-              createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
-              updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
+              createdAt:
+                  DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
+                  DateTime.now(),
+              updatedAt:
+                  DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
+                  DateTime.now(),
               isSynced: const Value(true),
               syncStatus: const Value('synced'),
             ),
@@ -636,11 +663,15 @@ class FireflyService with ChangeNotifier {
   }
 
   /// Save categories to local database
-  Future<void> _saveCategories(AppDatabase database, List<Map<String, dynamic>> categories) async {
+  Future<void> _saveCategories(
+    AppDatabase database,
+    List<Map<String, dynamic>> categories,
+  ) async {
     log.fine('Saving ${categories.length} categories to database');
     await database.batch((Batch batch) {
       for (final Map<String, dynamic> category in categories) {
-        final Map<String, dynamic> attrs = category['attributes'] as Map<String, dynamic>;
+        final Map<String, dynamic> attrs =
+            category['attributes'] as Map<String, dynamic>;
         batch.insert(
           database.categories,
           CategoryEntityCompanion.insert(
@@ -648,8 +679,12 @@ class FireflyService with ChangeNotifier {
             serverId: Value(category['id'] as String),
             name: attrs['name'] as String,
             notes: Value(attrs['notes'] as String?),
-            createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
-            updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
+            createdAt:
+                DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
+                DateTime.now(),
+            updatedAt:
+                DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
+                DateTime.now(),
             isSynced: const Value(true),
             syncStatus: const Value('synced'),
           ),
@@ -661,22 +696,28 @@ class FireflyService with ChangeNotifier {
   }
 
   /// Save piggy banks to local database
-  Future<void> _savePiggyBanks(AppDatabase database, List<Map<String, dynamic>> piggyBanks) async {
+  Future<void> _savePiggyBanks(
+    AppDatabase database,
+    List<Map<String, dynamic>> piggyBanks,
+  ) async {
     log.fine('Saving ${piggyBanks.length} piggy banks to database');
     await database.batch((Batch batch) {
       for (final Map<String, dynamic> piggyBank in piggyBanks) {
-        final Map<String, dynamic> attrs = piggyBank['attributes'] as Map<String, dynamic>;
-        
+        final Map<String, dynamic> attrs =
+            piggyBank['attributes'] as Map<String, dynamic>;
+
         // Parse amounts - API may return as String
         final dynamic rawTarget = attrs['target_amount'];
-        final double? targetAmount = rawTarget is num 
-            ? rawTarget.toDouble() 
-            : double.tryParse(rawTarget?.toString() ?? '');
+        final double? targetAmount =
+            rawTarget is num
+                ? rawTarget.toDouble()
+                : double.tryParse(rawTarget?.toString() ?? '');
         final dynamic rawCurrent = attrs['current_amount'];
-        final double currentAmount = rawCurrent is num 
-            ? rawCurrent.toDouble() 
-            : double.tryParse(rawCurrent?.toString() ?? '') ?? 0.0;
-        
+        final double currentAmount =
+            rawCurrent is num
+                ? rawCurrent.toDouble()
+                : double.tryParse(rawCurrent?.toString() ?? '') ?? 0.0;
+
         batch.insert(
           database.piggyBanks,
           PiggyBankEntityCompanion.insert(
@@ -686,10 +727,22 @@ class FireflyService with ChangeNotifier {
             accountId: attrs['account_id']?.toString() ?? '',
             targetAmount: Value(targetAmount),
             currentAmount: Value(currentAmount),
-            startDate: Value(attrs['start_date'] != null ? DateTime.tryParse(attrs['start_date'] as String) : null),
-            targetDate: Value(attrs['target_date'] != null ? DateTime.tryParse(attrs['target_date'] as String) : null),
-            createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
-            updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
+            startDate: Value(
+              attrs['start_date'] != null
+                  ? DateTime.tryParse(attrs['start_date'] as String)
+                  : null,
+            ),
+            targetDate: Value(
+              attrs['target_date'] != null
+                  ? DateTime.tryParse(attrs['target_date'] as String)
+                  : null,
+            ),
+            createdAt:
+                DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
+                DateTime.now(),
+            updatedAt:
+                DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
+                DateTime.now(),
             isSynced: const Value(true),
             syncStatus: const Value('synced'),
           ),
@@ -701,19 +754,27 @@ class FireflyService with ChangeNotifier {
   }
 
   /// Save budgets to local database
-  Future<void> _saveBudgets(AppDatabase database, List<Map<String, dynamic>> budgets) async {
+  Future<void> _saveBudgets(
+    AppDatabase database,
+    List<Map<String, dynamic>> budgets,
+  ) async {
     log.fine('Saving ${budgets.length} budgets to database');
     await database.batch((Batch batch) {
       for (final Map<String, dynamic> budget in budgets) {
-        final Map<String, dynamic> attrs = budget['attributes'] as Map<String, dynamic>;
+        final Map<String, dynamic> attrs =
+            budget['attributes'] as Map<String, dynamic>;
         batch.insert(
           database.budgets,
           BudgetEntityCompanion.insert(
             id: budget['id'] as String,
             serverId: Value(budget['id'] as String),
             name: attrs['name'] as String,
-            createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
-            updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
+            createdAt:
+                DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
+                DateTime.now(),
+            updatedAt:
+                DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
+                DateTime.now(),
             isSynced: const Value(true),
             syncStatus: const Value('synced'),
           ),
@@ -725,36 +786,45 @@ class FireflyService with ChangeNotifier {
   }
 
   /// Save bills to local database
-  Future<void> _saveBills(AppDatabase database, List<Map<String, dynamic>> bills) async {
+  Future<void> _saveBills(
+    AppDatabase database,
+    List<Map<String, dynamic>> bills,
+  ) async {
     log.fine('Saving ${bills.length} bills to database');
     await database.batch((Batch batch) {
       for (final Map<String, dynamic> bill in bills) {
-        final Map<String, dynamic> attrs = bill['attributes'] as Map<String, dynamic>;
-        
+        final Map<String, dynamic> attrs =
+            bill['attributes'] as Map<String, dynamic>;
+
         // Parse amounts - API may return as String
         final dynamic rawMin = attrs['amount_min'];
-        final double minAmount = rawMin is num 
-            ? rawMin.toDouble() 
-            : double.tryParse(rawMin?.toString() ?? '') ?? 0.0;
+        final double minAmount =
+            rawMin is num
+                ? rawMin.toDouble()
+                : double.tryParse(rawMin?.toString() ?? '') ?? 0.0;
         final dynamic rawMax = attrs['amount_max'];
-        final double maxAmount = rawMax is num 
-            ? rawMax.toDouble() 
-            : double.tryParse(rawMax?.toString() ?? '') ?? 0.0;
-        
+        final double maxAmount =
+            rawMax is num
+                ? rawMax.toDouble()
+                : double.tryParse(rawMax?.toString() ?? '') ?? 0.0;
+
         // Parse int fields safely
         final dynamic rawDecimalPlaces = attrs['currency_decimal_places'];
-        final int? decimalPlaces = rawDecimalPlaces is int 
-            ? rawDecimalPlaces 
-            : int.tryParse(rawDecimalPlaces?.toString() ?? '');
+        final int? decimalPlaces =
+            rawDecimalPlaces is int
+                ? rawDecimalPlaces
+                : int.tryParse(rawDecimalPlaces?.toString() ?? '');
         final dynamic rawOrder = attrs['order'];
-        final int? order = rawOrder is int 
-            ? rawOrder 
-            : int.tryParse(rawOrder?.toString() ?? '');
+        final int? order =
+            rawOrder is int
+                ? rawOrder
+                : int.tryParse(rawOrder?.toString() ?? '');
         final dynamic rawGroupOrder = attrs['object_group_order'];
-        final int? groupOrder = rawGroupOrder is int 
-            ? rawGroupOrder 
-            : int.tryParse(rawGroupOrder?.toString() ?? '');
-        
+        final int? groupOrder =
+            rawGroupOrder is int
+                ? rawGroupOrder
+                : int.tryParse(rawGroupOrder?.toString() ?? '');
+
         batch.insert(
           database.bills,
           BillEntityCompanion.insert(
@@ -763,21 +833,29 @@ class FireflyService with ChangeNotifier {
             name: attrs['name'] as String,
             minAmount: minAmount,
             maxAmount: maxAmount,
-            date: DateTime.tryParse(attrs['date'] as String? ?? '') ?? DateTime.now(),
+            date:
+                DateTime.tryParse(attrs['date'] as String? ?? '') ??
+                DateTime.now(),
             repeatFreq: attrs['repeat_freq'] as String? ?? 'monthly',
             currencyCode: attrs['currency_code'] as String? ?? 'USD',
             currencySymbol: Value(attrs['currency_symbol'] as String?),
             currencyDecimalPlaces: Value(decimalPlaces),
             currencyId: Value(attrs['currency_id']?.toString()),
-            nextExpectedMatch: Value(attrs['next_expected_match'] != null
-                ? DateTime.tryParse(attrs['next_expected_match'] as String)
-                : null),
+            nextExpectedMatch: Value(
+              attrs['next_expected_match'] != null
+                  ? DateTime.tryParse(attrs['next_expected_match'] as String)
+                  : null,
+            ),
             order: Value(order),
             objectGroupOrder: Value(groupOrder),
             objectGroupTitle: Value(attrs['object_group_title'] as String?),
             notes: Value(attrs['notes'] as String?),
-            createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
-            updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
+            createdAt:
+                DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
+                DateTime.now(),
+            updatedAt:
+                DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
+                DateTime.now(),
             isSynced: const Value(true),
             syncStatus: const Value('synced'),
           ),
@@ -789,53 +867,72 @@ class FireflyService with ChangeNotifier {
   }
 
   /// Save transactions to local database (in chunks for performance)
-  Future<void> _saveTransactions(AppDatabase database, List<Map<String, dynamic>> transactions) async {
+  Future<void> _saveTransactions(
+    AppDatabase database,
+    List<Map<String, dynamic>> transactions,
+  ) async {
     log.fine('Saving ${transactions.length} transactions to database');
     const int batchSize = 500;
     int saved = 0;
-    
+
     for (int i = 0; i < transactions.length; i += batchSize) {
-      final int end = (i + batchSize < transactions.length) ? i + batchSize : transactions.length;
+      final int end =
+          (i + batchSize < transactions.length)
+              ? i + batchSize
+              : transactions.length;
       final List<Map<String, dynamic>> chunk = transactions.sublist(i, end);
-      
+
       await database.batch((Batch batch) {
         for (final Map<String, dynamic> transaction in chunk) {
-          final Map<String, dynamic> attrs = transaction['attributes'] as Map<String, dynamic>;
-          final List<dynamic> txList = attrs['transactions'] as List<dynamic>? ?? <dynamic>[];
-          
+          final Map<String, dynamic> attrs =
+              transaction['attributes'] as Map<String, dynamic>;
+          final List<dynamic> txList =
+              attrs['transactions'] as List<dynamic>? ?? <dynamic>[];
+
           for (final dynamic tx in txList) {
             final Map<String, dynamic> txData = tx as Map<String, dynamic>;
-            
+
             // Parse amounts - API may return as String
             final dynamic rawAmount = txData['amount'];
-            final double amount = rawAmount is num 
-                ? rawAmount.toDouble() 
-                : double.tryParse(rawAmount?.toString() ?? '') ?? 0.0;
+            final double amount =
+                rawAmount is num
+                    ? rawAmount.toDouble()
+                    : double.tryParse(rawAmount?.toString() ?? '') ?? 0.0;
             final dynamic rawForeignAmount = txData['foreign_amount'];
-            final double? foreignAmount = rawForeignAmount is num 
-                ? rawForeignAmount.toDouble() 
-                : double.tryParse(rawForeignAmount?.toString() ?? '');
-            
+            final double? foreignAmount =
+                rawForeignAmount is num
+                    ? rawForeignAmount.toDouble()
+                    : double.tryParse(rawForeignAmount?.toString() ?? '');
+
             batch.insert(
               database.transactions,
               TransactionEntityCompanion.insert(
                 id: transaction['id'] as String,
                 serverId: Value(transaction['id'] as String),
                 type: txData['type'] as String? ?? 'withdrawal',
-                date: DateTime.tryParse(txData['date'] as String? ?? '') ?? DateTime.now(),
+                date:
+                    DateTime.tryParse(txData['date'] as String? ?? '') ??
+                    DateTime.now(),
                 amount: amount,
                 description: txData['description'] as String? ?? '',
                 sourceAccountId: txData['source_id']?.toString() ?? '',
-                destinationAccountId: txData['destination_id']?.toString() ?? '',
+                destinationAccountId:
+                    txData['destination_id']?.toString() ?? '',
                 categoryId: Value(txData['category_id']?.toString()),
                 budgetId: Value(txData['budget_id']?.toString()),
                 currencyCode: txData['currency_code'] as String? ?? 'USD',
                 foreignAmount: Value(foreignAmount),
-                foreignCurrencyCode: Value(txData['foreign_currency_code'] as String?),
+                foreignCurrencyCode: Value(
+                  txData['foreign_currency_code'] as String?,
+                ),
                 notes: Value(txData['notes'] as String?),
                 tags: Value(txData['tags']?.toString() ?? '[]'),
-                createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
-                updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
+                createdAt:
+                    DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
+                    DateTime.now(),
+                updatedAt:
+                    DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
+                    DateTime.now(),
                 isSynced: const Value(true),
                 syncStatus: const Value('synced'),
               ),

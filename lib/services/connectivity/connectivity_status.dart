@@ -23,10 +23,7 @@ enum ConnectivityStatus {
 /// - Multiple connection types (e.g., WiFi + VPN)
 class ConnectivityInfo {
   /// Creates connectivity information.
-  const ConnectivityInfo({
-    required this.status,
-    required this.networkTypes,
-  });
+  const ConnectivityInfo({required this.status, required this.networkTypes});
 
   /// Current connectivity status.
   final ConnectivityStatus status;
@@ -52,7 +49,8 @@ class ConnectivityInfo {
 
   /// Human-readable network type description.
   String get networkTypeDescription {
-    if (networkTypes.isEmpty || networkTypes.contains(ConnectivityResult.none)) {
+    if (networkTypes.isEmpty ||
+        networkTypes.contains(ConnectivityResult.none)) {
       return 'No connection';
     }
 

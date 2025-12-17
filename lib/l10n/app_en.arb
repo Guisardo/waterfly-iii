@@ -1230,5 +1230,51 @@
     "notificationExtractTransactionChannelDescription": "Notification asking to create a transaction from another notification.",
     "@notificationExtractTransactionChannelDescription": {
         "description": "Android notification channel description for transaction extraction"
+    },
+    "generalSyncEntity": "Sync {entity}",
+    "@generalSyncEntity": {
+        "description": "Button tooltip to sync a specific entity type from the server",
+        "placeholders": {
+            "entity": {
+                "type": "String",
+                "example": "Bills"
+            }
+        }
+    },
+    "generalSyncComplete": "Synced {count} {entity}",
+    "@generalSyncComplete": {
+        "description": "Message shown after successful sync of an entity type",
+        "placeholders": {
+            "entity": {
+                "type": "String",
+                "example": "bills"
+            },
+            "count": {
+                "type": "int",
+                "example": "5"
+            }
+        }
+    },
+    "generalSyncFailed": "Sync failed: {error}",
+    "@generalSyncFailed": {
+        "description": "Error message when sync fails",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Network error"
+            }
+        }
+    },
+    "generalOffline": "Offline",
+    "@generalOffline": {
+        "description": "Label indicating the device is offline"
+    },
+    "generalOfflineMessage": "You are offline. Connect to sync.",
+    "@generalOfflineMessage": {
+        "description": "Message shown when trying to sync while offline"
+    },
+    "generalSyncNotAvailable": "Sync service not available",
+    "@generalSyncNotAvailable": {
+        "description": "Message shown when sync service is not initialized"
     }
 }

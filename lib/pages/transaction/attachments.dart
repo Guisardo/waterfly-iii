@@ -150,7 +150,9 @@ class _AttachmentDialogState extends State<AttachmentDialog>
       await attachmentRepo.delete(attachment.id);
     } else {
       // Fallback to direct API call
-      log.warning('AttachmentRepository not available, falling back to direct API');
+      log.warning(
+        'AttachmentRepository not available, falling back to direct API',
+      );
       await api.v1AttachmentsIdDelete(id: attachment.id);
     }
 

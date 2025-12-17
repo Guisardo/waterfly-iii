@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 /// Test configuration for E2E tests
-/// 
+///
 /// Provides:
 /// - Test environment settings
 /// - Mock data for testing

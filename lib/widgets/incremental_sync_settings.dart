@@ -79,7 +79,11 @@ class _IncrementalSyncSettingsSectionState
   @override
   Widget build(BuildContext context) {
     return Consumer<OfflineSettingsProvider>(
-      builder: (BuildContext context, OfflineSettingsProvider settings, Widget? child) {
+      builder: (
+        BuildContext context,
+        OfflineSettingsProvider settings,
+        Widget? child,
+      ) {
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -128,15 +132,15 @@ class _IncrementalSyncSettingsSectionState
             children: <Widget>[
               Text(
                 'Incremental Sync',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               Text(
                 'Optimize sync performance by fetching only changed data',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -183,12 +187,8 @@ class _IncrementalSyncSettingsSectionState
         }
       },
       secondary: Icon(
-        settings.incrementalSyncEnabled
-            ? Icons.flash_on
-            : Icons.flash_off,
-        color: settings.incrementalSyncEnabled
-            ? Colors.amber
-            : Colors.grey,
+        settings.incrementalSyncEnabled ? Icons.flash_on : Icons.flash_off,
+        color: settings.incrementalSyncEnabled ? Colors.amber : Colors.grey,
       ),
     );
   }
@@ -208,34 +208,36 @@ class _IncrementalSyncSettingsSectionState
       trailing: DropdownButton<SyncWindow>(
         value: settings.syncWindow,
         underline: const SizedBox(),
-        items: SyncWindow.values.map((SyncWindow window) {
-          return DropdownMenuItem<SyncWindow>(
-            value: window,
-            child: Text(window.label),
-          );
-        }).toList(),
-        onChanged: settings.incrementalSyncEnabled
-            ? (SyncWindow? window) async {
-                if (window == null) return;
-                try {
-                  await settings.setSyncWindow(window);
-                  _log.info('Sync window set to ${window.label}');
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Sync window set to ${window.label}'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  _log.severe('Failed to set sync window', e);
-                  if (mounted) {
-                    _showError(context, 'Failed to update sync window');
+        items:
+            SyncWindow.values.map((SyncWindow window) {
+              return DropdownMenuItem<SyncWindow>(
+                value: window,
+                child: Text(window.label),
+              );
+            }).toList(),
+        onChanged:
+            settings.incrementalSyncEnabled
+                ? (SyncWindow? window) async {
+                  if (window == null) return;
+                  try {
+                    await settings.setSyncWindow(window);
+                    _log.info('Sync window set to ${window.label}');
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Sync window set to ${window.label}'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    _log.severe('Failed to set sync window', e);
+                    if (mounted) {
+                      _showError(context, 'Failed to update sync window');
+                    }
                   }
                 }
-              }
-            : null,
+                : null,
       ),
       enabled: settings.incrementalSyncEnabled,
     );
@@ -259,34 +261,39 @@ class _IncrementalSyncSettingsSectionState
           'How long to cache categories, bills, and piggy banks before refreshing. '
           'These entities change infrequently, so longer cache durations reduce API calls.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: CacheTtl.values.map((CacheTtl ttl) {
-            final bool isSelected = settings.cacheTtl == ttl;
-            return ChoiceChip(
-              label: Text(ttl.label),
-              selected: isSelected,
-              onSelected: settings.incrementalSyncEnabled
-                  ? (bool selected) async {
-                      if (!selected) return;
-                      try {
-                        await settings.setCacheTtl(ttl);
-                        _log.info('Cache TTL set to ${ttl.label}');
-                      } catch (e) {
-                        _log.severe('Failed to set cache TTL', e);
-                        if (mounted) {
-                          _showError(context, 'Failed to update cache duration');
-                        }
-                      }
-                    }
-                  : null,
-            );
-          }).toList(),
+          children:
+              CacheTtl.values.map((CacheTtl ttl) {
+                final bool isSelected = settings.cacheTtl == ttl;
+                return ChoiceChip(
+                  label: Text(ttl.label),
+                  selected: isSelected,
+                  onSelected:
+                      settings.incrementalSyncEnabled
+                          ? (bool selected) async {
+                            if (!selected) return;
+                            try {
+                              await settings.setCacheTtl(ttl);
+                              _log.info('Cache TTL set to ${ttl.label}');
+                            } catch (e) {
+                              _log.severe('Failed to set cache TTL', e);
+                              if (mounted) {
+                                _showError(
+                                  context,
+                                  'Failed to update cache duration',
+                                );
+                              }
+                            }
+                          }
+                          : null,
+                );
+              }).toList(),
         ),
       ],
     );
@@ -300,7 +307,9 @@ class _IncrementalSyncSettingsSectionState
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -335,9 +344,8 @@ class _IncrementalSyncSettingsSectionState
     required int daysSince,
     bool isWarning = false,
   }) {
-    final Color iconColor = isWarning
-        ? Colors.orange
-        : Theme.of(context).colorScheme.primary;
+    final Color iconColor =
+        isWarning ? Colors.orange : Theme.of(context).colorScheme.primary;
 
     return Row(
       children: <Widget>[
@@ -349,19 +357,20 @@ class _IncrementalSyncSettingsSectionState
             children: <Widget>[
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
               ),
               Text(
                 timestamp != null
                     ? _formatTimestamp(timestamp, daysSince)
                     : 'Never',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isWarning
+                  color:
+                      isWarning
                           ? Colors.orange
                           : Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                ),
               ),
             ],
           ),
@@ -376,9 +385,9 @@ class _IncrementalSyncSettingsSectionState
             child: Text(
               daysSince == 0 ? 'Today' : '${daysSince}d ago',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: _getDaysSinceColor(daysSince, isWarning),
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: _getDaysSinceColor(daysSince, isWarning),
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
       ],
@@ -419,16 +428,16 @@ class _IncrementalSyncSettingsSectionState
                 Text(
                   'Full Sync Recommended',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.orange[900],
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange[900],
+                  ),
                 ),
                 Text(
                   'It\'s been more than 7 days since the last full sync. '
                   'A full sync is recommended to ensure data integrity.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.orange[800],
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.orange[800]),
                 ),
               ],
             ),
@@ -450,10 +459,11 @@ class _IncrementalSyncSettingsSectionState
           children: <Widget>[
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: widget.onForceIncrementalSync != null &&
-                        settings.incrementalSyncEnabled
-                    ? widget.onForceIncrementalSync
-                    : null,
+                onPressed:
+                    widget.onForceIncrementalSync != null &&
+                            settings.incrementalSyncEnabled
+                        ? widget.onForceIncrementalSync
+                        : null,
                 icon: const Icon(Icons.sync),
                 label: const Text('Incremental Sync'),
               ),
@@ -464,12 +474,13 @@ class _IncrementalSyncSettingsSectionState
                 onPressed: widget.onForceFullSync,
                 icon: const Icon(Icons.sync_alt),
                 label: const Text('Full Sync'),
-                style: settings.needsFullSync
-                    ? OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.orange),
-                        foregroundColor: Colors.orange,
-                      )
-                    : null,
+                style:
+                    settings.needsFullSync
+                        ? OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.orange),
+                          foregroundColor: Colors.orange,
+                        )
+                        : null,
               ),
             ),
           ],
@@ -477,16 +488,18 @@ class _IncrementalSyncSettingsSectionState
         if (widget.showAdvancedSettings) ...<Widget>[
           const SizedBox(height: 8),
           TextButton.icon(
-            onPressed: _isResettingStats
-                ? null
-                : () => _confirmResetStatistics(context, settings),
-            icon: _isResettingStats
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.restart_alt, size: 18),
+            onPressed:
+                _isResettingStats
+                    ? null
+                    : () => _confirmResetStatistics(context, settings),
+            icon:
+                _isResettingStats
+                    ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                    : const Icon(Icons.restart_alt, size: 18),
             label: Text(
               _isResettingStats ? 'Resetting...' : 'Reset Statistics',
             ),
@@ -506,27 +519,28 @@ class _IncrementalSyncSettingsSectionState
   ) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Reset Statistics'),
-        content: const Text(
-          'This will clear all incremental sync statistics '
-          '(items fetched, bandwidth saved, etc.).\n\n'
-          'Settings will be preserved. This action cannot be undone.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: const Text('Reset Statistics'),
+            content: const Text(
+              'This will clear all incremental sync statistics '
+              '(items fetched, bandwidth saved, etc.).\n\n'
+              'Settings will be preserved. This action cannot be undone.',
             ),
-            child: const Text('Reset'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: const Text('Reset'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (confirmed != true || !mounted) return;
@@ -573,10 +587,7 @@ class _IncrementalSyncSettingsSectionState
 ///
 /// Shows only the essential toggle and sync window selector.
 class IncrementalSyncSettingsCompact extends StatelessWidget {
-  const IncrementalSyncSettingsCompact({
-    super.key,
-    this.showHeader = true,
-  });
+  const IncrementalSyncSettingsCompact({super.key, this.showHeader = true});
 
   /// Whether to show the section header.
   final bool showHeader;
@@ -584,16 +595,20 @@ class IncrementalSyncSettingsCompact extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<OfflineSettingsProvider>(
-      builder: (BuildContext context, OfflineSettingsProvider settings, Widget? child) {
+      builder: (
+        BuildContext context,
+        OfflineSettingsProvider settings,
+        Widget? child,
+      ) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             if (showHeader) ...<Widget>[
               Text(
                 'Incremental Sync',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
             ],
@@ -623,12 +638,13 @@ class IncrementalSyncSettingsCompact extends StatelessWidget {
                       value: settings.syncWindow,
                       underline: const SizedBox(),
                       isDense: true,
-                      items: SyncWindow.values.map((SyncWindow window) {
-                        return DropdownMenuItem<SyncWindow>(
-                          value: window,
-                          child: Text(window.label),
-                        );
-                      }).toList(),
+                      items:
+                          SyncWindow.values.map((SyncWindow window) {
+                            return DropdownMenuItem<SyncWindow>(
+                              value: window,
+                              child: Text(window.label),
+                            );
+                          }).toList(),
                       onChanged: (SyncWindow? window) async {
                         if (window != null) {
                           await settings.setSyncWindow(window);
@@ -644,4 +660,3 @@ class IncrementalSyncSettingsCompact extends StatelessWidget {
     );
   }
 }
-

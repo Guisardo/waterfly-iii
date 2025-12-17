@@ -106,8 +106,10 @@ class FilterDialog extends StatelessWidget {
   Future<FilterData> _getData(BuildContext context) async {
     // Use repositories with cache-first strategy instead of direct API calls
     final AccountRepository? accountRepo = context.read<AccountRepository?>();
-    final CurrencyRepository? currencyRepo = context.read<CurrencyRepository?>();
-    final CategoryRepository? categoryRepo = context.read<CategoryRepository?>();
+    final CurrencyRepository? currencyRepo =
+        context.read<CurrencyRepository?>();
+    final CategoryRepository? categoryRepo =
+        context.read<CategoryRepository?>();
     final BudgetRepository? budgetRepo = context.read<BudgetRepository?>();
     final BillRepository? billRepo = context.read<BillRepository?>();
 

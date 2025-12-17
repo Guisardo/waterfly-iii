@@ -7,7 +7,7 @@ import 'package:waterflyiii/services/backup/cloud_backup_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  
+
   late Directory tempDir;
   late CloudBackupService backupService;
   late LocalFileBackupProvider provider;
@@ -16,46 +16,46 @@ void main() {
   setUp(() async {
     // Create temporary directory for testing
     tempDir = await Directory.systemTemp.createTemp('waterfly_backup_test_');
-    
+
     // Reset shared preferences data for each test
     prefsData = <String, Object>{};
-    
+
     // Mock path_provider
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (MethodCall methodCall) async {
-        if (methodCall.method == 'getApplicationDocumentsDirectory') {
-          return tempDir.path;
-        }
-        return null;
-      },
-    );
-    
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (MethodCall methodCall) async {
+            if (methodCall.method == 'getApplicationDocumentsDirectory') {
+              return tempDir.path;
+            }
+            return null;
+          },
+        );
+
     // Mock shared_preferences
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/shared_preferences'),
-      (MethodCall methodCall) async {
-        if (methodCall.method == 'getAll') {
-          return Map<String, Object>.from(prefsData);
-        }
-        if (methodCall.method == 'setInt') {
-          final String key = methodCall.arguments['key'] as String;
-          final int value = methodCall.arguments['value'] as int;
-          prefsData[key] = value;
-          return true;
-        }
-        if (methodCall.method == 'setString') {
-          final String key = methodCall.arguments['key'] as String;
-          final String value = methodCall.arguments['value'] as String;
-          prefsData[key] = value;
-          return true;
-        }
-        return null;
-      },
-    );
-    
+          const MethodChannel('plugins.flutter.io/shared_preferences'),
+          (MethodCall methodCall) async {
+            if (methodCall.method == 'getAll') {
+              return Map<String, Object>.from(prefsData);
+            }
+            if (methodCall.method == 'setInt') {
+              final String key = methodCall.arguments['key'] as String;
+              final int value = methodCall.arguments['value'] as int;
+              prefsData[key] = value;
+              return true;
+            }
+            if (methodCall.method == 'setString') {
+              final String key = methodCall.arguments['key'] as String;
+              final String value = methodCall.arguments['value'] as String;
+              prefsData[key] = value;
+              return true;
+            }
+            return null;
+          },
+        );
+
     provider = LocalFileBackupProvider(backupDirectory: tempDir.path);
     backupService = CloudBackupService(
       provider: provider,
@@ -100,7 +100,8 @@ void main() {
       await backupService.createBackup(description: 'Backup 2');
 
       // Act
-      final List<CloudBackupMetadata> backups = await backupService.listBackups();
+      final List<CloudBackupMetadata> backups =
+          await backupService.listBackups();
 
       // Assert
       expect(backups.length, 2);
@@ -122,7 +123,8 @@ void main() {
       await backupService.createBackup(description: 'Backup 4');
 
       // Act
-      final List<CloudBackupMetadata> backups = await backupService.listBackups();
+      final List<CloudBackupMetadata> backups =
+          await backupService.listBackups();
 
       // Assert - Should only keep maxBackups (3)
       expect(backups.length, 3);
@@ -161,7 +163,8 @@ void main() {
       await backupService.deleteBackup(metadata.id);
 
       // Assert
-      final List<CloudBackupMetadata> backups = await backupService.listBackups();
+      final List<CloudBackupMetadata> backups =
+          await backupService.listBackups();
       expect(backups.length, 0);
     });
 
@@ -178,7 +181,12 @@ void main() {
 
       // Assert
       expect(lastBackupTime, isNotNull);
-      expect(lastBackupTime!.isAfter(beforeBackup.subtract(const Duration(seconds: 1))), true);
+      expect(
+        lastBackupTime!.isAfter(
+          beforeBackup.subtract(const Duration(seconds: 1)),
+        ),
+        true,
+      );
     });
 
     test('should determine if backup is needed', () async {
@@ -191,13 +199,19 @@ void main() {
       await backupService.createBackup();
 
       // Act - Just backed up
-      bool isNeeded = await backupService.isBackupNeeded(interval: const Duration(hours: 1));
+      bool isNeeded = await backupService.isBackupNeeded(
+        interval: const Duration(hours: 1),
+      );
       expect(isNeeded, false);
 
       // Act - Check with short interval
-      isNeeded = await backupService.isBackupNeeded(interval: const Duration(milliseconds: 1));
+      isNeeded = await backupService.isBackupNeeded(
+        interval: const Duration(milliseconds: 1),
+      );
       await Future<void>.delayed(const Duration(milliseconds: 10));
-      isNeeded = await backupService.isBackupNeeded(interval: const Duration(milliseconds: 1));
+      isNeeded = await backupService.isBackupNeeded(
+        interval: const Duration(milliseconds: 1),
+      );
       expect(isNeeded, true);
     });
   });
@@ -238,7 +252,9 @@ void main() {
       await provider.uploadBackup('test_backup', testData, metadata);
 
       // Act
-      final CloudBackupData downloadedData = await provider.downloadBackup('test_backup');
+      final CloudBackupData downloadedData = await provider.downloadBackup(
+        'test_backup',
+      );
 
       // Assert
       expect(downloadedData.data, testData);

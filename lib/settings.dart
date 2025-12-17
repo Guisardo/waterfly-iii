@@ -229,7 +229,8 @@ class SettingsProvider with ChangeNotifier {
       _boolSettings[BoolSettings.hideTags] = false;
       _boolSettings[BoolSettings.billsShowOnlyActive] = false;
       _boolSettings[BoolSettings.billsShowOnlyExpected] = false;
-      _boolSettings[BoolSettings.enableCaching] = true; // Phase 6.2: Default enabled
+      _boolSettings[BoolSettings.enableCaching] =
+          true; // Phase 6.2: Default enabled
     }
     await prefs.setInt(settingsBitmask, _boolSettings.value);
 

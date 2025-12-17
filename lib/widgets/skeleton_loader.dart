@@ -66,7 +66,11 @@ class SkeletonListTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: <Widget>[
-          const SkeletonLoader(width: 40, height: 40, borderRadius: BorderRadius.all(Radius.circular(20))),
+          const SkeletonLoader(
+            width: 40,
+            height: 40,
+            borderRadius: BorderRadius.all(Radius.circular(20)),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(

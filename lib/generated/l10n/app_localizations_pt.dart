@@ -953,6 +953,30 @@ class SPt extends S {
   @override
   String get notificationExtractTransactionChannelDescription =>
       'Notification asking to create a transaction from another notification.';
+
+  @override
+  String generalSyncEntity(String entity) {
+    return 'Sync $entity';
+  }
+
+  @override
+  String generalSyncComplete(String entity, int count) {
+    return 'Synced $count $entity';
+  }
+
+  @override
+  String generalSyncFailed(String error) {
+    return 'Sync failed: $error';
+  }
+
+  @override
+  String get generalOffline => 'Offline';
+
+  @override
+  String get generalOfflineMessage => 'You are offline. Connect to sync.';
+
+  @override
+  String get generalSyncNotAvailable => 'Sync service not available';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).

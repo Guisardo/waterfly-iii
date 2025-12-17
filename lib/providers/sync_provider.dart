@@ -8,30 +8,30 @@ class SyncProvider extends ChangeNotifier {
   SyncProvider() {
     _globalSyncProvider = this;
   }
-  
+
   bool _isSyncing = false;
   double _progress = 0.0;
   String? _currentOperation;
   int _completedOperations = 0;
   int _totalOperations = 0;
-  
+
   bool get isSyncing => _isSyncing;
-  
+
   /// Progress percentage (0.0 to 1.0)
   double get progress => _progress;
-  
+
   /// Current operation description (e.g., "Fetching accounts...")
   String? get currentOperation => _currentOperation;
-  
+
   /// Number of completed operations
   int get completedOperations => _completedOperations;
-  
+
   /// Total number of operations
   int get totalOperations => _totalOperations;
-  
+
   /// Progress percentage as integer (0-100)
   int get progressPercent => (_progress * 100).round();
-  
+
   void startSync({int totalOperations = 0}) {
     _isSyncing = true;
     _progress = 0.0;
@@ -40,7 +40,7 @@ class SyncProvider extends ChangeNotifier {
     _totalOperations = totalOperations;
     notifyListeners();
   }
-  
+
   void stopSync() {
     _isSyncing = false;
     _progress = 0.0;
@@ -49,7 +49,7 @@ class SyncProvider extends ChangeNotifier {
     _totalOperations = 0;
     notifyListeners();
   }
-  
+
   /// Update sync progress
   void updateProgress({
     double? progress,
@@ -58,27 +58,28 @@ class SyncProvider extends ChangeNotifier {
     int? totalOperations,
   }) {
     bool changed = false;
-    
+
     if (progress != null && progress != _progress) {
       _progress = progress.clamp(0.0, 1.0);
       changed = true;
     }
-    
+
     if (currentOperation != null && currentOperation != _currentOperation) {
       _currentOperation = currentOperation;
       changed = true;
     }
-    
-    if (completedOperations != null && completedOperations != _completedOperations) {
+
+    if (completedOperations != null &&
+        completedOperations != _completedOperations) {
       _completedOperations = completedOperations;
       changed = true;
     }
-    
+
     if (totalOperations != null && totalOperations != _totalOperations) {
       _totalOperations = totalOperations;
       changed = true;
     }
-    
+
     // Auto-calculate progress if we have operation counts
     if (_totalOperations > 0) {
       final double calculatedProgress = _completedOperations / _totalOperations;
@@ -87,12 +88,12 @@ class SyncProvider extends ChangeNotifier {
         changed = true;
       }
     }
-    
+
     if (changed) {
       notifyListeners();
     }
   }
-  
+
   @override
   void dispose() {
     if (_globalSyncProvider == this) {

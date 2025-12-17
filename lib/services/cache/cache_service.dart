@@ -194,11 +194,10 @@ class CacheService {
   ///   etagHandler: ETagHandler(), // Optional
   /// );
   /// ```
-  CacheService({
-    required this.database,
-    this.etagHandler,
-  }) {
-    _log.info('CacheService initialized (ETag support: ${etagHandler != null})');
+  CacheService({required this.database, this.etagHandler}) {
+    _log.info(
+      'CacheService initialized (ETag support: ${etagHandler != null})',
+    );
     _startPeriodicCleanup();
   }
 
@@ -288,7 +287,8 @@ class CacheService {
     }
 
     // Check if cache metadata exists (stale)
-    final bool metadataExists = await _getCachedAt(entityType, entityId) != null;
+    final bool metadataExists =
+        await _getCachedAt(entityType, entityId) != null;
 
     if (metadataExists) {
       // Cache hit (stale): Call fetcher to get data, optionally refresh in background
@@ -399,7 +399,9 @@ class CacheService {
 
     _totalRequests++;
     _etagRequests++;
-    _log.fine('Cache get with ETag: $entityType:$entityId (force=$forceRefresh)');
+    _log.fine(
+      'Cache get with ETag: $entityType:$entityId (force=$forceRefresh)',
+    );
 
     // Force refresh bypasses cache completely
     if (forceRefresh) {
@@ -440,19 +442,25 @@ class CacheService {
     if (cachedData != null) {
       // Cache hit (stale): Return cached data immediately, refresh in background
       _staleServed++;
-      _log.info('Cache hit (stale): $entityType:$entityId (ETag: ${cachedETag != null})');
+      _log.info(
+        'Cache hit (stale): $entityType:$entityId (ETag: ${cachedETag != null})',
+      );
 
       if (backgroundRefresh) {
         // Start background refresh with ETag (fire-and-forget)
-        _log.fine('Starting background refresh with ETag for $entityType:$entityId');
-        unawaited(_backgroundRefreshWithETag(
-          entityType,
-          entityId,
-          fetcher,
-          ttl,
-          cachedETag,
-          cachedData,
-        ));
+        _log.fine(
+          'Starting background refresh with ETag for $entityType:$entityId',
+        );
+        unawaited(
+          _backgroundRefreshWithETag(
+            entityType,
+            entityId,
+            fetcher,
+            ttl,
+            cachedETag,
+            cachedData,
+          ),
+        );
       }
 
       return CacheResult<T>(
@@ -505,8 +513,11 @@ class CacheService {
       final ETagResponse<T> etagResponse = await retry(
         () => fetcher(cachedETag),
         maxAttempts: 2,
-        onRetry: (Exception e) =>
-            _log.warning('Retry background ETag fetch: $entityType:$entityId', e),
+        onRetry:
+            (Exception e) => _log.warning(
+              'Retry background ETag fetch: $entityType:$entityId',
+              e,
+            ),
       );
 
       // Handle 304 Not Modified
@@ -520,20 +531,24 @@ class CacheService {
         await _updateLastAccessed(entityType, entityId);
 
         // Emit refresh event with cached data (data unchanged)
-        _invalidationStream.add(CacheInvalidationEvent(
-          entityType: entityType,
-          entityId: entityId,
-          eventType: CacheEventType.refreshed,
-          data: cachedData,
-          timestamp: DateTime.now(),
-        ));
+        _invalidationStream.add(
+          CacheInvalidationEvent(
+            entityType: entityType,
+            entityId: entityId,
+            eventType: CacheEventType.refreshed,
+            data: cachedData,
+            timestamp: DateTime.now(),
+          ),
+        );
 
         return;
       }
 
       // Handle 200 OK (data changed)
       if (etagResponse.isSuccessful && etagResponse.hasData) {
-        _log.info('Background refresh: 200 OK (data changed) - $entityType:$entityId');
+        _log.info(
+          'Background refresh: 200 OK (data changed) - $entityType:$entityId',
+        );
 
         // Update cache with fresh data and new ETag
         await set(
@@ -545,13 +560,15 @@ class CacheService {
         );
 
         // Emit refresh event with new data
-        _invalidationStream.add(CacheInvalidationEvent(
-          entityType: entityType,
-          entityId: entityId,
-          eventType: CacheEventType.refreshed,
-          data: etagResponse.data,
-          timestamp: DateTime.now(),
-        ));
+        _invalidationStream.add(
+          CacheInvalidationEvent(
+            entityType: entityType,
+            entityId: entityId,
+            eventType: CacheEventType.refreshed,
+            data: etagResponse.data,
+            timestamp: DateTime.now(),
+          ),
+        );
       } else {
         _log.warning(
           'Background refresh returned unsuccessful status: ${etagResponse.statusCode}',
@@ -628,11 +645,13 @@ class CacheService {
 
       // Handle error response
       _log.severe('API fetch failed with status: ${etagResponse.statusCode}');
-      throw Exception(
-        'API returned error status: ${etagResponse.statusCode}',
-      );
+      throw Exception('API returned error status: ${etagResponse.statusCode}');
     } catch (e, stackTrace) {
-      _log.severe('API fetch with ETag failed: $entityType:$entityId', e, stackTrace);
+      _log.severe(
+        'API fetch with ETag failed: $entityType:$entityId',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -679,8 +698,11 @@ class CacheService {
       final T data = await retry(
         () => fetcher(),
         maxAttempts: 2,
-        onRetry: (Exception e) =>
-            _log.warning('Retry background fetch: $entityType:$entityId', e),
+        onRetry:
+            (Exception e) => _log.warning(
+              'Retry background fetch: $entityType:$entityId',
+              e,
+            ),
       );
 
       // Update cache with fresh data
@@ -694,13 +716,15 @@ class CacheService {
       _log.info('Background refresh completed: $entityType:$entityId');
 
       // Emit refresh event for reactive UI updates
-      _invalidationStream.add(CacheInvalidationEvent(
-        entityType: entityType,
-        entityId: entityId,
-        eventType: CacheEventType.refreshed,
-        data: data,
-        timestamp: DateTime.now(),
-      ));
+      _invalidationStream.add(
+        CacheInvalidationEvent(
+          entityType: entityType,
+          entityId: entityId,
+          eventType: CacheEventType.refreshed,
+          data: data,
+          timestamp: DateTime.now(),
+        ),
+      );
     } catch (e, stackTrace) {
       _log.severe(
         'Background refresh failed: $entityType:$entityId',
@@ -799,7 +823,9 @@ class CacheService {
 
       final DateTime now = DateTime.now();
 
-      await database.into(database.cacheMetadataTable).insertOnConflictUpdate(
+      await database
+          .into(database.cacheMetadataTable)
+          .insertOnConflictUpdate(
             CacheMetadataEntityCompanion(
               entityType: Value(entityType),
               entityId: Value(entityId),
@@ -839,13 +865,11 @@ class CacheService {
   /// }
   /// ```
   Future<bool> isFresh(String entityType, String entityId) async {
-    final CacheMetadataEntity? metadata = await (database.select(database.cacheMetadataTable)
-          ..where(
-            ($CacheMetadataTableTable tbl) =>
-                tbl.entityType.equals(entityType) &
-                tbl.entityId.equals(entityId),
-          ))
-        .getSingleOrNull();
+    final CacheMetadataEntity? metadata =
+        await (database.select(database.cacheMetadataTable)..where(
+          ($CacheMetadataTableTable tbl) =>
+              tbl.entityType.equals(entityType) & tbl.entityId.equals(entityId),
+        )).getSingleOrNull();
 
     if (metadata == null) {
       _log.finest('Cache miss: no metadata for $entityType:$entityId');
@@ -858,14 +882,17 @@ class CacheService {
     }
 
     final DateTime now = DateTime.now();
-    final DateTime expiresAt =
-        metadata.cachedAt.add(Duration(seconds: metadata.ttlSeconds));
+    final DateTime expiresAt = metadata.cachedAt.add(
+      Duration(seconds: metadata.ttlSeconds),
+    );
     final bool fresh = now.isBefore(expiresAt);
 
-    _log.finest(() =>
-        'Cache freshness: $entityType:$entityId fresh=$fresh '
-        '(age: ${now.difference(metadata.cachedAt).inSeconds}s, '
-        'ttl: ${metadata.ttlSeconds}s)');
+    _log.finest(
+      () =>
+          'Cache freshness: $entityType:$entityId fresh=$fresh '
+          '(age: ${now.difference(metadata.cachedAt).inSeconds}s, '
+          'ttl: ${metadata.ttlSeconds}s)',
+    );
 
     return fresh;
   }
@@ -895,15 +922,12 @@ class CacheService {
     await _lock.synchronized(() async {
       _log.info('Invalidating cache: $entityType:$entityId');
 
-      final int result = await (database.update(database.cacheMetadataTable)
-            ..where(
-              ($CacheMetadataTableTable tbl) =>
-                  tbl.entityType.equals(entityType) &
-                  tbl.entityId.equals(entityId),
-            ))
-          .write(const CacheMetadataEntityCompanion(
-        isInvalidated: Value(true),
-      ));
+      final int result = await (database.update(
+        database.cacheMetadataTable,
+      )..where(
+        ($CacheMetadataTableTable tbl) =>
+            tbl.entityType.equals(entityType) & tbl.entityId.equals(entityId),
+      )).write(const CacheMetadataEntityCompanion(isInvalidated: Value(true)));
 
       if (result > 0) {
         _log.fine('Cache invalidated: $entityType:$entityId');
@@ -913,12 +937,14 @@ class CacheService {
     });
 
     // Emit invalidation event
-    _invalidationStream.add(CacheInvalidationEvent(
-      entityType: entityType,
-      entityId: entityId,
-      eventType: CacheEventType.invalidated,
-      timestamp: DateTime.now(),
-    ));
+    _invalidationStream.add(
+      CacheInvalidationEvent(
+        entityType: entityType,
+        entityId: entityId,
+        eventType: CacheEventType.invalidated,
+        timestamp: DateTime.now(),
+      ),
+    );
   }
 
   /// Invalidate all cache entries of a specific type
@@ -943,22 +969,24 @@ class CacheService {
     await _lock.synchronized(() async {
       _log.info('Invalidating all cache entries of type: $entityType');
 
-      final int result = await (database.update(database.cacheMetadataTable)
-            ..where(($CacheMetadataTableTable tbl) => tbl.entityType.equals(entityType)))
-          .write(const CacheMetadataEntityCompanion(
-        isInvalidated: Value(true),
-      ));
+      final int result = await (database.update(
+        database.cacheMetadataTable,
+      )..where(
+        ($CacheMetadataTableTable tbl) => tbl.entityType.equals(entityType),
+      )).write(const CacheMetadataEntityCompanion(isInvalidated: Value(true)));
 
       _log.info('Invalidated $result cache entries of type: $entityType');
     });
 
     // Emit type-level invalidation event
-    _invalidationStream.add(CacheInvalidationEvent(
-      entityType: entityType,
-      entityId: '*', // Wildcard indicates all IDs
-      eventType: CacheEventType.invalidated,
-      timestamp: DateTime.now(),
-    ));
+    _invalidationStream.add(
+      CacheInvalidationEvent(
+        entityType: entityType,
+        entityId: '*', // Wildcard indicates all IDs
+        eventType: CacheEventType.invalidated,
+        timestamp: DateTime.now(),
+      ),
+    );
   }
 
   /// Clear all cache entries
@@ -981,7 +1009,8 @@ class CacheService {
     await _lock.synchronized(() async {
       _log.warning('Clearing all cache metadata');
 
-      final int result = await database.delete(database.cacheMetadataTable).go();
+      final int result =
+          await database.delete(database.cacheMetadataTable).go();
 
       _log.warning('Cleared $result cache metadata entries');
 
@@ -1025,14 +1054,15 @@ class CacheService {
         .get()
         .then((List<CacheMetadataEntity> l) => l.length);
 
-    final int invalidatedEntries = await (database
-            .select(database.cacheMetadataTable)
-          ..where(($CacheMetadataTableTable tbl) => tbl.isInvalidated.equals(true)))
-        .get()
-        .then((List<CacheMetadataEntity> l) => l.length);
+    final int invalidatedEntries = await (database.select(
+      database.cacheMetadataTable,
+    )..where(
+      ($CacheMetadataTableTable tbl) => tbl.isInvalidated.equals(true),
+    )).get().then((List<CacheMetadataEntity> l) => l.length);
 
     // Calculate hit rate
-    final double hitRate = _totalRequests > 0 ? _cacheHits / _totalRequests : 0.0;
+    final double hitRate =
+        _totalRequests > 0 ? _cacheHits / _totalRequests : 0.0;
 
     // Calculate average age
     int averageAgeSeconds = 0;
@@ -1101,16 +1131,15 @@ class CacheService {
       int deletedCount = 0;
 
       for (final CacheMetadataEntity entry in expired) {
-        final DateTime expiresAt =
-            entry.cachedAt.add(Duration(seconds: entry.ttlSeconds));
+        final DateTime expiresAt = entry.cachedAt.add(
+          Duration(seconds: entry.ttlSeconds),
+        );
         if (now.isAfter(expiresAt)) {
-          await (database.delete(database.cacheMetadataTable)
-                ..where(
-                  ($CacheMetadataTableTable tbl) =>
-                      tbl.entityType.equals(entry.entityType) &
-                      tbl.entityId.equals(entry.entityId),
-                ))
-              .go();
+          await (database.delete(database.cacheMetadataTable)..where(
+            ($CacheMetadataTableTable tbl) =>
+                tbl.entityType.equals(entry.entityType) &
+                tbl.entityId.equals(entry.entityId),
+          )).go();
           deletedCount++;
         }
       }
@@ -1149,7 +1178,9 @@ class CacheService {
     final int estimatedBytes = totalEntries * 2200;
     final int estimatedMB = (estimatedBytes / (1024 * 1024)).round();
 
-    _log.finest('Cache size estimate: ${estimatedMB}MB ($totalEntries entries)');
+    _log.finest(
+      'Cache size estimate: ${estimatedMB}MB ($totalEntries entries)',
+    );
 
     return estimatedMB;
   }
@@ -1174,7 +1205,9 @@ class CacheService {
       throw ArgumentError('Cache size limit must be greater than 0');
     }
 
-    _log.info('Setting cache size limit to ${sizeMB}MB (was ${_maxCacheSizeMB}MB)');
+    _log.info(
+      'Setting cache size limit to ${sizeMB}MB (was ${_maxCacheSizeMB}MB)',
+    );
     _maxCacheSizeMB = sizeMB;
 
     // Check if eviction needed with new limit
@@ -1232,11 +1265,12 @@ class CacheService {
       );
 
       // Get all entries sorted by last access (oldest first)
-      final List<CacheMetadataEntity> entries = await (database.select(database.cacheMetadataTable)
+      final List<CacheMetadataEntity> entries =
+          await (database.select(database.cacheMetadataTable)
             ..orderBy(<OrderClauseGenerator<$CacheMetadataTableTable>>[
-              ($CacheMetadataTableTable tbl) => OrderingTerm.asc(tbl.lastAccessedAt),
-            ]))
-          .get();
+              ($CacheMetadataTableTable tbl) =>
+                  OrderingTerm.asc(tbl.lastAccessedAt),
+            ])).get();
 
       int evictedCount = 0;
       int freedMB = 0;
@@ -1257,13 +1291,12 @@ class CacheService {
         final double entrySizeMB = entrySizeKB / 1024;
 
         // Delete cache metadata entry
-        final int deleted = await (database.delete(database.cacheMetadataTable)
-              ..where(
-                ($CacheMetadataTableTable tbl) =>
-                    tbl.entityType.equals(entry.entityType) &
-                    tbl.entityId.equals(entry.entityId),
-              ))
-            .go();
+        final int deleted =
+            await (database.delete(database.cacheMetadataTable)..where(
+              ($CacheMetadataTableTable tbl) =>
+                  tbl.entityType.equals(entry.entityType) &
+                  tbl.entityId.equals(entry.entityId),
+            )).go();
 
         if (deleted > 0) {
           evictedCount++;
@@ -1307,11 +1340,12 @@ class CacheService {
       _log.info('Manual LRU eviction to ${target}MB');
 
       // Get all entries sorted by last access (oldest first)
-      final List<CacheMetadataEntity> entries = await (database.select(database.cacheMetadataTable)
+      final List<CacheMetadataEntity> entries =
+          await (database.select(database.cacheMetadataTable)
             ..orderBy(<OrderClauseGenerator<$CacheMetadataTableTable>>[
-              ($CacheMetadataTableTable tbl) => OrderingTerm.asc(tbl.lastAccessedAt),
-            ]))
-          .get();
+              ($CacheMetadataTableTable tbl) =>
+                  OrderingTerm.asc(tbl.lastAccessedAt),
+            ])).get();
 
       int evictedCount = 0;
 
@@ -1322,13 +1356,11 @@ class CacheService {
         }
 
         // Delete entry
-        await (database.delete(database.cacheMetadataTable)
-              ..where(
-                ($CacheMetadataTableTable tbl) =>
-                    tbl.entityType.equals(entry.entityType) &
-                    tbl.entityId.equals(entry.entityId),
-              ))
-            .go();
+        await (database.delete(database.cacheMetadataTable)..where(
+          ($CacheMetadataTableTable tbl) =>
+              tbl.entityType.equals(entry.entityType) &
+              tbl.entityId.equals(entry.entityId),
+        )).go();
 
         evictedCount++;
       }
@@ -1336,7 +1368,9 @@ class CacheService {
       _evictions += evictedCount;
 
       final int finalSizeMB = await calculateCacheSizeMB();
-      _log.info('Manual LRU eviction complete: evicted $evictedCount entries, final size: ${finalSizeMB}MB');
+      _log.info(
+        'Manual LRU eviction complete: evicted $evictedCount entries, final size: ${finalSizeMB}MB',
+      );
     });
   }
 
@@ -1384,28 +1418,23 @@ class CacheService {
   ///
   /// Used for LRU eviction tracking.
   Future<void> _updateLastAccessed(String entityType, String entityId) async {
-    await (database.update(database.cacheMetadataTable)
-          ..where(
-            ($CacheMetadataTableTable tbl) =>
-                tbl.entityType.equals(entityType) &
-                tbl.entityId.equals(entityId),
-          ))
-        .write(CacheMetadataEntityCompanion(
-      lastAccessedAt: Value(DateTime.now()),
-    ));
+    await (database.update(database.cacheMetadataTable)..where(
+      ($CacheMetadataTableTable tbl) =>
+          tbl.entityType.equals(entityType) & tbl.entityId.equals(entityId),
+    )).write(
+      CacheMetadataEntityCompanion(lastAccessedAt: Value(DateTime.now())),
+    );
   }
 
   /// Get cached timestamp
   ///
   /// Returns when the entry was cached.
   Future<DateTime?> _getCachedAt(String entityType, String entityId) async {
-    final CacheMetadataEntity? metadata = await (database.select(database.cacheMetadataTable)
-          ..where(
-            ($CacheMetadataTableTable tbl) =>
-                tbl.entityType.equals(entityType) &
-                tbl.entityId.equals(entityId),
-          ))
-        .getSingleOrNull();
+    final CacheMetadataEntity? metadata =
+        await (database.select(database.cacheMetadataTable)..where(
+          ($CacheMetadataTableTable tbl) =>
+              tbl.entityType.equals(entityType) & tbl.entityId.equals(entityId),
+        )).getSingleOrNull();
     return metadata?.cachedAt;
   }
 
@@ -1429,13 +1458,11 @@ class CacheService {
   /// }
   /// ```
   Future<String?> _getCachedETag(String entityType, String entityId) async {
-    final CacheMetadataEntity? metadata = await (database.select(database.cacheMetadataTable)
-          ..where(
-            ($CacheMetadataTableTable tbl) =>
-                tbl.entityType.equals(entityType) &
-                tbl.entityId.equals(entityId),
-          ))
-        .getSingleOrNull();
+    final CacheMetadataEntity? metadata =
+        await (database.select(database.cacheMetadataTable)..where(
+          ($CacheMetadataTableTable tbl) =>
+              tbl.entityType.equals(entityType) & tbl.entityId.equals(entityId),
+        )).getSingleOrNull();
     return metadata?.etag;
   }
 
