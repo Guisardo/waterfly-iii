@@ -2453,8 +2453,9 @@ class SyncManager {
   /// connectivity is online.
   Future<bool> _checkConnectivity() async {
     // First check app mode - if offline, don't sync even if connectivity is online
-    if (_appModeManager != null) {
-      final appMode = _appModeManager.currentMode;
+    final AppModeManager? appModeManager = _appModeManager;
+    if (appModeManager != null) {
+      final appMode = appModeManager.currentMode;
       if (appMode == AppMode.offline) {
         _logger.warning('Cannot sync: app is in offline mode (mobile data may be disabled)');
         return false;

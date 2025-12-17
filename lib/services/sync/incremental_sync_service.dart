@@ -418,7 +418,8 @@ class IncrementalSyncService {
       }
 
       // Update OfflineSettingsProvider if available
-      if (_settingsProvider != null && !anyEntityFailed) {
+      final OfflineSettingsProvider? settingsProvider = _settingsProvider;
+      if (settingsProvider != null && !anyEntityFailed) {
         try {
           // Calculate totals for provider update
           final int totalFetched = statsByEntity.values.fold<int>(
@@ -442,7 +443,7 @@ class IncrementalSyncService {
             (sum, stats) => sum + stats.apiCallsSaved,
           );
 
-          await _settingsProvider.updateIncrementalSyncStatistics(
+          await settingsProvider.updateIncrementalSyncStatistics(
             isIncremental: true,
             itemsFetched: totalFetched,
             itemsUpdated: totalUpdated,
