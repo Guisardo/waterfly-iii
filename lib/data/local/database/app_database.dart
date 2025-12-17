@@ -57,15 +57,33 @@ part 'app_database.g.dart';
   CacheMetadataTable,
 ])
 class AppDatabase extends _$AppDatabase {
-  /// Creates a new instance of the database.
+  /// Singleton instance of the database.
+  ///
+  /// This ensures only one database connection exists throughout the app,
+  /// preventing race conditions and data corruption issues.
+  static AppDatabase? _instance;
+  
+  /// Private constructor for singleton pattern.
+  AppDatabase._internal() : super(_openConnection());
+
+  /// Creates or returns the singleton instance of the database.
   ///
   /// The database file is stored in the application's documents directory
   /// with the name 'waterfly_offline.db'.
-  AppDatabase() : super(_openConnection());
+  ///
+  /// This singleton pattern ensures that:
+  /// - Only one database connection exists throughout the app lifecycle
+  /// - All repositories and sync operations use the same database instance
+  /// - Prevents the "multiple database instances" warning from Drift
+  factory AppDatabase() {
+    _instance ??= AppDatabase._internal();
+    return _instance!;
+  }
 
   /// Test constructor for creating database with custom executor.
   ///
   /// Used for testing with in-memory databases.
+  /// Note: This bypasses the singleton pattern for testing isolation.
   ///
   /// Example:
   /// ```dart
@@ -73,6 +91,16 @@ class AppDatabase extends _$AppDatabase {
   /// ```
   @visibleForTesting
   AppDatabase.forTesting(super.executor);
+  
+  /// Resets the singleton instance.
+  ///
+  /// Used for testing to ensure a fresh database between tests.
+  /// Should NOT be called in production code.
+  @visibleForTesting
+  static void resetInstance() {
+    _instance?.close();
+    _instance = null;
+  }
 
   /// Database schema version.
   ///

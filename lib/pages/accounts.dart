@@ -168,15 +168,18 @@ class _AccountDetailsState extends State<AccountDetails>
     }
 
     AccountRoleProperty? accountRole;
-    if (entity.accountRole != null) {
+    if (entity.accountRole != null && entity.accountRole!.isNotEmpty) {
       try {
         accountRole = AccountRoleProperty.values.firstWhere(
           (AccountRoleProperty e) => e.value == entity.accountRole,
           orElse: () => AccountRoleProperty.defaultasset,
         );
       } catch (_) {
-        accountRole = null;
+        accountRole = AccountRoleProperty.defaultasset;
       }
+    } else {
+      // Default to 'defaultAsset' for asset accounts without a role
+      accountRole = AccountRoleProperty.defaultasset;
     }
 
     return AccountRead(

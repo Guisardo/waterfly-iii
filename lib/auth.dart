@@ -12,7 +12,7 @@ import 'package:chopper/chopper.dart'
         StripStringExtension,
         applyHeaders;
 import 'package:cronet_http/cronet_http.dart';
-import 'package:drift/drift.dart' show Batch, Value;
+import 'package:drift/drift.dart' show Batch, InsertMode, Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -434,6 +434,8 @@ class FireflyService with ChangeNotifier {
         final int lastSyncTime = prefs.getInt('last_full_sync_time') ?? 0;
         final int now = DateTime.now().millisecondsSinceEpoch;
         
+        log.fine('Sync time check: lastSyncTime=$lastSyncTime, now=$now, diff=${now - lastSyncTime}, threshold=3600000');
+        
         // Only sync if last sync was more than 1 hour ago
         if (now - lastSyncTime > 3600000) {
           // Notify sync started with estimated operations
@@ -441,8 +443,9 @@ class FireflyService with ChangeNotifier {
           notifyGlobalSyncState(true, totalOperations: 6);
           updateGlobalSyncProgress(currentOperation: 'Preparing...');
           
-          // Import sync dependencies
+          // Use singleton database instance (same as Provider's)
           final AppDatabase database = AppDatabase();
+          log.fine('Using database instance: ${database.hashCode}');
           final FireflyApiAdapter apiAdapter = FireflyApiAdapter(api);
           
           // Perform sync with progress tracking
@@ -482,48 +485,45 @@ class FireflyService with ChangeNotifier {
       log.info('Sync progress: $completedSteps/$totalSteps - $operation');
     }
     
-    // Step 1: Fetch accounts
-    updateGlobalSyncProgress(currentOperation: 'Fetching accounts...');
+    // Sync order: accounts first, then categories, piggy banks, budgets, bills, transactions last
+    // Each entity type is saved immediately after fetching for better UX
+    
+    // Step 1: Fetch and save accounts (most important - needed for other views)
+    updateGlobalSyncProgress(currentOperation: 'Syncing accounts...');
     final List<Map<String, dynamic>> accounts = await apiAdapter.getAllAccounts();
+    log.fine('Fetched ${accounts.length} accounts from API');
+    await _saveAccounts(database, accounts);
     updateStep('Accounts: ${accounts.length}');
     
-    // Step 2: Fetch categories
-    updateGlobalSyncProgress(currentOperation: 'Fetching categories...');
+    // Step 2: Fetch and save categories
+    updateGlobalSyncProgress(currentOperation: 'Syncing categories...');
     final List<Map<String, dynamic>> categories = await apiAdapter.getAllCategories();
+    await _saveCategories(database, categories);
     updateStep('Categories: ${categories.length}');
     
-    // Step 3: Fetch budgets
-    updateGlobalSyncProgress(currentOperation: 'Fetching budgets...');
-    final List<Map<String, dynamic>> budgets = await apiAdapter.getAllBudgets();
-    updateStep('Budgets: ${budgets.length}');
-    
-    // Step 4: Fetch bills
-    updateGlobalSyncProgress(currentOperation: 'Fetching bills...');
-    final List<Map<String, dynamic>> bills = await apiAdapter.getAllBills();
-    updateStep('Bills: ${bills.length}');
-    
-    // Step 5: Fetch piggy banks
-    updateGlobalSyncProgress(currentOperation: 'Fetching piggy banks...');
+    // Step 3: Fetch and save piggy banks (depends on accounts)
+    updateGlobalSyncProgress(currentOperation: 'Syncing piggy banks...');
     final List<Map<String, dynamic>> piggyBanks = await apiAdapter.getAllPiggyBanks();
+    await _savePiggyBanks(database, piggyBanks);
     updateStep('Piggy banks: ${piggyBanks.length}');
     
-    // Step 6: Fetch transactions (this is the slow one)
-    // Use paginated fetch with progress updates
-    updateGlobalSyncProgress(currentOperation: 'Fetching transactions...');
-    final List<Map<String, dynamic>> transactions = await _fetchTransactionsWithProgress(apiAdapter);
-    updateStep('Transactions: ${transactions.length}');
+    // Step 4: Fetch and save budgets
+    updateGlobalSyncProgress(currentOperation: 'Syncing budgets...');
+    final List<Map<String, dynamic>> budgets = await apiAdapter.getAllBudgets();
+    await _saveBudgets(database, budgets);
+    updateStep('Budgets: ${budgets.length}');
     
-    // Now save all data to local database
-    updateGlobalSyncProgress(currentOperation: 'Saving to database...');
-    await _saveDataToDatabase(
-      database,
-      accounts: accounts,
-      categories: categories,
-      budgets: budgets,
-      bills: bills,
-      piggyBanks: piggyBanks,
-      transactions: transactions,
-    );
+    // Step 5: Fetch and save bills
+    updateGlobalSyncProgress(currentOperation: 'Syncing bills...');
+    final List<Map<String, dynamic>> bills = await apiAdapter.getAllBills();
+    await _saveBills(database, bills);
+    updateStep('Bills: ${bills.length}');
+    
+    // Step 6: Fetch and save transactions (slowest - done last)
+    updateGlobalSyncProgress(currentOperation: 'Syncing transactions...');
+    final List<Map<String, dynamic>> transactions = await _fetchTransactionsWithProgress(apiAdapter);
+    await _saveTransactions(database, transactions);
+    updateStep('Transactions: ${transactions.length}');
     
     updateGlobalSyncProgress(currentOperation: 'Sync complete!');
   }
@@ -587,32 +587,26 @@ class FireflyService with ChangeNotifier {
     return allTransactions;
   }
   
-  /// Save fetched data to local database
-  Future<void> _saveDataToDatabase(
-    AppDatabase database, {
-    required List<Map<String, dynamic>> accounts,
-    required List<Map<String, dynamic>> categories,
-    required List<Map<String, dynamic>> budgets,
-    required List<Map<String, dynamic>> bills,
-    required List<Map<String, dynamic>> piggyBanks,
-    required List<Map<String, dynamic>> transactions,
-  }) async {
-    // Use database transaction for atomicity
-    await database.transaction(() async {
-      // Clear existing data (optional - depends on sync strategy)
-      // For initial sync, we want fresh data
-      await database.delete(database.transactions).go();
-      await database.delete(database.piggyBanks).go();
-      await database.delete(database.bills).go();
-      await database.delete(database.budgets).go();
-      await database.delete(database.categories).go();
-      await database.delete(database.accounts).go();
+  /// Save accounts to local database (uses insertOnConflictUpdate to preserve existing data)
+  Future<void> _saveAccounts(AppDatabase database, List<Map<String, dynamic>> accounts) async {
+    log.fine('Saving ${accounts.length} accounts to database');
+    try {
+      // Log first account for debugging
+      if (accounts.isNotEmpty) {
+        final first = accounts.first;
+        log.fine('First account sample: id=${first['id']}, attrs keys=${(first['attributes'] as Map?)?.keys.toList()}');
+      }
       
-      // Batch insert accounts
       await database.batch((Batch batch) {
         for (final Map<String, dynamic> account in accounts) {
           final Map<String, dynamic> attrs = account['attributes'] as Map<String, dynamic>;
-          batch.insert(
+          // Parse current_balance - API returns it as String, not num
+        final dynamic rawBalance = attrs['current_balance'];
+        final double balance = rawBalance is num 
+            ? rawBalance.toDouble() 
+            : double.tryParse(rawBalance?.toString() ?? '') ?? 0.0;
+        
+        batch.insert(
             database.accounts,
             AccountEntityCompanion.insert(
               id: account['id'] as String,
@@ -620,160 +614,240 @@ class FireflyService with ChangeNotifier {
               name: attrs['name'] as String,
               type: attrs['type'] as String,
               accountNumber: Value(attrs['account_number'] as String?),
+              accountRole: Value(attrs['account_role'] as String?),
               iban: Value(attrs['iban'] as String?),
               currencyCode: attrs['currency_code'] as String? ?? 'USD',
-              currentBalance: (attrs['current_balance'] as num?)?.toDouble() ?? 0.0,
+              currentBalance: balance,
               notes: Value(attrs['notes'] as String?),
               createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
               updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
               isSynced: const Value(true),
               syncStatus: const Value('synced'),
             ),
+            mode: InsertMode.insertOrReplace,
           );
         }
       });
-      
-      // Batch insert categories
-      await database.batch((Batch batch) {
-        for (final Map<String, dynamic> category in categories) {
-          final Map<String, dynamic> attrs = category['attributes'] as Map<String, dynamic>;
-          batch.insert(
-            database.categories,
-            CategoryEntityCompanion.insert(
-              id: category['id'] as String,
-              serverId: Value(category['id'] as String),
-              name: attrs['name'] as String,
-              notes: Value(attrs['notes'] as String?),
-              createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
-              updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
-              isSynced: const Value(true),
-              syncStatus: const Value('synced'),
-            ),
-          );
-        }
-      });
-      
-      // Batch insert budgets
-      await database.batch((Batch batch) {
-        for (final Map<String, dynamic> budget in budgets) {
-          final Map<String, dynamic> attrs = budget['attributes'] as Map<String, dynamic>;
-          batch.insert(
-            database.budgets,
-            BudgetEntityCompanion.insert(
-              id: budget['id'] as String,
-              serverId: Value(budget['id'] as String),
-              name: attrs['name'] as String,
-              createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
-              updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
-              isSynced: const Value(true),
-              syncStatus: const Value('synced'),
-            ),
-          );
-        }
-      });
-      
-      // Batch insert bills
-      await database.batch((Batch batch) {
-        for (final Map<String, dynamic> bill in bills) {
-          final Map<String, dynamic> attrs = bill['attributes'] as Map<String, dynamic>;
-          batch.insert(
-            database.bills,
-            BillEntityCompanion.insert(
-              id: bill['id'] as String,
-              serverId: Value(bill['id'] as String),
-              name: attrs['name'] as String,
-              minAmount: (attrs['amount_min'] as num?)?.toDouble() ?? 0.0,
-              maxAmount: (attrs['amount_max'] as num?)?.toDouble() ?? 0.0,
-              date: DateTime.tryParse(attrs['date'] as String? ?? '') ?? DateTime.now(),
-              repeatFreq: attrs['repeat_freq'] as String? ?? 'monthly',
-              currencyCode: attrs['currency_code'] as String? ?? 'USD',
-              currencySymbol: Value(attrs['currency_symbol'] as String?),
-              currencyDecimalPlaces: Value(attrs['currency_decimal_places'] as int?),
-              currencyId: Value(attrs['currency_id'] as String?),
-              nextExpectedMatch: Value(attrs['next_expected_match'] != null
-                  ? DateTime.tryParse(attrs['next_expected_match'] as String)
-                  : null),
-              order: Value(attrs['order'] as int?),
-              objectGroupOrder: Value(attrs['object_group_order'] as int?),
-              objectGroupTitle: Value(attrs['object_group_title'] as String?),
-              notes: Value(attrs['notes'] as String?),
-              createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
-              updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
-              isSynced: const Value(true),
-              syncStatus: const Value('synced'),
-            ),
-          );
-        }
-      });
-      
-      // Batch insert piggy banks
-      await database.batch((Batch batch) {
-        for (final Map<String, dynamic> piggyBank in piggyBanks) {
-          final Map<String, dynamic> attrs = piggyBank['attributes'] as Map<String, dynamic>;
-          batch.insert(
-            database.piggyBanks,
-            PiggyBankEntityCompanion.insert(
-              id: piggyBank['id'] as String,
-              serverId: Value(piggyBank['id'] as String),
-              name: attrs['name'] as String,
-              accountId: attrs['account_id'] as String? ?? '',
-              targetAmount: Value((attrs['target_amount'] as num?)?.toDouble()),
-              currentAmount: Value((attrs['current_amount'] as num?)?.toDouble() ?? 0.0),
-              startDate: Value(attrs['start_date'] != null ? DateTime.tryParse(attrs['start_date'] as String) : null),
-              targetDate: Value(attrs['target_date'] != null ? DateTime.tryParse(attrs['target_date'] as String) : null),
-              createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
-              updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
-              isSynced: const Value(true),
-              syncStatus: const Value('synced'),
-            ),
-          );
-        }
-      });
-      
-      // Batch insert transactions (process in chunks for large datasets)
-      const int batchSize = 500;
-      for (int i = 0; i < transactions.length; i += batchSize) {
-        final int end = (i + batchSize < transactions.length) ? i + batchSize : transactions.length;
-        final List<Map<String, dynamic>> chunk = transactions.sublist(i, end);
-        
-        await database.batch((Batch batch) {
-          for (final Map<String, dynamic> transaction in chunk) {
-            final Map<String, dynamic> attrs = transaction['attributes'] as Map<String, dynamic>;
-            final List<dynamic> txList = attrs['transactions'] as List<dynamic>? ?? <dynamic>[];
-            
-            for (final dynamic tx in txList) {
-              final Map<String, dynamic> txData = tx as Map<String, dynamic>;
-              batch.insert(
-                database.transactions,
-                TransactionEntityCompanion.insert(
-                  id: transaction['id'] as String,
-                  serverId: Value(transaction['id'] as String),
-                  type: txData['type'] as String? ?? 'withdrawal',
-                  date: DateTime.tryParse(txData['date'] as String? ?? '') ?? DateTime.now(),
-                  amount: (txData['amount'] as num?)?.toDouble() ?? 0.0,
-                  description: txData['description'] as String? ?? '',
-                  sourceAccountId: txData['source_id'] as String? ?? '',
-                  destinationAccountId: txData['destination_id'] as String? ?? '',
-                  categoryId: Value(txData['category_id'] as String?),
-                  budgetId: Value(txData['budget_id'] as String?),
-                  currencyCode: txData['currency_code'] as String? ?? 'USD',
-                  foreignAmount: Value((txData['foreign_amount'] as num?)?.toDouble()),
-                  foreignCurrencyCode: Value(txData['foreign_currency_code'] as String?),
-                  notes: Value(txData['notes'] as String?),
-                  tags: Value(txData['tags']?.toString() ?? '[]'),
-                  createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
-                  updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
-                  isSynced: const Value(true),
-                  syncStatus: const Value('synced'),
-                ),
-              );
-            }
-          }
-        });
+      log.info('Saved ${accounts.length} accounts to database');
+    } catch (e, stackTrace) {
+      log.severe('Failed to save accounts: $e', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Save categories to local database
+  Future<void> _saveCategories(AppDatabase database, List<Map<String, dynamic>> categories) async {
+    log.fine('Saving ${categories.length} categories to database');
+    await database.batch((Batch batch) {
+      for (final Map<String, dynamic> category in categories) {
+        final Map<String, dynamic> attrs = category['attributes'] as Map<String, dynamic>;
+        batch.insert(
+          database.categories,
+          CategoryEntityCompanion.insert(
+            id: category['id'] as String,
+            serverId: Value(category['id'] as String),
+            name: attrs['name'] as String,
+            notes: Value(attrs['notes'] as String?),
+            createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
+            updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
+            isSynced: const Value(true),
+            syncStatus: const Value('synced'),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
       }
     });
+    log.info('Saved ${categories.length} categories to database');
+  }
+
+  /// Save piggy banks to local database
+  Future<void> _savePiggyBanks(AppDatabase database, List<Map<String, dynamic>> piggyBanks) async {
+    log.fine('Saving ${piggyBanks.length} piggy banks to database');
+    await database.batch((Batch batch) {
+      for (final Map<String, dynamic> piggyBank in piggyBanks) {
+        final Map<String, dynamic> attrs = piggyBank['attributes'] as Map<String, dynamic>;
+        
+        // Parse amounts - API may return as String
+        final dynamic rawTarget = attrs['target_amount'];
+        final double? targetAmount = rawTarget is num 
+            ? rawTarget.toDouble() 
+            : double.tryParse(rawTarget?.toString() ?? '');
+        final dynamic rawCurrent = attrs['current_amount'];
+        final double currentAmount = rawCurrent is num 
+            ? rawCurrent.toDouble() 
+            : double.tryParse(rawCurrent?.toString() ?? '') ?? 0.0;
+        
+        batch.insert(
+          database.piggyBanks,
+          PiggyBankEntityCompanion.insert(
+            id: piggyBank['id'] as String,
+            serverId: Value(piggyBank['id'] as String),
+            name: attrs['name'] as String,
+            accountId: attrs['account_id']?.toString() ?? '',
+            targetAmount: Value(targetAmount),
+            currentAmount: Value(currentAmount),
+            startDate: Value(attrs['start_date'] != null ? DateTime.tryParse(attrs['start_date'] as String) : null),
+            targetDate: Value(attrs['target_date'] != null ? DateTime.tryParse(attrs['target_date'] as String) : null),
+            createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
+            updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
+            isSynced: const Value(true),
+            syncStatus: const Value('synced'),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+    log.info('Saved ${piggyBanks.length} piggy banks to database');
+  }
+
+  /// Save budgets to local database
+  Future<void> _saveBudgets(AppDatabase database, List<Map<String, dynamic>> budgets) async {
+    log.fine('Saving ${budgets.length} budgets to database');
+    await database.batch((Batch batch) {
+      for (final Map<String, dynamic> budget in budgets) {
+        final Map<String, dynamic> attrs = budget['attributes'] as Map<String, dynamic>;
+        batch.insert(
+          database.budgets,
+          BudgetEntityCompanion.insert(
+            id: budget['id'] as String,
+            serverId: Value(budget['id'] as String),
+            name: attrs['name'] as String,
+            createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
+            updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
+            isSynced: const Value(true),
+            syncStatus: const Value('synced'),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+    log.info('Saved ${budgets.length} budgets to database');
+  }
+
+  /// Save bills to local database
+  Future<void> _saveBills(AppDatabase database, List<Map<String, dynamic>> bills) async {
+    log.fine('Saving ${bills.length} bills to database');
+    await database.batch((Batch batch) {
+      for (final Map<String, dynamic> bill in bills) {
+        final Map<String, dynamic> attrs = bill['attributes'] as Map<String, dynamic>;
+        
+        // Parse amounts - API may return as String
+        final dynamic rawMin = attrs['amount_min'];
+        final double minAmount = rawMin is num 
+            ? rawMin.toDouble() 
+            : double.tryParse(rawMin?.toString() ?? '') ?? 0.0;
+        final dynamic rawMax = attrs['amount_max'];
+        final double maxAmount = rawMax is num 
+            ? rawMax.toDouble() 
+            : double.tryParse(rawMax?.toString() ?? '') ?? 0.0;
+        
+        // Parse int fields safely
+        final dynamic rawDecimalPlaces = attrs['currency_decimal_places'];
+        final int? decimalPlaces = rawDecimalPlaces is int 
+            ? rawDecimalPlaces 
+            : int.tryParse(rawDecimalPlaces?.toString() ?? '');
+        final dynamic rawOrder = attrs['order'];
+        final int? order = rawOrder is int 
+            ? rawOrder 
+            : int.tryParse(rawOrder?.toString() ?? '');
+        final dynamic rawGroupOrder = attrs['object_group_order'];
+        final int? groupOrder = rawGroupOrder is int 
+            ? rawGroupOrder 
+            : int.tryParse(rawGroupOrder?.toString() ?? '');
+        
+        batch.insert(
+          database.bills,
+          BillEntityCompanion.insert(
+            id: bill['id'] as String,
+            serverId: Value(bill['id'] as String),
+            name: attrs['name'] as String,
+            minAmount: minAmount,
+            maxAmount: maxAmount,
+            date: DateTime.tryParse(attrs['date'] as String? ?? '') ?? DateTime.now(),
+            repeatFreq: attrs['repeat_freq'] as String? ?? 'monthly',
+            currencyCode: attrs['currency_code'] as String? ?? 'USD',
+            currencySymbol: Value(attrs['currency_symbol'] as String?),
+            currencyDecimalPlaces: Value(decimalPlaces),
+            currencyId: Value(attrs['currency_id']?.toString()),
+            nextExpectedMatch: Value(attrs['next_expected_match'] != null
+                ? DateTime.tryParse(attrs['next_expected_match'] as String)
+                : null),
+            order: Value(order),
+            objectGroupOrder: Value(groupOrder),
+            objectGroupTitle: Value(attrs['object_group_title'] as String?),
+            notes: Value(attrs['notes'] as String?),
+            createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
+            updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
+            isSynced: const Value(true),
+            syncStatus: const Value('synced'),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+    log.info('Saved ${bills.length} bills to database');
+  }
+
+  /// Save transactions to local database (in chunks for performance)
+  Future<void> _saveTransactions(AppDatabase database, List<Map<String, dynamic>> transactions) async {
+    log.fine('Saving ${transactions.length} transactions to database');
+    const int batchSize = 500;
+    int saved = 0;
     
-    log.info('Saved all data to local database');
+    for (int i = 0; i < transactions.length; i += batchSize) {
+      final int end = (i + batchSize < transactions.length) ? i + batchSize : transactions.length;
+      final List<Map<String, dynamic>> chunk = transactions.sublist(i, end);
+      
+      await database.batch((Batch batch) {
+        for (final Map<String, dynamic> transaction in chunk) {
+          final Map<String, dynamic> attrs = transaction['attributes'] as Map<String, dynamic>;
+          final List<dynamic> txList = attrs['transactions'] as List<dynamic>? ?? <dynamic>[];
+          
+          for (final dynamic tx in txList) {
+            final Map<String, dynamic> txData = tx as Map<String, dynamic>;
+            
+            // Parse amounts - API may return as String
+            final dynamic rawAmount = txData['amount'];
+            final double amount = rawAmount is num 
+                ? rawAmount.toDouble() 
+                : double.tryParse(rawAmount?.toString() ?? '') ?? 0.0;
+            final dynamic rawForeignAmount = txData['foreign_amount'];
+            final double? foreignAmount = rawForeignAmount is num 
+                ? rawForeignAmount.toDouble() 
+                : double.tryParse(rawForeignAmount?.toString() ?? '');
+            
+            batch.insert(
+              database.transactions,
+              TransactionEntityCompanion.insert(
+                id: transaction['id'] as String,
+                serverId: Value(transaction['id'] as String),
+                type: txData['type'] as String? ?? 'withdrawal',
+                date: DateTime.tryParse(txData['date'] as String? ?? '') ?? DateTime.now(),
+                amount: amount,
+                description: txData['description'] as String? ?? '',
+                sourceAccountId: txData['source_id']?.toString() ?? '',
+                destinationAccountId: txData['destination_id']?.toString() ?? '',
+                categoryId: Value(txData['category_id']?.toString()),
+                budgetId: Value(txData['budget_id']?.toString()),
+                currencyCode: txData['currency_code'] as String? ?? 'USD',
+                foreignAmount: Value(foreignAmount),
+                foreignCurrencyCode: Value(txData['foreign_currency_code'] as String?),
+                notes: Value(txData['notes'] as String?),
+                tags: Value(txData['tags']?.toString() ?? '[]'),
+                createdAt: DateTime.tryParse(attrs['created_at'] as String? ?? '') ?? DateTime.now(),
+                updatedAt: DateTime.tryParse(attrs['updated_at'] as String? ?? '') ?? DateTime.now(),
+                isSynced: const Value(true),
+                syncStatus: const Value('synced'),
+              ),
+              mode: InsertMode.insertOrReplace,
+            );
+          }
+        }
+      });
+      saved += chunk.length;
+      log.finest('Saved transaction batch: $saved/${transactions.length}');
+    }
+    log.info('Saved ${transactions.length} transactions to database');
   }
 }
 

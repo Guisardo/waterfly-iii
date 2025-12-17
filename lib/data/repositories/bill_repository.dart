@@ -804,6 +804,67 @@ class BillRepository extends BaseRepository<BillEntity, String> {
     }
   }
 
+  /// Get upcoming bills due within a date range.
+  ///
+  /// Fetches active bills and calculates which ones are due within the specified
+  /// date range by computing their next expected match date based on recurrence.
+  ///
+  /// **Cache-First Behavior**:
+  /// - Returns data from local database immediately
+  /// - Computes next due dates locally without API calls
+  ///
+  /// **Parameters**:
+  /// - [start]: Start date of the range (inclusive)
+  /// - [end]: End date of the range (inclusive)
+  ///
+  /// **Returns**: List of bills due within the date range, sorted by next due date.
+  ///
+  /// **Example**:
+  /// ```dart
+  /// final upcoming = await billRepository.getUpcoming(
+  ///   start: DateTime.now(),
+  ///   end: DateTime.now().add(Duration(days: 7)),
+  /// );
+  /// ```
+  Future<List<BillEntity>> getUpcoming({
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    try {
+      logger.fine('Fetching upcoming bills from $start to $end');
+      
+      // Get all active bills
+      final List<BillEntity> activeBills = await getActive();
+      
+      // Filter bills by calculated next due date within range
+      final List<BillEntity> upcomingBills = <BillEntity>[];
+      for (final BillEntity bill in activeBills) {
+        final DateTime nextDue = calculateNextDueDate(bill);
+        // Check if next due date falls within the range (inclusive)
+        if (!nextDue.isBefore(start) && !nextDue.isAfter(end)) {
+          upcomingBills.add(bill);
+        }
+      }
+      
+      // Sort by next due date
+      upcomingBills.sort((BillEntity a, BillEntity b) {
+        final DateTime nextA = calculateNextDueDate(a);
+        final DateTime nextB = calculateNextDueDate(b);
+        return nextA.compareTo(nextB);
+      });
+      
+      logger.info('Found ${upcomingBills.length} upcoming bills');
+      return upcomingBills;
+    } catch (error, stackTrace) {
+      logger.severe('Failed to fetch upcoming bills', error, stackTrace);
+      throw DatabaseException.queryFailed(
+        'getUpcoming($start, $end)',
+        error,
+        stackTrace,
+      );
+    }
+  }
+
   /// Calculate next due date for a bill based on its recurrence.
   DateTime calculateNextDueDate(BillEntity bill) {
     logger.fine('Calculating next due date for bill: ${bill.id}');
