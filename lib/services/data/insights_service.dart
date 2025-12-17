@@ -10,7 +10,6 @@ import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
 import 'package:waterflyiii/services/app_mode/app_mode.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
-import 'package:waterflyiii/data/local/database/transactions_table.dart';
 
 /// Service for accessing Firefly III insight/analytics data with caching.
 ///
@@ -541,7 +540,7 @@ class InsightsService {
       _log.fine('Computing expense total from local transactions');
       
       // Get all transactions in date range
-      final List<TransactionEntity> transactions = await _transactionRepository!
+      final List<TransactionEntity> transactions = await _transactionRepository
           .getByDateRange(start, end);
 
       // Filter to withdrawals (expenses) only
@@ -601,7 +600,7 @@ class InsightsService {
       _log.fine('Computing income total from local transactions');
       
       // Get all transactions in date range
-      final List<TransactionEntity> transactions = await _transactionRepository!
+      final List<TransactionEntity> transactions = await _transactionRepository
           .getByDateRange(start, end);
 
       // Filter to deposits (income) only

@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/models/conflict.dart';
 import 'package:waterflyiii/models/sync_progress.dart';
-import 'package:waterflyiii/providers/app_mode_provider.dart';
 import 'package:waterflyiii/providers/offline_settings_provider.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
 import 'package:waterflyiii/services/cache/query_cache.dart';

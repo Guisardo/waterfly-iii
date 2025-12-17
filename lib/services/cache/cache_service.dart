@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:retry/retry.dart';
@@ -319,12 +318,14 @@ class CacheService {
             final String cacheKey = '${entityType}:${entityId}';
             if (_lastSuccessfulData.containsKey(cacheKey)) {
               final dynamic memoryData = _lastSuccessfulData[cacheKey];
+              // ignore: unnecessary_cast
               final bool memoryIsEmpty = memoryData is List && (memoryData as List).isEmpty;
               if (!memoryIsEmpty) {
                 _log.info(
                   'Using non-empty in-memory cached data for $entityType:$entityId (offline, fresh)',
                 );
                 return CacheResult<T>(
+                  // ignore: unnecessary_cast
                   data: memoryData as T,
                   source: CacheSource.cache,
                   isFresh: false,
@@ -485,12 +486,14 @@ class CacheService {
             final String cacheKey = '${entityType}:${entityId}';
             if (_lastSuccessfulData.containsKey(cacheKey)) {
               final dynamic memoryData = _lastSuccessfulData[cacheKey];
+              // ignore: unnecessary_cast
               final bool memoryIsEmpty = memoryData is List && (memoryData as List).isEmpty;
               if (!memoryIsEmpty) {
                 _log.info(
                   'Using non-empty in-memory cached data for $entityType:$entityId (offline, stale)',
                 );
                 return CacheResult<T>(
+                  // ignore: unnecessary_cast
                   data: memoryData as T,
                   source: CacheSource.cache,
                   isFresh: false,

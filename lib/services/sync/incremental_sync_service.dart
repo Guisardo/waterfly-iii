@@ -442,7 +442,7 @@ class IncrementalSyncService {
             (sum, stats) => sum + stats.apiCallsSaved,
           );
 
-          await _settingsProvider!.updateIncrementalSyncStatistics(
+          await _settingsProvider.updateIncrementalSyncStatistics(
             isIncremental: true,
             itemsFetched: totalFetched,
             itemsUpdated: totalUpdated,
