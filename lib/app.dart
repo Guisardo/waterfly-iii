@@ -367,10 +367,11 @@ class _WaterflyAppState extends State<WaterflyApp> {
             // Incremental Sync Service (Entity-Specific Sync)
             // Provides force sync functionality for individual entity types.
             // Only created when user is signed in.
-            ProxyProvider3<
+            ProxyProvider4<
               FireflyService,
               AppDatabase,
               CacheService,
+              OfflineSettingsProvider,
               IncrementalSyncService?
             >(
               update: (
@@ -378,6 +379,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
                 FireflyService firefly,
                 AppDatabase database,
                 CacheService cache,
+                OfflineSettingsProvider settings,
                 _,
               ) {
                 // Only create service when signed in
@@ -386,6 +388,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
                   database: database,
                   apiAdapter: FireflyApiAdapter(firefly.api),
                   cacheService: cache,
+                  settingsProvider: settings,
                 );
               },
               dispose:

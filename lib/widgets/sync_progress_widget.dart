@@ -103,6 +103,56 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
 
   @override
   Widget build(BuildContext context) {
+    // Check if SyncStatusProvider is available before using Consumer
+    // If not available, show error message
+    try {
+      Provider.of<SyncStatusProvider>(context, listen: false);
+    } catch (e) {
+      // SyncStatusProvider not available, show error message
+      return widget.displayMode == SyncProgressDisplayMode.sheet
+          ? Container(
+              padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Sync Status Provider Not Available',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Please restart the app to enable sync progress tracking.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            )
+          : AlertDialog(
+              title: const Text('Sync Service Unavailable'),
+              content: const Text(
+                'Sync Status Provider is not available. Please restart the app.',
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+    }
+
     return Consumer<SyncStatusProvider>(
       builder: (
         BuildContext context,

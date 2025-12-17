@@ -10,9 +10,9 @@ import 'package:waterflyiii/providers/offline_settings_provider.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
 import 'package:waterflyiii/services/cache/query_cache.dart';
 import 'package:waterflyiii/services/sync/consistency_service.dart';
+import 'package:waterflyiii/services/sync/incremental_sync_service.dart';
 import 'package:waterflyiii/widgets/incremental_sync_settings.dart';
 import 'package:waterflyiii/widgets/incremental_sync_statistics.dart';
-import 'package:waterflyiii/widgets/sync_progress_widget.dart';
 
 final Logger _log = Logger('OfflineSettingsScreen');
 
@@ -40,6 +40,53 @@ class OfflineSettingsScreen extends StatefulWidget {
 class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   bool _isSyncing = false;
   bool _isCheckingConsistency = false;
+  bool _isCalculatingDatabaseSize = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Calculate database size when screen loads and context is available
+    if (!_isCalculatingDatabaseSize) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _calculateDatabaseSize();
+        }
+      });
+    }
+  }
+
+  /// Calculate and update database size.
+  Future<void> _calculateDatabaseSize() async {
+    if (_isCalculatingDatabaseSize) return;
+    if (!mounted) return;
+    
+    setState(() => _isCalculatingDatabaseSize = true);
+
+    try {
+      final BuildContext? currentContext = context;
+      if (currentContext == null || !mounted) {
+        return;
+      }
+
+      final AppDatabase database = Provider.of<AppDatabase>(
+        currentContext,
+        listen: false,
+      );
+      final OfflineSettingsProvider settings = Provider.of<OfflineSettingsProvider>(
+        currentContext,
+        listen: false,
+      );
+
+      final int sizeInBytes = await database.getDatabaseSize();
+      await settings.updateDatabaseSize(sizeInBytes);
+    } catch (e, stackTrace) {
+      _log.severe('Failed to calculate database size', e, stackTrace);
+    } finally {
+      if (mounted) {
+        setState(() => _isCalculatingDatabaseSize = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -237,35 +284,143 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
     setState(() => _isSyncing = true);
 
     try {
-      // Get SyncManager from SyncStatusProvider
-      final SyncStatusProvider syncStatusProvider =
-          Provider.of<SyncStatusProvider>(context, listen: false);
-
-      _log.info('Triggering incremental sync');
-
-      // Start incremental sync in background and show progress dialog
-      final Future<SyncResult> syncFuture = syncStatusProvider.syncManager
-          .synchronize(fullSync: false);
-
-      if (mounted) {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder:
-              (BuildContext context) => const SyncProgressWidget(
-                displayMode: SyncProgressDisplayMode.dialog,
-              ),
-        );
+      // Get IncrementalSyncService from Provider
+      IncrementalSyncService? incrementalSyncService;
+      try {
+        incrementalSyncService =
+            Provider.of<IncrementalSyncService?>(context, listen: false);
+      } catch (e, stackTrace) {
+        _log.severe('Failed to get IncrementalSyncService', e, stackTrace);
+        if (mounted) {
+          _showError(context, 'Failed to get sync service: ${e.toString()}');
+        }
+        return;
       }
 
-      // Wait for sync to complete
-      await syncFuture;
+      if (incrementalSyncService == null) {
+        _log.warning('IncrementalSyncService not available');
+        if (mounted) {
+          _showError(context, 'Incremental sync service not available');
+        }
+        return;
+      }
 
-      _log.info('Incremental sync completed successfully');
+      // Check if incremental sync can be used
+      final bool canUseIncremental =
+          await incrementalSyncService.canUseIncrementalSync();
+      if (!canUseIncremental) {
+        _log.warning('Incremental sync not available, performing full sync instead');
+        if (mounted) {
+          _showError(
+            context,
+            'Incremental sync not available. Please perform a full sync first.',
+          );
+        }
+        return;
+      }
+
+      // Show simple loading dialog (SyncProgressWidget requires SyncStatusProvider
+      // which is not available in dialog context and not used by IncrementalSyncService)
+      if (mounted) {
+        try {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext dialogContext) {
+              // Use dialogContext to avoid provider issues
+              return const AlertDialog(
+                content: Row(
+                  children: <Widget>[
+                    CircularProgressIndicator(),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Text('Performing incremental sync...'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        } catch (e, stackTrace) {
+          _log.severe('Failed to show dialog', e, stackTrace);
+          // Continue anyway - dialog is optional
+        }
+      }
+
+      // Start incremental sync in background
+      final result = await incrementalSyncService.performIncrementalSync();
+
+      // Close progress dialog
+      if (mounted) {
+        try {
+          Navigator.of(context).pop(); // Close progress dialog
+        } catch (e, stackTrace) {
+          _log.warning('Failed to close dialog (may already be closed)', e, stackTrace);
+          // Continue - dialog might already be closed
+        }
+      }
+
+      if (result.isIncremental && result.success) {
+        if (mounted) {
+          try {
+            // Use a post-frame callback to ensure context is valid
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                try {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Incremental sync completed successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e, stackTrace) {
+                  _log.severe('Failed to show success snackbar', e, stackTrace);
+                }
+              }
+            });
+          } catch (e, stackTrace) {
+            _log.severe('Failed to schedule success snackbar', e, stackTrace);
+          }
+        }
+      } else {
+        _log.warning('Incremental sync completed with issues: ${result.error}');
+        if (mounted) {
+          try {
+            // Use a post-frame callback to ensure context is valid
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                try {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Incremental sync completed with issues: ${result.error ?? "Unknown error"}',
+                      ),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                } catch (e, stackTrace) {
+                  _log.severe('Failed to show warning snackbar', e, stackTrace);
+                }
+              }
+            });
+          } catch (e, stackTrace) {
+            _log.severe('Failed to schedule warning snackbar', e, stackTrace);
+          }
+        }
+      }
     } catch (e, stackTrace) {
       _log.severe('Incremental sync failed', e, stackTrace);
       if (mounted) {
-        _showError(context, 'Incremental sync failed: ${e.toString()}');
+        try {
+          Navigator.of(context).pop(); // Close progress dialog if still open
+        } catch (navError) {
+          _log.warning('Failed to close dialog in catch block', navError);
+        }
+        try {
+          _showError(context, 'Incremental sync failed: ${e.toString()}');
+        } catch (errorError) {
+          _log.severe('Failed to show error dialog', errorError);
+        }
       }
     } finally {
       if (mounted) {
@@ -684,29 +839,54 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
     setState(() => _isSyncing = true);
 
     try {
-      // Get SyncManager from SyncStatusProvider
-      final SyncStatusProvider syncStatusProvider =
-          Provider.of<SyncStatusProvider>(context, listen: false);
+      // Get SyncManager from SyncStatusProvider (if available)
+      SyncStatusProvider? syncStatusProvider;
+      try {
+        syncStatusProvider =
+            Provider.of<SyncStatusProvider>(context, listen: false);
+      } catch (e) {
+        _log.warning('SyncStatusProvider not available: $e');
+        if (mounted) {
+          _showError(
+            context,
+            'Sync service not available. Please restart the app.',
+          );
+        }
+        return;
+      }
 
       _log.info('Triggering manual sync');
 
-      // Start sync in background and show progress dialog
-      final Future<SyncResult> syncFuture =
-          syncStatusProvider.syncManager.synchronize();
-
+      // Show simple loading dialog (SyncProgressWidget requires SyncStatusProvider
+      // which is not available in dialog context)
       if (mounted) {
-        await showDialog(
+        showDialog(
           context: context,
           barrierDismissible: false,
-          builder:
-              (BuildContext context) => const SyncProgressWidget(
-                displayMode: SyncProgressDisplayMode.dialog,
-              ),
+          builder: (BuildContext context) => const AlertDialog(
+            content: Row(
+              children: <Widget>[
+                CircularProgressIndicator(),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Text('Performing sync...'),
+                ),
+              ],
+            ),
+          ),
         );
       }
 
+      // Start sync in background
+      final Future<SyncResult> syncFuture =
+          syncStatusProvider.syncManager.synchronize();
+
       // Wait for sync to complete
       await syncFuture;
+
+      if (mounted) {
+        Navigator.of(context).pop(); // Close progress dialog
+      }
 
       _log.info('Manual sync completed successfully');
     } catch (e, stackTrace) {
@@ -749,29 +929,54 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
       setState(() => _isSyncing = true);
 
       try {
-        // Get SyncManager from SyncStatusProvider
-        final SyncStatusProvider syncStatusProvider =
-            Provider.of<SyncStatusProvider>(context, listen: false);
+        // Get SyncManager from SyncStatusProvider (if available)
+        SyncStatusProvider? syncStatusProvider;
+        try {
+          syncStatusProvider =
+              Provider.of<SyncStatusProvider>(context, listen: false);
+        } catch (e) {
+          _log.warning('SyncStatusProvider not available: $e');
+          if (mounted) {
+            _showError(
+              context,
+              'Sync service not available. Please restart the app.',
+            );
+          }
+          return;
+        }
 
         _log.info('Triggering full sync');
 
-        // Start full sync in background and show progress dialog
-        final Future<SyncResult> syncFuture = syncStatusProvider.syncManager
-            .synchronize(fullSync: true);
-
+        // Show simple loading dialog (SyncProgressWidget requires SyncStatusProvider
+        // which is not available in dialog context)
         if (mounted) {
-          await showDialog(
+          showDialog(
             context: context,
             barrierDismissible: false,
-            builder:
-                (BuildContext context) => const SyncProgressWidget(
-                  displayMode: SyncProgressDisplayMode.dialog,
-                ),
+            builder: (BuildContext context) => const AlertDialog(
+              content: Row(
+                children: <Widget>[
+                  CircularProgressIndicator(),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Text('Performing full sync...'),
+                  ),
+                ],
+              ),
+            ),
           );
         }
 
+        // Start full sync in background
+        final Future<SyncResult> syncFuture = syncStatusProvider.syncManager
+            .synchronize(fullSync: true);
+
         // Wait for sync to complete
         await syncFuture;
+
+        if (mounted) {
+          Navigator.of(context).pop(); // Close progress dialog
+        }
 
         _log.info('Full sync completed successfully');
       } catch (e, stackTrace) {

@@ -260,6 +260,22 @@ class ListViewOfflineHelper {
 
       _logger.info('Pull-to-refresh sync completed');
     } catch (e, stackTrace) {
+      // Check if it's a ProviderNotFoundException (by checking error message)
+      final String errorStr = e.toString();
+      if (errorStr.contains('ProviderNotFoundException') ||
+          errorStr.contains('Could not find the correct Provider') ||
+          errorStr.contains('SyncStatusProvider')) {
+        _logger.warning('SyncStatusProvider not found: $e');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sync service not available. Please restart the app.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
       _logger.severe('Pull-to-refresh sync failed', e, stackTrace);
 
       if (context.mounted) {

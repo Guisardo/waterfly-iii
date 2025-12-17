@@ -42,6 +42,40 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Check if SyncStatusProvider is available
+    try {
+      Provider.of<SyncStatusProvider>(context, listen: false);
+    } catch (e) {
+      // SyncStatusProvider not available, show error message
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Sync Status'),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                const Text(
+                  'Sync Status Provider Not Available',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Please restart the app to enable sync status tracking.',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sync Status'),

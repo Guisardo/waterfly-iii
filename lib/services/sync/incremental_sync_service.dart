@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:retry/retry.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/models/incremental_sync_stats.dart';
+import 'package:waterflyiii/providers/offline_settings_provider.dart';
 import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/services/sync/date_range_iterator.dart';
 import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
@@ -273,12 +275,16 @@ class IncrementalSyncService {
   Stream<SyncProgressEvent> get progressStream =>
       _progressStreamController.stream;
 
+  /// Optional provider for updating settings after sync.
+  final OfflineSettingsProvider? _settingsProvider;
+
   /// Creates a new incremental sync service.
   IncrementalSyncService({
     required AppDatabase database,
     required FireflyApiAdapter apiAdapter,
     required CacheService cacheService,
     SyncProgressTracker? progressTracker,
+    OfflineSettingsProvider? settingsProvider,
     this.enableIncrementalSync = true,
     this.syncWindowDays = 30,
     this.cacheTtlHours = 24,
@@ -290,7 +296,8 @@ class IncrementalSyncService {
   }) : _database = database,
        _apiAdapter = apiAdapter,
        _cacheService = cacheService,
-       _progressTracker = progressTracker {
+       _progressTracker = progressTracker,
+       _settingsProvider = settingsProvider {
     _retryOptions = RetryOptions(
       maxAttempts: maxRetryAttempts,
       delayFactor: initialRetryDelay,
@@ -408,6 +415,44 @@ class IncrementalSyncService {
       // Update last incremental sync timestamp (only if all entities succeeded)
       if (!anyEntityFailed) {
         await _updateLastIncrementalSyncTime(DateTime.now());
+      }
+
+      // Update OfflineSettingsProvider if available
+      if (_settingsProvider != null && !anyEntityFailed) {
+        try {
+          // Calculate totals for provider update
+          final int totalFetched = statsByEntity.values.fold<int>(
+            0,
+            (sum, stats) => sum + stats.itemsFetched,
+          );
+          final int totalUpdated = statsByEntity.values.fold<int>(
+            0,
+            (sum, stats) => sum + stats.itemsUpdated,
+          );
+          final int totalSkipped = statsByEntity.values.fold<int>(
+            0,
+            (sum, stats) => sum + stats.itemsSkipped,
+          );
+          final int totalBandwidthSaved = statsByEntity.values.fold<int>(
+            0,
+            (sum, stats) => sum + stats.bandwidthSavedBytes,
+          );
+          final int totalApiCallsSaved = statsByEntity.values.fold<int>(
+            0,
+            (sum, stats) => sum + stats.apiCallsSaved,
+          );
+
+          await _settingsProvider!.updateIncrementalSyncStatistics(
+            isIncremental: true,
+            itemsFetched: totalFetched,
+            itemsUpdated: totalUpdated,
+            itemsSkipped: totalSkipped,
+            bandwidthSaved: totalBandwidthSaved,
+            apiCallsSaved: totalApiCallsSaved,
+          );
+        } catch (e, stackTrace) {
+          _logger.warning('Failed to update OfflineSettingsProvider', e, stackTrace);
+        }
       }
 
       final Duration duration = DateTime.now().difference(startTime);
@@ -566,6 +611,9 @@ class IncrementalSyncService {
     _logger.info('Starting incremental transaction sync (since: $since)');
 
     try {
+      // Only transactions support sort/order parameters in Firefly III API.
+      // Other entities (accounts, budgets, categories, bills, piggy_banks) don't support
+      // sort/order according to OpenAPI spec and will return 422 errors if used.
       final DateRangeIterator iterator = DateRangeIterator(
         apiClient: _apiAdapter,
         entityType: 'transaction',
@@ -649,8 +697,9 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'account',
         start: since,
-        sort: 'updated_at',
-        order: 'desc',
+        // Accounts API doesn't support sort/order parameters
+        sort: null,
+        order: null,
         stopWhenProcessed: (Map<String, dynamic> item) {
           return _shouldStopIteration(item, 'account');
         },
@@ -718,8 +767,9 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'budget',
         start: since,
-        sort: 'updated_at',
-        order: 'desc',
+        // Budgets API doesn't support sort/order parameters
+        sort: null,
+        order: null,
         stopWhenProcessed: (Map<String, dynamic> item) {
           return _shouldStopIteration(item, 'budget');
         },
@@ -807,8 +857,9 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'category',
         start: DateTime.now().subtract(Duration(days: syncWindowDays)),
-        sort: 'updated_at',
-        order: 'desc',
+        // Categories API doesn't support sort/order parameters
+        sort: null,
+        order: null,
         stopWhenProcessed: (Map<String, dynamic> item) {
           return _shouldStopIteration(item, 'category');
         },
@@ -885,8 +936,9 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'bill',
         start: DateTime.now().subtract(Duration(days: syncWindowDays)),
-        sort: 'updated_at',
-        order: 'desc',
+        // Bills API doesn't support sort/order parameters
+        sort: null,
+        order: null,
         stopWhenProcessed: (Map<String, dynamic> item) {
           return _shouldStopIteration(item, 'bill');
         },
@@ -963,8 +1015,9 @@ class IncrementalSyncService {
         apiClient: _apiAdapter,
         entityType: 'piggy_bank',
         start: DateTime.now().subtract(Duration(days: syncWindowDays)),
-        sort: 'updated_at',
-        order: 'desc',
+        // Piggy banks API doesn't support sort/order parameters
+        sort: null,
+        order: null,
         stopWhenProcessed: (Map<String, dynamic> item) {
           return _shouldStopIteration(item, 'piggy_bank');
         },
@@ -1414,6 +1467,14 @@ class IncrementalSyncService {
   // ==================== Sync Window Management (Tier 3) ====================
 
   /// Check if incremental sync can be used.
+  ///
+  /// Public method to check if incremental sync is possible without
+  /// actually performing the sync.
+  Future<bool> canUseIncrementalSync() async {
+    return _canUseIncrementalSync();
+  }
+
+  /// Internal method to check if incremental sync can be used.
   Future<bool> _canUseIncrementalSync() async {
     // Check feature flag
     if (!enableIncrementalSync) {
@@ -1449,17 +1510,47 @@ class IncrementalSyncService {
   }
 
   /// Get last full sync timestamp from database.
+  ///
+  /// Also checks SharedPreferences for backward compatibility and migrates
+  /// the timestamp to the database if found.
   Future<DateTime?> _getLastFullSyncTime() async {
     final SyncMetadataEntity? metadata =
         await (_database.select(_database.syncMetadata)..where(
           ($SyncMetadataTable m) => m.key.equals('last_full_sync'),
         )).getSingleOrNull();
 
-    if (metadata == null || metadata.value.isEmpty) {
-      return null;
+    // If found in database, use it
+    if (metadata != null && metadata.value.isNotEmpty) {
+      final DateTime? parsed = DateTime.tryParse(metadata.value);
+      if (parsed != null) {
+        return parsed;
+      }
     }
 
-    return DateTime.tryParse(metadata.value);
+    // Check SharedPreferences for backward compatibility
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final int? lastSyncTimeMs = prefs.getInt('last_full_sync_time');
+      if (lastSyncTimeMs != null && lastSyncTimeMs > 0) {
+        final DateTime lastSyncTime = DateTime.fromMillisecondsSinceEpoch(lastSyncTimeMs);
+        // Migrate to database for future use
+        await _database
+            .into(_database.syncMetadata)
+            .insertOnConflictUpdate(
+              SyncMetadataEntityCompanion.insert(
+                key: 'last_full_sync',
+                value: lastSyncTime.toIso8601String(),
+                updatedAt: DateTime.now(),
+              ),
+            );
+        _logger.fine('Migrated last_full_sync from SharedPreferences to database');
+        return lastSyncTime;
+      }
+    } catch (e, stackTrace) {
+      _logger.warning('Failed to check SharedPreferences for last_full_sync_time', e, stackTrace);
+    }
+
+    return null;
   }
 
   /// Get last incremental sync timestamp from database.

@@ -24,6 +24,9 @@ import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/providers/sync_provider.dart';
 import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/sync/incremental_sync_service.dart';
+import 'package:waterflyiii/services/sync/metadata_service.dart';
+import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
 import 'package:waterflyiii/services/app_mode/app_mode.dart';
 import 'package:waterflyiii/stock.dart';
@@ -523,10 +526,51 @@ class FireflyService with ChangeNotifier {
           log.fine('Using database instance: ${database.hashCode}');
           final FireflyApiAdapter apiAdapter = FireflyApiAdapter(api);
 
-          // Perform sync with progress tracking
+          // Check if incremental sync is possible
+          final CacheService cacheService = CacheService(database: database);
+          final IncrementalSyncService incrementalSync = IncrementalSyncService(
+            database: database,
+            apiAdapter: apiAdapter,
+            cacheService: cacheService,
+          );
+
+          // Try incremental sync first if possible
+          final bool canUseIncremental = await incrementalSync.canUseIncrementalSync();
+          if (canUseIncremental) {
+            log.info('Using incremental sync (with sort/order optimization)');
+            try {
+              final result = await incrementalSync.performIncrementalSync();
+              // Use incremental sync if it was actually incremental, even if some entities failed
+              // (partial success is better than falling back to full sync)
+              if (result.isIncremental) {
+                if (result.success) {
+                  log.info('Incremental sync completed successfully');
+                } else {
+                  log.warning('Incremental sync completed with some failures: ${result.error}');
+                }
+                // Store timestamp in both SharedPreferences (for backward compatibility) and database
+                await prefs.setInt('last_full_sync_time', now);
+                final MetadataService metadata = MetadataService(database);
+                await metadata.set('last_full_sync', DateTime.now().toIso8601String());
+                notifyGlobalSyncState(false);
+                return;
+              } else {
+                log.info('Incremental sync not possible, falling back to full sync');
+              }
+            } catch (e, stackTrace) {
+              log.warning('Incremental sync failed, falling back to full sync', e, stackTrace);
+            }
+          } else {
+            log.info('Performing full sync (incremental sync not available)');
+          }
+
+          // Perform full sync with progress tracking
           await _performSyncWithProgress(database, apiAdapter);
 
+          // Store timestamp in both SharedPreferences (for backward compatibility) and database
           await prefs.setInt('last_full_sync_time', now);
+          final MetadataService metadata = MetadataService(database);
+          await metadata.set('last_full_sync', DateTime.now().toIso8601String());
 
           // Notify sync completed
           notifyGlobalSyncState(false);

@@ -121,6 +121,17 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
 
   @override
   Widget build(BuildContext context) {
+    // Check if SyncStatusProvider is available before using Consumer
+    // If not available, return empty widget to prevent crash
+    try {
+      // Try to access the provider - if it doesn't exist, this will throw
+      Provider.of<SyncStatusProvider>(context, listen: false);
+    } catch (e) {
+      // SyncStatusProvider not available, return empty widget
+      return const SizedBox.shrink();
+    }
+
+    // Provider exists, safe to use Consumer
     return Consumer<SyncStatusProvider>(
       builder: (
         BuildContext context,
@@ -418,11 +429,26 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                     _log.info('Manual sync triggered');
 
                     try {
-                      final SyncStatusProvider syncStatusProvider =
-                          Provider.of<SyncStatusProvider>(
-                            context,
-                            listen: false,
+                      SyncStatusProvider? syncStatusProvider;
+                      try {
+                        syncStatusProvider = Provider.of<SyncStatusProvider>(
+                          context,
+                          listen: false,
+                        );
+                      } catch (e) {
+                        _log.warning('SyncStatusProvider not available: $e');
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Sync service not available. Please restart the app.',
+                              ),
+                              backgroundColor: Colors.orange,
+                            ),
                           );
+                        }
+                        return;
+                      }
 
                       // Trigger incremental sync
                       await syncStatusProvider.syncManager.synchronize();
@@ -459,11 +485,26 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                     _log.info('Full sync triggered');
 
                     try {
-                      final SyncStatusProvider syncStatusProvider =
-                          Provider.of<SyncStatusProvider>(
-                            context,
-                            listen: false,
+                      SyncStatusProvider? syncStatusProvider;
+                      try {
+                        syncStatusProvider = Provider.of<SyncStatusProvider>(
+                          context,
+                          listen: false,
+                        );
+                      } catch (e) {
+                        _log.warning('SyncStatusProvider not available: $e');
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Sync service not available. Please restart the app.',
+                              ),
+                              backgroundColor: Colors.orange,
+                            ),
                           );
+                        }
+                        return;
+                      }
 
                       // Trigger full sync
                       await syncStatusProvider.syncManager.synchronize(

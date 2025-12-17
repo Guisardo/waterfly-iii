@@ -106,6 +106,28 @@ class AppDatabase extends _$AppDatabase {
     _instance = null;
   }
 
+  /// Get the database file size in bytes.
+  ///
+  /// Returns the size of the database file on disk.
+  /// Returns 0 if the file doesn't exist or if an error occurs.
+  Future<int> getDatabaseSize() async {
+    try {
+      final Directory dbFolder = await getApplicationDocumentsDirectory();
+      final String dbPath = p.join(dbFolder.path, 'waterfly_offline.db');
+      final File file = File(dbPath);
+      
+      if (await file.exists()) {
+        return await file.length();
+      }
+      
+      return 0;
+    } catch (e, stackTrace) {
+      final Logger log = Logger('AppDatabase');
+      log.warning('Failed to get database size', e, stackTrace);
+      return 0;
+    }
+  }
+
   /// Database schema version.
   ///
   /// Increment this when making schema changes and implement migration logic.

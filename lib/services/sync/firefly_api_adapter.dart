@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:chopper/chopper.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -776,33 +778,26 @@ class FireflyApiAdapter {
 
   /// Get accounts updated since timestamp
   Future<List<Map<String, dynamic>>> getAccountsSince(DateTime since) async {
-    _logger.fine('Fetching accounts updated since $since');
+    _logger.fine('Fetching accounts updated since $since (no sort/order - API doesn\'t support it)');
 
     final List<Map<String, dynamic>> accounts = <Map<String, dynamic>>[];
     int page = 1;
-    final String startDate = since.toIso8601String().split('T')[0];
 
     while (true) {
-      final Response<AccountArray> response = await apiClient.v1AccountsGet(
+      final PaginatedResult<Map<String, dynamic>> result =
+          await getAccountsPaginated(
         page: page,
-        start: startDate,
+        start: since,
+        // Accounts API doesn't support sort/order parameters
+        sort: null,
+        order: null,
       );
 
-      if (!response.isSuccessful || response.body == null) {
-        throw Exception('Failed to fetch accounts: ${response.error}');
-      }
+      if (result.data.isEmpty) break;
 
-      final List<AccountRead> data = response.body!.data;
-      if (data.isEmpty) break;
+      accounts.addAll(result.data);
 
-      for (final AccountRead account in data) {
-        accounts.add(<String, dynamic>{
-          'id': account.id,
-          'type': account.type,
-          'attributes': account.attributes.toJson(),
-        });
-      }
-
+      if (!result.hasMore) break;
       page++;
     }
 
@@ -812,32 +807,26 @@ class FireflyApiAdapter {
 
   /// Get categories updated since timestamp
   Future<List<Map<String, dynamic>>> getCategoriesSince(DateTime since) async {
-    _logger.fine('Fetching categories updated since $since');
+    _logger.fine('Fetching categories updated since $since (no sort/order - API doesn\'t support it)');
 
     final List<Map<String, dynamic>> categories = <Map<String, dynamic>>[];
     int page = 1;
 
-    // Note: Categories API doesn't support date filtering, fetch all and filter locally
+    // Note: Categories API doesn't support date filtering or sort/order
     while (true) {
-      final Response<CategoryArray> response = await apiClient.v1CategoriesGet(
+      final PaginatedResult<Map<String, dynamic>> result =
+          await getCategoriesPaginated(
         page: page,
+        // Categories API doesn't support sort/order parameters
+        sort: null,
+        order: null,
       );
 
-      if (!response.isSuccessful || response.body == null) {
-        throw Exception('Failed to fetch categories: ${response.error}');
-      }
+      if (result.data.isEmpty) break;
 
-      final List<CategoryRead> data = response.body!.data;
-      if (data.isEmpty) break;
+      categories.addAll(result.data);
 
-      for (final CategoryRead category in data) {
-        categories.add(<String, dynamic>{
-          'id': category.id,
-          'type': category.type,
-          'attributes': category.attributes.toJson(),
-        });
-      }
-
+      if (!result.hasMore) break;
       page++;
     }
 
@@ -847,33 +836,26 @@ class FireflyApiAdapter {
 
   /// Get budgets updated since timestamp
   Future<List<Map<String, dynamic>>> getBudgetsSince(DateTime since) async {
-    _logger.fine('Fetching budgets updated since $since');
+    _logger.fine('Fetching budgets updated since $since (no sort/order - API doesn\'t support it)');
 
     final List<Map<String, dynamic>> budgets = <Map<String, dynamic>>[];
     int page = 1;
-    final String startDate = since.toIso8601String().split('T')[0];
 
     while (true) {
-      final Response<BudgetArray> response = await apiClient.v1BudgetsGet(
+      final PaginatedResult<Map<String, dynamic>> result =
+          await getBudgetsPaginated(
         page: page,
-        start: startDate,
+        start: since,
+        // Budgets API doesn't support sort/order parameters
+        sort: null,
+        order: null,
       );
 
-      if (!response.isSuccessful || response.body == null) {
-        throw Exception('Failed to fetch budgets: ${response.error}');
-      }
+      if (result.data.isEmpty) break;
 
-      final List<BudgetRead> data = response.body!.data;
-      if (data.isEmpty) break;
+      budgets.addAll(result.data);
 
-      for (final BudgetRead budget in data) {
-        budgets.add(<String, dynamic>{
-          'id': budget.id,
-          'type': budget.type,
-          'attributes': budget.attributes.toJson(),
-        });
-      }
-
+      if (!result.hasMore) break;
       page++;
     }
 
@@ -883,32 +865,26 @@ class FireflyApiAdapter {
 
   /// Get bills updated since timestamp
   Future<List<Map<String, dynamic>>> getBillsSince(DateTime since) async {
-    _logger.fine('Fetching bills updated since $since');
+    _logger.fine('Fetching bills updated since $since (no sort/order - API doesn\'t support it)');
 
     final List<Map<String, dynamic>> bills = <Map<String, dynamic>>[];
     int page = 1;
 
-    // Note: Bills API doesn't support date filtering, fetch all and filter locally
+    // Note: Bills API doesn't support date filtering or sort/order
     while (true) {
-      final Response<BillArray> response = await apiClient.v1BillsGet(
+      final PaginatedResult<Map<String, dynamic>> result =
+          await getBillsPaginated(
         page: page,
+        // Bills API doesn't support sort/order parameters
+        sort: null,
+        order: null,
       );
 
-      if (!response.isSuccessful || response.body == null) {
-        throw Exception('Failed to fetch bills: ${response.error}');
-      }
+      if (result.data.isEmpty) break;
 
-      final List<BillRead> data = response.body!.data;
-      if (data.isEmpty) break;
+      bills.addAll(result.data);
 
-      for (final BillRead bill in data) {
-        bills.add(<String, dynamic>{
-          'id': bill.id,
-          'type': bill.type,
-          'attributes': bill.attributes.toJson(),
-        });
-      }
-
+      if (!result.hasMore) break;
       page++;
     }
 
@@ -918,32 +894,26 @@ class FireflyApiAdapter {
 
   /// Get piggy banks updated since timestamp
   Future<List<Map<String, dynamic>>> getPiggyBanksSince(DateTime since) async {
-    _logger.fine('Fetching piggy banks updated since $since');
+    _logger.fine('Fetching piggy banks updated since $since (no sort/order - API doesn\'t support it)');
 
     final List<Map<String, dynamic>> piggyBanks = <Map<String, dynamic>>[];
     int page = 1;
 
-    // Note: Piggy banks API doesn't support date filtering, fetch all and filter locally
+    // Note: Piggy banks API doesn't support date filtering or sort/order
     while (true) {
-      final Response<PiggyBankArray> response = await apiClient.v1PiggyBanksGet(
+      final PaginatedResult<Map<String, dynamic>> result =
+          await getPiggyBanksPaginated(
         page: page,
+        // Piggy banks API doesn't support sort/order parameters
+        sort: null,
+        order: null,
       );
 
-      if (!response.isSuccessful || response.body == null) {
-        throw Exception('Failed to fetch piggy banks: ${response.error}');
-      }
+      if (result.data.isEmpty) break;
 
-      final List<PiggyBankRead> data = response.body!.data;
-      if (data.isEmpty) break;
+      piggyBanks.addAll(result.data);
 
-      for (final PiggyBankRead piggyBank in data) {
-        piggyBanks.add(<String, dynamic>{
-          'id': piggyBank.id,
-          'type': piggyBank.type,
-          'attributes': piggyBank.attributes.toJson(),
-        });
-      }
-
+      if (!result.hasMore) break;
       page++;
     }
 
@@ -955,31 +925,25 @@ class FireflyApiAdapter {
   Future<List<Map<String, dynamic>>> getTransactionsSince(
     DateTime since,
   ) async {
-    _logger.fine('Fetching transactions updated since $since');
+    _logger.fine('Fetching transactions updated since $since (with sort=updated_at&order=desc)');
 
     final List<Map<String, dynamic>> transactions = <Map<String, dynamic>>[];
     int page = 1;
-    final String startDate = since.toIso8601String().split('T')[0];
 
     while (true) {
-      final Response<TransactionArray> response = await apiClient
-          .v1TransactionsGet(page: page, start: startDate);
+      final PaginatedResult<Map<String, dynamic>> result =
+          await getTransactionsPaginated(
+        page: page,
+        start: since,
+        sort: 'updated_at',
+        order: 'desc',
+      );
 
-      if (!response.isSuccessful || response.body == null) {
-        throw Exception('Failed to fetch transactions: ${response.error}');
-      }
+      if (result.data.isEmpty) break;
 
-      final List<TransactionRead> data = response.body!.data;
-      if (data.isEmpty) break;
+      transactions.addAll(result.data);
 
-      for (final TransactionRead transaction in data) {
-        transactions.add(<String, dynamic>{
-          'id': transaction.id,
-          'type': transaction.type,
-          'attributes': transaction.attributes.toJson(),
-        });
-      }
-
+      if (!result.hasMore) break;
       page++;
     }
 
@@ -1055,9 +1019,14 @@ class FireflyApiAdapter {
         );
 
     if (!response.isSuccessful || response.body == null) {
-      final String error = 'Failed to fetch transactions: ${response.error}';
-      _logger.severe(error);
-      throw ApiException(error, statusCode: response.statusCode);
+      final String errorMessage = response.error?.toString() ?? 'Unknown error';
+      final int? statusCode = response.statusCode;
+      final String? responseBody = response.bodyString;
+      final String error = 'Failed to fetch transactions: $errorMessage (status: $statusCode)';
+      _logger.severe('Transaction fetch error (without sort): $error');
+      _logger.severe('Response body: $responseBody');
+      _logger.severe('Request params: page=$page, limit=$limit, start=${start?.toIso8601String().split('T')[0]}, end=${end?.toIso8601String().split('T')[0]}');
+      throw ApiException(error, statusCode: statusCode);
     }
 
     final TransactionArray body = response.body!;
@@ -1125,18 +1094,57 @@ class FireflyApiAdapter {
       parameters: params,
     );
 
-    final Response<TransactionArray> response =
-        await apiClient.client.send<TransactionArray, TransactionArray>(
-      request,
-    );
+    _logger.fine('Sending transaction request: ${request.url} with params: $params');
 
-    if (!response.isSuccessful || response.body == null) {
-      final String error = 'Failed to fetch transactions: ${response.error}';
-      _logger.severe(error);
-      throw ApiException(error, statusCode: response.statusCode);
+    Response<dynamic> response;
+    try {
+      // Use dynamic to get raw response, then parse manually
+      response = await apiClient.client.send<dynamic, dynamic>(
+        request,
+      );
+      _logger.fine('Transaction response received: isSuccessful=${response.isSuccessful}, statusCode=${response.statusCode}');
+    } catch (e, stackTrace) {
+      _logger.severe('Exception during transaction API call (with sort)', e, stackTrace);
+      rethrow;
     }
 
-    final TransactionArray body = response.body!;
+    if (!response.isSuccessful) {
+      final String errorMessage = response.error?.toString() ?? 'Unknown error';
+      final int? statusCode = response.statusCode;
+      final String error = 'Failed to fetch transactions: $errorMessage (status: $statusCode)';
+      _logger.severe(error);
+      throw ApiException(error, statusCode: statusCode);
+    }
+
+    // Manually parse JSON response
+    TransactionArray body;
+    try {
+      final dynamic responseBody = response.body;
+      if (responseBody == null) {
+        throw ApiException('Response body is null', statusCode: response.statusCode);
+      }
+
+      // Handle both Map and String response bodies
+      Map<String, dynamic> json;
+      if (responseBody is Map<String, dynamic>) {
+        json = responseBody;
+      } else if (responseBody is String) {
+        json = jsonDecode(responseBody) as Map<String, dynamic>;
+      } else {
+        throw ApiException(
+          'Unexpected response body type: ${responseBody.runtimeType}',
+          statusCode: response.statusCode,
+        );
+      }
+
+      body = TransactionArray.fromJson(json);
+    } catch (e, stackTrace) {
+      _logger.severe('Failed to parse transaction response', e, stackTrace);
+      throw ApiException(
+        'Failed to parse transaction response: $e',
+        statusCode: response.statusCode,
+      );
+    }
     final Meta meta = body.meta;
 
     final int total = meta.pagination?.total ?? body.data.length;

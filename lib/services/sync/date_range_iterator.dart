@@ -378,7 +378,16 @@ class DateRangeIterator {
         if (attemptCount > 1) {
           _logger.fine('Retry attempt $attemptCount for page $page');
         }
-        return _fetchPage(page);
+        try {
+          return _fetchPage(page);
+        } catch (e, stackTrace) {
+          _logger.severe(
+            'Error in _fetchPage for $entityType page $page (attempt $attemptCount)',
+            e,
+            stackTrace,
+          );
+          rethrow;
+        }
       },
       retryIf: (Exception e) => _isRetryableError(e),
       onRetry: (Exception e) {

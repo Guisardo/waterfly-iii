@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/models/conflict.dart';
 import 'package:waterflyiii/services/sync/background_sync_scheduler.dart';
 
@@ -107,6 +108,10 @@ class OfflineSettingsProvider extends ChangeNotifier {
       _prefs = prefs;
       _syncScheduler = BackgroundSyncScheduler(prefs);
       _loadSettings();
+      
+      // Load existing statistics from database if available
+      await _loadStatisticsFromDatabase();
+      
       _isLoading = false;
       _isInitialized = true;
       notifyListeners();
@@ -115,6 +120,103 @@ class OfflineSettingsProvider extends ChangeNotifier {
       log.severe('Failed to initialize OfflineSettingsProvider', error, stackTrace);
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// Load aggregated statistics from database sync_statistics table.
+  ///
+  /// This syncs the provider with existing database statistics that may have
+  /// been written by IncrementalSyncService but not yet synced to SharedPreferences.
+  Future<void> _loadStatisticsFromDatabase() async {
+    try {
+      final AppDatabase database = AppDatabase();
+      // Import the generated types - they're available through app_database.dart
+      final allStats = await database
+          .select(database.syncStatistics)
+          .get();
+
+      if (allStats.isEmpty) {
+        return;
+      }
+
+      // Aggregate statistics across all entity types
+      int totalFetched = 0;
+      int totalUpdated = 0;
+      int totalSkipped = 0;
+      int totalBandwidthSaved = 0;
+      int totalApiCallsSaved = 0;
+      DateTime? latestIncrementalSync;
+      DateTime? latestFullSync;
+
+      for (final stats in allStats) {
+        totalFetched += stats.itemsFetchedTotal;
+        totalUpdated += stats.itemsUpdatedTotal;
+        totalSkipped += stats.itemsSkippedTotal;
+        totalBandwidthSaved += stats.bandwidthSavedBytes;
+        totalApiCallsSaved += stats.apiCallsSavedCount;
+
+        // lastIncrementalSync is not nullable, always has a value
+        if (latestIncrementalSync == null ||
+            stats.lastIncrementalSync.isAfter(latestIncrementalSync)) {
+          latestIncrementalSync = stats.lastIncrementalSync;
+        }
+
+        // lastFullSync is nullable
+        if (stats.lastFullSync != null) {
+          if (latestFullSync == null ||
+              stats.lastFullSync!.isAfter(latestFullSync)) {
+            latestFullSync = stats.lastFullSync;
+          }
+        }
+      }
+
+      // Only update if database has more recent data than SharedPreferences
+      // (i.e., if SharedPreferences values are 0 or database has newer timestamp)
+      final bool shouldUpdate = _totalItemsFetched == 0 ||
+          (latestIncrementalSync != null &&
+              (_lastIncrementalSyncTime == null ||
+                  latestIncrementalSync.isAfter(_lastIncrementalSyncTime!)));
+
+      if (shouldUpdate && totalFetched > 0) {
+        // Update in-memory values
+        _totalItemsFetched = totalFetched;
+        _totalItemsUpdated = totalUpdated;
+        _totalItemsSkipped = totalSkipped;
+        _totalBandwidthSaved = totalBandwidthSaved;
+        _totalApiCallsSaved = totalApiCallsSaved;
+        
+        if (latestIncrementalSync != null) {
+          _lastIncrementalSyncTime = latestIncrementalSync;
+        }
+        if (latestFullSync != null) {
+          _lastFullSyncTime = latestFullSync;
+        }
+
+        // Persist to SharedPreferences
+        if (_prefs != null) {
+          await _prefs!.setInt(_keyTotalItemsFetched, _totalItemsFetched);
+          await _prefs!.setInt(_keyTotalItemsUpdated, _totalItemsUpdated);
+          await _prefs!.setInt(_keyTotalItemsSkipped, _totalItemsSkipped);
+          await _prefs!.setInt(_keyTotalBandwidthSaved, _totalBandwidthSaved);
+          await _prefs!.setInt(_keyTotalApiCallsSaved, _totalApiCallsSaved);
+          
+          if (_lastIncrementalSyncTime != null) {
+            await _prefs!.setInt(
+              _keyLastIncrementalSync,
+              _lastIncrementalSyncTime!.millisecondsSinceEpoch,
+            );
+          }
+          if (_lastFullSyncTime != null) {
+            await _prefs!.setInt(
+              _keyLastFullSync,
+              _lastFullSyncTime!.millisecondsSinceEpoch,
+            );
+          }
+        }
+      }
+    } catch (e, stackTrace) {
+      _log.warning('Failed to load statistics from database', e, stackTrace);
+      // Don't fail initialization if database read fails
     }
   }
 
@@ -362,6 +464,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
       _totalApiCallsSaved = _prefs!.getInt(_keyTotalApiCallsSaved) ?? 0;
       _incrementalSyncCount = _prefs!.getInt(_keyIncrementalSyncCount) ?? 0;
 
+
       _log.info(
         'Loaded settings: interval=$_syncInterval, '
         'autoSync=$_autoSyncEnabled, wifiOnly=$_wifiOnlyEnabled, '
@@ -514,6 +617,11 @@ class OfflineSettingsProvider extends ChangeNotifier {
     _log.fine('Updating database size: $sizeInBytes bytes');
 
     try {
+      if (_prefs == null) {
+        _log.warning('Cannot update database size: SharedPreferences not initialized');
+        return;
+      }
+      
       _databaseSize = sizeInBytes;
       await _prefs!.setInt(_keyDatabaseSize, sizeInBytes);
       notifyListeners();
