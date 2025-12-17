@@ -1,3 +1,4 @@
+import 'package:chopper/chopper.dart';
 import 'package:chopper/src/response.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';

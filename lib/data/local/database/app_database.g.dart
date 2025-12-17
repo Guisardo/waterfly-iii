@@ -13539,6 +13539,17 @@ class $CacheMetadataTableTable extends CacheMetadataTable
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _cachedDataMeta = const VerificationMeta(
+    'cachedData',
+  );
+  @override
+  late final GeneratedColumn<String> cachedData = GeneratedColumn<String>(
+    'cached_data',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     entityType,
@@ -13549,6 +13560,7 @@ class $CacheMetadataTableTable extends CacheMetadataTable
     isInvalidated,
     etag,
     queryHash,
+    cachedData,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -13626,6 +13638,12 @@ class $CacheMetadataTableTable extends CacheMetadataTable
         queryHash.isAcceptableOrUnknown(data['query_hash']!, _queryHashMeta),
       );
     }
+    if (data.containsKey('cached_data')) {
+      context.handle(
+        _cachedDataMeta,
+        cachedData.isAcceptableOrUnknown(data['cached_data']!, _cachedDataMeta),
+      );
+    }
     return context;
   }
 
@@ -13672,6 +13690,10 @@ class $CacheMetadataTableTable extends CacheMetadataTable
       queryHash: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}query_hash'],
+      ),
+      cachedData: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cached_data'],
       ),
     );
   }
@@ -13781,7 +13803,7 @@ class CacheMetadataEntity extends DataClass
   ///
   /// ETags enable efficient HTTP conditional requests:
   /// 1. Cache stores ETag from initial response
-  /// 2. Subsequent request includes If-None-Match: <etag>
+  /// 2. Subsequent request includes If-None-Match: `etag`
   /// 3. Server returns 304 Not Modified if unchanged (no body transfer)
   /// 4. Client reuses cached data, updates lastAccessedAt
   ///
@@ -13829,6 +13851,39 @@ class CacheMetadataEntity extends DataClass
   /// queryHash = 'collection_${hash.substring(0, 16)}';
   /// ```
   final String? queryHash;
+
+  /// Cached data stored as JSON string.
+  ///
+  /// Used to persist computed data (charts, insights) that doesn't have
+  /// dedicated entity tables. This allows the app to display cached data
+  /// even after restart when offline.
+  ///
+  /// Stored as JSON to support various data types:
+  /// - List<ChartDataSet> for chart data
+  /// - List<InsightTotalEntry> for insight totals
+  /// - List<InsightGroupEntry> for insight groups
+  /// - List<BudgetLimitRead> for budget limits
+  ///
+  /// Nullable because:
+  /// - Entity data stored in dedicated tables (transactions, accounts) doesn't need this
+  /// - Only computed/aggregated data (charts, insights) uses this column
+  /// - Reduces storage for entities that don't need it
+  ///
+  /// Example:
+  /// ```dart
+  /// // Store chart data
+  /// final chartData = [ChartDataSet(...), ChartDataSet(...)];
+  /// final jsonData = jsonEncode(chartData.map((e) => e.toJson()).toList());
+  /// await database.into(cacheMetadataTable).insert(
+  ///   CacheMetadataEntityCompanion.insert(
+  ///     entityType: 'chart_account',
+  ///     entityId: 'account_overview_2024-01-01_2024-01-31',
+  ///     cachedData: jsonData,
+  ///     // ... other fields
+  ///   ),
+  /// );
+  /// ```
+  final String? cachedData;
   const CacheMetadataEntity({
     required this.entityType,
     required this.entityId,
@@ -13838,6 +13893,7 @@ class CacheMetadataEntity extends DataClass
     required this.isInvalidated,
     this.etag,
     this.queryHash,
+    this.cachedData,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -13853,6 +13909,9 @@ class CacheMetadataEntity extends DataClass
     }
     if (!nullToAbsent || queryHash != null) {
       map['query_hash'] = Variable<String>(queryHash);
+    }
+    if (!nullToAbsent || cachedData != null) {
+      map['cached_data'] = Variable<String>(cachedData);
     }
     return map;
   }
@@ -13870,6 +13929,10 @@ class CacheMetadataEntity extends DataClass
           queryHash == null && nullToAbsent
               ? const Value.absent()
               : Value(queryHash),
+      cachedData:
+          cachedData == null && nullToAbsent
+              ? const Value.absent()
+              : Value(cachedData),
     );
   }
 
@@ -13887,6 +13950,7 @@ class CacheMetadataEntity extends DataClass
       isInvalidated: serializer.fromJson<bool>(json['isInvalidated']),
       etag: serializer.fromJson<String?>(json['etag']),
       queryHash: serializer.fromJson<String?>(json['queryHash']),
+      cachedData: serializer.fromJson<String?>(json['cachedData']),
     );
   }
   @override
@@ -13901,6 +13965,7 @@ class CacheMetadataEntity extends DataClass
       'isInvalidated': serializer.toJson<bool>(isInvalidated),
       'etag': serializer.toJson<String?>(etag),
       'queryHash': serializer.toJson<String?>(queryHash),
+      'cachedData': serializer.toJson<String?>(cachedData),
     };
   }
 
@@ -13913,6 +13978,7 @@ class CacheMetadataEntity extends DataClass
     bool? isInvalidated,
     Value<String?> etag = const Value.absent(),
     Value<String?> queryHash = const Value.absent(),
+    Value<String?> cachedData = const Value.absent(),
   }) => CacheMetadataEntity(
     entityType: entityType ?? this.entityType,
     entityId: entityId ?? this.entityId,
@@ -13922,6 +13988,7 @@ class CacheMetadataEntity extends DataClass
     isInvalidated: isInvalidated ?? this.isInvalidated,
     etag: etag.present ? etag.value : this.etag,
     queryHash: queryHash.present ? queryHash.value : this.queryHash,
+    cachedData: cachedData.present ? cachedData.value : this.cachedData,
   );
   CacheMetadataEntity copyWithCompanion(CacheMetadataEntityCompanion data) {
     return CacheMetadataEntity(
@@ -13941,6 +14008,8 @@ class CacheMetadataEntity extends DataClass
               : this.isInvalidated,
       etag: data.etag.present ? data.etag.value : this.etag,
       queryHash: data.queryHash.present ? data.queryHash.value : this.queryHash,
+      cachedData:
+          data.cachedData.present ? data.cachedData.value : this.cachedData,
     );
   }
 
@@ -13954,7 +14023,8 @@ class CacheMetadataEntity extends DataClass
           ..write('ttlSeconds: $ttlSeconds, ')
           ..write('isInvalidated: $isInvalidated, ')
           ..write('etag: $etag, ')
-          ..write('queryHash: $queryHash')
+          ..write('queryHash: $queryHash, ')
+          ..write('cachedData: $cachedData')
           ..write(')'))
         .toString();
   }
@@ -13969,6 +14039,7 @@ class CacheMetadataEntity extends DataClass
     isInvalidated,
     etag,
     queryHash,
+    cachedData,
   );
   @override
   bool operator ==(Object other) =>
@@ -13981,7 +14052,8 @@ class CacheMetadataEntity extends DataClass
           other.ttlSeconds == this.ttlSeconds &&
           other.isInvalidated == this.isInvalidated &&
           other.etag == this.etag &&
-          other.queryHash == this.queryHash);
+          other.queryHash == this.queryHash &&
+          other.cachedData == this.cachedData);
 }
 
 class CacheMetadataEntityCompanion
@@ -13994,6 +14066,7 @@ class CacheMetadataEntityCompanion
   final Value<bool> isInvalidated;
   final Value<String?> etag;
   final Value<String?> queryHash;
+  final Value<String?> cachedData;
   final Value<int> rowid;
   const CacheMetadataEntityCompanion({
     this.entityType = const Value.absent(),
@@ -14004,6 +14077,7 @@ class CacheMetadataEntityCompanion
     this.isInvalidated = const Value.absent(),
     this.etag = const Value.absent(),
     this.queryHash = const Value.absent(),
+    this.cachedData = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CacheMetadataEntityCompanion.insert({
@@ -14015,6 +14089,7 @@ class CacheMetadataEntityCompanion
     this.isInvalidated = const Value.absent(),
     this.etag = const Value.absent(),
     this.queryHash = const Value.absent(),
+    this.cachedData = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : entityType = Value(entityType),
        entityId = Value(entityId),
@@ -14030,6 +14105,7 @@ class CacheMetadataEntityCompanion
     Expression<bool>? isInvalidated,
     Expression<String>? etag,
     Expression<String>? queryHash,
+    Expression<String>? cachedData,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -14041,6 +14117,7 @@ class CacheMetadataEntityCompanion
       if (isInvalidated != null) 'is_invalidated': isInvalidated,
       if (etag != null) 'etag': etag,
       if (queryHash != null) 'query_hash': queryHash,
+      if (cachedData != null) 'cached_data': cachedData,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -14054,6 +14131,7 @@ class CacheMetadataEntityCompanion
     Value<bool>? isInvalidated,
     Value<String?>? etag,
     Value<String?>? queryHash,
+    Value<String?>? cachedData,
     Value<int>? rowid,
   }) {
     return CacheMetadataEntityCompanion(
@@ -14065,6 +14143,7 @@ class CacheMetadataEntityCompanion
       isInvalidated: isInvalidated ?? this.isInvalidated,
       etag: etag ?? this.etag,
       queryHash: queryHash ?? this.queryHash,
+      cachedData: cachedData ?? this.cachedData,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -14096,6 +14175,9 @@ class CacheMetadataEntityCompanion
     if (queryHash.present) {
       map['query_hash'] = Variable<String>(queryHash.value);
     }
+    if (cachedData.present) {
+      map['cached_data'] = Variable<String>(cachedData.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -14113,6 +14195,7 @@ class CacheMetadataEntityCompanion
           ..write('isInvalidated: $isInvalidated, ')
           ..write('etag: $etag, ')
           ..write('queryHash: $queryHash, ')
+          ..write('cachedData: $cachedData, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -20103,6 +20186,7 @@ typedef $$CacheMetadataTableTableCreateCompanionBuilder =
       Value<bool> isInvalidated,
       Value<String?> etag,
       Value<String?> queryHash,
+      Value<String?> cachedData,
       Value<int> rowid,
     });
 typedef $$CacheMetadataTableTableUpdateCompanionBuilder =
@@ -20115,6 +20199,7 @@ typedef $$CacheMetadataTableTableUpdateCompanionBuilder =
       Value<bool> isInvalidated,
       Value<String?> etag,
       Value<String?> queryHash,
+      Value<String?> cachedData,
       Value<int> rowid,
     });
 
@@ -20164,6 +20249,11 @@ class $$CacheMetadataTableTableFilterComposer
 
   ColumnFilters<String> get queryHash => $composableBuilder(
     column: $table.queryHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cachedData => $composableBuilder(
+    column: $table.cachedData,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -20216,6 +20306,11 @@ class $$CacheMetadataTableTableOrderingComposer
     column: $table.queryHash,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get cachedData => $composableBuilder(
+    column: $table.cachedData,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CacheMetadataTableTableAnnotationComposer
@@ -20258,6 +20353,11 @@ class $$CacheMetadataTableTableAnnotationComposer
 
   GeneratedColumn<String> get queryHash =>
       $composableBuilder(column: $table.queryHash, builder: (column) => column);
+
+  GeneratedColumn<String> get cachedData => $composableBuilder(
+    column: $table.cachedData,
+    builder: (column) => column,
+  );
 }
 
 class $$CacheMetadataTableTableTableManager
@@ -20314,6 +20414,7 @@ class $$CacheMetadataTableTableTableManager
                 Value<bool> isInvalidated = const Value.absent(),
                 Value<String?> etag = const Value.absent(),
                 Value<String?> queryHash = const Value.absent(),
+                Value<String?> cachedData = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CacheMetadataEntityCompanion(
                 entityType: entityType,
@@ -20324,6 +20425,7 @@ class $$CacheMetadataTableTableTableManager
                 isInvalidated: isInvalidated,
                 etag: etag,
                 queryHash: queryHash,
+                cachedData: cachedData,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -20336,6 +20438,7 @@ class $$CacheMetadataTableTableTableManager
                 Value<bool> isInvalidated = const Value.absent(),
                 Value<String?> etag = const Value.absent(),
                 Value<String?> queryHash = const Value.absent(),
+                Value<String?> cachedData = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CacheMetadataEntityCompanion.insert(
                 entityType: entityType,
@@ -20346,6 +20449,7 @@ class $$CacheMetadataTableTableTableManager
                 isInvalidated: isInvalidated,
                 etag: etag,
                 queryHash: queryHash,
+                cachedData: cachedData,
                 rowid: rowid,
               ),
           withReferenceMapper:

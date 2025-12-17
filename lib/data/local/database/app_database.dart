@@ -117,8 +117,9 @@ class AppDatabase extends _$AppDatabase {
   ///            and enhanced sync_statistics table schema
   /// Version 7: Added currencies and tags tables for cache-first architecture
   /// Version 8: Added attachments table for attachment caching and offline support
+  /// Version 9: Added cached_data column to cache_metadata_table for persisting chart/insight data
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   /// Database migration logic.
   ///
@@ -243,6 +244,11 @@ class AppDatabase extends _$AppDatabase {
         if (from < 8) {
           // Version 8: Add attachments table for attachment caching
           await _migrateToVersion8(m);
+        }
+
+        if (from < 9) {
+          // Version 9: Add cached_data column to cache_metadata_table
+          await _migrateToVersion9(m);
         }
       },
       beforeOpen: (OpeningDetails details) async {
@@ -719,6 +725,28 @@ class AppDatabase extends _$AppDatabase {
       log.info('Migration to version 8 completed successfully');
     } catch (e, stackTrace) {
       log.severe('Migration to version 8 failed', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Migrate database from version 8 to version 9.
+  ///
+  /// Adds cached_data column to cache_metadata_table to persist chart and insight data.
+  /// This allows the app to display cached data even after restart when offline.
+  Future<void> _migrateToVersion9(Migrator m) async {
+    final Logger log = Logger('AppDatabase.Migration');
+    log.info('Starting migration to version 9 (cached_data column)');
+
+    try {
+      // Add cached_data column to cache_metadata_table
+      log.fine('Adding cached_data column to cache_metadata_table');
+      await customStatement(
+        'ALTER TABLE cache_metadata_table ADD COLUMN cached_data TEXT',
+      );
+
+      log.info('Migration to version 9 completed successfully');
+    } catch (e, stackTrace) {
+      log.severe('Migration to version 9 failed', e, stackTrace);
       rethrow;
     }
   }

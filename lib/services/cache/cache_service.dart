@@ -1,7 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:retry/retry.dart';
@@ -9,6 +15,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:waterflyiii/config/cache_ttl_config.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/models/cache/cache_invalidation_event.dart';
 import 'package:waterflyiii/models/cache/cache_result.dart';
 import 'package:waterflyiii/models/cache/cache_stats.dart';
@@ -174,6 +181,14 @@ class CacheService {
   /// Number of 304 Not Modified responses (ETag hits)
   int _etagHits = 0;
 
+  /// Connectivity checker for offline detection
+  final Connectivity _connectivity = Connectivity();
+
+  /// In-memory cache for last successfully fetched data
+  /// Used to return stale data when offline instead of empty
+  /// Key: '${entityType}:${entityId}', Value: last successful fetch result
+  final Map<String, dynamic> _lastSuccessfulData = <String, dynamic>{};
+
   /// Creates a cache service with the specified database
   ///
   /// Parameters:
@@ -275,7 +290,91 @@ class CacheService {
       _hitsByEntityType[entityType] = (_hitsByEntityType[entityType] ?? 0) + 1;
       _log.info('Cache hit (fresh): $entityType:$entityId');
 
+      // Check connectivity before calling fetcher (which may call API)
+      final List<ConnectivityResult> connectivityResults =
+          await _connectivity.checkConnectivity();
+      final bool isOffline = connectivityResults.contains(ConnectivityResult.none);
+
+      if (isOffline) {
+        _log.warning(
+          'Offline detected with fresh cache metadata for $entityType:$entityId. '
+          'Fetcher may call API which will fail. Checking for persisted cached data.',
+        );
+        // Try to retrieve persisted data from database
+        final T? persistedData = await _getFromLocalDb<T>(entityType, entityId);
+        if (persistedData != null) {
+          _log.info(
+            'Returning persisted cached data for $entityType:$entityId (offline, fresh)',
+          );
+          // Also update in-memory cache for faster access
+          final String cacheKey = '${entityType}:${entityId}';
+          _lastSuccessfulData[cacheKey] = persistedData;
+          return CacheResult<T>(
+            data: persistedData,
+            source: CacheSource.cache,
+            isFresh: false, // Mark as stale since we're offline
+            cachedAt: await _getCachedAt(entityType, entityId),
+          );
+        }
+        // Check if we have last successful data in memory
+        final String cacheKey = '${entityType}:${entityId}';
+        if (_lastSuccessfulData.containsKey(cacheKey)) {
+          _log.info(
+            'Returning in-memory cached data for $entityType:$entityId (offline, fresh)',
+          );
+          return CacheResult<T>(
+            data: _lastSuccessfulData[cacheKey] as T,
+            source: CacheSource.cache,
+            isFresh: false, // Mark as stale since we're offline
+            cachedAt: await _getCachedAt(entityType, entityId),
+          );
+        }
+        // Try to call fetcher but catch errors gracefully
+        try {
+          final T data = await fetcher();
+          // Store successful fetch for offline use (both DB and memory)
+          _lastSuccessfulData[cacheKey] = data;
+          await set(
+            entityType: entityType,
+            entityId: entityId,
+            data: data,
+            ttl: ttl,
+          );
+          return CacheResult<T>(
+            data: data,
+            source: CacheSource.cache,
+            isFresh: true,
+            cachedAt: await _getCachedAt(entityType, entityId),
+          );
+        } catch (e, stackTrace) {
+          _log.warning(
+            'Fetcher failed offline for $entityType:$entityId, no cached data available',
+            e,
+            stackTrace,
+          );
+          // Return empty result - services will handle empty data
+          // For list types, return empty list; for others, return null
+          T emptyData;
+          if (T.toString().startsWith('List<')) {
+            emptyData = <dynamic>[] as T;
+          } else {
+            emptyData = null as T;
+          }
+          return CacheResult<T>(
+            data: emptyData,
+            source: CacheSource.cache,
+            isFresh: false, // Mark as stale since we couldn't fetch
+            cachedAt: await _getCachedAt(entityType, entityId),
+          );
+        }
+      }
+
       final T data = await fetcher();
+
+      // Store successful fetch for offline use
+      final String cacheKey = '${entityType}:${entityId}';
+      _lastSuccessfulData[cacheKey] = data;
+
       await _updateLastAccessed(entityType, entityId);
 
       return CacheResult<T>(
@@ -296,7 +395,90 @@ class CacheService {
       _staleServed++;
       _log.info('Cache hit (stale): $entityType:$entityId');
 
+      // Check connectivity before calling fetcher (which may call API)
+      final List<ConnectivityResult> connectivityResults =
+          await _connectivity.checkConnectivity();
+      final bool isOffline = connectivityResults.contains(ConnectivityResult.none);
+
+      if (isOffline) {
+        _log.warning(
+          'Offline detected with stale cache metadata for $entityType:$entityId. '
+          'Fetcher may call API which will fail. Checking for persisted cached data.',
+        );
+        // Try to retrieve persisted data from database
+        final T? persistedData = await _getFromLocalDb<T>(entityType, entityId);
+        if (persistedData != null) {
+          _log.info(
+            'Returning persisted cached data for $entityType:$entityId (offline, stale)',
+          );
+          // Also update in-memory cache for faster access
+          final String cacheKey = '${entityType}:${entityId}';
+          _lastSuccessfulData[cacheKey] = persistedData;
+          return CacheResult<T>(
+            data: persistedData,
+            source: CacheSource.cache,
+            isFresh: false,
+            cachedAt: await _getCachedAt(entityType, entityId),
+          );
+        }
+        // Check if we have last successful data in memory
+        final String cacheKey = '${entityType}:${entityId}';
+        if (_lastSuccessfulData.containsKey(cacheKey)) {
+          _log.info(
+            'Returning in-memory cached data for $entityType:$entityId (offline, stale)',
+          );
+          return CacheResult<T>(
+            data: _lastSuccessfulData[cacheKey] as T,
+            source: CacheSource.cache,
+            isFresh: false,
+            cachedAt: await _getCachedAt(entityType, entityId),
+          );
+        }
+        // Try to call fetcher but catch errors gracefully
+        try {
+          final T data = await fetcher();
+          // Store successful fetch for offline use (both DB and memory)
+          _lastSuccessfulData[cacheKey] = data;
+          await set(
+            entityType: entityType,
+            entityId: entityId,
+            data: data,
+            ttl: ttl,
+          );
+          return CacheResult<T>(
+            data: data,
+            source: CacheSource.cache,
+            isFresh: false,
+            cachedAt: await _getCachedAt(entityType, entityId),
+          );
+        } catch (e, stackTrace) {
+          _log.warning(
+            'Fetcher failed offline for $entityType:$entityId, no cached data available',
+            e,
+            stackTrace,
+          );
+          // Return empty result - services will handle empty data
+          // For list types, return empty list; for others, return null
+          T emptyData;
+          if (T.toString().startsWith('List<')) {
+            emptyData = <dynamic>[] as T;
+          } else {
+            emptyData = null as T;
+          }
+          return CacheResult<T>(
+            data: emptyData,
+            source: CacheSource.cache,
+            isFresh: false,
+            cachedAt: await _getCachedAt(entityType, entityId),
+          );
+        }
+      }
+
       final T data = await fetcher();
+
+      // Store successful fetch for offline use
+      final String cacheKey = '${entityType}:${entityId}';
+      _lastSuccessfulData[cacheKey] = data;
 
       if (backgroundRefresh) {
         // Start background refresh (fire-and-forget)
@@ -713,6 +895,10 @@ class CacheService {
         ttl: ttl,
       );
 
+      // Store successful fetch for offline use
+      final String cacheKey = '${entityType}:${entityId}';
+      _lastSuccessfulData[cacheKey] = data;
+
       _log.info('Background refresh completed: $entityType:$entityId');
 
       // Emit refresh event for reactive UI updates
@@ -770,6 +956,10 @@ class CacheService {
         ttl: ttl,
       );
 
+      // Store successful fetch for offline use
+      final String cacheKey = '${entityType}:${entityId}';
+      _lastSuccessfulData[cacheKey] = data;
+
       return CacheResult<T>(
         data: data,
         source: CacheSource.api,
@@ -785,26 +975,24 @@ class CacheService {
   /// Store data in cache with metadata
   ///
   /// Creates or updates cache metadata entry.
-  /// Does not store actual entity data - that's handled by repositories
-  /// in entity-specific tables (transactions, accounts, etc.).
-  ///
-  /// This method only tracks cache freshness and TTL.
+  /// For chart/insight data types, also stores serialized data in cachedData column
+  /// to persist across app restarts. Entity data (transactions, accounts) is stored
+  /// in entity-specific tables and doesn't need cachedData.
   ///
   /// Parameters:
   /// - [entityType]: Entity type being cached
   /// - [entityId]: Entity ID being cached
-  /// - [data]: Data being cached (not stored here, informational only)
+  /// - [data]: Data being cached (serialized for chart/insight types)
   /// - [ttl]: Time-to-live duration (defaults from CacheTtlConfig)
   /// - [etag]: Optional ETag for HTTP cache validation
   ///
   /// Example:
   /// ```dart
   /// await cacheService.set(
-  ///   entityType: 'account',
-  ///   entityId: '123',
-  ///   data: account,
-  ///   ttl: Duration(minutes: 15),
-  ///   etag: 'abc123def456',
+  ///   entityType: 'chart_account',
+  ///   entityId: 'account_overview_2024-01-01_2024-01-31',
+  ///   data: chartDataList,
+  ///   ttl: Duration(minutes: 10),
   /// );
   /// ```
   Future<void> set<T>({
@@ -823,6 +1011,23 @@ class CacheService {
 
       final DateTime now = DateTime.now();
 
+      // Serialize data for chart/insight types that need persistence
+      String? serializedData;
+      if (_shouldPersistData(entityType)) {
+        try {
+          serializedData = _serializeData(data);
+          _log.fine('Serialized data for $entityType:$entityId (${serializedData.length} bytes)');
+        } catch (e, stackTrace) {
+          _log.warning(
+            'Failed to serialize data for $entityType:$entityId',
+            e,
+            stackTrace,
+          );
+          // Continue without serialized data - metadata still stored
+        }
+      } else {
+      }
+
       await database
           .into(database.cacheMetadataTable)
           .insertOnConflictUpdate(
@@ -834,6 +1039,7 @@ class CacheService {
               ttlSeconds: Value(effectiveTtl.inSeconds),
               isInvalidated: const Value(false),
               etag: Value(etag),
+              cachedData: Value(serializedData),
             ),
           );
 
@@ -1406,12 +1612,143 @@ class CacheService {
   /// Actual implementation is in repositories where entity-specific
   /// tables are queried (transactions, accounts, etc.).
   ///
-  /// CacheService only manages metadata, not actual entity data.
+  /// Retrieve cached data from database
+  ///
+  /// For chart/insight types, retrieves and deserializes data from cachedData column.
+  /// For entity types (transactions, accounts), returns null (data in entity tables).
   Future<T?> _getFromLocalDb<T>(String entityType, String entityId) async {
-    // This method is overridden in practice by repositories
-    // CacheService only manages cache metadata, not actual data
-    // Entity data is stored in entity-specific tables
-    return null;
+
+    if (!_shouldPersistData(entityType)) {
+      // Entity data is stored in entity-specific tables, not here
+      return null;
+    }
+
+    try {
+      final CacheMetadataEntity? metadata =
+          await (database.select(database.cacheMetadataTable)..where(
+        ($CacheMetadataTableTable tbl) =>
+            tbl.entityType.equals(entityType) &
+            tbl.entityId.equals(entityId),
+      )).getSingleOrNull();
+
+
+      if (metadata?.cachedData == null) {
+        return null;
+      }
+
+      _log.fine('Retrieving cached data for $entityType:$entityId');
+      final T result = _deserializeData<T>(metadata!.cachedData!);
+      return result;
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Failed to retrieve cached data for $entityType:$entityId',
+        e,
+        stackTrace,
+      );
+      return null;
+    }
+  }
+
+  /// Check if entity type should have data persisted in cachedData column
+  ///
+  /// Chart and insight types need persistence because they don't have
+  /// dedicated entity tables. Entity types (transactions, accounts) are
+  /// stored in their own tables.
+  bool _shouldPersistData(String entityType) {
+    return entityType.startsWith('chart_') || entityType.startsWith('insight_');
+  }
+
+  /// Serialize data to JSON string for storage
+  ///
+  /// Handles various data types:
+  /// - List<ChartDataSet>
+  /// - List<InsightTotalEntry>
+  /// - List<InsightGroupEntry>
+  /// - List<BudgetLimitRead>
+  String _serializeData<T>(T data) {
+    if (data is List) {
+      // Handle list types
+      if (data.isEmpty) {
+        return jsonEncode(<dynamic>[]);
+      }
+
+      // Get first element to determine type
+      final dynamic first = data.first;
+
+      if (first is ChartDataSet) {
+        return jsonEncode(
+          (data as List<ChartDataSet>).map((e) => e.toJson()).toList(),
+        );
+      } else if (first is InsightTotalEntry) {
+        return jsonEncode(
+          (data as List<InsightTotalEntry>).map((e) => e.toJson()).toList(),
+        );
+      } else if (first is InsightGroupEntry) {
+        return jsonEncode(
+          (data as List<InsightGroupEntry>).map((e) => e.toJson()).toList(),
+        );
+      } else if (first is BudgetLimitRead) {
+        return jsonEncode(
+          (data as List<BudgetLimitRead>).map((e) => e.toJson()).toList(),
+        );
+      }
+    }
+
+    // Fallback: try to encode as-is
+    return jsonEncode(data);
+  }
+
+  /// Deserialize data from JSON string
+  ///
+  /// Handles various data types based on generic type T.
+  T _deserializeData<T>(String jsonString) {
+    final dynamic decoded = jsonDecode(jsonString);
+
+    if (decoded is! List) {
+      throw FormatException('Expected list, got ${decoded.runtimeType}');
+    }
+
+    if (decoded.isEmpty) {
+      return <dynamic>[] as T;
+    }
+
+    // Determine type from first element structure
+    final Map<String, dynamic> first = decoded.first as Map<String, dynamic>;
+
+    // Check for ChartDataSet (has 'entries' field)
+    if (first.containsKey('entries') || first.containsKey('label')) {
+      return decoded
+          .map<ChartDataSet>((e) => ChartDataSet.fromJson(e as Map<String, dynamic>))
+          .toList() as T;
+    }
+
+    // Check for InsightTotalEntry (has 'difference_float' but no 'id' or 'name')
+    if (first.containsKey('difference_float') &&
+        !first.containsKey('id') &&
+        !first.containsKey('name')) {
+      return decoded
+          .map<InsightTotalEntry>((e) => InsightTotalEntry.fromJson(e as Map<String, dynamic>))
+          .toList() as T;
+    }
+
+    // Check for InsightGroupEntry (has 'difference_float' and 'id' or 'name')
+    if (first.containsKey('difference_float') &&
+        (first.containsKey('id') || first.containsKey('name'))) {
+      return decoded
+          .map<InsightGroupEntry>((e) => InsightGroupEntry.fromJson(e as Map<String, dynamic>))
+          .toList() as T;
+    }
+
+    // Check for BudgetLimitRead (has 'attributes' field)
+    if (first.containsKey('attributes')) {
+      return decoded
+          .map<BudgetLimitRead>((e) => BudgetLimitRead.fromJson(e as Map<String, dynamic>))
+          .toList() as T;
+    }
+
+    throw FormatException(
+      'Unknown data type for deserialization: ${first.keys.join(", ")}',
+    );
   }
 
   /// Update last accessed timestamp

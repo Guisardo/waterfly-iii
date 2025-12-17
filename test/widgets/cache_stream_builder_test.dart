@@ -313,7 +313,7 @@ void main() {
       final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '8',
-        fetcher: () async => Future.value(null),
+        fetcher: () => Future.value(null),
         builder: (BuildContext context, TestData? data, bool isFresh) {
           if (data == null) {
             return const Text('No Data Available');

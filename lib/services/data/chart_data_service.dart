@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:chopper/chopper.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:logging/logging.dart';
@@ -207,21 +210,26 @@ class ChartDataService {
     _log.fine('Fetching account overview from API');
     final FireflyIii api = fireflyService.api;
 
-    final Response<ChartLine> response = await api.v1ChartAccountOverviewGet(
-      start: _dateFormat.format(start),
-      end: _dateFormat.format(end),
-      preselected: preselected,
-    );
-
-    if (response.isSuccessful && response.body != null) {
-      _log.fine(
-        'Account overview API response: ${response.body!.length} series',
+    try {
+      final Response<ChartLine> response = await api.v1ChartAccountOverviewGet(
+        start: _dateFormat.format(start),
+        end: _dateFormat.format(end),
+        preselected: preselected,
       );
-      return response.body!;
-    }
 
-    _log.warning('Account overview API returned empty or error');
-    return <ChartDataSet>[];
+      if (response.isSuccessful && response.body != null) {
+        _log.fine(
+          'Account overview API response: ${response.body!.length} series',
+        );
+        return response.body!;
+      }
+
+      _log.warning('Account overview API returned empty or error');
+      return <ChartDataSet>[];
+    } catch (e, stackTrace) {
+      _log.severe('API call failed', e, stackTrace);
+      rethrow;
+    }
   }
 
   Future<List<ChartDataSet>> _fetchDailyBalance(

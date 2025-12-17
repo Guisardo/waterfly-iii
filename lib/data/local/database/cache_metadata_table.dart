@@ -203,6 +203,39 @@ class CacheMetadataTable extends Table {
   /// ```
   TextColumn get queryHash => text().nullable()();
 
+  /// Cached data stored as JSON string.
+  ///
+  /// Used to persist computed data (charts, insights) that doesn't have
+  /// dedicated entity tables. This allows the app to display cached data
+  /// even after restart when offline.
+  ///
+  /// Stored as JSON to support various data types:
+  /// - List of ChartDataSet for chart data
+  /// - List of InsightTotalEntry for insight totals
+  /// - List of InsightGroupEntry for insight groups
+  /// - List of BudgetLimitRead for budget limits
+  ///
+  /// Nullable because:
+  /// - Entity data stored in dedicated tables (transactions, accounts) doesn't need this
+  /// - Only computed/aggregated data (charts, insights) uses this column
+  /// - Reduces storage for entities that don't need it
+  ///
+  /// Example:
+  /// ```dart
+  /// // Store chart data
+  /// final chartData = [ChartDataSet(...), ChartDataSet(...)];
+  /// final jsonData = jsonEncode(chartData.map((e) => e.toJson()).toList());
+  /// await database.into(cacheMetadataTable).insert(
+  ///   CacheMetadataEntityCompanion.insert(
+  ///     entityType: 'chart_account',
+  ///     entityId: 'account_overview_2024-01-01_2024-01-31',
+  ///     cachedData: jsonData,
+  ///     // ... other fields
+  ///   ),
+  /// );
+  /// ```
+  TextColumn get cachedData => text().nullable()();
+
   /// Composite primary key: (entityType, entityId)
   ///
   /// Ensures one cache metadata entry per entity.
