@@ -21,6 +21,7 @@ import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/data/repositories/budget_repository.dart';
 import 'package:waterflyiii/data/repositories/category_repository.dart';
+import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -32,6 +33,7 @@ import 'package:waterflyiii/pages/transaction/currencies.dart';
 import 'package:waterflyiii/pages/transaction/delete.dart';
 import 'package:waterflyiii/pages/transaction/piggy.dart';
 import 'package:waterflyiii/pages/transaction/tags.dart';
+import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/stock.dart';
 import 'package:waterflyiii/timezonehandler.dart';
@@ -42,6 +44,31 @@ import 'package:waterflyiii/widgets/materialiconbutton.dart';
 final Logger log = Logger("Pages.Transaction");
 
 bool _savingInProgress = false;
+
+/// Converts database account type string to AccountTypeProperty enum value.
+///
+/// Database stores types as: 'asset', 'expense', 'revenue', 'liability'
+/// AccountTypeProperty enum values are: 'Asset account', 'Expense account', etc.
+String _convertDbAccountTypeToApiType(String dbType) {
+  switch (dbType.toLowerCase()) {
+    case 'asset':
+      return 'Asset account';
+    case 'expense':
+      return 'Expense account';
+    case 'revenue':
+      return 'Revenue account';
+    case 'liability':
+      // Liability accounts in database might be debt, loan, or mortgage
+      // Default to debt, but this might need refinement based on account role
+      return 'Debt';
+    default:
+      // Try to find matching AccountTypeProperty by value
+      final AccountTypeProperty? matched = AccountTypeProperty.values.firstWhereOrNull(
+        (AccountTypeProperty e) => e.value?.toLowerCase() == dbType.toLowerCase(),
+      );
+      return matched?.value ?? dbType;
+  }
+}
 
 class TransactionPage extends StatefulWidget {
   const TransactionPage({
@@ -909,6 +936,13 @@ class _TransactionPageState extends State<TransactionPage>
                           context.read<FireflyService>().user;
                       final TransStock? stock =
                           context.read<FireflyService>().transStock;
+                      final ConnectivityProvider? connectivity =
+                          context.read<ConnectivityProvider?>();
+                      final TransactionRepository? transactionRepo =
+                          context.read<TransactionRepository?>();
+                      final AccountRepository? accountRepo =
+                          context.read<AccountRepository?>();
+                      final bool isOffline = connectivity?.isOffline ?? true;
 
                       // Sanity checks
                       String? error;
@@ -1033,6 +1067,95 @@ class _TransactionPageState extends State<TransactionPage>
                         );
                       } else {
                         // New transaction
+                        // Check if offline and use offline save path
+                        if (isOffline && transactionRepo != null && accountRepo != null) {
+                          // Get account IDs from account names
+                          late String sourceName, destinationName;
+                          sourceName = _sourceAccountTextController.text;
+                          destinationName = _destinationAccountTextController.text;
+                          
+                          final List<AccountEntity> sourceAccounts = await accountRepo.search(sourceName, activeOnly: true);
+                          final List<AccountEntity> destAccounts = await accountRepo.search(destinationName, activeOnly: true);
+                          
+                          if (sourceAccounts.isEmpty || destAccounts.isEmpty) {
+                            error = S.of(context).transactionErrorInvalidAccount;
+                            msg.showSnackBar(
+                              SnackBar(
+                                content: Text(error),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            setState(() {
+                              _savingInProgress = false;
+                            });
+                            return;
+                          }
+                          
+                          final String sourceId = sourceAccounts.first.serverId ?? sourceAccounts.first.id;
+                          final String destinationId = destAccounts.first.serverId ?? destAccounts.first.id;
+                          
+                          // Convert to offline format
+                          final Map<String, dynamic> txData = <String, dynamic>{
+                            'type': _transactionType.value,
+                            'date': _date.copyWith(
+                              second: 0,
+                              millisecond: 0,
+                              microsecond: 0,
+                            ).toIso8601String(),
+                            'amount': _localAmounts[0],
+                            'description': _titleTextController.text,
+                            'source_id': sourceId,
+                            'destination_id': destinationId,
+                            'currency_code': _localCurrency?.attributes.code ?? 'USD',
+                            'notes': _noteTextControllers[0].text.isNotEmpty ? _noteTextControllers[0].text : null,
+                            'tags': _tags[0].tags.isNotEmpty ? _tags[0].tags.join(',') : null,
+                          };
+                          
+                          try {
+                            await transactionRepo.createTransactionOffline(txData);
+                            
+                            // Show success message
+                            if (context.mounted) {
+                              msg.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Transaction saved offline'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                            
+                            setState(() => _savingInProgress = false);
+                            
+                            if (nav.canPop()) {
+                              nav.pop(true);
+                            } else {
+                              await SystemChannels.platform.invokeMethod(
+                                'SystemNavigator.pop',
+                              );
+                              await nav.pushReplacement(
+                                MaterialPageRoute<bool>(
+                                  builder: (BuildContext context) => const NavPage(),
+                                ),
+                              );
+                            }
+                            return;
+                          } catch (e, stackTrace) {
+                            log.severe('Failed to create transaction offline', e, stackTrace);
+                            error = e.toString();
+                            msg.showSnackBar(
+                              SnackBar(
+                                content: Text(error),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            setState(() {
+                              _savingInProgress = false;
+                            });
+                            return;
+                          }
+                        }
+                        
+                        // Online path - use API
                         final List<TransactionSplitStore> txS =
                             <TransactionSplitStore>[];
                         for (int i = 0; i < _localAmounts.length; i++) {
@@ -1445,30 +1568,47 @@ class _TransactionPageState extends State<TransactionPage>
                         final List<AccountEntity> accounts = await accountRepo
                             .search(textEditingValue.text);
                         // Filter by allowed types
-                        final List<AccountTypeFilter> allowedTypes =
-                            _destinationAccountType.allowedOpposingTypes(false);
-                        return accounts
-                            .where((AccountEntity a) {
-                              return allowedTypes.isEmpty ||
-                                  allowedTypes.any(
-                                    (AccountTypeFilter t) =>
-                                        t.value == a.type ||
-                                        t.value == '${a.type}Account',
-                                  );
-                            })
+                        final List<AccountEntity> filteredAccounts;
+                        if (_destinationAccountType ==
+                            AccountTypeProperty.swaggerGeneratedUnknown) {
+                          // No destination account type selected yet - show only asset accounts by default
+                          filteredAccounts = accounts
+                              .where((AccountEntity a) =>
+                                  a.type == 'asset' || a.type == 'liability')
+                              .toList();
+                        } else {
+                          final List<AccountTypeFilter> allowedTypes =
+                              _destinationAccountType.allowedOpposingTypes(false);
+                          filteredAccounts = accounts
+                              .where((AccountEntity a) {
+                                if (allowedTypes.isEmpty) return true;
+                                // Convert database type to API format for comparison
+                                final String apiType = _convertDbAccountTypeToApiType(a.type);
+                                return allowedTypes.any(
+                                  (AccountTypeFilter t) => t.value == apiType,
+                                );
+                              })
+                              .toList();
+                        }
+                        final Iterable<AutocompleteAccount> filtered = filteredAccounts
                             .map(
-                              (AccountEntity a) => AutocompleteAccount(
-                                id: a.serverId ?? a.id,
-                                name: a.name,
-                                nameWithBalance: a.name,
-                                type: a.type,
-                                currencyId: '0',
-                                currencyName: '',
-                                currencyCode: a.currencyCode,
-                                currencySymbol: a.currencyCode,
-                                currencyDecimalPlaces: 2,
-                              ),
+                              (AccountEntity a) {
+                                // Convert database type string to API format
+                                final String apiType = _convertDbAccountTypeToApiType(a.type);
+                                return AutocompleteAccount(
+                                  id: a.serverId ?? a.id,
+                                  name: a.name,
+                                  nameWithBalance: a.name,
+                                  type: apiType,
+                                  currencyId: '0',
+                                  currencyName: '',
+                                  currencyCode: a.currencyCode,
+                                  currencySymbol: a.currencyCode,
+                                  currencyDecimalPlaces: 2,
+                                );
+                              },
                             );
+                        return filtered;
                       }
 
                       // Fallback to direct API call
@@ -1580,31 +1720,45 @@ class _TransactionPageState extends State<TransactionPage>
                         if (accountRepo != null) {
                           final List<AccountEntity> accounts = await accountRepo
                               .search(textEditingValue.text);
-                          // Filter by allowed types
-                          final List<AccountTypeFilter> allowedTypes =
-                              _sourceAccountType.allowedOpposingTypes(true);
-                          return accounts
-                              .where((AccountEntity a) {
-                                return allowedTypes.isEmpty ||
-                                    allowedTypes.any(
-                                      (AccountTypeFilter t) =>
-                                          t.value == a.type ||
-                                          t.value == '${a.type}Account',
-                                    );
-                              })
+                          // Filter by allowed types (only if source account type is known)
+                          final List<AccountEntity> filteredAccounts;
+                          if (_sourceAccountType ==
+                              AccountTypeProperty.swaggerGeneratedUnknown) {
+                            // No account type selected yet - return all accounts
+                            filteredAccounts = accounts;
+                          } else {
+                            final List<AccountTypeFilter> allowedTypes =
+                                _sourceAccountType.allowedOpposingTypes(true);
+                            filteredAccounts = accounts
+                                .where((AccountEntity a) {
+                                  if (allowedTypes.isEmpty) return true;
+                                  // Convert database type to API format for comparison
+                                  final String apiType = _convertDbAccountTypeToApiType(a.type);
+                                  return allowedTypes.any(
+                                    (AccountTypeFilter t) => t.value == apiType,
+                                  );
+                                })
+                                .toList();
+                          }
+                          final Iterable<AutocompleteAccount> filtered = filteredAccounts
                               .map(
-                                (AccountEntity a) => AutocompleteAccount(
-                                  id: a.serverId ?? a.id,
-                                  name: a.name,
-                                  nameWithBalance: a.name,
-                                  type: a.type,
-                                  currencyId: '0',
-                                  currencyName: '',
-                                  currencyCode: a.currencyCode,
-                                  currencySymbol: a.currencyCode,
-                                  currencyDecimalPlaces: 2,
-                                ),
+                                (AccountEntity a) {
+                                  // Convert database type string to API format
+                                  final String apiType = _convertDbAccountTypeToApiType(a.type);
+                                  return AutocompleteAccount(
+                                    id: a.serverId ?? a.id,
+                                    name: a.name,
+                                    nameWithBalance: a.name,
+                                    type: apiType,
+                                    currencyId: '0',
+                                    currencyName: '',
+                                    currencyCode: a.currencyCode,
+                                    currencySymbol: a.currencyCode,
+                                    currencyDecimalPlaces: 2,
+                                  );
+                                },
                               );
+                          return filtered;
                         }
 
                         // Fallback to direct API call
@@ -2613,6 +2767,31 @@ class TransactionTitle extends StatelessWidget {
           try {
             unawaited(fetchOp?.cancel());
 
+            // Try to use TransactionRepository for cache-first strategy
+            final TransactionRepository? transactionRepo =
+                context.read<TransactionRepository?>();
+
+            if (transactionRepo != null) {
+              final List<TransactionEntity> transactions =
+                  await transactionRepo.getTransactionsOffline(
+                searchQuery: textEditingValue.text.isNotEmpty
+                    ? textEditingValue.text
+                    : null,
+                limit: 20,
+              );
+              // Extract unique descriptions
+              final Set<String> uniqueDescriptions = <String>{};
+              for (final TransactionEntity t in transactions) {
+                if (t.description.isNotEmpty) {
+                  uniqueDescriptions.add(t.description);
+                }
+              }
+              final List<String> descriptions = uniqueDescriptions.toList()
+                ..sort();
+              return descriptions;
+            }
+
+            // Fallback to direct API call
             final FireflyIii api = context.read<FireflyService>().api;
             fetchOp = CancelableOperation<
               Response<AutocompleteTransactionArray>

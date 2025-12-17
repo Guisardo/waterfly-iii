@@ -13,6 +13,8 @@ import 'package:waterflyiii/exceptions/sync_exceptions.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
 import 'package:waterflyiii/services/id_mapping/id_mapping_service.dart';
+import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
+import 'package:waterflyiii/services/app_mode/app_mode.dart';
 import 'package:waterflyiii/services/sync/sync_progress_tracker.dart';
 import 'package:waterflyiii/services/sync/sync_queue_manager.dart';
 import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
@@ -59,6 +61,7 @@ class SyncManager {
   final AppDatabase _database;
   final ConnectivityService _connectivity;
   final IdMappingService _idMapping;
+  final AppModeManager? _appModeManager;
 
   /// Services
   final SyncProgressTracker _progressTracker;
@@ -90,6 +93,7 @@ class SyncManager {
     required AppDatabase database,
     required ConnectivityService connectivity,
     required IdMappingService idMapping,
+    AppModeManager? appModeManager,
     SyncProgressTracker? progressTracker,
     ConflictDetector? conflictDetector,
     ConflictResolver? conflictResolver,
@@ -106,6 +110,7 @@ class SyncManager {
        _database = database,
        _connectivity = connectivity,
        _idMapping = idMapping,
+       _appModeManager = appModeManager,
        _progressTracker = progressTracker ?? SyncProgressTracker(),
        _conflictDetector = conflictDetector ?? ConflictDetector(),
        _conflictResolver =
@@ -2442,7 +2447,21 @@ class SyncManager {
   }
 
   /// Check if device is online before sync operations.
+  ///
+  /// Checks both connectivity status and app mode. If app mode is offline
+  /// (e.g., due to mobile data restriction), sync is not allowed even if
+  /// connectivity is online.
   Future<bool> _checkConnectivity() async {
+    // First check app mode - if offline, don't sync even if connectivity is online
+    if (_appModeManager != null) {
+      final appMode = _appModeManager!.currentMode;
+      if (appMode == AppMode.offline) {
+        _logger.warning('Cannot sync: app is in offline mode (mobile data may be disabled)');
+        return false;
+      }
+    }
+
+    // Then check connectivity status
     final ConnectivityStatus status = _connectivity.currentStatus;
     final bool isOnline = status == ConnectivityStatus.online;
 

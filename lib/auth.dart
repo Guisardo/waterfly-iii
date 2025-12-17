@@ -24,6 +24,8 @@ import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/providers/sync_provider.dart';
 import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
+import 'package:waterflyiii/services/app_mode/app_mode.dart';
 import 'package:waterflyiii/stock.dart';
 import 'package:waterflyiii/timezonehandler.dart';
 
@@ -178,6 +180,23 @@ class AuthUser {
     final Logger log = Logger("Auth.AuthUser");
     log.config("AuthUser->create($host)");
 
+    // Check app mode before making API calls
+    // Wait for AppModeManager to initialize if it hasn't yet
+    final AppModeManager appModeManager = AppModeManager();
+    if (!appModeManager.isInitialized) {
+      // Wait a short time for initialization (max 2 seconds)
+      int attempts = 0;
+      while (!appModeManager.isInitialized && attempts < 20) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        attempts++;
+      }
+    }
+
+    if (appModeManager.isInitialized && appModeManager.currentMode == AppMode.offline) {
+      log.info('Skipping authentication API call - app is in offline mode (mobile data may be disabled)');
+      throw const AuthError("App is in offline mode");
+    }
+
     // This call is on purpose not using the Swagger API
     final http.Client client = httpClient;
     late Uri uri;
@@ -284,15 +303,33 @@ class FireflyService with ChangeNotifier {
       return false;
     }
 
+    // Check app mode before attempting sign-in
+    // Wait for AppModeManager to initialize if it hasn't yet
+    final AppModeManager appModeManager = AppModeManager();
+    if (!appModeManager.isInitialized) {
+      // Wait a short time for initialization (max 2 seconds)
+      int attempts = 0;
+      while (!appModeManager.isInitialized && attempts < 20) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        attempts++;
+      }
+    }
+
+    if (appModeManager.isInitialized && appModeManager.currentMode == AppMode.offline) {
+      log.info('App is in offline mode (mobile data may be disabled), attempting offline sign-in');
+      return await _signInOffline(apiHost, apiKey);
+    }
+
     try {
       await signIn(apiHost, apiKey);
       return true;
     } catch (e) {
-      // Try offline mode if network error
+      // Try offline mode if network error or app mode is offline
       if (e is SocketException ||
           e is TimeoutException ||
-          e is http.ClientException) {
-        log.info("Network error during sign in, attempting offline mode");
+          e is http.ClientException ||
+          (e is AuthError && e.cause == "App is in offline mode")) {
+        log.info("Network error or offline mode during sign in, attempting offline mode");
         return _signInOffline(apiHost, apiKey);
       }
       _storageSignInException = e;
@@ -362,6 +399,24 @@ class FireflyService with ChangeNotifier {
     log.config("FireflyService->signIn($host)");
     host = host.strip().rightStrip('/');
     apiKey = apiKey.strip();
+
+    // Check app mode before making API calls
+    // Wait for AppModeManager to initialize if it hasn't yet
+    final AppModeManager appModeManager = AppModeManager();
+    if (!appModeManager.isInitialized) {
+      // Wait a short time for initialization (max 2 seconds)
+      int attempts = 0;
+      while (!appModeManager.isInitialized && attempts < 20) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        attempts++;
+      }
+    }
+
+    if (appModeManager.isInitialized && appModeManager.currentMode == AppMode.offline) {
+      log.info('Skipping sign-in API calls - app is in offline mode (mobile data may be disabled)');
+      // Try offline sign-in instead
+      return await _signInOffline(host, apiKey);
+    }
 
     _lastTriedHost = host;
     _currentUser = await AuthUser.create(host, apiKey);
@@ -447,6 +502,17 @@ class FireflyService with ChangeNotifier {
 
         // Only sync if last sync was more than 1 hour ago
         if (now - lastSyncTime > 3600000) {
+          // Check app mode - don't sync if in offline mode (e.g., mobile data disabled)
+          final AppModeManager appModeManager = AppModeManager();
+          if (!appModeManager.isInitialized) {
+            await appModeManager.initialize();
+          }
+          final AppMode currentMode = appModeManager.currentMode;
+          if (currentMode == AppMode.offline) {
+            log.info('Skipping initial sync - app is in offline mode (mobile data may be disabled)');
+            return;
+          }
+
           // Notify sync started with estimated operations
           // 6 entity types: accounts, categories, budgets, bills, piggy_banks, transactions
           notifyGlobalSyncState(true, totalOperations: 6);

@@ -69,16 +69,60 @@ enum CacheTtl {
 ///
 /// Uses SharedPreferences for persistence and notifies listeners on changes.
 class OfflineSettingsProvider extends ChangeNotifier {
-  OfflineSettingsProvider({
+  SharedPreferences? _prefs;
+  BackgroundSyncScheduler? _syncScheduler;
+  bool _isInitialized = false;
+  bool _isLoading = true;
+
+  /// Factory constructor for creating OfflineSettingsProvider.
+  ///
+  /// This constructor initializes the provider asynchronously.
+  /// The provider will be in a loading state until initialization completes.
+  factory OfflineSettingsProvider.create() {
+    final provider = OfflineSettingsProvider._internal();
+    provider._initializeAsync();
+    return provider;
+  }
+
+  /// Internal constructor for async initialization.
+  OfflineSettingsProvider._internal() : _syncScheduler = null;
+
+  /// Constructor with pre-initialized SharedPreferences.
+  ///
+  /// Use this when SharedPreferences is already available.
+  OfflineSettingsProvider.withPrefs({
     required SharedPreferences prefs,
     BackgroundSyncScheduler? syncScheduler,
   }) : _prefs = prefs,
        _syncScheduler = syncScheduler {
+    _isLoading = false;
+    _isInitialized = true;
     _loadSettings();
   }
 
-  final SharedPreferences _prefs;
-  final BackgroundSyncScheduler? _syncScheduler;
+  /// Initialize the provider asynchronously.
+  Future<void> _initializeAsync() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      _prefs = prefs;
+      _syncScheduler = BackgroundSyncScheduler(prefs);
+      _loadSettings();
+      _isLoading = false;
+      _isInitialized = true;
+      notifyListeners();
+    } catch (error, stackTrace) {
+      final Logger log = Logger('OfflineSettingsProvider');
+      log.severe('Failed to initialize OfflineSettingsProvider', error, stackTrace);
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Whether the provider is currently loading.
+  bool get isLoading => _isLoading;
+
+  /// Whether the provider has been initialized.
+  bool get isInitialized => _isInitialized;
 
   // Settings keys
   static const String _keySyncInterval = 'offline_sync_interval';
@@ -108,7 +152,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
   // Settings values
   SyncInterval _syncInterval = SyncInterval.oneHour;
   bool _autoSyncEnabled = true;
-  bool _wifiOnlyEnabled = false;
+  bool _wifiOnlyEnabled = true;
   ResolutionStrategy _conflictStrategy = ResolutionStrategy.lastWriteWins;
   DateTime? _lastSyncTime;
   DateTime? _nextSyncTime;
@@ -130,9 +174,6 @@ class OfflineSettingsProvider extends ChangeNotifier {
   int _totalApiCallsSaved = 0;
   int _incrementalSyncCount = 0;
 
-  // Loading state
-  bool _isLoading = false;
-
   // Getters
   SyncInterval get syncInterval => _syncInterval;
   bool get autoSyncEnabled => _autoSyncEnabled;
@@ -144,7 +185,6 @@ class OfflineSettingsProvider extends ChangeNotifier {
   int get totalConflicts => _totalConflicts;
   int get totalErrors => _totalErrors;
   int get databaseSize => _databaseSize;
-  bool get isLoading => _isLoading;
 
   // Incremental sync getters
 
@@ -231,11 +271,14 @@ class OfflineSettingsProvider extends ChangeNotifier {
 
   /// Load settings from SharedPreferences.
   void _loadSettings() {
+    if (_prefs == null) {
+      return; // Not initialized yet
+    }
     _log.info('Loading offline settings from SharedPreferences');
 
     try {
       // Load sync interval
-      final int? intervalIndex = _prefs.getInt(_keySyncInterval);
+      final int? intervalIndex = _prefs!.getInt(_keySyncInterval);
       if (intervalIndex != null &&
           intervalIndex >= 0 &&
           intervalIndex < SyncInterval.values.length) {
@@ -243,11 +286,11 @@ class OfflineSettingsProvider extends ChangeNotifier {
       }
 
       // Load boolean settings
-      _autoSyncEnabled = _prefs.getBool(_keyAutoSync) ?? true;
-      _wifiOnlyEnabled = _prefs.getBool(_keyWifiOnly) ?? false;
+      _autoSyncEnabled = _prefs!.getBool(_keyAutoSync) ?? true;
+      _wifiOnlyEnabled = _prefs!.getBool(_keyWifiOnly) ?? true;
 
       // Load conflict strategy
-      final int? strategyIndex = _prefs.getInt(_keyConflictStrategy);
+      final int? strategyIndex = _prefs!.getInt(_keyConflictStrategy);
       if (strategyIndex != null &&
           strategyIndex >= 0 &&
           strategyIndex < ResolutionStrategy.values.length) {
@@ -255,7 +298,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
       }
 
       // Load statistics
-      final int? lastSyncMillis = _prefs.getInt(_keyLastSyncTime);
+      final int? lastSyncMillis = _prefs!.getInt(_keyLastSyncTime);
       if (lastSyncMillis != null) {
         _lastSyncTime = DateTime.fromMillisecondsSinceEpoch(
           lastSyncMillis,
@@ -263,7 +306,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
         );
       }
 
-      final int? nextSyncMillis = _prefs.getInt(_keyNextSyncTime);
+      final int? nextSyncMillis = _prefs!.getInt(_keyNextSyncTime);
       if (nextSyncMillis != null) {
         _nextSyncTime = DateTime.fromMillisecondsSinceEpoch(
           nextSyncMillis,
@@ -271,23 +314,23 @@ class OfflineSettingsProvider extends ChangeNotifier {
         );
       }
 
-      _totalSyncs = _prefs.getInt(_keyTotalSyncs) ?? 0;
-      _totalConflicts = _prefs.getInt(_keyTotalConflicts) ?? 0;
-      _totalErrors = _prefs.getInt(_keyTotalErrors) ?? 0;
-      _databaseSize = _prefs.getInt(_keyDatabaseSize) ?? 0;
+      _totalSyncs = _prefs!.getInt(_keyTotalSyncs) ?? 0;
+      _totalConflicts = _prefs!.getInt(_keyTotalConflicts) ?? 0;
+      _totalErrors = _prefs!.getInt(_keyTotalErrors) ?? 0;
+      _databaseSize = _prefs!.getInt(_keyDatabaseSize) ?? 0;
 
       // Load incremental sync settings
       _incrementalSyncEnabled =
-          _prefs.getBool(_keyIncrementalSyncEnabled) ?? true;
+          _prefs!.getBool(_keyIncrementalSyncEnabled) ?? true;
 
-      final int? syncWindowIndex = _prefs.getInt(_keySyncWindow);
+      final int? syncWindowIndex = _prefs!.getInt(_keySyncWindow);
       if (syncWindowIndex != null &&
           syncWindowIndex >= 0 &&
           syncWindowIndex < SyncWindow.values.length) {
         _syncWindow = SyncWindow.values[syncWindowIndex];
       }
 
-      final int? cacheTtlIndex = _prefs.getInt(_keyCacheTtl);
+      final int? cacheTtlIndex = _prefs!.getInt(_keyCacheTtl);
       if (cacheTtlIndex != null &&
           cacheTtlIndex >= 0 &&
           cacheTtlIndex < CacheTtl.values.length) {
@@ -295,7 +338,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
       }
 
       // Load incremental sync timestamps
-      final int? lastIncrementalMillis = _prefs.getInt(_keyLastIncrementalSync);
+      final int? lastIncrementalMillis = _prefs!.getInt(_keyLastIncrementalSync);
       if (lastIncrementalMillis != null) {
         _lastIncrementalSyncTime = DateTime.fromMillisecondsSinceEpoch(
           lastIncrementalMillis,
@@ -303,7 +346,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
         );
       }
 
-      final int? lastFullMillis = _prefs.getInt(_keyLastFullSync);
+      final int? lastFullMillis = _prefs!.getInt(_keyLastFullSync);
       if (lastFullMillis != null) {
         _lastFullSyncTime = DateTime.fromMillisecondsSinceEpoch(
           lastFullMillis,
@@ -312,12 +355,12 @@ class OfflineSettingsProvider extends ChangeNotifier {
       }
 
       // Load incremental sync statistics
-      _totalItemsFetched = _prefs.getInt(_keyTotalItemsFetched) ?? 0;
-      _totalItemsUpdated = _prefs.getInt(_keyTotalItemsUpdated) ?? 0;
-      _totalItemsSkipped = _prefs.getInt(_keyTotalItemsSkipped) ?? 0;
-      _totalBandwidthSaved = _prefs.getInt(_keyTotalBandwidthSaved) ?? 0;
-      _totalApiCallsSaved = _prefs.getInt(_keyTotalApiCallsSaved) ?? 0;
-      _incrementalSyncCount = _prefs.getInt(_keyIncrementalSyncCount) ?? 0;
+      _totalItemsFetched = _prefs!.getInt(_keyTotalItemsFetched) ?? 0;
+      _totalItemsUpdated = _prefs!.getInt(_keyTotalItemsUpdated) ?? 0;
+      _totalItemsSkipped = _prefs!.getInt(_keyTotalItemsSkipped) ?? 0;
+      _totalBandwidthSaved = _prefs!.getInt(_keyTotalBandwidthSaved) ?? 0;
+      _totalApiCallsSaved = _prefs!.getInt(_keyTotalApiCallsSaved) ?? 0;
+      _incrementalSyncCount = _prefs!.getInt(_keyIncrementalSyncCount) ?? 0;
 
       _log.info(
         'Loaded settings: interval=$_syncInterval, '
@@ -333,19 +376,23 @@ class OfflineSettingsProvider extends ChangeNotifier {
 
   /// Set sync interval and update background scheduler.
   Future<void> setSyncInterval(SyncInterval interval) async {
+    if (_prefs == null) {
+      throw StateError('OfflineSettingsProvider not initialized');
+    }
+
     _log.info('Setting sync interval to: ${interval.label}');
 
     try {
       _syncInterval = interval;
-      await _prefs.setInt(_keySyncInterval, interval.index);
+      await _prefs!.setInt(_keySyncInterval, interval.index);
 
       // Update background scheduler if auto-sync is enabled
       if (_autoSyncEnabled && _syncScheduler != null) {
         if (interval == SyncInterval.manual) {
-          await _syncScheduler.cancelAll();
+          await _syncScheduler!.cancelAll();
           _log.info('Cancelled scheduled sync (manual mode)');
         } else if (interval.duration != null) {
-          await _syncScheduler.schedulePeriodicSync(
+          await _syncScheduler!.schedulePeriodicSync(
             interval: interval.duration!,
           );
           _log.info('Scheduled periodic sync: ${interval.duration}');
@@ -365,17 +412,17 @@ class OfflineSettingsProvider extends ChangeNotifier {
 
     try {
       _autoSyncEnabled = enabled;
-      await _prefs.setBool(_keyAutoSync, enabled);
+      await _prefs!.setBool(_keyAutoSync, enabled);
 
       // Update background scheduler
       if (_syncScheduler != null) {
         if (enabled && _syncInterval.duration != null) {
-          await _syncScheduler.schedulePeriodicSync(
+          await _syncScheduler!.schedulePeriodicSync(
             interval: _syncInterval.duration!,
           );
           _log.info('Enabled periodic sync: ${_syncInterval.duration}');
         } else {
-          await _syncScheduler.cancelAll();
+          await _syncScheduler!.cancelAll();
           _log.info('Disabled periodic sync');
         }
       }
@@ -393,7 +440,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
 
     try {
       _wifiOnlyEnabled = enabled;
-      await _prefs.setBool(_keyWifiOnly, enabled);
+      await _prefs!.setBool(_keyWifiOnly, enabled);
       notifyListeners();
     } catch (e, stackTrace) {
       _log.severe('Failed to set WiFi-only enabled', e, stackTrace);
@@ -401,13 +448,17 @@ class OfflineSettingsProvider extends ChangeNotifier {
     }
   }
 
+  /// Toggle mobile data allowance for syncing.
+  ///
+  /// When enabled, the app will allow syncing over mobile data connections.
+  /// When disabled (default), mobile data connections are treated as offline mode.
   /// Set conflict resolution strategy.
   Future<void> setConflictStrategy(ResolutionStrategy strategy) async {
     _log.info('Setting conflict resolution strategy: $strategy');
 
     try {
       _conflictStrategy = strategy;
-      await _prefs.setInt(_keyConflictStrategy, strategy.index);
+      await _prefs!.setInt(_keyConflictStrategy, strategy.index);
       notifyListeners();
     } catch (e, stackTrace) {
       _log.severe('Failed to set conflict strategy', e, stackTrace);
@@ -428,27 +479,27 @@ class OfflineSettingsProvider extends ChangeNotifier {
     try {
       if (lastSync != null) {
         _lastSyncTime = lastSync;
-        await _prefs.setInt(_keyLastSyncTime, lastSync.millisecondsSinceEpoch);
+        await _prefs!.setInt(_keyLastSyncTime, lastSync.millisecondsSinceEpoch);
       }
 
       if (nextSync != null) {
         _nextSyncTime = nextSync;
-        await _prefs.setInt(_keyNextSyncTime, nextSync.millisecondsSinceEpoch);
+        await _prefs!.setInt(_keyNextSyncTime, nextSync.millisecondsSinceEpoch);
       }
 
       if (totalSyncs != null) {
         _totalSyncs = totalSyncs;
-        await _prefs.setInt(_keyTotalSyncs, totalSyncs);
+        await _prefs!.setInt(_keyTotalSyncs, totalSyncs);
       }
 
       if (totalConflicts != null) {
         _totalConflicts = totalConflicts;
-        await _prefs.setInt(_keyTotalConflicts, totalConflicts);
+        await _prefs!.setInt(_keyTotalConflicts, totalConflicts);
       }
 
       if (totalErrors != null) {
         _totalErrors = totalErrors;
-        await _prefs.setInt(_keyTotalErrors, totalErrors);
+        await _prefs!.setInt(_keyTotalErrors, totalErrors);
       }
 
       notifyListeners();
@@ -464,7 +515,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
 
     try {
       _databaseSize = sizeInBytes;
-      await _prefs.setInt(_keyDatabaseSize, sizeInBytes);
+      await _prefs!.setInt(_keyDatabaseSize, sizeInBytes);
       notifyListeners();
     } catch (e, stackTrace) {
       _log.severe('Failed to update database size', e, stackTrace);
@@ -489,7 +540,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
 
     try {
       _incrementalSyncEnabled = enabled;
-      await _prefs.setBool(_keyIncrementalSyncEnabled, enabled);
+      await _prefs!.setBool(_keyIncrementalSyncEnabled, enabled);
       notifyListeners();
     } catch (e, stackTrace) {
       _log.severe('Failed to set incremental sync enabled', e, stackTrace);
@@ -511,7 +562,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
 
     try {
       _syncWindow = window;
-      await _prefs.setInt(_keySyncWindow, window.index);
+      await _prefs!.setInt(_keySyncWindow, window.index);
       notifyListeners();
     } catch (e, stackTrace) {
       _log.severe('Failed to set sync window', e, stackTrace);
@@ -533,7 +584,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
 
     try {
       _cacheTtl = ttl;
-      await _prefs.setInt(_keyCacheTtl, ttl.index);
+      await _prefs!.setInt(_keyCacheTtl, ttl.index);
       notifyListeners();
     } catch (e, stackTrace) {
       _log.severe('Failed to set cache TTL', e, stackTrace);
@@ -573,15 +624,15 @@ class OfflineSettingsProvider extends ChangeNotifier {
       final DateTime now = DateTime.now();
       if (isIncremental) {
         _lastIncrementalSyncTime = now;
-        await _prefs.setInt(
+        await _prefs!.setInt(
           _keyLastIncrementalSync,
           now.millisecondsSinceEpoch,
         );
         _incrementalSyncCount++;
-        await _prefs.setInt(_keyIncrementalSyncCount, _incrementalSyncCount);
+        await _prefs!.setInt(_keyIncrementalSyncCount, _incrementalSyncCount);
       } else {
         _lastFullSyncTime = now;
-        await _prefs.setInt(_keyLastFullSync, now.millisecondsSinceEpoch);
+        await _prefs!.setInt(_keyLastFullSync, now.millisecondsSinceEpoch);
       }
 
       // Accumulate statistics
@@ -592,11 +643,11 @@ class OfflineSettingsProvider extends ChangeNotifier {
       _totalApiCallsSaved += apiCallsSaved;
 
       // Persist accumulated statistics
-      await _prefs.setInt(_keyTotalItemsFetched, _totalItemsFetched);
-      await _prefs.setInt(_keyTotalItemsUpdated, _totalItemsUpdated);
-      await _prefs.setInt(_keyTotalItemsSkipped, _totalItemsSkipped);
-      await _prefs.setInt(_keyTotalBandwidthSaved, _totalBandwidthSaved);
-      await _prefs.setInt(_keyTotalApiCallsSaved, _totalApiCallsSaved);
+      await _prefs!.setInt(_keyTotalItemsFetched, _totalItemsFetched);
+      await _prefs!.setInt(_keyTotalItemsUpdated, _totalItemsUpdated);
+      await _prefs!.setInt(_keyTotalItemsSkipped, _totalItemsSkipped);
+      await _prefs!.setInt(_keyTotalBandwidthSaved, _totalBandwidthSaved);
+      await _prefs!.setInt(_keyTotalApiCallsSaved, _totalApiCallsSaved);
 
       notifyListeners();
     } catch (e, stackTrace) {
@@ -619,7 +670,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
     try {
       final DateTime now = DateTime.now();
       _lastFullSyncTime = now;
-      await _prefs.setInt(_keyLastFullSync, now.millisecondsSinceEpoch);
+      await _prefs!.setInt(_keyLastFullSync, now.millisecondsSinceEpoch);
       notifyListeners();
     } catch (e, stackTrace) {
       _log.severe('Failed to record full sync completed', e, stackTrace);
@@ -644,14 +695,16 @@ class OfflineSettingsProvider extends ChangeNotifier {
       _lastIncrementalSyncTime = null;
       _lastFullSyncTime = null;
 
-      await _prefs.remove(_keyTotalItemsFetched);
-      await _prefs.remove(_keyTotalItemsUpdated);
-      await _prefs.remove(_keyTotalItemsSkipped);
-      await _prefs.remove(_keyTotalBandwidthSaved);
-      await _prefs.remove(_keyTotalApiCallsSaved);
-      await _prefs.remove(_keyIncrementalSyncCount);
-      await _prefs.remove(_keyLastIncrementalSync);
-      await _prefs.remove(_keyLastFullSync);
+      if (_prefs != null) {
+        await _prefs!.remove(_keyTotalItemsFetched);
+        await _prefs!.remove(_keyTotalItemsUpdated);
+        await _prefs!.remove(_keyTotalItemsSkipped);
+        await _prefs!.remove(_keyTotalBandwidthSaved);
+        await _prefs!.remove(_keyTotalApiCallsSaved);
+        await _prefs!.remove(_keyIncrementalSyncCount);
+        await _prefs!.remove(_keyLastIncrementalSync);
+        await _prefs!.remove(_keyLastFullSync);
+      }
 
       notifyListeners();
     } catch (e, stackTrace) {
@@ -680,12 +733,14 @@ class OfflineSettingsProvider extends ChangeNotifier {
       _databaseSize = 0;
 
       // Clear general statistics from preferences
-      await _prefs.remove(_keyLastSyncTime);
-      await _prefs.remove(_keyNextSyncTime);
-      await _prefs.remove(_keyTotalSyncs);
-      await _prefs.remove(_keyTotalConflicts);
-      await _prefs.remove(_keyTotalErrors);
-      await _prefs.remove(_keyDatabaseSize);
+      if (_prefs != null) {
+        await _prefs!.remove(_keyLastSyncTime);
+        await _prefs!.remove(_keyNextSyncTime);
+        await _prefs!.remove(_keyTotalSyncs);
+        await _prefs!.remove(_keyTotalConflicts);
+        await _prefs!.remove(_keyTotalErrors);
+        await _prefs!.remove(_keyDatabaseSize);
+      }
 
       // Reset incremental sync statistics
       _totalItemsFetched = 0;
@@ -698,14 +753,16 @@ class OfflineSettingsProvider extends ChangeNotifier {
       _lastFullSyncTime = null;
 
       // Clear incremental sync statistics from preferences
-      await _prefs.remove(_keyTotalItemsFetched);
-      await _prefs.remove(_keyTotalItemsUpdated);
-      await _prefs.remove(_keyTotalItemsSkipped);
-      await _prefs.remove(_keyTotalBandwidthSaved);
-      await _prefs.remove(_keyTotalApiCallsSaved);
-      await _prefs.remove(_keyIncrementalSyncCount);
-      await _prefs.remove(_keyLastIncrementalSync);
-      await _prefs.remove(_keyLastFullSync);
+      if (_prefs != null) {
+        await _prefs!.remove(_keyTotalItemsFetched);
+        await _prefs!.remove(_keyTotalItemsUpdated);
+        await _prefs!.remove(_keyTotalItemsSkipped);
+        await _prefs!.remove(_keyTotalBandwidthSaved);
+        await _prefs!.remove(_keyTotalApiCallsSaved);
+        await _prefs!.remove(_keyIncrementalSyncCount);
+        await _prefs!.remove(_keyLastIncrementalSync);
+        await _prefs!.remove(_keyLastFullSync);
+      }
 
       _log.info(
         'Cleared all offline data including incremental sync statistics',

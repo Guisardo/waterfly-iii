@@ -28,7 +28,9 @@ import 'package:waterflyiii/pages/login.dart';
 import 'package:waterflyiii/pages/navigation.dart';
 import 'package:waterflyiii/pages/splash.dart';
 import 'package:waterflyiii/pages/transaction.dart';
+import 'package:waterflyiii/providers/app_mode_provider.dart';
 import 'package:waterflyiii/providers/connectivity_provider.dart';
+import 'package:waterflyiii/providers/offline_settings_provider.dart';
 import 'package:waterflyiii/providers/sync_provider.dart';
 import 'package:waterflyiii/services/cache/cache_service.dart';
 import 'package:waterflyiii/services/cache/cache_warming_service.dart';
@@ -239,6 +241,12 @@ class _WaterflyAppState extends State<WaterflyApp> {
               create: (_) => ConnectivityProvider()..initialize(),
             ),
             ChangeNotifierProvider<SyncProvider>(create: (_) => SyncProvider()),
+            ChangeNotifierProvider<AppModeProvider>(
+              create: (_) => AppModeProvider(),
+            ),
+            ChangeNotifierProvider<OfflineSettingsProvider>(
+              create: (_) => OfflineSettingsProvider.create(),
+            ),
 
             // Database and Cache (Phase 2-3: Cache-First Architecture)
             Provider<AppDatabase>(
@@ -321,13 +329,14 @@ class _WaterflyAppState extends State<WaterflyApp> {
 
             // Data Services (Phase 2: Cached API Access)
             // These services provide cached access to computed/aggregate data.
-            ProxyProvider2<FireflyService, CacheService, InsightsService?>(
-              update: (_, FireflyService firefly, CacheService cache, _) {
+            ProxyProvider3<FireflyService, CacheService, TransactionRepository, InsightsService?>(
+              update: (_, FireflyService firefly, CacheService cache, TransactionRepository transactionRepo, _) {
                 // Only create service when signed in
                 if (!firefly.signedIn) return null;
                 return InsightsService(
                   fireflyService: firefly,
                   cacheService: cache,
+                  transactionRepository: transactionRepo,
                 );
               },
             ),
@@ -384,6 +393,9 @@ class _WaterflyAppState extends State<WaterflyApp> {
             ),
           ],
           builder: (BuildContext context, _) {
+            // Force AppModeProvider to be created early
+            context.read<AppModeProvider>();
+            
             late bool signedIn;
             log.finest(() => "_startup = $_startup");
             _requiresAuth = context.watch<SettingsProvider>().lock;

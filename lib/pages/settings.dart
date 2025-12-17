@@ -15,6 +15,7 @@ import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/pages/settings/debug.dart';
 import 'package:waterflyiii/pages/settings/notifications.dart';
+import 'package:waterflyiii/pages/settings/offline_settings_screen.dart';
 import 'package:waterflyiii/settings.dart';
 
 final Logger log = Logger("Pages.Settings");
@@ -221,6 +222,21 @@ class SettingsPageState extends State<SettingsPage>
                     onTap: () => openContainer(),
                   ),
               onClosed: (_) => setState(() {}),
+            );
+          },
+        ),
+        const Divider(),
+        ListTile(
+          title: const Text('Offline Mode Settings'),
+          subtitle: const Text('Configure offline sync and mobile data usage'),
+          leading: const CircleAvatar(child: Icon(Icons.cloud_off)),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute<Widget>(
+                builder: (BuildContext context) =>
+                    const OfflineSettingsScreen(),
+              ),
             );
           },
         ),

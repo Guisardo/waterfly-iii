@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/providers/connectivity_provider.dart';
+import 'package:waterflyiii/providers/app_mode_provider.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
 
 final Logger _log = Logger('ConnectivityStatusBar');
@@ -87,20 +88,26 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ConnectivityProvider>(
+    return Consumer2<ConnectivityProvider, AppModeProvider>(
       builder: (
         BuildContext context,
         ConnectivityProvider connectivity,
+        AppModeProvider appMode,
         Widget? child,
       ) {
-        final ConnectivityStatus status = connectivity.status;
+        // Use app mode instead of raw connectivity status to respect WiFi-only setting
+        final bool isAppOnline = appMode.isOnline;
+        final ConnectivityStatus rawStatus = connectivity.status;
+        
+        // Determine effective status: if app mode is offline, treat as offline even if connectivity is online
+        final ConnectivityStatus effectiveStatus = isAppOnline ? rawStatus : ConnectivityStatus.offline;
 
         // Handle status changes after build completes
-        if (_previousStatus != status) {
+        if (_previousStatus != effectiveStatus) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _handleStatusChange(status);
+            _handleStatusChange(effectiveStatus);
           });
-          _previousStatus = status;
+          _previousStatus = effectiveStatus;
         }
 
         if (!_isVisible) {
@@ -110,12 +117,12 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
         return SlideTransition(
           position: _slideAnimation,
           child: Material(
-            color: _getStatusColor(status),
+            color: _getStatusColor(effectiveStatus),
             elevation: 4,
             child: InkWell(
               onTap:
                   widget.onTap ??
-                  () => _showNetworkDetails(context, connectivity),
+                  () => _showNetworkDetails(context, connectivity, appMode),
               child: SafeArea(
                 bottom: false,
                 child: Container(
@@ -127,7 +134,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Icon(
-                        _getStatusIcon(status),
+                        _getStatusIcon(effectiveStatus),
                         color: Colors.white,
                         size: 20,
                       ),
@@ -138,16 +145,16 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              _getStatusText(status),
+                              _getStatusText(effectiveStatus, isAppOnline, rawStatus),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
                             ),
-                            if (widget.showNetworkType && status.isOnline)
+                            if (widget.showNetworkType && effectiveStatus.isOnline)
                               Text(
-                                _getNetworkTypeText(status),
+                                _getNetworkTypeText(rawStatus),
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
                                   fontSize: 12,
@@ -232,10 +239,14 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
   }
 
   /// Get text for status.
-  String _getStatusText(ConnectivityStatus status) {
+  String _getStatusText(ConnectivityStatus status, bool isAppOnline, ConnectivityStatus rawStatus) {
     if (status.isOnline) {
       return 'Back online';
     } else if (status.isOffline) {
+      // If app is offline but connectivity is online, it means WiFi-only is enabled
+      if (!isAppOnline && rawStatus.isOnline) {
+        return 'Offline mode (WiFi only)';
+      }
       return 'No internet connection';
     } else {
       return 'Checking connection...';
@@ -243,7 +254,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
   }
 
   /// Get network type text.
-  String _getNetworkTypeText(ConnectivityStatus status) {
+  String _getNetworkTypeText(ConnectivityStatus rawStatus) {
     // Get actual network type from connectivity service via provider
     final ConnectivityProvider connectivity = Provider.of<ConnectivityProvider>(
       context,
@@ -261,6 +272,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
   void _showNetworkDetails(
     BuildContext context,
     ConnectivityProvider connectivity,
+    AppModeProvider appMode,
   ) {
     showDialog(
       context: context,
@@ -269,8 +281,8 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
             title: Row(
               children: <Widget>[
                 Icon(
-                  _getStatusIcon(connectivity.status),
-                  color: _getStatusColor(connectivity.status),
+                  appMode.isOnline ? Icons.wifi : Icons.wifi_off,
+                  color: appMode.isOnline ? Colors.green[700] : Colors.red[700],
                 ),
                 const SizedBox(width: 12),
                 const Text('Network Status'),
@@ -281,30 +293,39 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 _buildDetailRow(
-                  'Status',
-                  connectivity.statusText,
-                  connectivity.isOnline ? Colors.green : Colors.red,
+                  'App Status',
+                  appMode.isOnline ? 'Online' : 'Offline',
+                  appMode.isOnline ? Colors.green : Colors.red,
                 ),
                 const SizedBox(height: 12),
                 _buildDetailRow(
-                  'Connection',
-                  connectivity.isOnline ? 'Available' : 'Unavailable',
+                  'Network',
+                  connectivity.isOnline ? connectivity.networkTypeDescription : 'No connection',
                   null,
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  connectivity.isOffline
-                      ? 'Some features may be limited while offline. '
-                          'Data will sync automatically when connection is restored.'
-                      : 'All features are available.',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-                ),
+                if (!appMode.isOnline && connectivity.isOnline)
+                  Text(
+                    'WiFi-only mode is enabled. Mobile data is disabled. '
+                    'Connect to WiFi to use online features.',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.orange[700]),
+                  )
+                else
+                  Text(
+                    appMode.isOffline
+                        ? 'Some features may be limited while offline. '
+                            'Data will sync automatically when connection is restored.'
+                        : 'All features are available.',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                  ),
               ],
             ),
             actions: <Widget>[
-              if (connectivity.isOffline)
+              if (appMode.isOffline)
                 TextButton.icon(
                   onPressed: () async {
                     Navigator.pop(context);

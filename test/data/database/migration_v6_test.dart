@@ -729,12 +729,12 @@ void main() {
   });
 
   group('Database Schema Version', () {
-    test('should report schema version 8', () async {
+    test('should report schema version 9', () async {
       final AppDatabase database = AppDatabase.forTesting(
         NativeDatabase.memory(),
       );
 
-      expect(database.schemaVersion, equals(8));
+      expect(database.schemaVersion, equals(9));
 
       await database.close();
     });

@@ -6,6 +6,11 @@ import 'package:waterflyiii/config/cache_ttl_config.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/models/cache/cache_result.dart';
 import 'package:waterflyiii/services/cache/cache_service.dart';
+import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
+import 'package:waterflyiii/services/app_mode/app_mode.dart';
+import 'package:waterflyiii/data/repositories/transaction_repository.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/local/database/transactions_table.dart';
 
 /// Service for accessing Firefly III insight/analytics data with caching.
 ///
@@ -45,13 +50,20 @@ import 'package:waterflyiii/services/cache/cache_service.dart';
 /// ```
 class InsightsService {
   /// Creates an insights service with cache support.
-  InsightsService({required this.fireflyService, required this.cacheService});
+  InsightsService({
+    required this.fireflyService,
+    required this.cacheService,
+    TransactionRepository? transactionRepository,
+  }) : _transactionRepository = transactionRepository;
 
   /// Firefly III service for API access.
   final FireflyService fireflyService;
 
   /// Cache service for managing cached data.
   final CacheService cacheService;
+
+  /// Transaction repository for computing insights from local data when offline.
+  final TransactionRepository? _transactionRepository;
 
   final Logger _log = Logger('InsightsService');
 
@@ -94,7 +106,26 @@ class InsightsService {
       _log.info(
         'Expense total fetched from ${result.source} (fresh: ${result.isFresh})',
       );
-      return result.data ?? <InsightTotalEntry>[];
+      final List<InsightTotalEntry> data = result.data ?? <InsightTotalEntry>[];
+      
+      // If cache returned empty data and we're offline, try computing from local transactions
+      if (data.isEmpty) {
+        final AppModeManager appModeManager = AppModeManager();
+        if (appModeManager.isInitialized && 
+            appModeManager.currentMode == AppMode.offline &&
+            _transactionRepository != null) {
+          _log.info(
+            'Cache returned empty expense total. Attempting to compute from local transactions for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
+          );
+          final List<InsightTotalEntry> computed = await _computeExpenseTotalFromLocal(start, end);
+          if (computed.isNotEmpty) {
+            _log.info('Computed ${computed.length} expense total entries from local transactions');
+            return computed;
+          }
+        }
+      }
+      
+      return data;
     } catch (error, stackTrace) {
       _log.severe('Failed to get expense total', error, stackTrace);
       // Return empty list on error to prevent UI crashes
@@ -128,7 +159,26 @@ class InsightsService {
       _log.info(
         'Income total fetched from ${result.source} (fresh: ${result.isFresh})',
       );
-      return result.data ?? <InsightTotalEntry>[];
+      final List<InsightTotalEntry> data = result.data ?? <InsightTotalEntry>[];
+      
+      // If cache returned empty data and we're offline, try computing from local transactions
+      if (data.isEmpty) {
+        final AppModeManager appModeManager = AppModeManager();
+        if (appModeManager.isInitialized && 
+            appModeManager.currentMode == AppMode.offline &&
+            _transactionRepository != null) {
+          _log.info(
+            'Cache returned empty income total. Attempting to compute from local transactions for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
+          );
+          final List<InsightTotalEntry> computed = await _computeIncomeTotalFromLocal(start, end);
+          if (computed.isNotEmpty) {
+            _log.info('Computed ${computed.length} income total entries from local transactions');
+            return computed;
+          }
+        }
+      }
+      
+      return data;
     } catch (error, stackTrace) {
       _log.severe('Failed to get income total', error, stackTrace);
       return <InsightTotalEntry>[];
@@ -277,6 +327,16 @@ class InsightsService {
     DateTime start,
     DateTime end,
   ) async {
+    // Check app mode - don't make API calls if in offline mode
+    final AppModeManager appModeManager = AppModeManager();
+    if (!appModeManager.isInitialized) {
+      await appModeManager.initialize();
+    }
+    if (appModeManager.currentMode == AppMode.offline) {
+      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      return <InsightTotalEntry>[];
+    }
+
     _log.fine('Fetching expense total from API');
     final FireflyIii api = fireflyService.api;
 
@@ -298,6 +358,16 @@ class InsightsService {
     DateTime start,
     DateTime end,
   ) async {
+    // Check app mode - don't make API calls if in offline mode
+    final AppModeManager appModeManager = AppModeManager();
+    if (!appModeManager.isInitialized) {
+      await appModeManager.initialize();
+    }
+    if (appModeManager.currentMode == AppMode.offline) {
+      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      return <InsightTotalEntry>[];
+    }
+
     _log.fine('Fetching income total from API');
     final FireflyIii api = fireflyService.api;
 
@@ -319,6 +389,16 @@ class InsightsService {
     DateTime start,
     DateTime end,
   ) async {
+    // Check app mode - don't make API calls if in offline mode
+    final AppModeManager appModeManager = AppModeManager();
+    if (!appModeManager.isInitialized) {
+      await appModeManager.initialize();
+    }
+    if (appModeManager.currentMode == AppMode.offline) {
+      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      return <InsightGroupEntry>[];
+    }
+
     _log.fine('Fetching expense by category from API');
     final FireflyIii api = fireflyService.api;
 
@@ -343,6 +423,16 @@ class InsightsService {
     DateTime start,
     DateTime end,
   ) async {
+    // Check app mode - don't make API calls if in offline mode
+    final AppModeManager appModeManager = AppModeManager();
+    if (!appModeManager.isInitialized) {
+      await appModeManager.initialize();
+    }
+    if (appModeManager.currentMode == AppMode.offline) {
+      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      return <InsightGroupEntry>[];
+    }
+
     _log.fine('Fetching income by category from API');
     final FireflyIii api = fireflyService.api;
 
@@ -428,5 +518,129 @@ class InsightsService {
     _log.info(
       'All insight caches invalidated (via full cache clear if needed)',
     );
+  }
+
+  // ========================================================================
+  // LOCAL COMPUTATION FALLBACKS (for offline mode when cache is empty)
+  // ========================================================================
+
+  /// Computes expense total from local transactions when cache is empty and offline.
+  ///
+  /// This is a fallback method that aggregates local transactions to provide
+  /// expense totals when the cache contains empty arrays from previous offline sessions.
+  Future<List<InsightTotalEntry>> _computeExpenseTotalFromLocal(
+    DateTime start,
+    DateTime end,
+  ) async {
+    if (_transactionRepository == null) {
+      _log.warning('TransactionRepository not available for local computation');
+      return <InsightTotalEntry>[];
+    }
+
+    try {
+      _log.fine('Computing expense total from local transactions');
+      
+      // Get all transactions in date range
+      final List<TransactionEntity> transactions = await _transactionRepository!
+          .getByDateRange(start, end);
+
+      // Filter to withdrawals (expenses) only
+      final List<TransactionEntity> expenses = transactions
+          .where((t) => t.type == 'withdrawal')
+          .toList();
+
+      if (expenses.isEmpty) {
+        _log.fine('No expense transactions found in local database');
+        return <InsightTotalEntry>[];
+      }
+
+      // Group by currency code and sum amounts
+      final Map<String, double> totalsByCurrency = <String, double>{};
+      for (final TransactionEntity txn in expenses) {
+        final String currencyCode = txn.currencyCode;
+        totalsByCurrency[currencyCode] = (totalsByCurrency[currencyCode] ?? 0.0) + txn.amount;
+      }
+
+      // Convert to InsightTotalEntry format
+      // Note: Using currencyCode as currencyId since we don't have CurrencyRepository
+      final List<InsightTotalEntry> entries = totalsByCurrency.entries.map((entry) {
+        return InsightTotalEntry(
+          currencyId: entry.key, // Using currency code as ID
+          differenceFloat: -entry.value, // Negative for expenses
+        );
+      }).toList();
+
+      _log.info(
+        'Computed ${entries.length} expense total entries from ${expenses.length} local transactions',
+      );
+      return entries;
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Failed to compute expense total from local transactions',
+        error,
+        stackTrace,
+      );
+      return <InsightTotalEntry>[];
+    }
+  }
+
+  /// Computes income total from local transactions when cache is empty and offline.
+  ///
+  /// This is a fallback method that aggregates local transactions to provide
+  /// income totals when the cache contains empty arrays from previous offline sessions.
+  Future<List<InsightTotalEntry>> _computeIncomeTotalFromLocal(
+    DateTime start,
+    DateTime end,
+  ) async {
+    if (_transactionRepository == null) {
+      _log.warning('TransactionRepository not available for local computation');
+      return <InsightTotalEntry>[];
+    }
+
+    try {
+      _log.fine('Computing income total from local transactions');
+      
+      // Get all transactions in date range
+      final List<TransactionEntity> transactions = await _transactionRepository!
+          .getByDateRange(start, end);
+
+      // Filter to deposits (income) only
+      final List<TransactionEntity> incomes = transactions
+          .where((t) => t.type == 'deposit')
+          .toList();
+
+      if (incomes.isEmpty) {
+        _log.fine('No income transactions found in local database');
+        return <InsightTotalEntry>[];
+      }
+
+      // Group by currency code and sum amounts
+      final Map<String, double> totalsByCurrency = <String, double>{};
+      for (final TransactionEntity txn in incomes) {
+        final String currencyCode = txn.currencyCode;
+        totalsByCurrency[currencyCode] = (totalsByCurrency[currencyCode] ?? 0.0) + txn.amount;
+      }
+
+      // Convert to InsightTotalEntry format
+      // Note: Using currencyCode as currencyId since we don't have CurrencyRepository
+      final List<InsightTotalEntry> entries = totalsByCurrency.entries.map((entry) {
+        return InsightTotalEntry(
+          currencyId: entry.key, // Using currency code as ID
+          differenceFloat: entry.value, // Positive for income
+        );
+      }).toList();
+
+      _log.info(
+        'Computed ${entries.length} income total entries from ${incomes.length} local transactions',
+      );
+      return entries;
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Failed to compute income total from local transactions',
+        error,
+        stackTrace,
+      );
+      return <InsightTotalEntry>[];
+    }
   }
 }

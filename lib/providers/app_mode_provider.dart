@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 import 'package:waterflyiii/services/app_mode/app_mode.dart';
 import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
 
@@ -23,8 +24,14 @@ import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
 /// ```
 class AppModeProvider extends ChangeNotifier {
   /// Creates an app mode provider.
+  ///
+  /// Initialization happens asynchronously. The provider will be in a loading
+  /// state until initialization completes. Use [isInitialized] to check status.
   AppModeProvider({AppModeManager? appModeManager})
-    : _appModeManager = appModeManager ?? AppModeManager();
+    : _appModeManager = appModeManager ?? AppModeManager() {
+    // Start async initialization (fire-and-forget)
+    _initializeAsync();
+  }
 
   final AppModeManager _appModeManager;
 
@@ -61,23 +68,32 @@ class AppModeProvider extends ChangeNotifier {
   /// Whether manual mode override is active.
   bool get hasManualOverride => _appModeManager.hasManualOverride;
 
-  /// Initializes the app mode provider.
+  /// Initializes the app mode provider asynchronously.
   ///
   /// Sets up the app mode manager and starts listening to mode changes.
-  /// Should be called once during app initialization.
-  Future<void> initialize() async {
-    if (_isInitialized) return;
+  /// This is called automatically in the constructor.
+  Future<void> _initializeAsync() async {
+    if (_isInitialized) {
+      return;
+    }
 
-    await _appModeManager.initialize();
+    try {
+      await _appModeManager.initialize();
 
-    // Set initial mode
-    _mode = _appModeManager.currentMode;
+      // Set initial mode
+      _mode = _appModeManager.currentMode;
 
-    // Listen to mode changes
-    _appModeManager.modeStream.listen(_onModeChanged);
+      // Listen to mode changes
+      _appModeManager.modeStream.listen(_onModeChanged);
 
-    _isInitialized = true;
-    notifyListeners();
+      _isInitialized = true;
+      notifyListeners();
+    } catch (error, stackTrace) {
+      final Logger log = Logger('AppModeProvider');
+      log.severe('AppModeProvider initialization failed', error, stackTrace);
+      // Don't rethrow - allow provider to exist even if initialization fails
+      // The app can still function in offline mode
+    }
   }
 
   /// Handles app mode changes.
@@ -140,6 +156,14 @@ class AppModeProvider extends ChangeNotifier {
     await _appModeManager.checkMode();
     _mode = _appModeManager.currentMode;
     notifyListeners();
+  }
+
+  /// Sets the SyncManager instance for auto-sync on reconnect.
+  ///
+  /// This should be called after SyncManager is created during app initialization.
+  /// The SyncManager is optional - if not set, auto-sync on reconnect will be skipped.
+  void setSyncManager(dynamic syncManager) {
+    _appModeManager.setSyncManager(syncManager);
   }
 
   @override

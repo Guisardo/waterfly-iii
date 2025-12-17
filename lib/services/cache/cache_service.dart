@@ -21,6 +21,8 @@ import 'package:waterflyiii/models/cache/cache_result.dart';
 import 'package:waterflyiii/models/cache/cache_stats.dart';
 import 'package:waterflyiii/models/cache/etag_response.dart';
 import 'package:waterflyiii/services/cache/etag_handler.dart';
+import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
+import 'package:waterflyiii/services/app_mode/app_mode.dart';
 
 /// Cache Service
 ///
@@ -290,10 +292,12 @@ class CacheService {
       _hitsByEntityType[entityType] = (_hitsByEntityType[entityType] ?? 0) + 1;
       _log.info('Cache hit (fresh): $entityType:$entityId');
 
-      // Check connectivity before calling fetcher (which may call API)
-      final List<ConnectivityResult> connectivityResults =
-          await _connectivity.checkConnectivity();
-      final bool isOffline = connectivityResults.contains(ConnectivityResult.none);
+      // Check app mode - use AppModeManager to respect WiFi-only setting
+      final AppModeManager appModeManager = AppModeManager();
+      if (!appModeManager.isInitialized) {
+        await appModeManager.initialize();
+      }
+      final bool isOffline = appModeManager.currentMode == AppMode.offline;
 
       if (isOffline) {
         _log.warning(
@@ -303,6 +307,31 @@ class CacheService {
         // Try to retrieve persisted data from database
         final T? persistedData = await _getFromLocalDb<T>(entityType, entityId);
         if (persistedData != null) {
+          // Check if cached data is suspiciously empty (might be from previous offline session)
+          final bool isEmpty = persistedData is List && (persistedData as List).isEmpty;
+          if (isEmpty) {
+            _log.warning(
+              'Cached data is empty for $entityType:$entityId. This may be from a previous offline session. '
+              'Checking in-memory cache for non-empty data.',
+            );
+            // Check in-memory cache for non-empty data
+            final String cacheKey = '${entityType}:${entityId}';
+            if (_lastSuccessfulData.containsKey(cacheKey)) {
+              final dynamic memoryData = _lastSuccessfulData[cacheKey];
+              final bool memoryIsEmpty = memoryData is List && (memoryData as List).isEmpty;
+              if (!memoryIsEmpty) {
+                _log.info(
+                  'Using non-empty in-memory cached data for $entityType:$entityId (offline, fresh)',
+                );
+                return CacheResult<T>(
+                  data: memoryData as T,
+                  source: CacheSource.cache,
+                  isFresh: false,
+                  cachedAt: await _getCachedAt(entityType, entityId),
+                );
+              }
+            }
+          }
           _log.info(
             'Returning persisted cached data for $entityType:$entityId (offline, fresh)',
           );
@@ -390,15 +419,42 @@ class CacheService {
         await _getCachedAt(entityType, entityId) != null;
 
     if (metadataExists) {
-      // Cache hit (stale): Call fetcher to get data, optionally refresh in background
-      // CacheService only manages metadata, actual data comes from repository
+      // Cache hit (stale): Return persisted cached data if available, then refresh in background
+      // CacheService only manages metadata, actual data comes from repository or cachedData column
       _staleServed++;
       _log.info('Cache hit (stale): $entityType:$entityId');
 
-      // Check connectivity before calling fetcher (which may call API)
-      final List<ConnectivityResult> connectivityResults =
-          await _connectivity.checkConnectivity();
-      final bool isOffline = connectivityResults.contains(ConnectivityResult.none);
+      // For insights/charts with persisted data, return it immediately (stale-while-revalidate)
+      // This ensures cache persists across app restarts
+      final T? persistedData = await _getFromLocalDb<T>(entityType, entityId);
+      if (persistedData != null) {
+        _log.info(
+          'Returning persisted cached data for $entityType:$entityId (stale, will refresh in background)',
+        );
+        // Update in-memory cache for faster access
+        final String cacheKey = '${entityType}:${entityId}';
+        _lastSuccessfulData[cacheKey] = persistedData;
+
+        // Trigger background refresh if enabled
+        if (backgroundRefresh) {
+          _log.fine('Starting background refresh for $entityType:$entityId');
+          unawaited(_backgroundRefresh(entityType, entityId, fetcher, ttl));
+        }
+
+        return CacheResult<T>(
+          data: persistedData,
+          source: CacheSource.cache,
+          isFresh: false,
+          cachedAt: await _getCachedAt(entityType, entityId),
+        );
+      }
+
+      // Check app mode - use AppModeManager to respect WiFi-only setting
+      final AppModeManager appModeManager = AppModeManager();
+      if (!appModeManager.isInitialized) {
+        await appModeManager.initialize();
+      }
+      final bool isOffline = appModeManager.currentMode == AppMode.offline;
 
       if (isOffline) {
         _log.warning(
@@ -408,6 +464,31 @@ class CacheService {
         // Try to retrieve persisted data from database
         final T? persistedData = await _getFromLocalDb<T>(entityType, entityId);
         if (persistedData != null) {
+          // Check if cached data is suspiciously empty (might be from previous offline session)
+          final bool isEmpty = persistedData is List && (persistedData as List).isEmpty;
+          if (isEmpty) {
+            _log.warning(
+              'Cached data is empty for $entityType:$entityId (stale). This may be from a previous offline session. '
+              'Checking in-memory cache for non-empty data.',
+            );
+            // Check in-memory cache for non-empty data
+            final String cacheKey = '${entityType}:${entityId}';
+            if (_lastSuccessfulData.containsKey(cacheKey)) {
+              final dynamic memoryData = _lastSuccessfulData[cacheKey];
+              final bool memoryIsEmpty = memoryData is List && (memoryData as List).isEmpty;
+              if (!memoryIsEmpty) {
+                _log.info(
+                  'Using non-empty in-memory cached data for $entityType:$entityId (offline, stale)',
+                );
+                return CacheResult<T>(
+                  data: memoryData as T,
+                  source: CacheSource.cache,
+                  isFresh: false,
+                  cachedAt: await _getCachedAt(entityType, entityId),
+                );
+              }
+            }
+          }
           _log.info(
             'Returning persisted cached data for $entityType:$entityId (offline, stale)',
           );
@@ -434,24 +515,56 @@ class CacheService {
             cachedAt: await _getCachedAt(entityType, entityId),
           );
         }
-        // Try to call fetcher but catch errors gracefully
-        try {
-          final T data = await fetcher();
-          // Store successful fetch for offline use (both DB and memory)
-          _lastSuccessfulData[cacheKey] = data;
-          await set(
-            entityType: entityType,
-            entityId: entityId,
-            data: data,
-            ttl: ttl,
-          );
+        // Don't call fetcher when offline - it will return empty arrays
+        // Instead, return existing cached data (even if empty) or empty result
+        _log.info(
+          'Offline mode detected for $entityType:$entityId. Skipping fetcher call to avoid caching empty data.',
+        );
+        // Return existing cached data if available, otherwise return empty
+        final T? existingData = await _getFromLocalDb<T>(entityType, entityId);
+        if (existingData != null) {
           return CacheResult<T>(
-            data: data,
+            data: existingData,
             source: CacheSource.cache,
             isFresh: false,
             cachedAt: await _getCachedAt(entityType, entityId),
           );
-        } catch (e, stackTrace) {
+        }
+        // No existing cache, return empty data but don't cache it
+        // For list types, return empty list; for others, return null
+        T emptyData;
+        if (T.toString().startsWith('List<')) {
+          emptyData = _getEmptyListForType<T>(entityType);
+        } else {
+          emptyData = null as T;
+        }
+        return CacheResult<T>(
+          data: emptyData,
+          source: CacheSource.cache,
+          isFresh: false,
+          cachedAt: await _getCachedAt(entityType, entityId),
+        );
+      }
+
+      // Online: Call fetcher normally
+      final String cacheKey = '${entityType}:${entityId}';
+      try {
+        final T data = await fetcher();
+        // Store successful fetch for offline use (both DB and memory)
+        _lastSuccessfulData[cacheKey] = data;
+        await set(
+          entityType: entityType,
+          entityId: entityId,
+          data: data,
+          ttl: ttl,
+        );
+        return CacheResult<T>(
+          data: data,
+          source: CacheSource.cache,
+          isFresh: false,
+          cachedAt: await _getCachedAt(entityType, entityId),
+        );
+      } catch (e, stackTrace) {
           _log.warning(
             'Fetcher failed offline for $entityType:$entityId, no cached data available',
             e,
@@ -471,27 +584,7 @@ class CacheService {
             isFresh: false,
             cachedAt: await _getCachedAt(entityType, entityId),
           );
-        }
       }
-
-      final T data = await fetcher();
-
-      // Store successful fetch for offline use
-      final String cacheKey = '${entityType}:${entityId}';
-      _lastSuccessfulData[cacheKey] = data;
-
-      if (backgroundRefresh) {
-        // Start background refresh (fire-and-forget)
-        _log.fine('Starting background refresh for $entityType:$entityId');
-        unawaited(_backgroundRefresh(entityType, entityId, fetcher, ttl));
-      }
-
-      return CacheResult<T>(
-        data: data,
-        source: CacheSource.cache,
-        isFresh: false,
-        cachedAt: await _getCachedAt(entityType, entityId),
-      );
     }
 
     // Cache miss: Fetch from API
@@ -875,6 +968,18 @@ class CacheService {
     try {
       _log.fine('Background refresh starting: $entityType:$entityId');
 
+      // Check if we're offline before attempting refresh
+      final AppModeManager appModeManager = AppModeManager();
+      if (!appModeManager.isInitialized) {
+        await appModeManager.initialize();
+      }
+      if (appModeManager.currentMode == AppMode.offline) {
+        _log.info(
+          'Background refresh skipped - app is in offline mode (mobile data may be disabled): $entityType:$entityId',
+        );
+        return; // Don't refresh when offline - preserve existing cache
+      }
+
       // Use retry package for resilient API calls
       // Exponential backoff: 400ms, 800ms
       final T data = await retry(
@@ -886,6 +991,15 @@ class CacheService {
               e,
             ),
       );
+
+      // Don't cache empty data - preserve existing cache if data is empty
+      final bool isEmpty = data is List && (data as List).isEmpty;
+      if (isEmpty) {
+        _log.info(
+          'Background refresh returned empty data for $entityType:$entityId, preserving existing cache',
+        );
+        return; // Don't overwrite cache with empty data
+      }
 
       // Update cache with fresh data
       await set(
@@ -1637,7 +1751,7 @@ class CacheService {
       }
 
       _log.fine('Retrieving cached data for $entityType:$entityId');
-      final T result = _deserializeData<T>(metadata!.cachedData!);
+      final T result = _deserializeData<T>(metadata!.cachedData!, entityType: entityType);
       return result;
     } catch (e, stackTrace) {
       _log.warning(
@@ -1645,6 +1759,7 @@ class CacheService {
         e,
         stackTrace,
       );
+      _log.severe('Deserialization failed for $entityType:$entityId', e, stackTrace);
       return null;
     }
   }
@@ -1701,7 +1816,7 @@ class CacheService {
   /// Deserialize data from JSON string
   ///
   /// Handles various data types based on generic type T.
-  T _deserializeData<T>(String jsonString) {
+  T _deserializeData<T>(String jsonString, {String? entityType}) {
     final dynamic decoded = jsonDecode(jsonString);
 
     if (decoded is! List) {
@@ -1709,7 +1824,9 @@ class CacheService {
     }
 
     if (decoded.isEmpty) {
-      return <dynamic>[] as T;
+      // Return empty list of correct type based on entityType
+      // Use helper function to avoid runtime type casting issues with generics
+      return _getEmptyListForType<T>(entityType);
     }
 
     // Determine type from first element structure
@@ -1749,6 +1866,33 @@ class CacheService {
     throw FormatException(
       'Unknown data type for deserialization: ${first.keys.join(", ")}',
     );
+  }
+
+  /// Get an empty list of the correct type based on entityType
+  ///
+  /// This helper avoids runtime type casting issues with generic type parameters.
+  /// Returns an empty list of the appropriate type for the given entityType.
+  /// Uses dynamic return to work around Dart's type erasure limitations.
+  dynamic _getEmptyListForType<T>(String? entityType) {
+    if (entityType != null) {
+      if (entityType.startsWith('chart_balance') || 
+          entityType.startsWith('chart_account')) {
+        // Return empty ChartDataSet list
+        return <ChartDataSet>[];
+      } else if (entityType.startsWith('insight_income_total') ||
+          entityType.startsWith('insight_expense_total')) {
+        // Return empty InsightTotalEntry list
+        return <InsightTotalEntry>[];
+      } else if (entityType.startsWith('insight_')) {
+        // Return empty InsightGroupEntry list
+        return <InsightGroupEntry>[];
+      } else if (entityType.startsWith('chart_budget')) {
+        // Return empty BudgetLimitRead list
+        return <BudgetLimitRead>[];
+      }
+    }
+    // Fallback: return empty dynamic list
+    return <dynamic>[];
   }
 
   /// Update last accessed timestamp

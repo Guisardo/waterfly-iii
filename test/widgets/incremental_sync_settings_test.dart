@@ -24,7 +24,7 @@ void main() {
       when(() => mockPrefs.setBool(any(), any())).thenAnswer((_) async => true);
       when(() => mockPrefs.remove(any())).thenAnswer((_) async => true);
 
-      settingsProvider = OfflineSettingsProvider(prefs: mockPrefs);
+      settingsProvider = OfflineSettingsProvider.withPrefs(prefs: mockPrefs);
     });
 
     Widget buildTestWidget({
@@ -281,7 +281,7 @@ void main() {
       when(() => mockPrefs.setInt(any(), any())).thenAnswer((_) async => true);
       when(() => mockPrefs.setBool(any(), any())).thenAnswer((_) async => true);
 
-      settingsProvider = OfflineSettingsProvider(prefs: mockPrefs);
+      settingsProvider = OfflineSettingsProvider.withPrefs(prefs: mockPrefs);
     });
 
     Widget buildTestWidget({bool showHeader = true}) {

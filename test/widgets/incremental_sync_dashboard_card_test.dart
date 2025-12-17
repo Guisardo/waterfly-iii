@@ -27,7 +27,7 @@ void main() {
       when(() => mockPrefs.setBool(any(), any())).thenAnswer((_) async => true);
       when(() => mockPrefs.remove(any())).thenAnswer((_) async => true);
 
-      settingsProvider = OfflineSettingsProvider(prefs: mockPrefs);
+      settingsProvider = OfflineSettingsProvider.withPrefs(prefs: mockPrefs);
     });
 
     Widget buildTestWidget({

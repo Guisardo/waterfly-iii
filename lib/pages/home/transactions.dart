@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:animations/animations.dart';
 import 'package:chopper/chopper.dart' show Response;
@@ -15,8 +16,12 @@ import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/home.dart';
 import 'package:waterflyiii/pages/home/transactions/filter.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/transaction_repository.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/pages/transaction/delete.dart';
+import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/stock.dart';
 import 'package:waterflyiii/timezonehandler.dart';
@@ -61,6 +66,80 @@ class _HomeTransactionsState extends State<HomeTransactions>
   bool _isRevenueOrExpense(ShortAccountTypeProperty? type) {
     return type == ShortAccountTypeProperty.revenue ||
         type == ShortAccountTypeProperty.expense;
+  }
+
+  /// Converts TransactionEntity to TransactionRead for UI compatibility.
+  Future<TransactionRead> _entityToTransactionRead(
+    TransactionEntity entity,
+    AccountRepository? accountRepo,
+  ) async {
+    // Look up account names
+    String sourceName = entity.sourceAccountId;
+    String destinationName = entity.destinationAccountId;
+    
+    if (accountRepo != null) {
+      try {
+        final AccountEntity? sourceAccount = await accountRepo.getById(entity.sourceAccountId);
+        if (sourceAccount != null) {
+          sourceName = sourceAccount.name;
+        }
+        final AccountEntity? destAccount = await accountRepo.getById(entity.destinationAccountId);
+        if (destAccount != null) {
+          destinationName = destAccount.name;
+        }
+      } catch (e) {
+        log.warning('Failed to lookup account names: $e');
+      }
+    }
+
+    // Parse tags from JSON string
+    List<String> tagsList = <String>[];
+    try {
+      if (entity.tags.isNotEmpty) {
+        final dynamic tagsJson = jsonDecode(entity.tags);
+        if (tagsJson is List) {
+          tagsList = tagsJson.cast<String>();
+        }
+      }
+    } catch (e) {
+      log.warning('Failed to parse tags: $e');
+    }
+
+    // Convert transaction type
+    final TransactionTypeProperty txType = TransactionTypeProperty.values.firstWhere(
+      (TransactionTypeProperty t) => t.value == entity.type,
+      orElse: () => TransactionTypeProperty.withdrawal,
+    );
+
+    return TransactionRead(
+      id: entity.serverId ?? entity.id,
+      type: 'transactions',
+      attributes: Transaction(
+        groupTitle: entity.description,
+        transactions: <TransactionSplit>[
+          TransactionSplit(
+            transactionJournalId: entity.serverId ?? entity.id,
+            description: entity.description,
+            amount: entity.amount.toString(),
+            currencyCode: entity.currencyCode,
+            date: entity.date,
+            type: txType,
+            sourceId: entity.sourceAccountId,
+            sourceName: sourceName,
+            destinationId: entity.destinationAccountId,
+            destinationName: destinationName,
+            categoryId: entity.categoryId,
+            budgetId: entity.budgetId,
+            notes: entity.notes,
+            tags: tagsList.isNotEmpty ? tagsList : null,
+            foreignAmount: entity.foreignAmount?.toString(),
+            foreignCurrencyCode: entity.foreignCurrencyCode,
+            reconciled: false,
+          ),
+        ],
+      ),
+      links: const ObjectLink(self: ''),
+    );
   }
 
   @override
@@ -194,6 +273,12 @@ class _HomeTransactionsState extends State<HomeTransactions>
       throw Exception("Stock not available");
     }
 
+    // Check if offline and use repository
+    final ConnectivityProvider? connectivity = context.read<ConnectivityProvider?>();
+    final TransactionRepository? transactionRepo = context.read<TransactionRepository?>();
+    final AccountRepository? accountRepo = context.read<AccountRepository?>();
+    final bool isOffline = connectivity?.isOffline ?? false;
+
     setState(() {
       _pagingState = _pagingState.copyWith(isLoading: true, error: null);
     });
@@ -203,7 +288,7 @@ class _HomeTransactionsState extends State<HomeTransactions>
 
       final int pageKey = (_pagingState.keys?.last ?? 0) + 1;
       log.finest(
-        "Getting page $pageKey (${_pagingState.pages?.length} pages loaded)",
+        "Getting page $pageKey (${_pagingState.pages?.length} pages loaded), offline: $isOffline",
       );
 
       if (widget.filters != null) {
@@ -242,73 +327,116 @@ class _HomeTransactionsState extends State<HomeTransactions>
           break;
       }
 
-      // Faster than searching for an account, and also has cache (stock) behind
-      // This search should never have additional filters!
-      if (widget.filters?.account != null) {
-        transactionList = await stock.getAccount(
-          id: _filters.account!.id,
-          page: pageKey,
+      // Check if offline and use repository
+      if (isOffline && transactionRepo != null && accountRepo != null) {
+        // Use offline repository
+        // For offline transactions, add a 1-day buffer to endDate to account for timezone differences
+        // or clock skew, since all transactions are local and should be visible
+        final DateTime? endDate = context.read<SettingsProvider>().showFutureTXs
+            ? null
+            : now.add(const Duration(days: 1));
+        
+        final String? accountId = widget.filters?.account != null
+            ? _filters.account!.id
+            : null;
+        final String? categoryId = _filters.category != null && _filters.category!.id != "-1"
+            ? _filters.category!.id
+            : null;
+        final String? searchQuery = _filters.text != null && _filters.text!.isNotEmpty
+            ? _filters.text
+            : null;
+        
+        final List<TransactionEntity> entities = await transactionRepo.getTransactionsOffline(
+          startDate: startDate,
+          endDate: endDate,
+          accountId: accountId,
+          categoryId: categoryId,
+          searchQuery: searchQuery,
           limit: _numberOfPostsPerRequest,
-          type: TransactionTypeFilter.all,
-          end:
-              context.read<SettingsProvider>().showFutureTXs
-                  ? null
-                  : DateFormat('yyyy-MM-dd', 'en_US').format(now),
-          start: DateFormat('yyyy-MM-dd', 'en_US').format(startDate),
+          offset: (pageKey - 1) * _numberOfPostsPerRequest,
         );
-      } else if (_filters.hasFilters) {
-        String query = _filters.text ?? "";
-        if (_filters.account != null) {
-          query = "account_id:${_filters.account!.id} $query";
-        }
-        if (_filters.currency != null) {
-          query = "currency_is:${_filters.currency!.attributes.code} $query";
-        }
-        if (_filters.category != null) {
-          query =
-              (_filters.category!.id == "-1")
-                  ? "has_no_category:true $query"
-                  : "category_is:\"${_filters.category!.attributes.name}\" $query";
-        }
-        if (_filters.budget != null) {
-          query =
-              (_filters.budget!.id == "-1")
-                  ? "has_no_budget:true $query"
-                  : "budget_is:\"${_filters.budget!.attributes.name}\" $query";
-        }
-        if (_filters.bill != null) {
-          query =
-              (_filters.bill!.id == "-1")
-                  ? "has_no_bill:true $query"
-                  : "bill_is:\"${_filters.bill!.attributes.name}\" $query";
-        }
-        if (_filters.tags != null) {
-          for (String tag in _filters.tags!.tags) {
-            query = "tag_is:\"$tag\" $query";
+        
+        // Convert entities to TransactionRead
+        transactionList = <TransactionRead>[];
+        for (final TransactionEntity entity in entities) {
+          try {
+            final TransactionRead txRead = await _entityToTransactionRead(entity, accountRepo);
+            transactionList.add(txRead);
+          } catch (e, stackTrace) {
+            log.warning('Failed to convert transaction entity ${entity.id}: $e', e, stackTrace);
           }
         }
-        query =
-            "date_after:${DateFormat('yyyy-MM-dd', 'en_US').format(startDate)} $query";
-        if (!context.read<SettingsProvider>().showFutureTXs) {
-          query = "date_before:today $query";
-        }
-        log.fine(() => "Search query: $query");
-        transactionList = await stock.getSearch(
-          query: query,
-          page: pageKey,
-          limit: _numberOfPostsPerRequest,
-        );
       } else {
-        transactionList = await stock.get(
-          page: pageKey,
-          limit: _numberOfPostsPerRequest,
-          type: TransactionTypeFilter.all,
-          end:
-              context.read<SettingsProvider>().showFutureTXs
-                  ? null
-                  : DateFormat('yyyy-MM-dd', 'en_US').format(now),
-          start: DateFormat('yyyy-MM-dd', 'en_US').format(startDate),
-        );
+        // Online path - use TransStock
+        
+        // Faster than searching for an account, and also has cache (stock) behind
+        // This search should never have additional filters!
+        if (widget.filters?.account != null) {
+          transactionList = await stock.getAccount(
+            id: _filters.account!.id,
+            page: pageKey,
+            limit: _numberOfPostsPerRequest,
+            type: TransactionTypeFilter.all,
+            end:
+                context.read<SettingsProvider>().showFutureTXs
+                    ? null
+                    : DateFormat('yyyy-MM-dd', 'en_US').format(now),
+            start: DateFormat('yyyy-MM-dd', 'en_US').format(startDate),
+          );
+        } else if (_filters.hasFilters) {
+          String query = _filters.text ?? "";
+          if (_filters.account != null) {
+            query = "account_id:${_filters.account!.id} $query";
+          }
+          if (_filters.currency != null) {
+            query = "currency_is:${_filters.currency!.attributes.code} $query";
+          }
+          if (_filters.category != null) {
+            query =
+                (_filters.category!.id == "-1")
+                    ? "has_no_category:true $query"
+                    : "category_is:\"${_filters.category!.attributes.name}\" $query";
+          }
+          if (_filters.budget != null) {
+            query =
+                (_filters.budget!.id == "-1")
+                    ? "has_no_budget:true $query"
+                    : "budget_is:\"${_filters.budget!.attributes.name}\" $query";
+          }
+          if (_filters.bill != null) {
+            query =
+                (_filters.bill!.id == "-1")
+                    ? "has_no_bill:true $query"
+                    : "bill_is:\"${_filters.bill!.attributes.name}\" $query";
+          }
+          if (_filters.tags != null) {
+            for (String tag in _filters.tags!.tags) {
+              query = "tag_is:\"$tag\" $query";
+            }
+          }
+          query =
+              "date_after:${DateFormat('yyyy-MM-dd', 'en_US').format(startDate)} $query";
+          if (!context.read<SettingsProvider>().showFutureTXs) {
+            query = "date_before:today $query";
+          }
+          log.fine(() => "Search query: $query");
+          transactionList = await stock.getSearch(
+            query: query,
+            page: pageKey,
+            limit: _numberOfPostsPerRequest,
+          );
+        } else {
+          transactionList = await stock.get(
+            page: pageKey,
+            limit: _numberOfPostsPerRequest,
+            type: TransactionTypeFilter.all,
+            end:
+                context.read<SettingsProvider>().showFutureTXs
+                    ? null
+                    : DateFormat('yyyy-MM-dd', 'en_US').format(now),
+            start: DateFormat('yyyy-MM-dd', 'en_US').format(startDate),
+          );
+        }
       }
 
       if (_filters.account != null) {

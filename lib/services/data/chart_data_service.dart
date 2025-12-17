@@ -9,6 +9,8 @@ import 'package:waterflyiii/config/cache_ttl_config.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/models/cache/cache_result.dart';
 import 'package:waterflyiii/services/cache/cache_service.dart';
+import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
+import 'package:waterflyiii/services/app_mode/app_mode.dart';
 
 /// Service for accessing Firefly III chart data with caching.
 ///
@@ -207,6 +209,16 @@ class ChartDataService {
     DateTime end,
     V1ChartAccountOverviewGetPreselected? preselected,
   ) async {
+    // Check app mode - don't make API calls if in offline mode
+    final AppModeManager appModeManager = AppModeManager();
+    if (!appModeManager.isInitialized) {
+      await appModeManager.initialize();
+    }
+    if (appModeManager.currentMode == AppMode.offline) {
+      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      return <ChartDataSet>[];
+    }
+
     _log.fine('Fetching account overview from API');
     final FireflyIii api = fireflyService.api;
 
@@ -237,6 +249,16 @@ class ChartDataService {
     DateTime end,
     V1ChartBalanceBalanceGetPeriod period,
   ) async {
+    // Check app mode - don't make API calls if in offline mode
+    final AppModeManager appModeManager = AppModeManager();
+    if (!appModeManager.isInitialized) {
+      await appModeManager.initialize();
+    }
+    if (appModeManager.currentMode == AppMode.offline) {
+      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      return <ChartDataSet>[];
+    }
+
     _log.fine('Fetching daily balance from API');
     final FireflyIii api = fireflyService.api;
 
@@ -260,6 +282,16 @@ class ChartDataService {
     DateTime start,
     DateTime end,
   ) async {
+    // Check app mode - don't make API calls if in offline mode
+    final AppModeManager appModeManager = AppModeManager();
+    if (!appModeManager.isInitialized) {
+      await appModeManager.initialize();
+    }
+    if (appModeManager.currentMode == AppMode.offline) {
+      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      return <BudgetLimitRead>[];
+    }
+
     _log.fine('Fetching budget limits from API');
     final FireflyIii api = fireflyService.api;
 

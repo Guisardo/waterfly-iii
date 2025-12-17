@@ -104,6 +104,8 @@ void backgroundSyncCallback() {
         final FireflyApiAdapter apiAdapter = FireflyApiAdapter(apiClient);
 
         // Create SyncManager instance
+        // Note: AppModeManager is not available in background context, so pass null
+        // Background sync will check connectivity status only
         logger.info('Creating SyncManager...');
         final SyncManager syncManager = SyncManager(
           queueManager: queueManager,
@@ -111,6 +113,7 @@ void backgroundSyncCallback() {
           database: database,
           connectivity: connectivity,
           idMapping: idMapping,
+          appModeManager: null, // Not available in background context
           progressTracker: progressTracker,
         );
 

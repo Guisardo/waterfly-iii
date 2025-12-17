@@ -6,6 +6,7 @@ import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/models/sync_progress.dart';
 import 'package:waterflyiii/services/sync/sync_manager.dart';
 import 'package:waterflyiii/services/sync/sync_statistics.dart';
+import 'package:waterflyiii/services/app_mode/app_mode_manager.dart';
 
 final Logger _log = Logger('SyncStatusProvider');
 
@@ -77,6 +78,10 @@ class SyncStatusProvider extends ChangeNotifier {
   /// Initialize provider and start listening to sync events.
   void _initialize() {
     _log.info('Initializing SyncStatusProvider');
+
+    // Set SyncManager in AppModeManager for auto-sync on reconnect
+    AppModeManager().setSyncManager(_syncManager);
+    _log.fine('Set SyncManager in AppModeManager for auto-sync on reconnect');
 
     // Load initial statistics
     _loadStatistics();
