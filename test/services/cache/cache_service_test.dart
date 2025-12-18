@@ -329,21 +329,21 @@ void main() {
             backgroundRefresh: false,
           );
 
-          // Assert: Returns stale data from repository, NO background refresh
+          // Assert: Returns stale data from in-memory cache, NO fetcher call, NO background refresh
           expect(result.data, isNotNull);
           expect(result.data, equals(oldData));
           expect(result.isFresh, isFalse);
           expect(
             fetcherCallCount,
-            equals(1),
-          ); // CORRECTED: Called once for stale data
+            equals(0),
+          ); // Fetcher not called - data returned from _lastSuccessfulData
 
           // Wait to ensure background refresh doesn't happen
           await Future.delayed(const Duration(milliseconds: 100));
           expect(
             fetcherCallCount,
-            equals(1),
-          ); // CORRECTED: Still only called once (no background refresh)
+            equals(0),
+          ); // Still not called (no background refresh, no fetcher call)
         },
       );
     });

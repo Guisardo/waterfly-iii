@@ -32,7 +32,7 @@ void main() {
 
         tracker.start(totalOperations: 50);
 
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         expect(events, hasLength(1));
         expect(events.first, isA<SyncStartedEvent>());
@@ -45,7 +45,7 @@ void main() {
 
         tracker.start(totalOperations: 100);
 
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         expect(progressUpdates, hasLength(1));
         expect(progressUpdates.first.totalOperations, 100);
@@ -66,10 +66,10 @@ void main() {
         tracker.watchProgress().listen(progressUpdates.add);
 
         tracker.start(totalOperations: 100);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         tracker.updatePhase(SyncPhase.syncing);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         expect(progressUpdates.length, greaterThan(1));
         expect(progressUpdates.last.phase, SyncPhase.syncing);
@@ -104,7 +104,7 @@ void main() {
         tracker.start(totalOperations: 100);
 
         for (int i = 0; i < 10; i++) {
-          await Future.delayed(const Duration(milliseconds: 10));
+          await Future<void>.delayed(const Duration(milliseconds: 10));
           tracker.incrementCompleted();
         }
 
@@ -116,7 +116,7 @@ void main() {
 
         // Complete some operations to establish throughput
         for (int i = 0; i < 10; i++) {
-          await Future.delayed(const Duration(milliseconds: 10));
+          await Future<void>.delayed(const Duration(milliseconds: 10));
           tracker.incrementCompleted();
         }
 
@@ -173,10 +173,10 @@ void main() {
         tracker.watchEvents().listen(events.add);
 
         tracker.start(totalOperations: 100);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         tracker.incrementConflicts(conflictId: 'conflict_1');
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         final List<ConflictDetectedEvent> conflictEvents =
             events.whereType<ConflictDetectedEvent>().toList();
@@ -226,10 +226,10 @@ void main() {
         tracker.watchEvents().listen(events.add);
 
         tracker.start(totalOperations: 10);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         tracker.complete(success: true);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         final List<SyncCompletedEvent> completedEvents =
             events.whereType<SyncCompletedEvent>().toList();
@@ -242,10 +242,10 @@ void main() {
         tracker.watchEvents().listen(events.add);
 
         tracker.start(totalOperations: 10);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         tracker.complete(success: false);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         final List<SyncFailedEvent> failedEvents =
             events.whereType<SyncFailedEvent>().toList();
@@ -284,10 +284,10 @@ void main() {
         tracker.watchEvents().listen(events.add);
 
         tracker.start(totalOperations: 100);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         tracker.cancel();
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         final List<SyncFailedEvent> failedEvents =
             events.whereType<SyncFailedEvent>().toList();
@@ -346,13 +346,13 @@ void main() {
         tracker.watchProgress().listen(progressUpdates.add);
 
         tracker.start(totalOperations: 10);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         tracker.incrementCompleted();
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         tracker.incrementCompleted();
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         expect(progressUpdates.length, greaterThanOrEqualTo(3));
       });
@@ -362,13 +362,13 @@ void main() {
         tracker.watchEvents().listen(events.add);
 
         tracker.start(totalOperations: 10);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         tracker.incrementConflicts(conflictId: 'c1');
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         tracker.complete(success: true);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         expect(events.whereType<SyncStartedEvent>(), hasLength(1));
         expect(events.whereType<ConflictDetectedEvent>(), hasLength(1));
