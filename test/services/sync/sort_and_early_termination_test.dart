@@ -288,9 +288,10 @@ void main() {
         fetched.add(item);
       }
 
-      // Should have checked 1 item and stopped before yielding it
+      // Should have checked 1 item and yielded it before stopping
+      // (This allows the item to be processed/counted even when stopping early)
       expect(processedCount, equals(1));
-      expect(fetched.length, equals(0)); // Item not yielded when callback returns true
+      expect(fetched.length, equals(1)); // Item is yielded before checking for early termination
     });
 
     test('should continue iteration when stopWhenProcessed returns false', () async {

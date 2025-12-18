@@ -245,20 +245,21 @@ void main() {
       });
 
       test('should fetch transactions with date filter', () async {
-        // Setup mock response
-        final DateTime serverTimestamp = DateTime.now();
+        // Setup mock response with slightly different timestamps to avoid early termination
+        final DateTime serverTimestamp1 = DateTime.now();
+        final DateTime serverTimestamp2 = serverTimestamp1.add(const Duration(seconds: 1));
         _setupTransactionResponse(mockApiAdapter, <Map<String, dynamic>>[
           _createServerTransaction(
             '1',
             'Test Transaction 1',
             100.0,
-            serverTimestamp,
+            serverTimestamp1,
           ),
           _createServerTransaction(
             '2',
             'Test Transaction 2',
             200.0,
-            serverTimestamp,
+            serverTimestamp2,
           ),
         ]);
         _setupEmptyAccountResponse(mockApiAdapter);

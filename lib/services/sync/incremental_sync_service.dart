@@ -611,6 +611,9 @@ class IncrementalSyncService {
 
     _logger.info('Starting incremental transaction sync (since: $since)');
 
+    // Track items processed in this sync to avoid early termination on items we just processed
+    final Set<String> processedInThisSync = <String>{};
+
     try {
       // Only transactions support sort/order parameters in Firefly III API.
       // Other entities (accounts, budgets, categories, bills, piggy_banks) don't support
@@ -621,8 +624,13 @@ class IncrementalSyncService {
         start: since,
         sort: 'updated_at',
         order: 'desc',
-        stopWhenProcessed: (Map<String, dynamic> item) {
-          return _shouldStopIteration(item, 'transaction');
+        stopWhenProcessed: (Map<String, dynamic> item) async {
+          final String serverId = item['id'] as String;
+          // Don't stop early on items we just processed in this sync
+          if (processedInThisSync.contains(serverId)) {
+            return false;
+          }
+          return await _shouldStopIteration(item, 'transaction');
         },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
@@ -652,9 +660,13 @@ class IncrementalSyncService {
         if (await _hasEntityChanged(serverId, serverUpdatedAt, 'transaction')) {
           await _mergeTransaction(serverTx);
           stats.itemsUpdated++;
+          // Track that we processed this item in this sync
+          processedInThisSync.add(serverId);
           _logger.finest(() => 'Updated transaction $serverId');
         } else {
           stats.itemsSkipped++;
+          // Track that we processed this item in this sync (even if skipped)
+          processedInThisSync.add(serverId);
           _logger.finest(() => 'Skipped transaction $serverId (unchanged)');
         }
 
@@ -693,6 +705,9 @@ class IncrementalSyncService {
 
     _logger.info('Starting incremental account sync (since: $since)');
 
+    // Track items processed in this sync to avoid early termination on items we just processed
+    final Set<String> processedInThisSync = <String>{};
+
     try {
       final DateRangeIterator iterator = DateRangeIterator(
         apiClient: _apiAdapter,
@@ -701,8 +716,13 @@ class IncrementalSyncService {
         // Accounts API doesn't support sort/order parameters
         sort: null,
         order: null,
-        stopWhenProcessed: (Map<String, dynamic> item) {
-          return _shouldStopIteration(item, 'account');
+        stopWhenProcessed: (Map<String, dynamic> item) async {
+          final String serverId = item['id'] as String;
+          // Don't stop early on items we just processed in this sync
+          if (processedInThisSync.contains(serverId)) {
+            return false;
+          }
+          return await _shouldStopIteration(item, 'account');
         },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
@@ -724,8 +744,12 @@ class IncrementalSyncService {
             await _hasEntityChanged(serverId, serverUpdatedAt, 'account')) {
           await _mergeAccount(serverAccount);
           stats.itemsUpdated++;
+          // Track that we processed this item in this sync
+          processedInThisSync.add(serverId);
         } else {
           stats.itemsSkipped++;
+          // Track that we processed this item in this sync (even if skipped)
+          processedInThisSync.add(serverId);
         }
 
         _progressTracker?.incrementCompleted();
@@ -763,6 +787,9 @@ class IncrementalSyncService {
 
     _logger.info('Starting incremental budget sync (since: $since)');
 
+    // Track items processed in this sync to avoid early termination on items we just processed
+    final Set<String> processedInThisSync = <String>{};
+
     try {
       final DateRangeIterator iterator = DateRangeIterator(
         apiClient: _apiAdapter,
@@ -771,8 +798,13 @@ class IncrementalSyncService {
         // Budgets API doesn't support sort/order parameters
         sort: null,
         order: null,
-        stopWhenProcessed: (Map<String, dynamic> item) {
-          return _shouldStopIteration(item, 'budget');
+        stopWhenProcessed: (Map<String, dynamic> item) async {
+          final String serverId = item['id'] as String;
+          // Don't stop early on items we just processed in this sync
+          if (processedInThisSync.contains(serverId)) {
+            return false;
+          }
+          return await _shouldStopIteration(item, 'budget');
         },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
@@ -794,8 +826,12 @@ class IncrementalSyncService {
             await _hasEntityChanged(serverId, serverUpdatedAt, 'budget')) {
           await _mergeBudget(serverBudget);
           stats.itemsUpdated++;
+          // Track that we processed this item in this sync
+          processedInThisSync.add(serverId);
         } else {
           stats.itemsSkipped++;
+          // Track that we processed this item in this sync (even if skipped)
+          processedInThisSync.add(serverId);
         }
 
         _progressTracker?.incrementCompleted();
@@ -1105,16 +1141,33 @@ class IncrementalSyncService {
       return false;
     }
 
-    // Check if entity has changed
-    final bool hasChanged =
-        await _hasEntityChanged(serverId, serverUpdatedAt, entityType);
+    // Get local timestamp to check if this was processed in a previous sync
+    final DateTime? localTimestamp = await _getLocalServerUpdatedAt(
+      serverId,
+      entityType,
+    );
 
-    // Stop if entity hasn't changed (already processed)
+    // If entity doesn't exist locally, it's new - continue processing
+    // (This handles the case where we just processed it in this sync)
+    if (localTimestamp == null) {
+      _logger.finest(
+        () => 'Entity $serverId: new entity, continuing iteration',
+      );
+      return false;
+    }
+
+    // Check if entity has changed since it was last synced
+    // Add tolerance for clock skew
+    final Duration tolerance = Duration(minutes: clockSkewToleranceMinutes);
+    final DateTime localWithTolerance = localTimestamp.add(tolerance);
+
+    // Stop if server timestamp is not newer (entity unchanged since last sync)
     // Since we're processing newest first, all subsequent items will also be unchanged
+    final bool hasChanged = serverUpdatedAt.isAfter(localWithTolerance);
     if (!hasChanged) {
       _logger.info(
         'Early termination: entity $serverId ($entityType) already processed '
-        '(updated_at: $serverUpdatedAt)',
+        'in previous sync (local=$localTimestamp, server=$serverUpdatedAt)',
       );
       return true;
     }
