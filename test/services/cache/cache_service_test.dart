@@ -226,7 +226,7 @@ void main() {
                 fetcherCallCount++;
                 // Fetcher only called during background refresh (not during initial get when persistedData exists)
                 // Return new data from API/repository
-                await Future.delayed(const Duration(milliseconds: 50));
+                await Future<void>.delayed(const Duration(milliseconds: 50));
                 dataStore['789'] = newData; // Update repository DB
                 return newData;
               },
@@ -313,7 +313,7 @@ void main() {
             ttl: const Duration(milliseconds: 1),
           );
 
-          await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
 
           int fetcherCallCount = 0;
 
@@ -1107,7 +1107,7 @@ void main() {
             ttl: const Duration(milliseconds: 1),
           );
 
-          await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
 
           final List<CacheInvalidationEvent> events =
               <CacheInvalidationEvent>[];
@@ -1119,7 +1119,7 @@ void main() {
             entityType: 'test_entity',
             entityId: 'p1',
             fetcher: () async {
-              await Future.delayed(const Duration(milliseconds: 50));
+              await Future<void>.delayed(const Duration(milliseconds: 50));
               return TestEntity(id: 'p1', name: 'P1_new', value: 2);
             },
             backgroundRefresh: true,
