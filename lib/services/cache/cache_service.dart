@@ -437,6 +437,9 @@ class CacheService {
         final String cacheKey = '${entityType}:${entityId}';
         _lastSuccessfulData[cacheKey] = persistedData;
 
+        // Update lastAccessedAt for LRU tracking
+        await _updateLastAccessed(entityType, entityId);
+
         // Trigger background refresh if enabled
         if (backgroundRefresh) {
           _log.fine('Starting background refresh for $entityType:$entityId');
@@ -559,8 +562,28 @@ class CacheService {
         );
       }
 
-      // Online: Call fetcher normally
+      // Online: Check in-memory cache first for stale data (stale-while-revalidate)
       final String cacheKey = '${entityType}:${entityId}';
+      if (_lastSuccessfulData.containsKey(cacheKey)) {
+        _log.info(
+          'Returning in-memory cached data for $entityType:$entityId (stale, will refresh in background)',
+        );
+        // Update lastAccessedAt for LRU tracking
+        await _updateLastAccessed(entityType, entityId);
+        // Trigger background refresh if enabled
+        if (backgroundRefresh) {
+          _log.fine('Starting background refresh for $entityType:$entityId');
+          unawaited(_backgroundRefresh(entityType, entityId, fetcher, ttl));
+        }
+        return CacheResult<T>(
+          data: _lastSuccessfulData[cacheKey] as T,
+          source: CacheSource.cache,
+          isFresh: false,
+          cachedAt: await _getCachedAt(entityType, entityId),
+        );
+      }
+
+      // No cached data available, call fetcher normally
       try {
         final T data = await fetcher();
         // Store successful fetch for offline use (both DB and memory)
@@ -1179,6 +1202,10 @@ class CacheService {
               cachedData: Value(serializedData),
             ),
           );
+
+      // Store in in-memory cache for faster access (especially for non-persisted entities)
+      final String cacheKey = '${entityType}:${entityId}';
+      _lastSuccessfulData[cacheKey] = data;
 
       _log.fine('Cached metadata: $entityType:$entityId');
     });
