@@ -76,7 +76,7 @@ void main() {
         entityId: '1',
         fetcher: () async {
           // Simulate slow loading
-          await Future.delayed(const Duration(milliseconds: 100));
+          await Future<void>.delayed(const Duration(milliseconds: 100));
           return TestData(id: '1', value: 'Test Value');
         },
         builder: (BuildContext context, TestData? data, bool isFresh) {
@@ -283,7 +283,7 @@ void main() {
         entityType: 'test',
         entityId: '7',
         fetcher: () async {
-          await Future.delayed(const Duration(milliseconds: 100));
+          await Future<void>.delayed(const Duration(milliseconds: 100));
           return TestData(id: '7', value: 'Data');
         },
         builder: (BuildContext context, TestData? data, bool isFresh) {
@@ -313,7 +313,7 @@ void main() {
       final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
         entityId: '8',
-        fetcher: () => Future.value(null),
+        fetcher: () => Future<TestData?>.value(null),
         builder: (BuildContext context, TestData? data, bool isFresh) {
           if (data == null) {
             return const Text('No Data Available');
@@ -418,7 +418,7 @@ void main() {
       );
 
       // Wait for data to become stale
-      await Future.delayed(const Duration(milliseconds: 50));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
       final CacheStreamBuilder<TestData> widget = CacheStreamBuilder<TestData>(
         entityType: 'test',
@@ -521,7 +521,7 @@ void main() {
         entityId: '15',
         fetcher: () async {
           fetchCount++;
-          await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
           return TestData(id: '15', value: 'Concurrent $fetchCount');
         },
         builder: (BuildContext context, TestData? data, bool isFresh) {
