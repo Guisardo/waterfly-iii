@@ -67,7 +67,7 @@ class TestHelpers {
       if (await condition()) {
         return;
       }
-      await Future.delayed(pollInterval);
+      await Future<void>.delayed(pollInterval);
     }
 
     throw TimeoutException('Condition not met within $timeout');

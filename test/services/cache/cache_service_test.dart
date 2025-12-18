@@ -1018,9 +1018,6 @@ void main() {
       test('should not propagate background refresh errors', () async {
         // Arrange: Stale cache with data in repository
         final TestEntity testData = TestEntity(id: 'n1', name: 'N1', value: 1);
-        final Map<String, TestEntity> dataStore = <String, TestEntity>{
-          'n1': testData,
-        };
 
         await cacheService.set(
           entityType: 'test_entity',

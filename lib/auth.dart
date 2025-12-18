@@ -190,7 +190,7 @@ class AuthUser {
       // Wait a short time for initialization (max 2 seconds)
       int attempts = 0;
       while (!appModeManager.isInitialized && attempts < 20) {
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
         attempts++;
       }
     }
@@ -313,14 +313,14 @@ class FireflyService with ChangeNotifier {
       // Wait a short time for initialization (max 2 seconds)
       int attempts = 0;
       while (!appModeManager.isInitialized && attempts < 20) {
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
         attempts++;
       }
     }
 
     if (appModeManager.isInitialized && appModeManager.currentMode == AppMode.offline) {
       log.info('App is in offline mode (mobile data may be disabled), attempting offline sign-in');
-      return await _signInOffline(apiHost, apiKey);
+      return _signInOffline(apiHost, apiKey);
     }
 
     try {
@@ -410,7 +410,7 @@ class FireflyService with ChangeNotifier {
       // Wait a short time for initialization (max 2 seconds)
       int attempts = 0;
       while (!appModeManager.isInitialized && attempts < 20) {
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
         attempts++;
       }
     }
@@ -418,7 +418,7 @@ class FireflyService with ChangeNotifier {
     if (appModeManager.isInitialized && appModeManager.currentMode == AppMode.offline) {
       log.info('Skipping sign-in API calls - app is in offline mode (mobile data may be disabled)');
       // Try offline sign-in instead
-      return await _signInOffline(host, apiKey);
+      return _signInOffline(host, apiKey);
     }
 
     _lastTriedHost = host;
@@ -539,7 +539,7 @@ class FireflyService with ChangeNotifier {
           if (canUseIncremental) {
             log.info('Using incremental sync (with sort/order optimization)');
             try {
-              final result = await incrementalSync.performIncrementalSync();
+              final IncrementalSyncResult result = await incrementalSync.performIncrementalSync();
               // Use incremental sync if it was actually incremental, even if some entities failed
               // (partial success is better than falling back to full sync)
               if (result.isIncremental) {
@@ -722,9 +722,9 @@ class FireflyService with ChangeNotifier {
     try {
       // Log first account for debugging
       if (accounts.isNotEmpty) {
-        final first = accounts.first;
+        final Map<String, dynamic> first = accounts.first;
         log.fine(
-          'First account sample: id=${first['id']}, attrs keys=${(first['attributes'] as Map?)?.keys.toList()}',
+          'First account sample: id=${first['id']}, attrs keys=${(first['attributes'] as Map<String, dynamic>?)?.keys.toList()}',
         );
       }
 
@@ -742,24 +742,24 @@ class FireflyService with ChangeNotifier {
           batch.insert(
             database.accounts,
             AccountEntityCompanion.insert(
-              id: account['id'] as String,
-              serverId: Value(account['id'] as String),
-              name: attrs['name'] as String,
-              type: attrs['type'] as String,
-              accountNumber: Value(attrs['account_number'] as String?),
-              accountRole: Value(attrs['account_role'] as String?),
-              iban: Value(attrs['iban'] as String?),
-              currencyCode: attrs['currency_code'] as String? ?? 'USD',
-              currentBalance: balance,
-              notes: Value(attrs['notes'] as String?),
-              createdAt:
-                  DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
-                  DateTime.now(),
-              updatedAt:
-                  DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
-                  DateTime.now(),
-              isSynced: const Value(true),
-              syncStatus: const Value('synced'),
+            id: account['id'] as String,
+            serverId: Value<String?>(account['id'] as String),
+            name: attrs['name'] as String,
+            type: attrs['type'] as String,
+            accountNumber: Value<String?>(attrs['account_number'] as String?),
+            accountRole: Value<String?>(attrs['account_role'] as String?),
+            iban: Value<String?>(attrs['iban'] as String?),
+            currencyCode: attrs['currency_code'] as String? ?? 'USD',
+            currentBalance: balance,
+            notes: Value<String?>(attrs['notes'] as String?),
+            createdAt:
+                DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
+                DateTime.now(),
+            updatedAt:
+                DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
+                DateTime.now(),
+            isSynced: const Value<bool>(true),
+            syncStatus: const Value<String>('synced'),
             ),
             mode: InsertMode.insertOrReplace,
           );
@@ -786,17 +786,17 @@ class FireflyService with ChangeNotifier {
           database.categories,
           CategoryEntityCompanion.insert(
             id: category['id'] as String,
-            serverId: Value(category['id'] as String),
+            serverId: Value<String?>(category['id'] as String),
             name: attrs['name'] as String,
-            notes: Value(attrs['notes'] as String?),
+            notes: Value<String?>(attrs['notes'] as String?),
             createdAt:
                 DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
                 DateTime.now(),
             updatedAt:
                 DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
                 DateTime.now(),
-            isSynced: const Value(true),
-            syncStatus: const Value('synced'),
+            isSynced: const Value<bool>(true),
+            syncStatus: const Value<String>('synced'),
           ),
           mode: InsertMode.insertOrReplace,
         );
@@ -832,17 +832,17 @@ class FireflyService with ChangeNotifier {
           database.piggyBanks,
           PiggyBankEntityCompanion.insert(
             id: piggyBank['id'] as String,
-            serverId: Value(piggyBank['id'] as String),
+            serverId: Value<String?>(piggyBank['id'] as String),
             name: attrs['name'] as String,
             accountId: attrs['account_id']?.toString() ?? '',
-            targetAmount: Value(targetAmount),
-            currentAmount: Value(currentAmount),
-            startDate: Value(
+            targetAmount: Value<double?>(targetAmount),
+            currentAmount: Value<double?>(currentAmount),
+            startDate: Value<DateTime?>(
               attrs['start_date'] != null
                   ? DateTime.tryParse(attrs['start_date'] as String)
                   : null,
             ),
-            targetDate: Value(
+            targetDate: Value<DateTime?>(
               attrs['target_date'] != null
                   ? DateTime.tryParse(attrs['target_date'] as String)
                   : null,
@@ -853,8 +853,8 @@ class FireflyService with ChangeNotifier {
             updatedAt:
                 DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
                 DateTime.now(),
-            isSynced: const Value(true),
-            syncStatus: const Value('synced'),
+            isSynced: const Value<bool>(true),
+            syncStatus: const Value<String>('synced'),
           ),
           mode: InsertMode.insertOrReplace,
         );
@@ -877,7 +877,7 @@ class FireflyService with ChangeNotifier {
           database.budgets,
           BudgetEntityCompanion.insert(
             id: budget['id'] as String,
-            serverId: Value(budget['id'] as String),
+            serverId: Value<String?>(budget['id'] as String),
             name: attrs['name'] as String,
             createdAt:
                 DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
@@ -885,8 +885,8 @@ class FireflyService with ChangeNotifier {
             updatedAt:
                 DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
                 DateTime.now(),
-            isSynced: const Value(true),
-            syncStatus: const Value('synced'),
+            isSynced: const Value<bool>(true),
+            syncStatus: const Value<String>('synced'),
           ),
           mode: InsertMode.insertOrReplace,
         );
@@ -939,7 +939,7 @@ class FireflyService with ChangeNotifier {
           database.bills,
           BillEntityCompanion.insert(
             id: bill['id'] as String,
-            serverId: Value(bill['id'] as String),
+            serverId: Value<String?>(bill['id'] as String),
             name: attrs['name'] as String,
             minAmount: minAmount,
             maxAmount: maxAmount,
@@ -948,26 +948,26 @@ class FireflyService with ChangeNotifier {
                 DateTime.now(),
             repeatFreq: attrs['repeat_freq'] as String? ?? 'monthly',
             currencyCode: attrs['currency_code'] as String? ?? 'USD',
-            currencySymbol: Value(attrs['currency_symbol'] as String?),
-            currencyDecimalPlaces: Value(decimalPlaces),
-            currencyId: Value(attrs['currency_id']?.toString()),
-            nextExpectedMatch: Value(
+            currencySymbol: Value<String?>(attrs['currency_symbol'] as String?),
+            currencyDecimalPlaces: Value<int?>(decimalPlaces),
+            currencyId: Value<String?>(attrs['currency_id']?.toString()),
+            nextExpectedMatch: Value<DateTime?>(
               attrs['next_expected_match'] != null
                   ? DateTime.tryParse(attrs['next_expected_match'] as String)
                   : null,
             ),
-            order: Value(order),
-            objectGroupOrder: Value(groupOrder),
-            objectGroupTitle: Value(attrs['object_group_title'] as String?),
-            notes: Value(attrs['notes'] as String?),
+            order: Value<int?>(order),
+            objectGroupOrder: Value<int?>(groupOrder),
+            objectGroupTitle: Value<String?>(attrs['object_group_title'] as String?),
+            notes: Value<String?>(attrs['notes'] as String?),
             createdAt:
                 DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
                 DateTime.now(),
             updatedAt:
                 DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
                 DateTime.now(),
-            isSynced: const Value(true),
-            syncStatus: const Value('synced'),
+            isSynced: const Value<bool>(true),
+            syncStatus: const Value<String>('synced'),
           ),
           mode: InsertMode.insertOrReplace,
         );
@@ -1018,7 +1018,7 @@ class FireflyService with ChangeNotifier {
               database.transactions,
               TransactionEntityCompanion.insert(
                 id: transaction['id'] as String,
-                serverId: Value(transaction['id'] as String),
+                serverId: Value<String?>(transaction['id'] as String),
                 type: txData['type'] as String? ?? 'withdrawal',
                 date:
                     DateTime.tryParse(txData['date'] as String? ?? '') ??
@@ -1028,23 +1028,23 @@ class FireflyService with ChangeNotifier {
                 sourceAccountId: txData['source_id']?.toString() ?? '',
                 destinationAccountId:
                     txData['destination_id']?.toString() ?? '',
-                categoryId: Value(txData['category_id']?.toString()),
-                budgetId: Value(txData['budget_id']?.toString()),
+                categoryId: Value<String?>(txData['category_id']?.toString()),
+                budgetId: Value<String?>(txData['budget_id']?.toString()),
                 currencyCode: txData['currency_code'] as String? ?? 'USD',
-                foreignAmount: Value(foreignAmount),
-                foreignCurrencyCode: Value(
+                foreignAmount: Value<double?>(foreignAmount),
+                foreignCurrencyCode: Value<String?>(
                   txData['foreign_currency_code'] as String?,
                 ),
-                notes: Value(txData['notes'] as String?),
-                tags: Value(txData['tags']?.toString() ?? '[]'),
+                notes: Value<String?>(txData['notes'] as String?),
+                tags: Value<String?>(txData['tags']?.toString() ?? '[]'),
                 createdAt:
                     DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
                     DateTime.now(),
                 updatedAt:
                     DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
                     DateTime.now(),
-                isSynced: const Value(true),
-                syncStatus: const Value('synced'),
+                isSynced: const Value<bool>(true),
+                syncStatus: const Value<String>('synced'),
               ),
               mode: InsertMode.insertOrReplace,
             );
