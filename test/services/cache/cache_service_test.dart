@@ -210,7 +210,7 @@ void main() {
         );
 
         // Wait for TTL to expire
-        await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
 
         int fetcherCallCount = 0;
         final List<CacheInvalidationEvent> events = <CacheInvalidationEvent>[];
@@ -451,7 +451,7 @@ void main() {
         );
 
         // Wait for TTL to expire
-        await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Act & Assert
         final bool isFresh = await cacheService.isFresh('test_entity', '777');
@@ -687,7 +687,7 @@ void main() {
         );
 
         // Wait for staleness
-        await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Act: Fetch stale data
         await cacheService.get<TestEntity>(
@@ -743,7 +743,7 @@ void main() {
         );
 
         // Wait for first entry to expire
-        await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Act: Clean expired entries
         await cacheService.cleanExpired();
@@ -975,7 +975,7 @@ void main() {
         }
 
         // Wait for staleness
-        await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Act: Trigger concurrent background refreshes
         final List<Future<dynamic>> futures = <Future>[];
@@ -1029,7 +1029,7 @@ void main() {
           ttl: const Duration(milliseconds: 1),
         );
 
-        await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
 
         int fetcherCallCount = 0;
 
