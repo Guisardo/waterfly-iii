@@ -1126,7 +1126,7 @@ void main() {
           );
 
           // Wait for background refresh to complete (longer delay to ensure completion)
-          await Future.delayed(const Duration(milliseconds: 300));
+          await Future<void>.delayed(const Duration(milliseconds: 300));
 
           // Assert: Refresh event emitted
           final List<CacheInvalidationEvent> refreshEvents =
