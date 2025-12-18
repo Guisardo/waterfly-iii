@@ -873,6 +873,8 @@ void main() {
             start: any(named: 'start'),
             end: any(named: 'end'),
             limit: any(named: 'limit'),
+            sort: any(named: 'sort'),
+            order: any(named: 'order'),
           ),
         ).thenThrow(Exception('API Error'));
 
@@ -897,6 +899,8 @@ void main() {
             start: any(named: 'start'),
             end: any(named: 'end'),
             limit: any(named: 'limit'),
+            sort: any(named: 'sort'),
+            order: any(named: 'order'),
           ),
         ).thenThrow(Exception('Transaction fetch failed'));
 

@@ -890,6 +890,9 @@ class IncrementalSyncService {
     _logger.info('Categories cache stale, fetching from API');
 
     try {
+      // Track categories processed in this sync to avoid early termination
+      final Set<String> processedInThisSync = <String>{};
+
       final DateRangeIterator iterator = DateRangeIterator(
         apiClient: _apiAdapter,
         entityType: 'category',
@@ -897,8 +900,13 @@ class IncrementalSyncService {
         // Categories API doesn't support sort/order parameters
         sort: null,
         order: null,
-        stopWhenProcessed: (Map<String, dynamic> item) {
-          return _shouldStopIteration(item, 'category');
+        stopWhenProcessed: (Map<String, dynamic> item) async {
+          final String serverId = item['id'] as String;
+          // Don't stop on items processed in this sync
+          if (processedInThisSync.contains(serverId)) {
+            return false;
+          }
+          return await _shouldStopIteration(item, 'category');
         },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
@@ -920,6 +928,8 @@ class IncrementalSyncService {
             await _hasEntityChanged(serverId, serverUpdatedAt, 'category')) {
           await _mergeCategory(serverCategory);
           stats.itemsUpdated++;
+          // Track that this category was processed in this sync
+          processedInThisSync.add(serverId);
         } else {
           stats.itemsSkipped++;
         }

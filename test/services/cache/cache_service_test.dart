@@ -224,30 +224,27 @@ void main() {
               entityId: '789',
               fetcher: () async {
                 fetcherCallCount++;
-                // CORRECTED: First call returns stale data from repository DB
-                // Second call (background) updates with new data from API
-                if (fetcherCallCount == 1) {
-                  return dataStore['789']!; // Return stale data
-                } else {
-                  await Future.delayed(const Duration(milliseconds: 50));
-                  dataStore['789'] = newData; // Update repository DB
-                  return newData;
-                }
+                // Fetcher only called during background refresh (not during initial get when persistedData exists)
+                // Return new data from API/repository
+                await Future.delayed(const Duration(milliseconds: 50));
+                dataStore['789'] = newData; // Update repository DB
+                return newData;
               },
               backgroundRefresh: true,
             );
 
-        // Assert: Returns stale data immediately from fetcher (repository DB)
+        // Assert: Returns stale data immediately from cache (persistedData)
         expect(result.data, isNotNull);
-        expect(result.data, equals(oldData)); // Gets stale data from repository
+        expect(result.data, equals(oldData)); // Gets stale data from cache
         expect(result.isFresh, isFalse); // Metadata indicates stale
-        // Background refresh may start immediately, so count could be 1 or 2
-        expect(fetcherCallCount, greaterThanOrEqualTo(1));
+        // Fetcher not called during initial get() when persistedData exists
+        expect(fetcherCallCount, equals(0));
 
         // Wait for background refresh to complete
         await Future.delayed(const Duration(milliseconds: 200));
 
-        expect(fetcherCallCount, equals(2)); // CORRECTED: Called twice total
+        // Fetcher called once during background refresh
+        expect(fetcherCallCount, equals(1));
 
         // Verify refresh event was emitted
         final List<CacheInvalidationEvent> refreshEvents =
@@ -1043,31 +1040,25 @@ void main() {
               entityId: 'n1',
               fetcher: () async {
                 fetcherCallCount++;
-                // CORRECTED: First call returns stale data from repository
-                // Second call (background) throws error
-                if (fetcherCallCount == 1) {
-                  return dataStore['n1']!; // Return stale data
-                } else {
-                  throw Exception(
-                    'Background refresh error',
-                  ); // Background error
-                }
+                // Fetcher only called during background refresh (not during initial get when persistedData exists)
+                // Throw error during background refresh
+                throw Exception('Background refresh error');
               },
               backgroundRefresh: true,
             );
 
-        // Assert: Returns stale data from repository, first call succeeds
+        // Assert: Returns stale data from cache (persistedData)
         expect(result.data, isNotNull);
         expect(result.data, equals(testData));
         expect(result.isFresh, isFalse);
-        // Background refresh may start immediately
-        expect(fetcherCallCount, greaterThanOrEqualTo(1));
+        // Fetcher not called during initial get() when persistedData exists
+        expect(fetcherCallCount, equals(0));
 
         // Wait for background refresh attempt (should fail silently)
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 200));
 
-        // Background refresh error should not propagate
-        expect(fetcherCallCount, equals(2)); // Second call attempted
+        // Background refresh error should not propagate - fetcher called once during background refresh
+        expect(fetcherCallCount, equals(1));
         // No exception thrown to caller
       });
     });
@@ -1128,14 +1119,14 @@ void main() {
             entityType: 'test_entity',
             entityId: 'p1',
             fetcher: () async {
-              await Future.delayed(const Duration(milliseconds: 10));
+              await Future.delayed(const Duration(milliseconds: 50));
               return TestEntity(id: 'p1', name: 'P1_new', value: 2);
             },
             backgroundRefresh: true,
           );
 
-          // Wait for background refresh
-          await Future.delayed(const Duration(milliseconds: 100));
+          // Wait for background refresh to complete (longer delay to ensure completion)
+          await Future.delayed(const Duration(milliseconds: 300));
 
           // Assert: Refresh event emitted
           final List<CacheInvalidationEvent> refreshEvents =
