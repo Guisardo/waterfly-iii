@@ -24,6 +24,7 @@ import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/providers/sync_provider.dart';
 import 'package:waterflyiii/services/sync/firefly_api_adapter.dart';
+import 'package:waterflyiii/models/incremental_sync_stats.dart';
 import 'package:waterflyiii/services/sync/incremental_sync_service.dart';
 import 'package:waterflyiii/services/sync/metadata_service.dart';
 import 'package:waterflyiii/services/cache/cache_service.dart';
@@ -836,7 +837,7 @@ class FireflyService with ChangeNotifier {
             name: attrs['name'] as String,
             accountId: attrs['account_id']?.toString() ?? '',
             targetAmount: Value<double?>(targetAmount),
-            currentAmount: Value<double?>(currentAmount),
+            currentAmount: Value<double>(currentAmount),
             startDate: Value<DateTime?>(
               attrs['start_date'] != null
                   ? DateTime.tryParse(attrs['start_date'] as String)
@@ -1036,7 +1037,7 @@ class FireflyService with ChangeNotifier {
                   txData['foreign_currency_code'] as String?,
                 ),
                 notes: Value<String?>(txData['notes'] as String?),
-                tags: Value<String?>(txData['tags']?.toString() ?? '[]'),
+                tags: Value<String>(txData['tags']?.toString() ?? '[]'),
                 createdAt:
                     DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
                     DateTime.now(),
