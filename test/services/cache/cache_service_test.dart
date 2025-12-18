@@ -889,8 +889,8 @@ void main() {
 
         // Critical: Wait to ensure DateTime.now() in get() will be different
         // This is the key - we need time to pass at the SOURCE (DateTime.now())
-        // not just in our test
-        await Future<void>.delayed(const Duration(milliseconds: 500));
+        // not just in our test. Use longer delay for CI environments with lower clock resolution
+        await Future<void>.delayed(const Duration(milliseconds: 1000));
 
         // Act: Access cache entry - this should update lastAccessedAt
         await cacheService.get<TestEntity>(
@@ -902,7 +902,8 @@ void main() {
         );
 
         // Wait for database write to complete and flush
-        await Future<void>.delayed(const Duration(milliseconds: 300));
+        // Use longer delay for CI environments to ensure write completes
+        await Future<void>.delayed(const Duration(milliseconds: 500));
 
         // Assert: lastAccessedAt should be updated to a later time
         metadata =
