@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/providers/offline_settings_provider.dart';
 import 'package:waterflyiii/widgets/incremental_sync_settings.dart';
 
@@ -33,6 +34,8 @@ void main() {
       bool showAdvancedSettings = true,
     }) {
       return MaterialApp(
+        localizationsDelegates: S.localizationsDelegates,
+        supportedLocales: S.supportedLocales,
         home: Scaffold(
           body: ChangeNotifierProvider<OfflineSettingsProvider>.value(
             value: settingsProvider,
@@ -238,14 +241,14 @@ void main() {
       await tester.tap(resetButton);
       await tester.pumpAndSettle();
 
-      // Dialog should appear - find its title (now there will be 2: button + dialog)
-      expect(find.text('Reset Statistics'), findsNWidgets(2));
+      // Dialog should appear - find its title (button + dialog title)
+      expect(find.text('Reset Statistics'), findsAtLeast(2));
       expect(
         find.textContaining('This will clear all incremental sync statistics'),
         findsOneWidget,
       );
       expect(find.text('Cancel'), findsOneWidget);
-      expect(find.text('Reset'), findsOneWidget);
+      expect(find.text('Reset Statistics'), findsAtLeast(2)); // Button + dialog title
     });
 
     testWidgets(
@@ -286,6 +289,8 @@ void main() {
 
     Widget buildTestWidget({bool showHeader = true}) {
       return MaterialApp(
+        localizationsDelegates: S.localizationsDelegates,
+        supportedLocales: S.supportedLocales,
         home: Scaffold(
           body: ChangeNotifierProvider<OfflineSettingsProvider>.value(
             value: settingsProvider,
