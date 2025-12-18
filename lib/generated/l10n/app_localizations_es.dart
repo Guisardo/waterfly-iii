@@ -706,6 +706,10 @@ class SEs extends S {
       'Se abre en el navegador. Sólo disponible en inglés.';
 
   @override
+  String get settingsOfflineModeSubtitle =>
+      'Configurar sincronización sin conexión y uso de datos móviles';
+
+  @override
   String get settingsLanguage => 'Idioma';
 
   @override
@@ -966,25 +970,983 @@ class SEs extends S {
 
   @override
   String generalSyncEntity(String entity) {
-    return 'Sync $entity';
+    return 'Sincronizar $entity';
   }
 
   @override
   String generalSyncComplete(String entity, int count) {
-    return 'Synced $count $entity';
+    return 'Sincronizados $count $entity';
   }
 
   @override
   String generalSyncFailed(String error) {
-    return 'Sync failed: $error';
+    return 'Error de sincronización: $error';
   }
 
   @override
-  String get generalOffline => 'Offline';
+  String get generalOffline => 'Sin conexión';
 
   @override
-  String get generalOfflineMessage => 'You are offline. Connect to sync.';
+  String get generalOfflineMessage =>
+      'Estás sin conexión. Conéctate para sincronizar.';
 
   @override
-  String get generalSyncNotAvailable => 'Sync service not available';
+  String get generalSyncNotAvailable =>
+      'Servicio de sincronización no disponible';
+
+  @override
+  String get generalBackOnline => 'Conectado nuevamente';
+
+  @override
+  String get generalOfflineModeWifiOnly => 'Modo sin conexión (solo WiFi)';
+
+  @override
+  String get generalCheckingConnection => 'Verificando conexión...';
+
+  @override
+  String get generalNetworkStatus => 'Estado de la Red';
+
+  @override
+  String get generalAppStatus => 'Estado de la Aplicación';
+
+  @override
+  String get generalOnline => 'En línea';
+
+  @override
+  String get generalNetwork => 'Red';
+
+  @override
+  String get generalNoConnection => 'Sin conexión';
+
+  @override
+  String get generalWifiOnlyModeEnabled =>
+      'El modo solo WiFi está habilitado. Los datos móviles están deshabilitados. Conéctese a WiFi para usar las funciones en línea.';
+
+  @override
+  String get generalOfflineFeaturesLimited =>
+      'Algunas funciones pueden estar limitadas sin conexión. Los datos se sincronizarán automáticamente cuando se restaure la conexión.';
+
+  @override
+  String get generalAllFeaturesAvailable =>
+      'Todas las funciones están disponibles.';
+
+  @override
+  String get generalConnectionRestored => '¡Conexión restaurada!';
+
+  @override
+  String get generalStillOffline =>
+      'Todavía sin conexión. Por favor, verifique la configuración de su red.';
+
+  @override
+  String get generalFailedToCheckConnectivity =>
+      'Error al verificar la conectividad';
+
+  @override
+  String get generalRetry => 'Reintentar';
+
+  @override
+  String get incrementalSyncStatsTitle => 'Estadísticas de Sincronización';
+
+  @override
+  String incrementalSyncStatsDescription(int count) {
+    return '$count sincronizaciones incrementales realizadas';
+  }
+
+  @override
+  String get incrementalSyncStatsDescriptionEmpty =>
+      'Rastree la eficiencia de sincronización y el ahorro de ancho de banda';
+
+  @override
+  String get incrementalSyncStatsRefresh => 'Actualizar estadísticas';
+
+  @override
+  String get incrementalSyncStatsNoData =>
+      'Aún No Hay Estadísticas de Sincronización';
+
+  @override
+  String get incrementalSyncStatsNoDataDesc =>
+      'Las estadísticas aparecerán aquí después de su primera sincronización incremental.';
+
+  @override
+  String get incrementalSyncStatsNoDataYet =>
+      'Aún no hay datos de sincronización incremental';
+
+  @override
+  String get incrementalSyncStatsNoDataAvailable =>
+      'No hay datos de sincronización disponibles';
+
+  @override
+  String get incrementalSyncStatsEfficiencyExcellent => 'Eficiencia Excelente';
+
+  @override
+  String get incrementalSyncStatsEfficiencyGood => 'Buena Eficiencia';
+
+  @override
+  String get incrementalSyncStatsEfficiencyModerate => 'Eficiencia Moderada';
+
+  @override
+  String get incrementalSyncStatsEfficiencyLow => 'Baja Eficiencia';
+
+  @override
+  String get incrementalSyncStatsEfficiencyVeryLow => 'Eficiencia Muy Baja';
+
+  @override
+  String get incrementalSyncStatsEfficiencyDescExcellent =>
+      'La mayoría de los datos sin cambios - ¡la sincronización incremental es muy efectiva!';
+
+  @override
+  String get incrementalSyncStatsEfficiencyDescGood =>
+      'Buen ahorro - la sincronización incremental funciona bien.';
+
+  @override
+  String get incrementalSyncStatsEfficiencyDescModerate =>
+      'Cambios moderados detectados - se ahorró algo de ancho de banda.';
+
+  @override
+  String get incrementalSyncStatsEfficiencyDescLow =>
+      'Muchos cambios - considere ajustar la ventana de sincronización.';
+
+  @override
+  String get incrementalSyncStatsEfficiencyDescVeryLow =>
+      'La mayoría de los datos cambiaron - la sincronización incremental proporciona un beneficio mínimo.';
+
+  @override
+  String get incrementalSyncStatsLabelFetched => 'Obtenidos';
+
+  @override
+  String get incrementalSyncStatsLabelUpdated => 'Actualizados';
+
+  @override
+  String get incrementalSyncStatsLabelSkipped => 'Omitidos';
+
+  @override
+  String get incrementalSyncStatsLabelSaved => 'Ahorrado';
+
+  @override
+  String get incrementalSyncStatsLabelSyncs => 'Sincronizaciones';
+
+  @override
+  String get incrementalSyncStatsLabelBandwidthSaved =>
+      'Ancho de Banda Ahorrado';
+
+  @override
+  String get incrementalSyncStatsLabelApiCallsSaved => 'Llamadas API Ahorradas';
+
+  @override
+  String get incrementalSyncStatsLabelUpdateRate => 'Tasa de Actualización';
+
+  @override
+  String get incrementalSyncStatsCurrentSync => 'Sincronización Actual';
+
+  @override
+  String incrementalSyncStatsDuration(String duration) {
+    return 'Duración: $duration';
+  }
+
+  @override
+  String get incrementalSyncStatsStatusSuccess => 'Estado: Exitoso';
+
+  @override
+  String get incrementalSyncStatsStatusFailed => 'Estado: Fallido';
+
+  @override
+  String incrementalSyncStatsError(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get incrementalSyncStatsByEntityType => 'Por Tipo de Entidad:';
+
+  @override
+  String incrementalSyncStatsEfficient(String rate) {
+    return '$rate% eficiente';
+  }
+
+  @override
+  String get offlineBannerTitle => 'Estás sin conexión';
+
+  @override
+  String get offlineBannerMessage =>
+      'Los cambios se sincronizarán cuando estés en línea.';
+
+  @override
+  String get offlineBannerLearnMore => 'Más información';
+
+  @override
+  String get offlineBannerDismiss => 'Descartar';
+
+  @override
+  String get offlineBannerSemanticLabel =>
+      'Estás sin conexión. Los cambios se sincronizarán cuando vuelvas a estar en línea. Desliza para descartar o toca Más información para detalles.';
+
+  @override
+  String get transactionOfflineMode => 'Modo Sin Conexión';
+
+  @override
+  String get transactionOfflineSaveNew =>
+      'La transacción se guardará localmente y se sincronizará cuando estés en línea';
+
+  @override
+  String get transactionOfflineSaveEdit =>
+      'Los cambios se guardarán localmente y se sincronizarán cuando estés en línea';
+
+  @override
+  String get transactionSaveOffline => 'Guardar Sin Conexión';
+
+  @override
+  String get transactionSave => 'Guardar';
+
+  @override
+  String get transactionSavedSynced => 'Transacción guardada y sincronizada';
+
+  @override
+  String get transactionSavedOffline =>
+      'Transacción guardada sin conexión. Se sincronizará cuando estés en línea.';
+
+  @override
+  String get transactionSaved => 'Transacción guardada';
+
+  @override
+  String get syncStatusSynced => 'Sincronizado';
+
+  @override
+  String get syncStatusSyncing => 'Sincronizando...';
+
+  @override
+  String syncStatusPending(int count) {
+    return '$count elementos pendientes';
+  }
+
+  @override
+  String get syncStatusFailed => 'Sincronización fallida';
+
+  @override
+  String get syncStatusOffline => 'Sin conexión';
+
+  @override
+  String get syncStatusJustNow => 'Ahora mismo';
+
+  @override
+  String syncStatusMinutesAgo(int minutes) {
+    return 'hace ${minutes}m';
+  }
+
+  @override
+  String syncStatusHoursAgo(int hours) {
+    return 'hace ${hours}h';
+  }
+
+  @override
+  String syncStatusDaysAgo(int days) {
+    return 'hace ${days}d';
+  }
+
+  @override
+  String get syncStatusOverWeekAgo => 'Hace más de una semana';
+
+  @override
+  String get syncActionSyncNow => 'Sincronizar ahora';
+
+  @override
+  String get syncActionForceFullSync => 'Forzar sincronización completa';
+
+  @override
+  String get syncActionViewStatus => 'Ver estado de sincronización';
+
+  @override
+  String get syncActionSettings => 'Configuración de sincronización';
+
+  @override
+  String get syncStarted => 'Sincronización iniciada';
+
+  @override
+  String get syncFullStarted => 'Sincronización completa iniciada';
+
+  @override
+  String syncFailedToStart(String error) {
+    return 'Error al iniciar la sincronización: $error';
+  }
+
+  @override
+  String syncFailedToStartFull(String error) {
+    return 'Error al iniciar la sincronización completa: $error';
+  }
+
+  @override
+  String get syncServiceNotAvailable =>
+      'Servicio de sincronización no disponible. Por favor, reinicie la aplicación.';
+
+  @override
+  String get syncProgressProviderNotAvailable =>
+      'Proveedor de Estado de Sincronización No Disponible';
+
+  @override
+  String get syncProgressProviderNotAvailableDesc =>
+      'Por favor, reinicie la aplicación para habilitar el seguimiento del progreso de sincronización.';
+
+  @override
+  String get syncProgressServiceUnavailable =>
+      'Servicio de Sincronización No Disponible';
+
+  @override
+  String get syncProgressServiceUnavailableDesc =>
+      'El Proveedor de Estado de Sincronización no está disponible. Por favor, reinicie la aplicación.';
+
+  @override
+  String get syncProgressCancel => 'Cancelar';
+
+  @override
+  String get syncProgressFailed => 'Sincronización Fallida';
+
+  @override
+  String get syncProgressComplete => 'Sincronización Completa';
+
+  @override
+  String get syncProgressSyncing => 'Sincronizando...';
+
+  @override
+  String incrementalSyncCacheCurrent(String ttl) {
+    return 'Actual: $ttl';
+  }
+
+  @override
+  String syncStatusProgressComplete(String percentage) {
+    return '$percentage% completo';
+  }
+
+  @override
+  String syncProgressSuccessfullySynced(int count) {
+    return 'Sincronizadas exitosamente $count operaciones';
+  }
+
+  @override
+  String syncProgressConflictsDetected(int count) {
+    return '$count conflictos detectados';
+  }
+
+  @override
+  String syncProgressOperationsFailed(int count) {
+    return '$count operaciones fallaron';
+  }
+
+  @override
+  String syncProgressOperationsCount(int completed, int total) {
+    return '$completed/$total operaciones';
+  }
+
+  @override
+  String get syncProgressSyncingOperations => 'Sincronizando operaciones...';
+
+  @override
+  String get syncProgressPreparing => 'Preparando...';
+
+  @override
+  String get syncProgressDetectingConflicts => 'Detectando conflictos...';
+
+  @override
+  String get syncProgressResolvingConflicts => 'Resolviendo conflictos...';
+
+  @override
+  String get syncProgressPullingUpdates => 'Obteniendo actualizaciones...';
+
+  @override
+  String get syncProgressFinalizing => 'Finalizando...';
+
+  @override
+  String get syncProgressCompleted => 'Completado';
+
+  @override
+  String syncStatusSyncingCount(int synced, int total) {
+    return 'Sincronizando... $synced de $total';
+  }
+
+  @override
+  String get listViewOfflineFilterPending => 'Pendiente';
+
+  @override
+  String listViewOfflineNoDataAvailable(String entityType) {
+    return 'No hay $entityType Disponibles';
+  }
+
+  @override
+  String listViewOfflineNoDataMessage(String entityType) {
+    return 'Estás sin conexión. $entityType aparecerán aquí cuando te conectes a internet.';
+  }
+
+  @override
+  String listViewOfflineLastUpdated(String age) {
+    return 'Última actualización: $age';
+  }
+
+  @override
+  String get dashboardOfflineIncludesUnsynced =>
+      'Incluye datos no sincronizados';
+
+  @override
+  String dashboardOfflineDataAsOf(String age) {
+    return 'Datos desde $age';
+  }
+
+  @override
+  String get dashboardOfflineUnsynced => 'No sincronizado';
+
+  @override
+  String get dashboardOfflineViewingOfflineData =>
+      'Viendo datos sin conexión. Algunos datos pueden estar desactualizados.';
+
+  @override
+  String dashboardOfflineNoDataAvailable(String dataType) {
+    return 'No hay $dataType Disponibles';
+  }
+
+  @override
+  String dashboardOfflineConnectToLoad(String dataType) {
+    return 'Conéctate a internet para cargar $dataType';
+  }
+
+  @override
+  String dashboardOfflineDataOutdated(String age) {
+    return 'Los datos pueden estar desactualizados. Última actualización: $age.';
+  }
+
+  @override
+  String get generalNetworkTypeWifi => 'WiFi';
+
+  @override
+  String get generalNetworkTypeMobile => 'Datos Móviles';
+
+  @override
+  String get generalNetworkTypeEthernet => 'Ethernet';
+
+  @override
+  String get generalNetworkTypeVpn => 'VPN';
+
+  @override
+  String get generalNetworkTypeBluetooth => 'Bluetooth';
+
+  @override
+  String get generalNetworkTypeOther => 'Otro';
+
+  @override
+  String get generalNetworkTypeNone => 'Ninguno';
+
+  @override
+  String get generalNetworkTypeSeparator => '+';
+
+  @override
+  String get offlineSettingsTitle => 'Configuración del Modo Sin Conexión';
+
+  @override
+  String get offlineSettingsHelp => 'Ayuda';
+
+  @override
+  String get offlineSettingsSynchronization => 'Sincronización';
+
+  @override
+  String get offlineSettingsAutoSync => 'Sincronización automática';
+
+  @override
+  String get offlineSettingsAutoSyncDesc =>
+      'Sincronizar automáticamente en segundo plano';
+
+  @override
+  String get offlineSettingsAutoSyncEnabled =>
+      'Sincronización automática habilitada';
+
+  @override
+  String get offlineSettingsAutoSyncDisabled =>
+      'Sincronización automática deshabilitada';
+
+  @override
+  String get offlineSettingsSyncInterval => 'Intervalo de sincronización';
+
+  @override
+  String get offlineSettingsWifiOnly => 'Solo WiFi';
+
+  @override
+  String get offlineSettingsWifiOnlyDesc =>
+      'Sincronizar solo cuando esté conectado a WiFi';
+
+  @override
+  String get offlineSettingsWifiOnlyEnabled =>
+      'Sincronización solo WiFi habilitada';
+
+  @override
+  String get offlineSettingsWifiOnlyDisabled =>
+      'Sincronización solo WiFi deshabilitada';
+
+  @override
+  String offlineSettingsLastSync(String time) {
+    return 'Última sincronización: $time';
+  }
+
+  @override
+  String offlineSettingsNextSync(String time) {
+    return 'Próxima sincronización: $time';
+  }
+
+  @override
+  String get offlineSettingsConflictResolution => 'Resolución de Conflictos';
+
+  @override
+  String get offlineSettingsResolutionStrategy => 'Estrategia de resolución';
+
+  @override
+  String get offlineSettingsStorage => 'Almacenamiento';
+
+  @override
+  String get offlineSettingsDatabaseSize => 'Tamaño de la base de datos';
+
+  @override
+  String get offlineSettingsClearCache => 'Limpiar caché';
+
+  @override
+  String get offlineSettingsClearCacheDesc => 'Eliminar datos temporales';
+
+  @override
+  String get offlineSettingsClearAllData => 'Limpiar todos los datos';
+
+  @override
+  String get offlineSettingsClearAllDataDesc =>
+      'Eliminar todos los datos sin conexión';
+
+  @override
+  String get offlineSettingsStatistics => 'Estadísticas';
+
+  @override
+  String get offlineSettingsTotalSyncs => 'Sincronizaciones totales';
+
+  @override
+  String get offlineSettingsConflicts => 'Conflictos';
+
+  @override
+  String get offlineSettingsErrors => 'Errores';
+
+  @override
+  String get offlineSettingsSuccessRate => 'Tasa de éxito';
+
+  @override
+  String get offlineSettingsActions => 'Acciones';
+
+  @override
+  String get offlineSettingsSyncing => 'Sincronizando...';
+
+  @override
+  String get offlineSettingsSyncNow => 'Sincronizar ahora';
+
+  @override
+  String get offlineSettingsForceFullSync => 'Forzar sincronización completa';
+
+  @override
+  String get offlineSettingsCheckConsistency => 'Verificar consistencia';
+
+  @override
+  String get offlineSettingsChecking => 'Verificando...';
+
+  @override
+  String get offlineSettingsSyncIntervalTitle => 'Intervalo de Sincronización';
+
+  @override
+  String offlineSettingsSyncIntervalSet(String interval) {
+    return 'Intervalo de sincronización establecido en $interval';
+  }
+
+  @override
+  String get offlineSettingsConflictStrategyTitle =>
+      'Estrategia de Resolución de Conflictos';
+
+  @override
+  String offlineSettingsConflictStrategySet(String strategy) {
+    return 'Estrategia de conflicto establecida en $strategy';
+  }
+
+  @override
+  String get offlineSettingsClearCacheTitle => 'Limpiar Caché';
+
+  @override
+  String get offlineSettingsClearCacheMessage =>
+      'Esto eliminará los datos temporales. Sus datos sin conexión se conservarán.';
+
+  @override
+  String get offlineSettingsClearAllDataTitle => 'Limpiar Todos los Datos';
+
+  @override
+  String get offlineSettingsClearAllDataMessage =>
+      'Esto eliminará TODOS los datos sin conexión. Esta acción no se puede deshacer. Necesitará sincronizar nuevamente para usar el modo sin conexión.';
+
+  @override
+  String get offlineSettingsCacheCleared => 'Caché limpiado';
+
+  @override
+  String get offlineSettingsAllDataCleared =>
+      'Todos los datos sin conexión eliminados';
+
+  @override
+  String get offlineSettingsPerformingSync => 'Realizando sincronización...';
+
+  @override
+  String get offlineSettingsPerformingIncrementalSync =>
+      'Realizando sincronización incremental...';
+
+  @override
+  String get offlineSettingsPerformingFullSync =>
+      'Realizando sincronización completa...';
+
+  @override
+  String get offlineSettingsIncrementalSyncCompleted =>
+      'Sincronización incremental completada exitosamente';
+
+  @override
+  String offlineSettingsIncrementalSyncIssues(String error) {
+    return 'Sincronización incremental completada con problemas: $error';
+  }
+
+  @override
+  String get offlineSettingsForceFullSyncTitle =>
+      'Forzar Sincronización Completa';
+
+  @override
+  String get offlineSettingsForceFullSyncMessage =>
+      'Esto descargará todos los datos del servidor, reemplazando los datos locales. Esto puede tardar varios minutos.';
+
+  @override
+  String get offlineSettingsConsistencyCheckComplete =>
+      'Verificación de Consistencia Completada';
+
+  @override
+  String get offlineSettingsConsistencyCheckNoIssues =>
+      'No se encontraron problemas. Sus datos son consistentes.';
+
+  @override
+  String offlineSettingsConsistencyCheckIssuesFound(int count) {
+    return 'Se encontraron $count problema(s).';
+  }
+
+  @override
+  String get offlineSettingsConsistencyCheckIssueBreakdown =>
+      'Desglose de problemas:';
+
+  @override
+  String offlineSettingsConsistencyCheckMoreIssues(int count) {
+    return '... y $count más';
+  }
+
+  @override
+  String get offlineSettingsRepairInconsistencies => 'Reparar Inconsistencias';
+
+  @override
+  String get offlineSettingsRepairInconsistenciesMessage =>
+      'Esto intentará corregir automáticamente los problemas detectados. Algunos problemas pueden requerir intervención manual.';
+
+  @override
+  String get offlineSettingsRepairComplete => 'Reparación Completada';
+
+  @override
+  String offlineSettingsRepairCompleteMessage(int repaired, int failed) {
+    return '$repaired problema(s) reparado(s).\n$failed problema(s) no se pudieron reparar.';
+  }
+
+  @override
+  String get offlineSettingsHelpTitle => 'Ayuda del Modo Sin Conexión';
+
+  @override
+  String get offlineSettingsHelpAutoSync => 'Sincronización automática';
+
+  @override
+  String get offlineSettingsHelpAutoSyncDesc =>
+      'Sincronizar automáticamente los datos en segundo plano en el intervalo especificado.';
+
+  @override
+  String get offlineSettingsHelpWifiOnly => 'Solo WiFi';
+
+  @override
+  String get offlineSettingsHelpWifiOnlyDesc =>
+      'Sincronizar solo cuando esté conectado a WiFi para ahorrar datos móviles.';
+
+  @override
+  String get offlineSettingsHelpConflictResolution =>
+      'Resolución de Conflictos';
+
+  @override
+  String get offlineSettingsHelpConflictResolutionDesc =>
+      'Elija cómo manejar los conflictos cuando los mismos datos se modifican tanto localmente como en el servidor.';
+
+  @override
+  String get offlineSettingsHelpConsistencyCheck =>
+      'Verificación de Consistencia';
+
+  @override
+  String get offlineSettingsHelpConsistencyCheckDesc =>
+      'Verificar la integridad de los datos y corregir cualquier inconsistencia en la base de datos local.';
+
+  @override
+  String get offlineSettingsStrategyLocalWins => 'Ganan los Locales';
+
+  @override
+  String get offlineSettingsStrategyRemoteWins => 'Ganan los Remotos';
+
+  @override
+  String get offlineSettingsStrategyLastWriteWins => 'Gana la Última Escritura';
+
+  @override
+  String get offlineSettingsStrategyManual => 'Resolución Manual';
+
+  @override
+  String get offlineSettingsStrategyMerge => 'Combinar Cambios';
+
+  @override
+  String get offlineSettingsStrategyLocalWinsDesc =>
+      'Siempre mantener los cambios locales';
+
+  @override
+  String get offlineSettingsStrategyRemoteWinsDesc =>
+      'Siempre mantener los cambios del servidor';
+
+  @override
+  String get offlineSettingsStrategyLastWriteWinsDesc =>
+      'Mantener la versión modificada más recientemente';
+
+  @override
+  String get offlineSettingsStrategyManualDesc =>
+      'Resolver manualmente cada conflicto';
+
+  @override
+  String get offlineSettingsStrategyMergeDesc =>
+      'Combinar automáticamente los cambios no conflictivos';
+
+  @override
+  String get offlineSettingsJustNow => 'Ahora mismo';
+
+  @override
+  String offlineSettingsMinutesAgo(int minutes) {
+    return 'hace $minutes minutos';
+  }
+
+  @override
+  String offlineSettingsHoursAgo(int hours) {
+    return 'hace $hours horas';
+  }
+
+  @override
+  String offlineSettingsDaysAgo(int days) {
+    return 'hace $days días';
+  }
+
+  @override
+  String get offlineSettingsFailedToUpdateAutoSync =>
+      'Error al actualizar la configuración de sincronización automática';
+
+  @override
+  String get offlineSettingsFailedToUpdateWifiOnly =>
+      'Error al actualizar la configuración de solo WiFi';
+
+  @override
+  String get offlineSettingsFailedToUpdateSyncInterval =>
+      'Error al actualizar el intervalo de sincronización';
+
+  @override
+  String get offlineSettingsFailedToUpdateConflictStrategy =>
+      'Error al actualizar la estrategia de conflicto';
+
+  @override
+  String offlineSettingsFailedToClearCache(String error) {
+    return 'Error al limpiar la caché: $error';
+  }
+
+  @override
+  String get offlineSettingsFailedToClearData => 'Error al limpiar los datos';
+
+  @override
+  String offlineSettingsSyncFailed(String error) {
+    return 'Error en la sincronización: $error';
+  }
+
+  @override
+  String offlineSettingsFullSyncFailed(String error) {
+    return 'Error en la sincronización completa: $error';
+  }
+
+  @override
+  String offlineSettingsConsistencyCheckFailed(String error) {
+    return 'Error en la verificación de consistencia: $error';
+  }
+
+  @override
+  String offlineSettingsRepairFailed(String error) {
+    return 'Error en la reparación: $error';
+  }
+
+  @override
+  String get offlineSettingsIncrementalSyncNotAvailable =>
+      'La sincronización incremental no está disponible. Por favor, realice una sincronización completa primero.';
+
+  @override
+  String offlineSettingsIncrementalSyncFailed(String error) {
+    return 'Error en la sincronización incremental: $error';
+  }
+
+  @override
+  String get offlineSettingsSyncServiceNotAvailable =>
+      'Servicio de sincronización no disponible. Por favor, reinicie la aplicación.';
+
+  @override
+  String offlineSettingsFailedToGetSyncService(String error) {
+    return 'Error al obtener el servicio de sincronización: $error';
+  }
+
+  @override
+  String get offlineSettingsIncrementalSyncServiceNotAvailable =>
+      'Servicio de sincronización incremental no disponible';
+
+  @override
+  String get offlineSettingsDismiss => 'Descartar';
+
+  @override
+  String get offlineSettingsSyncIntervalManual => 'Manual';
+
+  @override
+  String get offlineSettingsSyncInterval15Minutes => '15 minutos';
+
+  @override
+  String get offlineSettingsSyncInterval30Minutes => '30 minutos';
+
+  @override
+  String get offlineSettingsSyncInterval1Hour => '1 hora';
+
+  @override
+  String get offlineSettingsSyncInterval6Hours => '6 horas';
+
+  @override
+  String get offlineSettingsSyncInterval12Hours => '12 horas';
+
+  @override
+  String get offlineSettingsSyncInterval24Hours => '24 horas';
+
+  @override
+  String get incrementalSyncTitle => 'Sincronización Incremental';
+
+  @override
+  String get incrementalSyncDescription =>
+      'Optimizar el rendimiento de sincronización obteniendo solo datos modificados';
+
+  @override
+  String get incrementalSyncEnable => 'Habilitar Sincronización Incremental';
+
+  @override
+  String get incrementalSyncEnabledDesc =>
+      'Obtener solo datos modificados desde la última sincronización (70-80% más rápido)';
+
+  @override
+  String get incrementalSyncDisabledDesc =>
+      'La sincronización completa obtiene todos los datos cada vez';
+
+  @override
+  String get incrementalSyncEnabled => 'Sincronización incremental habilitada';
+
+  @override
+  String get incrementalSyncDisabled =>
+      'Sincronización incremental deshabilitada';
+
+  @override
+  String get incrementalSyncFailedToUpdate =>
+      'Error al actualizar la configuración';
+
+  @override
+  String get incrementalSyncWindow => 'Ventana de Sincronización';
+
+  @override
+  String get incrementalSyncWindowDesc => 'Cuánto tiempo atrás buscar cambios';
+
+  @override
+  String incrementalSyncWindowSet(String window) {
+    return 'Ventana de sincronización establecida en $window';
+  }
+
+  @override
+  String get incrementalSyncWindowFailed =>
+      'Error al actualizar la ventana de sincronización';
+
+  @override
+  String get incrementalSyncCacheDuration => 'Duración de la Caché';
+
+  @override
+  String get incrementalSyncCacheDurationDesc =>
+      'Cuánto tiempo almacenar en caché categorías, facturas y alcancías antes de actualizar. Estas entidades cambian con poca frecuencia, por lo que duraciones de caché más largas reducen las llamadas a la API.';
+
+  @override
+  String get incrementalSyncCacheDurationFailed =>
+      'Error al actualizar la duración de la caché';
+
+  @override
+  String get incrementalSyncLastIncremental =>
+      'Última Sincronización Incremental';
+
+  @override
+  String get incrementalSyncLastFull => 'Última Sincronización Completa';
+
+  @override
+  String get incrementalSyncNever => 'Nunca';
+
+  @override
+  String get incrementalSyncToday => 'Hoy';
+
+  @override
+  String incrementalSyncDaysAgo(int days) {
+    return 'hace ${days}d';
+  }
+
+  @override
+  String get incrementalSyncFullSyncRecommended =>
+      'Sincronización Completa Recomendada';
+
+  @override
+  String get incrementalSyncFullSyncRecommendedDesc =>
+      'Han pasado más de 7 días desde la última sincronización completa. Se recomienda una sincronización completa para garantizar la integridad de los datos.';
+
+  @override
+  String get incrementalSyncIncrementalButton => 'Sincronización Incremental';
+
+  @override
+  String get incrementalSyncFullButton => 'Sincronización Completa';
+
+  @override
+  String get incrementalSyncResetStatistics => 'Restablecer Estadísticas';
+
+  @override
+  String get incrementalSyncResetting => 'Restableciendo...';
+
+  @override
+  String get incrementalSyncResetStatisticsTitle => 'Restablecer Estadísticas';
+
+  @override
+  String get incrementalSyncResetStatisticsMessage =>
+      'Esto eliminará todas las estadísticas de sincronización incremental (elementos obtenidos, ancho de banda ahorrado, etc.).\n\nLa configuración se conservará. Esta acción no se puede deshacer.';
+
+  @override
+  String get incrementalSyncResetStatisticsSuccess =>
+      'Estadísticas restablecidas exitosamente';
+
+  @override
+  String get incrementalSyncResetStatisticsFailed =>
+      'Error al restablecer las estadísticas';
+
+  @override
+  String get incrementalSyncWindowLabel => 'Ventana de sincronización: ';
+
+  @override
+  String get incrementalSyncFullSyncEnabled =>
+      'Sincronización completa habilitada';
+
+  @override
+  String incrementalSyncWindowDays(int days) {
+    return '$days días';
+  }
+
+  @override
+  String incrementalSyncCacheHours(int hours) {
+    return '$hours horas';
+  }
+
+  @override
+  String get incrementalSyncWindowWord => 'ventana';
 }

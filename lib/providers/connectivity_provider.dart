@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
 import 'package:waterflyiii/services/app_mode/app_mode.dart';
@@ -79,8 +80,14 @@ class ConnectivityProvider extends ChangeNotifier {
   ConnectivityInfo get connectivityInfo =>
       _connectivityService.connectivityInfo;
 
-  /// Human-readable network type description.
+  /// Human-readable network type description (English, for logging/debugging).
+  /// 
+  /// For UI display, use [getLocalizedNetworkTypeDescription] instead.
   String get networkTypeDescription => connectivityInfo.networkTypeDescription;
+
+  /// Get localized network type description for UI display.
+  String getLocalizedNetworkTypeDescription(BuildContext context) =>
+      connectivityInfo.getLocalizedNetworkTypeDescription(context);
 
   /// Initializes the connectivity provider.
   ///

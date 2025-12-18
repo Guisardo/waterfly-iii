@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/providers/app_mode_provider.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
@@ -240,16 +241,17 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
 
   /// Get text for status.
   String _getStatusText(ConnectivityStatus status, bool isAppOnline, ConnectivityStatus rawStatus) {
+    final S localizations = S.of(context);
     if (status.isOnline) {
-      return 'Back online';
+      return localizations.generalBackOnline;
     } else if (status.isOffline) {
       // If app is offline but connectivity is online, it means WiFi-only is enabled
       if (!isAppOnline && rawStatus.isOnline) {
-        return 'Offline mode (WiFi only)';
+        return localizations.generalOfflineModeWifiOnly;
       }
-      return 'No internet connection';
+      return localizations.generalOfflineMessage;
     } else {
-      return 'Checking connection...';
+      return localizations.generalCheckingConnection;
     }
   }
 
@@ -260,12 +262,13 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
       context,
       listen: false,
     );
+    final S localizations = S.of(context);
 
     if (connectivity.isOffline) {
-      return 'No connection';
+      return localizations.generalNoConnection;
     }
 
-    return connectivity.networkTypeDescription;
+    return connectivity.connectivityInfo.getLocalizedNetworkTypeDescription(context);
   }
 
   /// Show network details dialog.
@@ -285,7 +288,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                   color: appMode.isOnline ? Colors.green[700] : Colors.red[700],
                 ),
                 const SizedBox(width: 12),
-                const Text('Network Status'),
+                Text(S.of(context).generalNetworkStatus),
               ],
             ),
             content: Column(
@@ -293,21 +296,22 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 _buildDetailRow(
-                  'App Status',
-                  appMode.isOnline ? 'Online' : 'Offline',
+                  S.of(context).generalAppStatus,
+                  appMode.isOnline ? S.of(context).generalOnline : S.of(context).generalOffline,
                   appMode.isOnline ? Colors.green : Colors.red,
                 ),
                 const SizedBox(height: 12),
                 _buildDetailRow(
-                  'Network',
-                  connectivity.isOnline ? connectivity.networkTypeDescription : 'No connection',
+                  S.of(context).generalNetwork,
+                  connectivity.isOnline 
+                      ? connectivity.connectivityInfo.getLocalizedNetworkTypeDescription(context)
+                      : S.of(context).generalNoConnection,
                   null,
                 ),
                 const SizedBox(height: 12),
                 if (!appMode.isOnline && connectivity.isOnline)
                   Text(
-                    'WiFi-only mode is enabled. Mobile data is disabled. '
-                    'Connect to WiFi to use online features.',
+                    S.of(context).generalWifiOnlyModeEnabled,
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: Colors.orange[700]),
@@ -315,9 +319,8 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                 else
                   Text(
                     appMode.isOffline
-                        ? 'Some features may be limited while offline. '
-                            'Data will sync automatically when connection is restored.'
-                        : 'All features are available.',
+                        ? S.of(context).generalOfflineFeaturesLimited
+                        : S.of(context).generalAllFeaturesAvailable,
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
@@ -347,8 +350,8 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                           SnackBar(
                             content: Text(
                               isOnline
-                                  ? 'Connection restored!'
-                                  : 'Still offline. Please check your network settings.',
+                                  ? S.of(context).generalConnectionRestored
+                                  : S.of(context).generalStillOffline,
                             ),
                             backgroundColor:
                                 isOnline ? Colors.green : Colors.orange,
@@ -364,8 +367,8 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
 
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Failed to check connectivity'),
+                          SnackBar(
+                            content: Text(S.of(context).generalFailedToCheckConnectivity),
                             backgroundColor: Colors.red,
                           ),
                         );
@@ -373,11 +376,11 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                     }
                   },
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
+                  label: Text(S.of(context).generalRetry),
                 ),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
+                child: Text(S.of(context).generalDismiss),
               ),
             ],
           ),

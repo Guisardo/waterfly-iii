@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/models/incremental_sync_stats.dart';
 import 'package:waterflyiii/providers/offline_settings_provider.dart';
 
@@ -137,7 +138,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
             const Icon(Icons.info_outline, size: 18),
             const SizedBox(width: 8),
             Text(
-              'No incremental sync data yet',
+              S.of(context).incrementalSyncStatsNoDataYet,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -160,21 +161,21 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
             context,
             icon: Icons.speed,
             value: '${skipRate.toStringAsFixed(0)}%',
-            label: 'Skipped',
+            label: S.of(context).incrementalSyncStatsLabelSkipped,
             color: _getEfficiencyColor(skipRate),
           ),
           _buildCompactStatItem(
             context,
             icon: Icons.data_saver_on,
             value: bandwidthSaved,
-            label: 'Saved',
+            label: S.of(context).incrementalSyncStatsLabelSaved,
             color: Colors.blue,
           ),
           _buildCompactStatItem(
             context,
             icon: Icons.sync,
             value: '${settings.incrementalSyncCount}',
-            label: 'Syncs',
+            label: S.of(context).incrementalSyncStatsLabelSyncs,
             color: Colors.purple,
           ),
         ],
@@ -192,7 +193,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
 
     if (!hasData) {
       return Text(
-        'No sync data available',
+        S.of(context).incrementalSyncStatsNoDataAvailable,
         style: Theme.of(context).textTheme.bodySmall,
       );
     }
@@ -203,7 +204,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
         Icon(Icons.speed, size: 16, color: _getEfficiencyColor(skipRate)),
         const SizedBox(width: 4),
         Text(
-          '${skipRate.toStringAsFixed(0)}% efficient',
+          S.of(context).incrementalSyncStatsEfficient(skipRate.toStringAsFixed(0)),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: _getEfficiencyColor(skipRate),
             fontWeight: FontWeight.w600,
@@ -245,15 +246,15 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                'Sync Statistics',
+                S.of(context).incrementalSyncStatsTitle,
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               Text(
                 settings.incrementalSyncCount > 0
-                    ? '${settings.incrementalSyncCount} incremental syncs performed'
-                    : 'Track sync efficiency and bandwidth savings',
+                    ? S.of(context).incrementalSyncStatsDescription(settings.incrementalSyncCount)
+                    : S.of(context).incrementalSyncStatsDescriptionEmpty,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -265,7 +266,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
           IconButton(
             onPressed: onRefresh,
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh statistics',
+            tooltip: S.of(context).incrementalSyncStatsRefresh,
           ),
       ],
     );
@@ -287,14 +288,14 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No Sync Statistics Yet',
+            S.of(context).incrementalSyncStatsNoData,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Statistics will appear here after your first incremental sync.',
+            S.of(context).incrementalSyncStatsNoDataDesc,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -313,7 +314,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
     final double skipRate =
         liveResult?.overallSkipRate ?? settings.overallSkipRate;
     final Color color = _getEfficiencyColor(skipRate);
-    final String label = _getEfficiencyLabel(skipRate);
+    final String label = _getEfficiencyLabel(skipRate, context);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -367,7 +368,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _getEfficiencyDescription(skipRate),
+                  _getEfficiencyDescription(skipRate, context),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -394,7 +395,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
             value: _formatNumber(
               liveResult?.totalFetched ?? settings.totalItemsFetched,
             ),
-            label: 'Fetched',
+            label: S.of(context).incrementalSyncStatsLabelFetched,
             color: Colors.blue,
           ),
         ),
@@ -406,7 +407,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
             value: _formatNumber(
               liveResult?.totalUpdated ?? settings.totalItemsUpdated,
             ),
-            label: 'Updated',
+            label: S.of(context).incrementalSyncStatsLabelUpdated,
             color: Colors.orange,
           ),
         ),
@@ -444,7 +445,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
           _buildSecondaryStatRow(
             context,
             icon: Icons.data_saver_on,
-            label: 'Bandwidth Saved',
+            label: S.of(context).incrementalSyncStatsLabelBandwidthSaved,
             value:
                 liveResult?.bandwidthSavedFormatted ??
                 settings.formattedBandwidthSaved,
@@ -454,7 +455,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
           _buildSecondaryStatRow(
             context,
             icon: Icons.api,
-            label: 'API Calls Saved',
+            label: S.of(context).incrementalSyncStatsLabelApiCallsSaved,
             value: _formatNumber(settings.totalApiCallsSaved),
             color: Colors.purple,
           ),
@@ -462,7 +463,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
           _buildSecondaryStatRow(
             context,
             icon: Icons.trending_up,
-            label: 'Update Rate',
+            label: S.of(context).incrementalSyncStatsLabelUpdateRate,
             value:
                 '${(liveResult?.overallSkipRate ?? settings.overallUpdateRate).toStringAsFixed(1)}%',
             color: Colors.amber,
@@ -480,19 +481,19 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'Current Sync',
+          S.of(context).incrementalSyncStatsCurrentSync,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         Text(
-          'Duration: ${_formatDuration(liveResult!.duration)}',
+          S.of(context).incrementalSyncStatsDuration(_formatDuration(liveResult!.duration)),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 4),
         Text(
-          liveResult!.success ? 'Status: Success' : 'Status: Failed',
+          liveResult!.success ? S.of(context).incrementalSyncStatsStatusSuccess : S.of(context).incrementalSyncStatsStatusFailed,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: liveResult!.success ? Colors.green : Colors.red,
           ),
@@ -500,7 +501,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
         if (liveResult!.error != null) ...<Widget>[
           const SizedBox(height: 4),
           Text(
-            'Error: ${liveResult!.error}',
+            S.of(context).incrementalSyncStatsError(liveResult!.error!),
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: Colors.red),
@@ -509,7 +510,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
         if (liveResult!.statsByEntity.isNotEmpty) ...<Widget>[
           const SizedBox(height: 12),
           Text(
-            'By Entity Type:',
+            S.of(context).incrementalSyncStatsByEntityType,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -652,29 +653,31 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
   }
 
   /// Get efficiency label based on skip rate.
-  String _getEfficiencyLabel(double skipRate) {
-    if (skipRate >= 80) return 'Excellent Efficiency';
-    if (skipRate >= 60) return 'Good Efficiency';
-    if (skipRate >= 40) return 'Moderate Efficiency';
-    if (skipRate >= 20) return 'Low Efficiency';
-    return 'Very Low Efficiency';
+  String _getEfficiencyLabel(double skipRate, BuildContext context) {
+    final S localizations = S.of(context);
+    if (skipRate >= 80) return localizations.incrementalSyncStatsEfficiencyExcellent;
+    if (skipRate >= 60) return localizations.incrementalSyncStatsEfficiencyGood;
+    if (skipRate >= 40) return localizations.incrementalSyncStatsEfficiencyModerate;
+    if (skipRate >= 20) return localizations.incrementalSyncStatsEfficiencyLow;
+    return localizations.incrementalSyncStatsEfficiencyVeryLow;
   }
 
   /// Get efficiency description based on skip rate.
-  String _getEfficiencyDescription(double skipRate) {
+  String _getEfficiencyDescription(double skipRate, BuildContext context) {
+    final S localizations = S.of(context);
     if (skipRate >= 80) {
-      return 'Most data unchanged - incremental sync is very effective!';
+      return localizations.incrementalSyncStatsEfficiencyDescExcellent;
     }
     if (skipRate >= 60) {
-      return 'Good savings - incremental sync is working well.';
+      return localizations.incrementalSyncStatsEfficiencyDescGood;
     }
     if (skipRate >= 40) {
-      return 'Moderate changes detected - some bandwidth saved.';
+      return localizations.incrementalSyncStatsEfficiencyDescModerate;
     }
     if (skipRate >= 20) {
-      return 'Many changes - consider adjusting sync window.';
+      return localizations.incrementalSyncStatsEfficiencyDescLow;
     }
-    return 'Most data changed - incremental sync provides minimal benefit.';
+    return localizations.incrementalSyncStatsEfficiencyDescVeryLow;
   }
 
   /// Format a large number with K/M suffix.

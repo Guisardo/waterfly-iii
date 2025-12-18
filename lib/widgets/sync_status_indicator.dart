@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
 import 'package:waterflyiii/services/sync/sync_statistics.dart';
@@ -179,7 +180,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
         ),
       ),
       onPressed: widget.onTap ?? () => _navigateToSyncStatus(context),
-      tooltip: _getStatusText(status, pendingCount),
+      tooltip: _getStatusText(status, pendingCount, context),
     );
   }
 
@@ -219,13 +220,13 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          _getStatusText(status, pendingCount),
+                          _getStatusText(status, pendingCount, context),
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         if (widget.showLastSyncTime && lastSyncTime != null)
                           Text(
-                            _formatLastSyncTime(lastSyncTime),
+                            _formatLastSyncTime(lastSyncTime, context),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: Colors.grey[600]),
                           ),
@@ -269,7 +270,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${provider.currentProgress!.percentage.toStringAsFixed(0)}% complete',
+                  S.of(context).syncStatusProgressComplete(provider.currentProgress!.percentage.toStringAsFixed(0)),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -299,7 +300,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
           ),
         ),
         onPressed: widget.onTap ?? () => _navigateToSyncStatus(context),
-        tooltip: _getStatusText(status, pendingCount),
+        tooltip: _getStatusText(status, pendingCount, context),
       ),
     );
   }
@@ -373,36 +374,38 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
   }
 
   /// Get text for status.
-  String _getStatusText(SyncStatus status, int pendingCount) {
+  String _getStatusText(SyncStatus status, int pendingCount, BuildContext context) {
+    final S localizations = S.of(context);
     switch (status) {
       case SyncStatus.synced:
-        return 'Synced';
+        return localizations.syncStatusSynced;
       case SyncStatus.syncing:
-        return 'Syncing...';
+        return localizations.syncStatusSyncing;
       case SyncStatus.pending:
-        return '$pendingCount items pending';
+        return localizations.syncStatusPending(pendingCount);
       case SyncStatus.error:
-        return 'Sync failed';
+        return localizations.syncStatusFailed;
       case SyncStatus.offline:
-        return 'Offline';
+        return localizations.syncStatusOffline;
     }
   }
 
   /// Format last sync time.
-  String _formatLastSyncTime(DateTime lastSync) {
+  String _formatLastSyncTime(DateTime lastSync, BuildContext context) {
     final DateTime now = DateTime.now();
     final Duration difference = now.difference(lastSync);
+    final S localizations = S.of(context);
 
     if (difference.inMinutes < 1) {
-      return 'Just now';
+      return localizations.syncStatusJustNow;
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m ago';
+      return localizations.syncStatusMinutesAgo(difference.inMinutes);
     } else if (difference.inDays < 1) {
-      return '${difference.inHours}h ago';
+      return localizations.syncStatusHoursAgo(difference.inHours);
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
+      return localizations.syncStatusDaysAgo(difference.inDays);
     } else {
-      return 'Over a week ago';
+      return localizations.syncStatusOverWeekAgo;
     }
   }
 
@@ -423,7 +426,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
               children: <Widget>[
                 ListTile(
                   leading: const Icon(Icons.sync),
-                  title: const Text('Sync now'),
+                  title: Text(S.of(context).syncActionSyncNow),
                   onTap: () async {
                     Navigator.pop(context);
                     _log.info('Manual sync triggered');
@@ -439,9 +442,9 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                         _log.warning('SyncStatusProvider not available: $e');
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text(
-                                'Sync service not available. Please restart the app.',
+                                S.of(context).syncServiceNotAvailable,
                               ),
                               backgroundColor: Colors.orange,
                             ),
@@ -455,8 +458,8 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
 
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Sync started'),
+                          SnackBar(
+                            content: Text(S.of(context).syncStarted),
                             backgroundColor: Colors.blue,
                           ),
                         );
@@ -468,7 +471,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              'Failed to start sync: ${e.toString()}',
+                              S.of(context).syncFailedToStart(e.toString()),
                             ),
                             backgroundColor: Colors.red,
                           ),
@@ -479,7 +482,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                 ),
                 ListTile(
                   leading: const Icon(Icons.sync_alt),
-                  title: const Text('Force full sync'),
+                  title: Text(S.of(context).syncActionForceFullSync),
                   onTap: () async {
                     Navigator.pop(context);
                     _log.info('Full sync triggered');
@@ -495,9 +498,9 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                         _log.warning('SyncStatusProvider not available: $e');
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text(
-                                'Sync service not available. Please restart the app.',
+                                S.of(context).syncServiceNotAvailable,
                               ),
                               backgroundColor: Colors.orange,
                             ),
@@ -513,8 +516,8 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
 
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Full sync started'),
+                          SnackBar(
+                            content: Text(S.of(context).syncFullStarted),
                             backgroundColor: Colors.blue,
                           ),
                         );
@@ -526,7 +529,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              'Failed to start full sync: ${e.toString()}',
+                              S.of(context).syncFailedToStartFull(e.toString()),
                             ),
                             backgroundColor: Colors.red,
                           ),
@@ -537,7 +540,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                 ),
                 ListTile(
                   leading: const Icon(Icons.info_outline),
-                  title: const Text('View sync status'),
+                  title: Text(S.of(context).syncActionViewStatus),
                   onTap: () {
                     Navigator.pop(context);
                     _navigateToSyncStatus(context);
@@ -545,7 +548,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                 ),
                 ListTile(
                   leading: const Icon(Icons.settings),
-                  title: const Text('Sync settings'),
+                  title: Text(S.of(context).syncActionSettings),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/offline-settings');

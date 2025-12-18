@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logging/logging.dart';
 
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
 
@@ -119,9 +120,7 @@ class _OfflineModeBannerState extends State<OfflineModeBanner> {
         }
 
         return Semantics(
-          label:
-              'You are offline. Changes will sync when you are back online. '
-              'Swipe to dismiss or tap Learn More for details.',
+          label: S.of(context).offlineBannerSemanticLabel,
           child: Material(
             color: Theme.of(context).colorScheme.errorContainer,
             elevation: 4,
@@ -148,7 +147,7 @@ class _OfflineModeBannerState extends State<OfflineModeBanner> {
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
                           Text(
-                            'You\'re offline',
+                            S.of(context).offlineBannerTitle,
                             style: Theme.of(
                               context,
                             ).textTheme.titleMedium?.copyWith(
@@ -161,7 +160,7 @@ class _OfflineModeBannerState extends State<OfflineModeBanner> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Changes will sync when online.',
+                            S.of(context).offlineBannerMessage,
                             style: Theme.of(
                               context,
                             ).textTheme.bodyMedium?.copyWith(
@@ -184,7 +183,7 @@ class _OfflineModeBannerState extends State<OfflineModeBanner> {
                           foregroundColor:
                               Theme.of(context).colorScheme.onErrorContainer,
                         ),
-                        child: const Text('Learn More'),
+                        child: Text(S.of(context).offlineBannerLearnMore),
                       ),
                     ],
 
@@ -195,7 +194,7 @@ class _OfflineModeBannerState extends State<OfflineModeBanner> {
                         color: Theme.of(context).colorScheme.onErrorContainer,
                       ),
                       onPressed: _handleDismiss,
-                      tooltip: 'Dismiss',
+                      tooltip: S.of(context).offlineBannerDismiss,
                     ),
                   ],
                 ),

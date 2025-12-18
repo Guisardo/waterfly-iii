@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logging/logging.dart';
 
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/providers/connectivity_provider.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
 
@@ -63,7 +64,7 @@ class TransactionOfflineIndicator extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Text(
-                        'Offline Mode',
+                        S.of(context).transactionOfflineMode,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color:
                               Theme.of(context).colorScheme.onTertiaryContainer,
@@ -73,8 +74,8 @@ class TransactionOfflineIndicator extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         isNewTransaction
-                            ? 'Transaction will be saved locally and synced when online'
-                            : 'Changes will be saved locally and synced when online',
+                            ? S.of(context).transactionOfflineSaveNew
+                            : S.of(context).transactionOfflineSaveEdit,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color:
                               Theme.of(context).colorScheme.onTertiaryContainer,
@@ -90,7 +91,7 @@ class TransactionOfflineIndicator extends StatelessWidget {
                       foregroundColor:
                           Theme.of(context).colorScheme.onTertiaryContainer,
                     ),
-                    child: const Text('Learn More'),
+                    child: Text(S.of(context).offlineBannerLearnMore),
                   ),
               ],
             ),
@@ -104,10 +105,11 @@ class TransactionOfflineIndicator extends StatelessWidget {
 /// Helper to get appropriate save button label based on connectivity
 class SaveButtonHelper {
   static String getSaveButtonLabel(BuildContext context, bool isOffline) {
+    final S localizations = S.of(context);
     if (isOffline) {
-      return 'Save Offline';
+      return localizations.transactionSaveOffline;
     }
-    return 'Save';
+    return localizations.transactionSave;
   }
 
   static IconData getSaveButtonIcon(bool isOffline) {
@@ -135,18 +137,19 @@ class TransactionSaveSuccessMessage extends StatelessWidget {
     IconData icon;
     Color? backgroundColor;
 
+    final S localizations = S.of(context);
     if (wasOffline) {
       if (isSynced) {
-        message = 'Transaction saved and synced';
+        message = localizations.transactionSavedSynced;
         icon = Icons.cloud_done;
         backgroundColor = Theme.of(context).colorScheme.tertiaryContainer;
       } else {
-        message = 'Transaction saved offline. Will sync when online.';
+        message = localizations.transactionSavedOffline;
         icon = Icons.cloud_queue;
         backgroundColor = Theme.of(context).colorScheme.primaryContainer;
       }
     } else {
-      message = 'Transaction saved';
+      message = localizations.transactionSaved;
       icon = Icons.check_circle;
       backgroundColor = Theme.of(context).colorScheme.tertiaryContainer;
     }

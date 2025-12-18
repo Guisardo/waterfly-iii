@@ -227,8 +227,8 @@ class SettingsPageState extends State<SettingsPage>
         ),
         const Divider(),
         ListTile(
-          title: const Text('Offline Mode Settings'),
-          subtitle: const Text('Configure offline sync and mobile data usage'),
+          title: Text(S.of(context).offlineSettingsTitle),
+          subtitle: Text(S.of(context).settingsOfflineModeSubtitle),
           leading: const CircleAvatar(child: Icon(Icons.cloud_off)),
           onTap: () {
             Navigator.push(

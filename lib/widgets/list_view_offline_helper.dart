@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
 
 /// Helper for enhancing list views with offline mode features.
@@ -28,7 +29,7 @@ class ListViewOfflineHelper {
         children: <Widget>[
           _buildFilterChip(
             context: context,
-            label: 'All',
+            label: S.of(context).generalDateRangeAll,
             value: 'all',
             currentFilter: currentFilter,
             onSelected: onFilterChanged,
@@ -36,7 +37,7 @@ class ListViewOfflineHelper {
           const SizedBox(width: 8),
           _buildFilterChip(
             context: context,
-            label: 'Synced',
+            label: S.of(context).syncStatusSynced,
             value: 'synced',
             currentFilter: currentFilter,
             onSelected: onFilterChanged,
@@ -45,7 +46,7 @@ class ListViewOfflineHelper {
           const SizedBox(width: 8),
           _buildFilterChip(
             context: context,
-            label: 'Pending',
+            label: S.of(context).listViewOfflineFilterPending,
             value: 'pending',
             currentFilter: currentFilter,
             onSelected: onFilterChanged,
@@ -54,7 +55,7 @@ class ListViewOfflineHelper {
           const SizedBox(width: 8),
           _buildFilterChip(
             context: context,
-            label: 'Failed',
+            label: S.of(context).syncStatusFailed,
             value: 'failed',
             currentFilter: currentFilter,
             onSelected: onFilterChanged,
@@ -137,7 +138,7 @@ class ListViewOfflineHelper {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Syncing... $syncedCount of $totalCount',
+                  S.of(context).syncStatusSyncingCount(syncedCount, totalCount),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
@@ -168,12 +169,12 @@ class ListViewOfflineHelper {
             ),
             const SizedBox(height: 16),
             Text(
-              'No $entityType Available',
+              S.of(context).listViewOfflineNoDataAvailable(entityType),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              'You are offline. $entityType will appear here when you connect to the internet.',
+              S.of(context).listViewOfflineNoDataMessage(entityType),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -224,7 +225,7 @@ class ListViewOfflineHelper {
     required DateTime lastUpdated,
   }) {
     final Duration age = DateTime.now().difference(lastUpdated);
-    final String ageText = _formatAge(age);
+    final String ageText = _formatAge(age, context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -238,7 +239,7 @@ class ListViewOfflineHelper {
           ),
           const SizedBox(width: 4),
           Text(
-            'Last updated $ageText',
+            S.of(context).listViewOfflineLastUpdated(ageText),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -268,9 +269,9 @@ class ListViewOfflineHelper {
         _logger.warning('SyncStatusProvider not found: $e');
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Sync service not available. Please restart the app.'),
-              duration: Duration(seconds: 3),
+            SnackBar(
+              content: Text(S.of(context).syncServiceNotAvailable),
+              duration: const Duration(seconds: 3),
             ),
           );
         }
@@ -281,7 +282,7 @@ class ListViewOfflineHelper {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Sync failed: $e'),
+            content: Text(S.of(context).generalSyncFailed(e.toString())),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -289,10 +290,11 @@ class ListViewOfflineHelper {
     }
   }
 
-  static String _formatAge(Duration age) {
-    if (age.inMinutes < 1) return 'just now';
-    if (age.inHours < 1) return '${age.inMinutes}m ago';
-    if (age.inDays < 1) return '${age.inHours}h ago';
-    return '${age.inDays}d ago';
+  static String _formatAge(Duration age, BuildContext context) {
+    final S localizations = S.of(context);
+    if (age.inMinutes < 1) return localizations.syncStatusJustNow;
+    if (age.inHours < 1) return localizations.syncStatusMinutesAgo(age.inMinutes);
+    if (age.inDays < 1) return localizations.syncStatusHoursAgo(age.inHours);
+    return localizations.syncStatusDaysAgo(age.inDays);
   }
 }

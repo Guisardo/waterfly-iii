@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 
 /// Helper for displaying offline data in dashboard charts.
 ///
@@ -21,7 +22,7 @@ class DashboardOfflineHelper {
     required bool hasUnsyncedData,
   }) {
     final Duration age = DateTime.now().difference(lastUpdate);
-    final String ageText = _formatAge(age);
+    final String ageText = _formatAge(age, context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -45,7 +46,9 @@ class DashboardOfflineHelper {
           ),
           const SizedBox(width: 4),
           Text(
-            hasUnsyncedData ? 'Includes unsynced data' : 'Data as of $ageText',
+            hasUnsyncedData 
+                ? S.of(context).dashboardOfflineIncludesUnsynced 
+                : S.of(context).dashboardOfflineDataAsOf(ageText),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color:
                   hasUnsyncedData
@@ -76,7 +79,7 @@ class DashboardOfflineHelper {
           ),
         ),
         const SizedBox(width: 4),
-        Text('Unsynced', style: Theme.of(context).textTheme.labelSmall),
+        Text(S.of(context).dashboardOfflineUnsynced, style: Theme.of(context).textTheme.labelSmall),
       ],
     );
   }
@@ -110,7 +113,7 @@ class DashboardOfflineHelper {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Viewing offline data. Some information may be outdated.',
+              S.of(context).dashboardOfflineViewingOfflineData,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
@@ -139,12 +142,12 @@ class DashboardOfflineHelper {
             ),
             const SizedBox(height: 16),
             Text(
-              'No $dataType Available',
+              S.of(context).dashboardOfflineNoDataAvailable(dataType),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'Connect to the internet to load $dataType',
+              S.of(context).dashboardOfflineConnectToLoad(dataType),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -157,12 +160,13 @@ class DashboardOfflineHelper {
   }
 
   /// Format age duration
-  static String _formatAge(Duration age) {
-    if (age.inMinutes < 1) return 'just now';
-    if (age.inHours < 1) return '${age.inMinutes}m ago';
-    if (age.inDays < 1) return '${age.inHours}h ago';
-    if (age.inDays < 7) return '${age.inDays}d ago';
-    return '${age.inDays} days ago';
+  static String _formatAge(Duration age, BuildContext context) {
+    final S localizations = S.of(context);
+    if (age.inMinutes < 1) return localizations.syncStatusJustNow;
+    if (age.inHours < 1) return localizations.syncStatusMinutesAgo(age.inMinutes);
+    if (age.inDays < 1) return localizations.syncStatusHoursAgo(age.inHours);
+    if (age.inDays < 7) return localizations.syncStatusDaysAgo(age.inDays);
+    return localizations.syncStatusDaysAgo(age.inDays);
   }
 
   /// Check if data is stale (older than 1 hour)
@@ -197,7 +201,7 @@ class DashboardOfflineHelper {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Data may be outdated. Last updated ${_formatAge(DateTime.now().difference(lastUpdate))}.',
+              S.of(context).dashboardOfflineDataOutdated(_formatAge(DateTime.now().difference(lastUpdate), context)),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onTertiaryContainer,
               ),

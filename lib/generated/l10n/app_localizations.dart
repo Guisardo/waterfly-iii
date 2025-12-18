@@ -1164,6 +1164,12 @@ abstract class S {
   /// **'Opens in Browser. Only available in English.'**
   String get settingsFAQHelp;
 
+  /// Subtitle for offline mode settings in main settings page
+  ///
+  /// In en, this message translates to:
+  /// **'Configure offline sync and mobile data usage'**
+  String get settingsOfflineModeSubtitle;
+
   /// Currently selected language
   ///
   /// In en, this message translates to:
@@ -1649,6 +1655,1572 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Sync service not available'**
   String get generalSyncNotAvailable;
+
+  /// Message shown when connection is restored
+  ///
+  /// In en, this message translates to:
+  /// **'Back online'**
+  String get generalBackOnline;
+
+  /// Message shown when offline mode is enabled with WiFi-only restriction
+  ///
+  /// In en, this message translates to:
+  /// **'Offline mode (WiFi only)'**
+  String get generalOfflineModeWifiOnly;
+
+  /// Message shown when checking network connection
+  ///
+  /// In en, this message translates to:
+  /// **'Checking connection...'**
+  String get generalCheckingConnection;
+
+  /// Network status dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Network Status'**
+  String get generalNetworkStatus;
+
+  /// App status label in network dialog
+  ///
+  /// In en, this message translates to:
+  /// **'App Status'**
+  String get generalAppStatus;
+
+  /// Online status label
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get generalOnline;
+
+  /// Network label in network dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get generalNetwork;
+
+  /// Message shown when there is no network connection
+  ///
+  /// In en, this message translates to:
+  /// **'No connection'**
+  String get generalNoConnection;
+
+  /// Message explaining WiFi-only mode restriction
+  ///
+  /// In en, this message translates to:
+  /// **'WiFi-only mode is enabled. Mobile data is disabled. Connect to WiFi to use online features.'**
+  String get generalWifiOnlyModeEnabled;
+
+  /// Message explaining offline mode limitations
+  ///
+  /// In en, this message translates to:
+  /// **'Some features may be limited while offline. Data will sync automatically when connection is restored.'**
+  String get generalOfflineFeaturesLimited;
+
+  /// Message shown when all features are available
+  ///
+  /// In en, this message translates to:
+  /// **'All features are available.'**
+  String get generalAllFeaturesAvailable;
+
+  /// Message shown when connection is successfully restored
+  ///
+  /// In en, this message translates to:
+  /// **'Connection restored!'**
+  String get generalConnectionRestored;
+
+  /// Message shown when still offline after connectivity check
+  ///
+  /// In en, this message translates to:
+  /// **'Still offline. Please check your network settings.'**
+  String get generalStillOffline;
+
+  /// Error message when connectivity check fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to check connectivity'**
+  String get generalFailedToCheckConnectivity;
+
+  /// Retry button label
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get generalRetry;
+
+  /// Sync statistics section title
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Statistics'**
+  String get incrementalSyncStatsTitle;
+
+  /// Sync statistics description with count
+  ///
+  /// In en, this message translates to:
+  /// **'{count} incremental syncs performed'**
+  String incrementalSyncStatsDescription(int count);
+
+  /// Sync statistics description when no syncs performed
+  ///
+  /// In en, this message translates to:
+  /// **'Track sync efficiency and bandwidth savings'**
+  String get incrementalSyncStatsDescriptionEmpty;
+
+  /// Refresh statistics button tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh statistics'**
+  String get incrementalSyncStatsRefresh;
+
+  /// Title when no sync statistics are available
+  ///
+  /// In en, this message translates to:
+  /// **'No Sync Statistics Yet'**
+  String get incrementalSyncStatsNoData;
+
+  /// Description when no sync statistics are available
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics will appear here after your first incremental sync.'**
+  String get incrementalSyncStatsNoDataDesc;
+
+  /// Message when no incremental sync data is available (compact mode)
+  ///
+  /// In en, this message translates to:
+  /// **'No incremental sync data yet'**
+  String get incrementalSyncStatsNoDataYet;
+
+  /// Message when no sync data is available (summary mode)
+  ///
+  /// In en, this message translates to:
+  /// **'No sync data available'**
+  String get incrementalSyncStatsNoDataAvailable;
+
+  /// Efficiency label for excellent (>=80%)
+  ///
+  /// In en, this message translates to:
+  /// **'Excellent Efficiency'**
+  String get incrementalSyncStatsEfficiencyExcellent;
+
+  /// Efficiency label for good (>=60%)
+  ///
+  /// In en, this message translates to:
+  /// **'Good Efficiency'**
+  String get incrementalSyncStatsEfficiencyGood;
+
+  /// Efficiency label for moderate (>=40%)
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate Efficiency'**
+  String get incrementalSyncStatsEfficiencyModerate;
+
+  /// Efficiency label for low (>=20%)
+  ///
+  /// In en, this message translates to:
+  /// **'Low Efficiency'**
+  String get incrementalSyncStatsEfficiencyLow;
+
+  /// Efficiency label for very low (<20%)
+  ///
+  /// In en, this message translates to:
+  /// **'Very Low Efficiency'**
+  String get incrementalSyncStatsEfficiencyVeryLow;
+
+  /// Efficiency description for excellent
+  ///
+  /// In en, this message translates to:
+  /// **'Most data unchanged - incremental sync is very effective!'**
+  String get incrementalSyncStatsEfficiencyDescExcellent;
+
+  /// Efficiency description for good
+  ///
+  /// In en, this message translates to:
+  /// **'Good savings - incremental sync is working well.'**
+  String get incrementalSyncStatsEfficiencyDescGood;
+
+  /// Efficiency description for moderate
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate changes detected - some bandwidth saved.'**
+  String get incrementalSyncStatsEfficiencyDescModerate;
+
+  /// Efficiency description for low
+  ///
+  /// In en, this message translates to:
+  /// **'Many changes - consider adjusting sync window.'**
+  String get incrementalSyncStatsEfficiencyDescLow;
+
+  /// Efficiency description for very low
+  ///
+  /// In en, this message translates to:
+  /// **'Most data changed - incremental sync provides minimal benefit.'**
+  String get incrementalSyncStatsEfficiencyDescVeryLow;
+
+  /// Label for fetched items count
+  ///
+  /// In en, this message translates to:
+  /// **'Fetched'**
+  String get incrementalSyncStatsLabelFetched;
+
+  /// Label for updated items count
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get incrementalSyncStatsLabelUpdated;
+
+  /// Label for skipped items count
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get incrementalSyncStatsLabelSkipped;
+
+  /// Label for saved bandwidth
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get incrementalSyncStatsLabelSaved;
+
+  /// Label for sync count
+  ///
+  /// In en, this message translates to:
+  /// **'Syncs'**
+  String get incrementalSyncStatsLabelSyncs;
+
+  /// Label for bandwidth saved
+  ///
+  /// In en, this message translates to:
+  /// **'Bandwidth Saved'**
+  String get incrementalSyncStatsLabelBandwidthSaved;
+
+  /// Label for API calls saved
+  ///
+  /// In en, this message translates to:
+  /// **'API Calls Saved'**
+  String get incrementalSyncStatsLabelApiCallsSaved;
+
+  /// Label for update rate
+  ///
+  /// In en, this message translates to:
+  /// **'Update Rate'**
+  String get incrementalSyncStatsLabelUpdateRate;
+
+  /// Current sync section title
+  ///
+  /// In en, this message translates to:
+  /// **'Current Sync'**
+  String get incrementalSyncStatsCurrentSync;
+
+  /// Sync duration label
+  ///
+  /// In en, this message translates to:
+  /// **'Duration: {duration}'**
+  String incrementalSyncStatsDuration(String duration);
+
+  /// Status label for successful sync
+  ///
+  /// In en, this message translates to:
+  /// **'Status: Success'**
+  String get incrementalSyncStatsStatusSuccess;
+
+  /// Status label for failed sync
+  ///
+  /// In en, this message translates to:
+  /// **'Status: Failed'**
+  String get incrementalSyncStatsStatusFailed;
+
+  /// Error label in sync details
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String incrementalSyncStatsError(String error);
+
+  /// Label for entity type breakdown section
+  ///
+  /// In en, this message translates to:
+  /// **'By Entity Type:'**
+  String get incrementalSyncStatsByEntityType;
+
+  /// Efficiency summary text
+  ///
+  /// In en, this message translates to:
+  /// **'{rate}% efficient'**
+  String incrementalSyncStatsEfficient(String rate);
+
+  /// Offline banner title
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline'**
+  String get offlineBannerTitle;
+
+  /// Offline banner message
+  ///
+  /// In en, this message translates to:
+  /// **'Changes will sync when online.'**
+  String get offlineBannerMessage;
+
+  /// Learn More button label
+  ///
+  /// In en, this message translates to:
+  /// **'Learn More'**
+  String get offlineBannerLearnMore;
+
+  /// Dismiss button tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get offlineBannerDismiss;
+
+  /// Accessibility label for offline banner
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline. Changes will sync when you are back online. Swipe to dismiss or tap Learn More for details.'**
+  String get offlineBannerSemanticLabel;
+
+  /// Offline mode indicator title
+  ///
+  /// In en, this message translates to:
+  /// **'Offline Mode'**
+  String get transactionOfflineMode;
+
+  /// Message for new transaction saved offline
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction will be saved locally and synced when online'**
+  String get transactionOfflineSaveNew;
+
+  /// Message for edited transaction saved offline
+  ///
+  /// In en, this message translates to:
+  /// **'Changes will be saved locally and synced when online'**
+  String get transactionOfflineSaveEdit;
+
+  /// Save button label when offline
+  ///
+  /// In en, this message translates to:
+  /// **'Save Offline'**
+  String get transactionSaveOffline;
+
+  /// Save button label when online
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get transactionSave;
+
+  /// Message when transaction is saved and synced
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction saved and synced'**
+  String get transactionSavedSynced;
+
+  /// Message when transaction is saved offline
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction saved offline. Will sync when online.'**
+  String get transactionSavedOffline;
+
+  /// Message when transaction is saved online
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction saved'**
+  String get transactionSaved;
+
+  /// Sync status: synced
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get syncStatusSynced;
+
+  /// Sync status: syncing
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get syncStatusSyncing;
+
+  /// Sync status: pending items
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items pending'**
+  String syncStatusPending(int count);
+
+  /// Sync status: failed
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed'**
+  String get syncStatusFailed;
+
+  /// Sync status: offline
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get syncStatusOffline;
+
+  /// Last sync time: just now
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get syncStatusJustNow;
+
+  /// Last sync time: minutes ago
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m ago'**
+  String syncStatusMinutesAgo(int minutes);
+
+  /// Last sync time: hours ago
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h ago'**
+  String syncStatusHoursAgo(int hours);
+
+  /// Last sync time: days ago
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String syncStatusDaysAgo(int days);
+
+  /// Last sync time: over a week ago
+  ///
+  /// In en, this message translates to:
+  /// **'Over a week ago'**
+  String get syncStatusOverWeekAgo;
+
+  /// Sync now action label
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get syncActionSyncNow;
+
+  /// Force full sync action label
+  ///
+  /// In en, this message translates to:
+  /// **'Force full sync'**
+  String get syncActionForceFullSync;
+
+  /// View sync status action label
+  ///
+  /// In en, this message translates to:
+  /// **'View sync status'**
+  String get syncActionViewStatus;
+
+  /// Sync settings action label
+  ///
+  /// In en, this message translates to:
+  /// **'Sync settings'**
+  String get syncActionSettings;
+
+  /// Message when sync is started
+  ///
+  /// In en, this message translates to:
+  /// **'Sync started'**
+  String get syncStarted;
+
+  /// Message when full sync is started
+  ///
+  /// In en, this message translates to:
+  /// **'Full sync started'**
+  String get syncFullStarted;
+
+  /// Error message when sync fails to start
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to start sync: {error}'**
+  String syncFailedToStart(String error);
+
+  /// Error message when full sync fails to start
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to start full sync: {error}'**
+  String syncFailedToStartFull(String error);
+
+  /// Message when sync service is not available
+  ///
+  /// In en, this message translates to:
+  /// **'Sync service not available. Please restart the app.'**
+  String get syncServiceNotAvailable;
+
+  /// Error title when sync status provider is not available
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Status Provider Not Available'**
+  String get syncProgressProviderNotAvailable;
+
+  /// Error description when sync status provider is not available
+  ///
+  /// In en, this message translates to:
+  /// **'Please restart the app to enable sync progress tracking.'**
+  String get syncProgressProviderNotAvailableDesc;
+
+  /// Dialog title when sync service is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Service Unavailable'**
+  String get syncProgressServiceUnavailable;
+
+  /// Dialog message when sync service is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Status Provider is not available. Please restart the app.'**
+  String get syncProgressServiceUnavailableDesc;
+
+  /// Cancel button label
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get syncProgressCancel;
+
+  /// Sync failed title
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Failed'**
+  String get syncProgressFailed;
+
+  /// Sync complete title
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Complete'**
+  String get syncProgressComplete;
+
+  /// Syncing title
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get syncProgressSyncing;
+
+  /// Current cache TTL label
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {ttl}'**
+  String incrementalSyncCacheCurrent(String ttl);
+
+  /// Sync progress percentage complete
+  ///
+  /// In en, this message translates to:
+  /// **'{percentage}% complete'**
+  String syncStatusProgressComplete(String percentage);
+
+  /// Message when sync completes successfully
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully synced {count} operations'**
+  String syncProgressSuccessfullySynced(int count);
+
+  /// Message when conflicts are detected
+  ///
+  /// In en, this message translates to:
+  /// **'{count} conflicts detected'**
+  String syncProgressConflictsDetected(int count);
+
+  /// Message when operations fail
+  ///
+  /// In en, this message translates to:
+  /// **'{count} operations failed'**
+  String syncProgressOperationsFailed(int count);
+
+  /// Operations count display
+  ///
+  /// In en, this message translates to:
+  /// **'{completed}/{total} operations'**
+  String syncProgressOperationsCount(int completed, int total);
+
+  /// Message when syncing operations
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing operations...'**
+  String get syncProgressSyncingOperations;
+
+  /// Sync phase: preparing
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing...'**
+  String get syncProgressPreparing;
+
+  /// Sync phase: detecting conflicts
+  ///
+  /// In en, this message translates to:
+  /// **'Detecting conflicts...'**
+  String get syncProgressDetectingConflicts;
+
+  /// Sync phase: resolving conflicts
+  ///
+  /// In en, this message translates to:
+  /// **'Resolving conflicts...'**
+  String get syncProgressResolvingConflicts;
+
+  /// Sync phase: pulling updates
+  ///
+  /// In en, this message translates to:
+  /// **'Pulling updates...'**
+  String get syncProgressPullingUpdates;
+
+  /// Sync phase: finalizing
+  ///
+  /// In en, this message translates to:
+  /// **'Finalizing...'**
+  String get syncProgressFinalizing;
+
+  /// Sync phase: completed
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get syncProgressCompleted;
+
+  /// Syncing progress with count
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing... {synced} of {total}'**
+  String syncStatusSyncingCount(int synced, int total);
+
+  /// Pending filter label
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get listViewOfflineFilterPending;
+
+  /// No data available message
+  ///
+  /// In en, this message translates to:
+  /// **'No {entityType} Available'**
+  String listViewOfflineNoDataAvailable(String entityType);
+
+  /// Offline no data message
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline. {entityType} will appear here when you connect to the internet.'**
+  String listViewOfflineNoDataMessage(String entityType);
+
+  /// Last updated label
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated {age}'**
+  String listViewOfflineLastUpdated(String age);
+
+  /// Message when data includes unsynced items
+  ///
+  /// In en, this message translates to:
+  /// **'Includes unsynced data'**
+  String get dashboardOfflineIncludesUnsynced;
+
+  /// Data timestamp label
+  ///
+  /// In en, this message translates to:
+  /// **'Data as of {age}'**
+  String dashboardOfflineDataAsOf(String age);
+
+  /// Unsynced label
+  ///
+  /// In en, this message translates to:
+  /// **'Unsynced'**
+  String get dashboardOfflineUnsynced;
+
+  /// Offline data viewing message
+  ///
+  /// In en, this message translates to:
+  /// **'Viewing offline data. Some information may be outdated.'**
+  String get dashboardOfflineViewingOfflineData;
+
+  /// No data available message
+  ///
+  /// In en, this message translates to:
+  /// **'No {dataType} Available'**
+  String dashboardOfflineNoDataAvailable(String dataType);
+
+  /// Connect to load data message
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to the internet to load {dataType}'**
+  String dashboardOfflineConnectToLoad(String dataType);
+
+  /// Data outdated warning
+  ///
+  /// In en, this message translates to:
+  /// **'Data may be outdated. Last updated {age}.'**
+  String dashboardOfflineDataOutdated(String age);
+
+  /// Network type: WiFi
+  ///
+  /// In en, this message translates to:
+  /// **'WiFi'**
+  String get generalNetworkTypeWifi;
+
+  /// Network type: Mobile Data
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Data'**
+  String get generalNetworkTypeMobile;
+
+  /// Network type: Ethernet
+  ///
+  /// In en, this message translates to:
+  /// **'Ethernet'**
+  String get generalNetworkTypeEthernet;
+
+  /// Network type: VPN
+  ///
+  /// In en, this message translates to:
+  /// **'VPN'**
+  String get generalNetworkTypeVpn;
+
+  /// Network type: Bluetooth
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth'**
+  String get generalNetworkTypeBluetooth;
+
+  /// Network type: Other
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get generalNetworkTypeOther;
+
+  /// Network type: None
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get generalNetworkTypeNone;
+
+  /// Separator for multiple network types (e.g., WiFi + VPN)
+  ///
+  /// In en, this message translates to:
+  /// **'+'**
+  String get generalNetworkTypeSeparator;
+
+  /// Title for the offline mode settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Offline Mode Settings'**
+  String get offlineSettingsTitle;
+
+  /// Help button tooltip in offline settings
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get offlineSettingsHelp;
+
+  /// Synchronization section title
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization'**
+  String get offlineSettingsSynchronization;
+
+  /// Auto-sync toggle label
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-sync'**
+  String get offlineSettingsAutoSync;
+
+  /// Auto-sync description
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically sync in background'**
+  String get offlineSettingsAutoSyncDesc;
+
+  /// Message when auto-sync is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-sync enabled'**
+  String get offlineSettingsAutoSyncEnabled;
+
+  /// Message when auto-sync is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-sync disabled'**
+  String get offlineSettingsAutoSyncDisabled;
+
+  /// Sync interval label
+  ///
+  /// In en, this message translates to:
+  /// **'Sync interval'**
+  String get offlineSettingsSyncInterval;
+
+  /// WiFi-only sync toggle label
+  ///
+  /// In en, this message translates to:
+  /// **'WiFi only'**
+  String get offlineSettingsWifiOnly;
+
+  /// WiFi-only sync description
+  ///
+  /// In en, this message translates to:
+  /// **'Sync only when connected to WiFi'**
+  String get offlineSettingsWifiOnlyDesc;
+
+  /// Message when WiFi-only sync is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'WiFi-only sync enabled'**
+  String get offlineSettingsWifiOnlyEnabled;
+
+  /// Message when WiFi-only sync is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'WiFi-only sync disabled'**
+  String get offlineSettingsWifiOnlyDisabled;
+
+  /// Last sync time label
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync: {time}'**
+  String offlineSettingsLastSync(String time);
+
+  /// Next sync time label
+  ///
+  /// In en, this message translates to:
+  /// **'Next sync: {time}'**
+  String offlineSettingsNextSync(String time);
+
+  /// Conflict resolution section title
+  ///
+  /// In en, this message translates to:
+  /// **'Conflict Resolution'**
+  String get offlineSettingsConflictResolution;
+
+  /// Resolution strategy label
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution strategy'**
+  String get offlineSettingsResolutionStrategy;
+
+  /// Storage section title
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get offlineSettingsStorage;
+
+  /// Database size label
+  ///
+  /// In en, this message translates to:
+  /// **'Database size'**
+  String get offlineSettingsDatabaseSize;
+
+  /// Clear cache button label
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cache'**
+  String get offlineSettingsClearCache;
+
+  /// Clear cache description
+  ///
+  /// In en, this message translates to:
+  /// **'Remove temporary data'**
+  String get offlineSettingsClearCacheDesc;
+
+  /// Clear all data button label
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all data'**
+  String get offlineSettingsClearAllData;
+
+  /// Clear all data description
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all offline data'**
+  String get offlineSettingsClearAllDataDesc;
+
+  /// Statistics section title
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get offlineSettingsStatistics;
+
+  /// Total syncs label
+  ///
+  /// In en, this message translates to:
+  /// **'Total syncs'**
+  String get offlineSettingsTotalSyncs;
+
+  /// Conflicts label
+  ///
+  /// In en, this message translates to:
+  /// **'Conflicts'**
+  String get offlineSettingsConflicts;
+
+  /// Errors label
+  ///
+  /// In en, this message translates to:
+  /// **'Errors'**
+  String get offlineSettingsErrors;
+
+  /// Success rate label
+  ///
+  /// In en, this message translates to:
+  /// **'Success rate'**
+  String get offlineSettingsSuccessRate;
+
+  /// Actions section title
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get offlineSettingsActions;
+
+  /// Syncing in progress message
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get offlineSettingsSyncing;
+
+  /// Sync now button label
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get offlineSettingsSyncNow;
+
+  /// Force full sync button label
+  ///
+  /// In en, this message translates to:
+  /// **'Force full sync'**
+  String get offlineSettingsForceFullSync;
+
+  /// Check consistency button label
+  ///
+  /// In en, this message translates to:
+  /// **'Check consistency'**
+  String get offlineSettingsCheckConsistency;
+
+  /// Checking in progress message
+  ///
+  /// In en, this message translates to:
+  /// **'Checking...'**
+  String get offlineSettingsChecking;
+
+  /// Sync interval dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Interval'**
+  String get offlineSettingsSyncIntervalTitle;
+
+  /// Message when sync interval is set
+  ///
+  /// In en, this message translates to:
+  /// **'Sync interval set to {interval}'**
+  String offlineSettingsSyncIntervalSet(String interval);
+
+  /// Conflict resolution strategy dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Conflict Resolution Strategy'**
+  String get offlineSettingsConflictStrategyTitle;
+
+  /// Message when conflict strategy is set
+  ///
+  /// In en, this message translates to:
+  /// **'Conflict strategy set to {strategy}'**
+  String offlineSettingsConflictStrategySet(String strategy);
+
+  /// Clear cache dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Cache'**
+  String get offlineSettingsClearCacheTitle;
+
+  /// Clear cache confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove temporary data. Your offline data will be preserved.'**
+  String get offlineSettingsClearCacheMessage;
+
+  /// Clear all data dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All Data'**
+  String get offlineSettingsClearAllDataTitle;
+
+  /// Clear all data confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'This will remove ALL offline data. This action cannot be undone. You will need to sync again to use offline mode.'**
+  String get offlineSettingsClearAllDataMessage;
+
+  /// Message when cache is cleared
+  ///
+  /// In en, this message translates to:
+  /// **'Cache cleared'**
+  String get offlineSettingsCacheCleared;
+
+  /// Message when all data is cleared
+  ///
+  /// In en, this message translates to:
+  /// **'All offline data cleared'**
+  String get offlineSettingsAllDataCleared;
+
+  /// Message shown during sync
+  ///
+  /// In en, this message translates to:
+  /// **'Performing sync...'**
+  String get offlineSettingsPerformingSync;
+
+  /// Message shown during incremental sync
+  ///
+  /// In en, this message translates to:
+  /// **'Performing incremental sync...'**
+  String get offlineSettingsPerformingIncrementalSync;
+
+  /// Message shown during full sync
+  ///
+  /// In en, this message translates to:
+  /// **'Performing full sync...'**
+  String get offlineSettingsPerformingFullSync;
+
+  /// Message when incremental sync completes successfully
+  ///
+  /// In en, this message translates to:
+  /// **'Incremental sync completed successfully'**
+  String get offlineSettingsIncrementalSyncCompleted;
+
+  /// Message when incremental sync completes with issues
+  ///
+  /// In en, this message translates to:
+  /// **'Incremental sync completed with issues: {error}'**
+  String offlineSettingsIncrementalSyncIssues(String error);
+
+  /// Force full sync dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Force Full Sync'**
+  String get offlineSettingsForceFullSyncTitle;
+
+  /// Force full sync confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'This will download all data from the server, replacing local data. This may take several minutes.'**
+  String get offlineSettingsForceFullSyncMessage;
+
+  /// Consistency check dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Consistency Check Complete'**
+  String get offlineSettingsConsistencyCheckComplete;
+
+  /// Message when no consistency issues are found
+  ///
+  /// In en, this message translates to:
+  /// **'No issues found. Your data is consistent.'**
+  String get offlineSettingsConsistencyCheckNoIssues;
+
+  /// Message when consistency issues are found
+  ///
+  /// In en, this message translates to:
+  /// **'{count} issue(s) found.'**
+  String offlineSettingsConsistencyCheckIssuesFound(int count);
+
+  /// Label for issue breakdown section
+  ///
+  /// In en, this message translates to:
+  /// **'Issue breakdown:'**
+  String get offlineSettingsConsistencyCheckIssueBreakdown;
+
+  /// Message when there are more issues than displayed
+  ///
+  /// In en, this message translates to:
+  /// **'... and {count} more'**
+  String offlineSettingsConsistencyCheckMoreIssues(int count);
+
+  /// Repair inconsistencies dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Repair Inconsistencies'**
+  String get offlineSettingsRepairInconsistencies;
+
+  /// Repair inconsistencies confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'This will attempt to automatically fix detected issues. Some issues may require manual intervention.'**
+  String get offlineSettingsRepairInconsistenciesMessage;
+
+  /// Repair complete dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Repair Complete'**
+  String get offlineSettingsRepairComplete;
+
+  /// Repair complete message
+  ///
+  /// In en, this message translates to:
+  /// **'{repaired} issue(s) repaired.\n{failed} issue(s) could not be repaired.'**
+  String offlineSettingsRepairCompleteMessage(int repaired, int failed);
+
+  /// Help dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Offline Mode Help'**
+  String get offlineSettingsHelpTitle;
+
+  /// Help section title for auto-sync
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-sync'**
+  String get offlineSettingsHelpAutoSync;
+
+  /// Help description for auto-sync
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically synchronize data in the background at the specified interval.'**
+  String get offlineSettingsHelpAutoSyncDesc;
+
+  /// Help section title for WiFi only
+  ///
+  /// In en, this message translates to:
+  /// **'WiFi Only'**
+  String get offlineSettingsHelpWifiOnly;
+
+  /// Help description for WiFi only
+  ///
+  /// In en, this message translates to:
+  /// **'Only sync when connected to WiFi to save mobile data.'**
+  String get offlineSettingsHelpWifiOnlyDesc;
+
+  /// Help section title for conflict resolution
+  ///
+  /// In en, this message translates to:
+  /// **'Conflict Resolution'**
+  String get offlineSettingsHelpConflictResolution;
+
+  /// Help description for conflict resolution
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how to handle conflicts when the same data is modified both locally and on the server.'**
+  String get offlineSettingsHelpConflictResolutionDesc;
+
+  /// Help section title for consistency check
+  ///
+  /// In en, this message translates to:
+  /// **'Consistency Check'**
+  String get offlineSettingsHelpConsistencyCheck;
+
+  /// Help description for consistency check
+  ///
+  /// In en, this message translates to:
+  /// **'Verify data integrity and fix any inconsistencies in the local database.'**
+  String get offlineSettingsHelpConsistencyCheckDesc;
+
+  /// Conflict resolution strategy: local wins
+  ///
+  /// In en, this message translates to:
+  /// **'Local Wins'**
+  String get offlineSettingsStrategyLocalWins;
+
+  /// Conflict resolution strategy: remote wins
+  ///
+  /// In en, this message translates to:
+  /// **'Remote Wins'**
+  String get offlineSettingsStrategyRemoteWins;
+
+  /// Conflict resolution strategy: last write wins
+  ///
+  /// In en, this message translates to:
+  /// **'Last Write Wins'**
+  String get offlineSettingsStrategyLastWriteWins;
+
+  /// Conflict resolution strategy: manual resolution
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Resolution'**
+  String get offlineSettingsStrategyManual;
+
+  /// Conflict resolution strategy: merge changes
+  ///
+  /// In en, this message translates to:
+  /// **'Merge Changes'**
+  String get offlineSettingsStrategyMerge;
+
+  /// Description for local wins strategy
+  ///
+  /// In en, this message translates to:
+  /// **'Always keep local changes'**
+  String get offlineSettingsStrategyLocalWinsDesc;
+
+  /// Description for remote wins strategy
+  ///
+  /// In en, this message translates to:
+  /// **'Always keep server changes'**
+  String get offlineSettingsStrategyRemoteWinsDesc;
+
+  /// Description for last write wins strategy
+  ///
+  /// In en, this message translates to:
+  /// **'Keep most recently modified version'**
+  String get offlineSettingsStrategyLastWriteWinsDesc;
+
+  /// Description for manual resolution strategy
+  ///
+  /// In en, this message translates to:
+  /// **'Manually resolve each conflict'**
+  String get offlineSettingsStrategyManualDesc;
+
+  /// Description for merge changes strategy
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically merge non-conflicting changes'**
+  String get offlineSettingsStrategyMergeDesc;
+
+  /// Time format for just now
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get offlineSettingsJustNow;
+
+  /// Time format for minutes ago
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} minutes ago'**
+  String offlineSettingsMinutesAgo(int minutes);
+
+  /// Time format for hours ago
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours ago'**
+  String offlineSettingsHoursAgo(int hours);
+
+  /// Time format for days ago
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days ago'**
+  String offlineSettingsDaysAgo(int days);
+
+  /// Error message when auto-sync update fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update auto-sync setting'**
+  String get offlineSettingsFailedToUpdateAutoSync;
+
+  /// Error message when WiFi-only update fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update WiFi-only setting'**
+  String get offlineSettingsFailedToUpdateWifiOnly;
+
+  /// Error message when sync interval update fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update sync interval'**
+  String get offlineSettingsFailedToUpdateSyncInterval;
+
+  /// Error message when conflict strategy update fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update conflict strategy'**
+  String get offlineSettingsFailedToUpdateConflictStrategy;
+
+  /// Error message when cache clear fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to clear cache: {error}'**
+  String offlineSettingsFailedToClearCache(String error);
+
+  /// Error message when data clear fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to clear data'**
+  String get offlineSettingsFailedToClearData;
+
+  /// Error message when sync fails
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed: {error}'**
+  String offlineSettingsSyncFailed(String error);
+
+  /// Error message when full sync fails
+  ///
+  /// In en, this message translates to:
+  /// **'Full sync failed: {error}'**
+  String offlineSettingsFullSyncFailed(String error);
+
+  /// Error message when consistency check fails
+  ///
+  /// In en, this message translates to:
+  /// **'Consistency check failed: {error}'**
+  String offlineSettingsConsistencyCheckFailed(String error);
+
+  /// Error message when repair fails
+  ///
+  /// In en, this message translates to:
+  /// **'Repair failed: {error}'**
+  String offlineSettingsRepairFailed(String error);
+
+  /// Message when incremental sync is not available
+  ///
+  /// In en, this message translates to:
+  /// **'Incremental sync not available. Please perform a full sync first.'**
+  String get offlineSettingsIncrementalSyncNotAvailable;
+
+  /// Error message when incremental sync fails
+  ///
+  /// In en, this message translates to:
+  /// **'Incremental sync failed: {error}'**
+  String offlineSettingsIncrementalSyncFailed(String error);
+
+  /// Error message when sync service is not available
+  ///
+  /// In en, this message translates to:
+  /// **'Sync service not available. Please restart the app.'**
+  String get offlineSettingsSyncServiceNotAvailable;
+
+  /// Error message when sync service cannot be retrieved
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get sync service: {error}'**
+  String offlineSettingsFailedToGetSyncService(String error);
+
+  /// Error message when incremental sync service is not available
+  ///
+  /// In en, this message translates to:
+  /// **'Incremental sync service not available'**
+  String get offlineSettingsIncrementalSyncServiceNotAvailable;
+
+  /// Dismiss button label
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get offlineSettingsDismiss;
+
+  /// Manual sync interval option
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get offlineSettingsSyncIntervalManual;
+
+  /// 15 minutes sync interval option
+  ///
+  /// In en, this message translates to:
+  /// **'15 minutes'**
+  String get offlineSettingsSyncInterval15Minutes;
+
+  /// 30 minutes sync interval option
+  ///
+  /// In en, this message translates to:
+  /// **'30 minutes'**
+  String get offlineSettingsSyncInterval30Minutes;
+
+  /// 1 hour sync interval option
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour'**
+  String get offlineSettingsSyncInterval1Hour;
+
+  /// 6 hours sync interval option
+  ///
+  /// In en, this message translates to:
+  /// **'6 hours'**
+  String get offlineSettingsSyncInterval6Hours;
+
+  /// 12 hours sync interval option
+  ///
+  /// In en, this message translates to:
+  /// **'12 hours'**
+  String get offlineSettingsSyncInterval12Hours;
+
+  /// 24 hours sync interval option
+  ///
+  /// In en, this message translates to:
+  /// **'24 hours'**
+  String get offlineSettingsSyncInterval24Hours;
+
+  /// Incremental sync section title
+  ///
+  /// In en, this message translates to:
+  /// **'Incremental Sync'**
+  String get incrementalSyncTitle;
+
+  /// Incremental sync section description
+  ///
+  /// In en, this message translates to:
+  /// **'Optimize sync performance by fetching only changed data'**
+  String get incrementalSyncDescription;
+
+  /// Enable incremental sync toggle label
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Incremental Sync'**
+  String get incrementalSyncEnable;
+
+  /// Description when incremental sync is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch only changed data since last sync (70-80% faster)'**
+  String get incrementalSyncEnabledDesc;
+
+  /// Description when incremental sync is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'Full sync fetches all data each time'**
+  String get incrementalSyncDisabledDesc;
+
+  /// Message when incremental sync is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Incremental sync enabled'**
+  String get incrementalSyncEnabled;
+
+  /// Message when incremental sync is disabled
+  ///
+  /// In en, this message translates to:
+  /// **'Incremental sync disabled'**
+  String get incrementalSyncDisabled;
+
+  /// Error message when incremental sync setting update fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update setting'**
+  String get incrementalSyncFailedToUpdate;
+
+  /// Sync window selector label
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Window'**
+  String get incrementalSyncWindow;
+
+  /// Sync window description
+  ///
+  /// In en, this message translates to:
+  /// **'How far back to look for changes'**
+  String get incrementalSyncWindowDesc;
+
+  /// Message when sync window is set
+  ///
+  /// In en, this message translates to:
+  /// **'Sync window set to {window}'**
+  String incrementalSyncWindowSet(String window);
+
+  /// Error message when sync window update fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update sync window'**
+  String get incrementalSyncWindowFailed;
+
+  /// Cache duration selector label
+  ///
+  /// In en, this message translates to:
+  /// **'Cache Duration'**
+  String get incrementalSyncCacheDuration;
+
+  /// Cache duration description
+  ///
+  /// In en, this message translates to:
+  /// **'How long to cache categories, bills, and piggy banks before refreshing. These entities change infrequently, so longer cache durations reduce API calls.'**
+  String get incrementalSyncCacheDurationDesc;
+
+  /// Error message when cache duration update fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update cache duration'**
+  String get incrementalSyncCacheDurationFailed;
+
+  /// Last incremental sync timestamp label
+  ///
+  /// In en, this message translates to:
+  /// **'Last Incremental Sync'**
+  String get incrementalSyncLastIncremental;
+
+  /// Last full sync timestamp label
+  ///
+  /// In en, this message translates to:
+  /// **'Last Full Sync'**
+  String get incrementalSyncLastFull;
+
+  /// Text shown when sync has never occurred
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get incrementalSyncNever;
+
+  /// Text shown when sync occurred today
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get incrementalSyncToday;
+
+  /// Text shown for days since sync
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String incrementalSyncDaysAgo(int days);
+
+  /// Full sync warning title
+  ///
+  /// In en, this message translates to:
+  /// **'Full Sync Recommended'**
+  String get incrementalSyncFullSyncRecommended;
+
+  /// Full sync warning description
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s been more than 7 days since the last full sync. A full sync is recommended to ensure data integrity.'**
+  String get incrementalSyncFullSyncRecommendedDesc;
+
+  /// Incremental sync button label
+  ///
+  /// In en, this message translates to:
+  /// **'Incremental Sync'**
+  String get incrementalSyncIncrementalButton;
+
+  /// Full sync button label
+  ///
+  /// In en, this message translates to:
+  /// **'Full Sync'**
+  String get incrementalSyncFullButton;
+
+  /// Reset statistics button label
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Statistics'**
+  String get incrementalSyncResetStatistics;
+
+  /// Resetting statistics in progress message
+  ///
+  /// In en, this message translates to:
+  /// **'Resetting...'**
+  String get incrementalSyncResetting;
+
+  /// Reset statistics dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Statistics'**
+  String get incrementalSyncResetStatisticsTitle;
+
+  /// Reset statistics confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'This will clear all incremental sync statistics (items fetched, bandwidth saved, etc.).\n\nSettings will be preserved. This action cannot be undone.'**
+  String get incrementalSyncResetStatisticsMessage;
+
+  /// Message when statistics are reset successfully
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics reset successfully'**
+  String get incrementalSyncResetStatisticsSuccess;
+
+  /// Error message when reset statistics fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to reset statistics'**
+  String get incrementalSyncResetStatisticsFailed;
+
+  /// Sync window label in compact view
+  ///
+  /// In en, this message translates to:
+  /// **'Sync window: '**
+  String get incrementalSyncWindowLabel;
+
+  /// Text shown when full sync is enabled (incremental disabled)
+  ///
+  /// In en, this message translates to:
+  /// **'Full sync enabled'**
+  String get incrementalSyncFullSyncEnabled;
+
+  /// Sync window option with days
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String incrementalSyncWindowDays(int days);
+
+  /// Cache TTL option with hours
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hours'**
+  String incrementalSyncCacheHours(int hours);
+
+  /// Word 'window' used in sync window context
+  ///
+  /// In en, this message translates to:
+  /// **'window'**
+  String get incrementalSyncWindowWord;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

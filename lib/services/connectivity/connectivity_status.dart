@@ -1,4 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 
 /// Represents the current connectivity status of the application.
 ///
@@ -47,7 +49,9 @@ class ConnectivityInfo {
   ConnectivityResult get primaryNetworkType =>
       networkTypes.isNotEmpty ? networkTypes.first : ConnectivityResult.none;
 
-  /// Human-readable network type description.
+  /// Human-readable network type description (English, for logging/debugging).
+  /// 
+  /// For UI display, use [getLocalizedNetworkTypeDescription] instead.
   String get networkTypeDescription {
     if (networkTypes.isEmpty ||
         networkTypes.contains(ConnectivityResult.none)) {
@@ -63,7 +67,7 @@ class ConnectivityInfo {
     return types;
   }
 
-  /// Get human-readable name for network type.
+  /// Get human-readable name for network type (English, for logging/debugging).
   String _getNetworkTypeName(ConnectivityResult type) {
     switch (type) {
       case ConnectivityResult.wifi:
@@ -80,6 +84,46 @@ class ConnectivityInfo {
         return 'Other';
       case ConnectivityResult.none:
         return 'None';
+    }
+  }
+
+  /// Get localized network type description for UI display.
+  String getLocalizedNetworkTypeDescription(BuildContext context) {
+    final S localizations = S.of(context);
+    
+    if (networkTypes.isEmpty ||
+        networkTypes.contains(ConnectivityResult.none)) {
+      return localizations.generalNoConnection;
+    }
+
+    if (networkTypes.length == 1) {
+      return _getLocalizedNetworkTypeName(networkTypes.first, localizations);
+    }
+
+    // Multiple connections
+    final String types = networkTypes
+        .map((type) => _getLocalizedNetworkTypeName(type, localizations))
+        .join(' ${localizations.generalNetworkTypeSeparator} ');
+    return types;
+  }
+
+  /// Get localized name for network type.
+  String _getLocalizedNetworkTypeName(ConnectivityResult type, S localizations) {
+    switch (type) {
+      case ConnectivityResult.wifi:
+        return localizations.generalNetworkTypeWifi;
+      case ConnectivityResult.mobile:
+        return localizations.generalNetworkTypeMobile;
+      case ConnectivityResult.ethernet:
+        return localizations.generalNetworkTypeEthernet;
+      case ConnectivityResult.vpn:
+        return localizations.generalNetworkTypeVpn;
+      case ConnectivityResult.bluetooth:
+        return localizations.generalNetworkTypeBluetooth;
+      case ConnectivityResult.other:
+        return localizations.generalNetworkTypeOther;
+      case ConnectivityResult.none:
+        return localizations.generalNetworkTypeNone;
     }
   }
 
@@ -131,7 +175,9 @@ extension ConnectivityStatusExtension on ConnectivityStatus {
   /// Returns true if the status is [ConnectivityStatus.unknown].
   bool get isUnknown => this == ConnectivityStatus.unknown;
 
-  /// Returns a human-readable string representation of the status.
+  /// Returns a human-readable string representation of the status (English, for logging/debugging).
+  /// 
+  /// For UI display, use [getLocalizedDisplayName] instead.
   String get displayName {
     switch (this) {
       case ConnectivityStatus.online:
@@ -140,6 +186,19 @@ extension ConnectivityStatusExtension on ConnectivityStatus {
         return 'Offline';
       case ConnectivityStatus.unknown:
         return 'Unknown';
+    }
+  }
+
+  /// Returns a localized string representation of the status for UI display.
+  String getLocalizedDisplayName(BuildContext context) {
+    final S localizations = S.of(context);
+    switch (this) {
+      case ConnectivityStatus.online:
+        return localizations.generalOnline;
+      case ConnectivityStatus.offline:
+        return localizations.generalOffline;
+      case ConnectivityStatus.unknown:
+        return localizations.generalUnknown;
     }
   }
 }

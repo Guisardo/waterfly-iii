@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/models/incremental_sync_stats.dart';
 import 'package:waterflyiii/providers/offline_settings_provider.dart';
 import 'package:waterflyiii/widgets/incremental_sync_statistics.dart';
@@ -35,6 +36,8 @@ void main() {
       VoidCallback? onRefresh,
     }) {
       return MaterialApp(
+        localizationsDelegates: S.localizationsDelegates,
+        supportedLocales: S.supportedLocales,
         home: Scaffold(
           body: ChangeNotifierProvider<OfflineSettingsProvider>.value(
             value: settingsProvider,

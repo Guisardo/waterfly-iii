@@ -449,6 +449,14 @@
     "@generalNever": {
         "description": "Has never happened, no update etc."
     },
+    "generalOffline": "Sin conexión",
+    "@generalOffline": {
+        "description": "Label indicating the device is offline"
+    },
+    "generalOfflineMessage": "Estás sin conexión. Conéctate para sincronizar.",
+    "@generalOfflineMessage": {
+        "description": "Message shown when trying to sync while offline"
+    },
     "generalReconcile": "Reconciliado",
     "@generalReconcile": {
         "description": "Booking has been confirmed/reconciled"
@@ -833,6 +841,44 @@
     "@generalSettings": {
         "description": "Label: Settings"
     },
+    "generalSyncEntity": "Sincronizar {entity}",
+    "@generalSyncEntity": {
+        "description": "Button tooltip to sync a specific entity type from the server",
+        "placeholders": {
+            "entity": {
+                "type": "String",
+                "example": "Facturas"
+            }
+        }
+    },
+    "generalSyncComplete": "Sincronizados {count} {entity}",
+    "@generalSyncComplete": {
+        "description": "Message shown after successful sync of an entity type",
+        "placeholders": {
+            "entity": {
+                "type": "String",
+                "example": "facturas"
+            },
+            "count": {
+                "type": "int",
+                "example": "5"
+            }
+        }
+    },
+    "generalSyncFailed": "Error de sincronización: {error}",
+    "@generalSyncFailed": {
+        "description": "Error message when sync fails",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Error de red"
+            }
+        }
+    },
+    "generalSyncNotAvailable": "Servicio de sincronización no disponible",
+    "@generalSyncNotAvailable": {
+        "description": "Message shown when sync service is not initialized"
+    },
     "no": "No",
     "@no": {
         "description": "The word no"
@@ -901,6 +947,10 @@
     "settingsFAQHelp": "Se abre en el navegador. Sólo disponible en inglés.",
     "@settingsFAQHelp": {
         "description": "FAQ help text that explains that it opens up in a browser and is only available in English"
+    },
+    "settingsOfflineModeSubtitle": "Configurar sincronización sin conexión y uso de datos móviles",
+    "@settingsOfflineModeSubtitle": {
+        "description": "Subtitle for offline mode settings in main settings page"
     },
     "settingsLanguage": "Idioma",
     "@settingsLanguage": {
@@ -1208,5 +1258,1337 @@
     "transactionTypeWithdrawal": "Retirada",
     "@transactionTypeWithdrawal": {
         "description": "Withdrawal transaction type"
+    },
+    "offlineSettingsTitle": "Configuración del Modo Sin Conexión",
+    "@offlineSettingsTitle": {
+        "description": "Title for the offline mode settings screen"
+    },
+    "offlineSettingsHelp": "Ayuda",
+    "@offlineSettingsHelp": {
+        "description": "Help button tooltip in offline settings"
+    },
+    "offlineSettingsSynchronization": "Sincronización",
+    "@offlineSettingsSynchronization": {
+        "description": "Synchronization section title"
+    },
+    "offlineSettingsAutoSync": "Sincronización automática",
+    "@offlineSettingsAutoSync": {
+        "description": "Auto-sync toggle label"
+    },
+    "offlineSettingsAutoSyncDesc": "Sincronizar automáticamente en segundo plano",
+    "@offlineSettingsAutoSyncDesc": {
+        "description": "Auto-sync description"
+    },
+    "offlineSettingsAutoSyncEnabled": "Sincronización automática habilitada",
+    "@offlineSettingsAutoSyncEnabled": {
+        "description": "Message when auto-sync is enabled"
+    },
+    "offlineSettingsAutoSyncDisabled": "Sincronización automática deshabilitada",
+    "@offlineSettingsAutoSyncDisabled": {
+        "description": "Message when auto-sync is disabled"
+    },
+    "offlineSettingsSyncInterval": "Intervalo de sincronización",
+    "@offlineSettingsSyncInterval": {
+        "description": "Sync interval label"
+    },
+    "offlineSettingsWifiOnly": "Solo WiFi",
+    "@offlineSettingsWifiOnly": {
+        "description": "WiFi-only sync toggle label"
+    },
+    "offlineSettingsWifiOnlyDesc": "Sincronizar solo cuando esté conectado a WiFi",
+    "@offlineSettingsWifiOnlyDesc": {
+        "description": "WiFi-only sync description"
+    },
+    "offlineSettingsWifiOnlyEnabled": "Sincronización solo WiFi habilitada",
+    "@offlineSettingsWifiOnlyEnabled": {
+        "description": "Message when WiFi-only sync is enabled"
+    },
+    "offlineSettingsWifiOnlyDisabled": "Sincronización solo WiFi deshabilitada",
+    "@offlineSettingsWifiOnlyDisabled": {
+        "description": "Message when WiFi-only sync is disabled"
+    },
+    "offlineSettingsLastSync": "Última sincronización: {time}",
+    "@offlineSettingsLastSync": {
+        "description": "Last sync time label",
+        "placeholders": {
+            "time": {
+                "type": "String",
+                "example": "hace 2 horas"
+            }
+        }
+    },
+    "offlineSettingsNextSync": "Próxima sincronización: {time}",
+    "@offlineSettingsNextSync": {
+        "description": "Next sync time label",
+        "placeholders": {
+            "time": {
+                "type": "String",
+                "example": "en 30 minutos"
+            }
+        }
+    },
+    "offlineSettingsConflictResolution": "Resolución de Conflictos",
+    "@offlineSettingsConflictResolution": {
+        "description": "Conflict resolution section title"
+    },
+    "offlineSettingsResolutionStrategy": "Estrategia de resolución",
+    "@offlineSettingsResolutionStrategy": {
+        "description": "Resolution strategy label"
+    },
+    "offlineSettingsStorage": "Almacenamiento",
+    "@offlineSettingsStorage": {
+        "description": "Storage section title"
+    },
+    "offlineSettingsDatabaseSize": "Tamaño de la base de datos",
+    "@offlineSettingsDatabaseSize": {
+        "description": "Database size label"
+    },
+    "offlineSettingsClearCache": "Limpiar caché",
+    "@offlineSettingsClearCache": {
+        "description": "Clear cache button label"
+    },
+    "offlineSettingsClearCacheDesc": "Eliminar datos temporales",
+    "@offlineSettingsClearCacheDesc": {
+        "description": "Clear cache description"
+    },
+    "offlineSettingsClearAllData": "Limpiar todos los datos",
+    "@offlineSettingsClearAllData": {
+        "description": "Clear all data button label"
+    },
+    "offlineSettingsClearAllDataDesc": "Eliminar todos los datos sin conexión",
+    "@offlineSettingsClearAllDataDesc": {
+        "description": "Clear all data description"
+    },
+    "offlineSettingsStatistics": "Estadísticas",
+    "@offlineSettingsStatistics": {
+        "description": "Statistics section title"
+    },
+    "offlineSettingsTotalSyncs": "Sincronizaciones totales",
+    "@offlineSettingsTotalSyncs": {
+        "description": "Total syncs label"
+    },
+    "offlineSettingsConflicts": "Conflictos",
+    "@offlineSettingsConflicts": {
+        "description": "Conflicts label"
+    },
+    "offlineSettingsErrors": "Errores",
+    "@offlineSettingsErrors": {
+        "description": "Errors label"
+    },
+    "offlineSettingsSuccessRate": "Tasa de éxito",
+    "@offlineSettingsSuccessRate": {
+        "description": "Success rate label"
+    },
+    "offlineSettingsActions": "Acciones",
+    "@offlineSettingsActions": {
+        "description": "Actions section title"
+    },
+    "offlineSettingsSyncing": "Sincronizando...",
+    "@offlineSettingsSyncing": {
+        "description": "Syncing in progress message"
+    },
+    "offlineSettingsSyncNow": "Sincronizar ahora",
+    "@offlineSettingsSyncNow": {
+        "description": "Sync now button label"
+    },
+    "offlineSettingsForceFullSync": "Forzar sincronización completa",
+    "@offlineSettingsForceFullSync": {
+        "description": "Force full sync button label"
+    },
+    "offlineSettingsCheckConsistency": "Verificar consistencia",
+    "@offlineSettingsCheckConsistency": {
+        "description": "Check consistency button label"
+    },
+    "offlineSettingsChecking": "Verificando...",
+    "@offlineSettingsChecking": {
+        "description": "Checking in progress message"
+    },
+    "offlineSettingsSyncIntervalTitle": "Intervalo de Sincronización",
+    "@offlineSettingsSyncIntervalTitle": {
+        "description": "Sync interval dialog title"
+    },
+    "offlineSettingsSyncIntervalSet": "Intervalo de sincronización establecido en {interval}",
+    "@offlineSettingsSyncIntervalSet": {
+        "description": "Message when sync interval is set",
+        "placeholders": {
+            "interval": {
+                "type": "String",
+                "example": "15 minutos"
+            }
+        }
+    },
+    "offlineSettingsConflictStrategyTitle": "Estrategia de Resolución de Conflictos",
+    "@offlineSettingsConflictStrategyTitle": {
+        "description": "Conflict resolution strategy dialog title"
+    },
+    "offlineSettingsConflictStrategySet": "Estrategia de conflicto establecida en {strategy}",
+    "@offlineSettingsConflictStrategySet": {
+        "description": "Message when conflict strategy is set",
+        "placeholders": {
+            "strategy": {
+                "type": "String",
+                "example": "Ganan los locales"
+            }
+        }
+    },
+    "offlineSettingsClearCacheTitle": "Limpiar Caché",
+    "@offlineSettingsClearCacheTitle": {
+        "description": "Clear cache dialog title"
+    },
+    "offlineSettingsClearCacheMessage": "Esto eliminará los datos temporales. Sus datos sin conexión se conservarán.",
+    "@offlineSettingsClearCacheMessage": {
+        "description": "Clear cache confirmation message"
+    },
+    "offlineSettingsClearAllDataTitle": "Limpiar Todos los Datos",
+    "@offlineSettingsClearAllDataTitle": {
+        "description": "Clear all data dialog title"
+    },
+    "offlineSettingsClearAllDataMessage": "Esto eliminará TODOS los datos sin conexión. Esta acción no se puede deshacer. Necesitará sincronizar nuevamente para usar el modo sin conexión.",
+    "@offlineSettingsClearAllDataMessage": {
+        "description": "Clear all data confirmation message"
+    },
+    "offlineSettingsCacheCleared": "Caché limpiado",
+    "@offlineSettingsCacheCleared": {
+        "description": "Message when cache is cleared"
+    },
+    "offlineSettingsAllDataCleared": "Todos los datos sin conexión eliminados",
+    "@offlineSettingsAllDataCleared": {
+        "description": "Message when all data is cleared"
+    },
+    "offlineSettingsPerformingSync": "Realizando sincronización...",
+    "@offlineSettingsPerformingSync": {
+        "description": "Message shown during sync"
+    },
+    "offlineSettingsPerformingIncrementalSync": "Realizando sincronización incremental...",
+    "@offlineSettingsPerformingIncrementalSync": {
+        "description": "Message shown during incremental sync"
+    },
+    "offlineSettingsPerformingFullSync": "Realizando sincronización completa...",
+    "@offlineSettingsPerformingFullSync": {
+        "description": "Message shown during full sync"
+    },
+    "offlineSettingsIncrementalSyncCompleted": "Sincronización incremental completada exitosamente",
+    "@offlineSettingsIncrementalSyncCompleted": {
+        "description": "Message when incremental sync completes successfully"
+    },
+    "offlineSettingsIncrementalSyncIssues": "Sincronización incremental completada con problemas: {error}",
+    "@offlineSettingsIncrementalSyncIssues": {
+        "description": "Message when incremental sync completes with issues",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Error de red"
+            }
+        }
+    },
+    "offlineSettingsForceFullSyncTitle": "Forzar Sincronización Completa",
+    "@offlineSettingsForceFullSyncTitle": {
+        "description": "Force full sync dialog title"
+    },
+    "offlineSettingsForceFullSyncMessage": "Esto descargará todos los datos del servidor, reemplazando los datos locales. Esto puede tardar varios minutos.",
+    "@offlineSettingsForceFullSyncMessage": {
+        "description": "Force full sync confirmation message"
+    },
+    "offlineSettingsConsistencyCheckComplete": "Verificación de Consistencia Completada",
+    "@offlineSettingsConsistencyCheckComplete": {
+        "description": "Consistency check dialog title"
+    },
+    "offlineSettingsConsistencyCheckNoIssues": "No se encontraron problemas. Sus datos son consistentes.",
+    "@offlineSettingsConsistencyCheckNoIssues": {
+        "description": "Message when no consistency issues are found"
+    },
+    "offlineSettingsConsistencyCheckIssuesFound": "Se encontraron {count} problema(s).",
+    "@offlineSettingsConsistencyCheckIssuesFound": {
+        "description": "Message when consistency issues are found",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "5"
+            }
+        }
+    },
+    "offlineSettingsConsistencyCheckIssueBreakdown": "Desglose de problemas:",
+    "@offlineSettingsConsistencyCheckIssueBreakdown": {
+        "description": "Label for issue breakdown section"
+    },
+    "offlineSettingsConsistencyCheckMoreIssues": "... y {count} más",
+    "@offlineSettingsConsistencyCheckMoreIssues": {
+        "description": "Message when there are more issues than displayed",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "10"
+            }
+        }
+    },
+    "offlineSettingsRepairInconsistencies": "Reparar Inconsistencias",
+    "@offlineSettingsRepairInconsistencies": {
+        "description": "Repair inconsistencies dialog title"
+    },
+    "offlineSettingsRepairInconsistenciesMessage": "Esto intentará corregir automáticamente los problemas detectados. Algunos problemas pueden requerir intervención manual.",
+    "@offlineSettingsRepairInconsistenciesMessage": {
+        "description": "Repair inconsistencies confirmation message"
+    },
+    "offlineSettingsRepairComplete": "Reparación Completada",
+    "@offlineSettingsRepairComplete": {
+        "description": "Repair complete dialog title"
+    },
+    "offlineSettingsRepairCompleteMessage": "{repaired} problema(s) reparado(s).\n{failed} problema(s) no se pudieron reparar.",
+    "@offlineSettingsRepairCompleteMessage": {
+        "description": "Repair complete message",
+        "placeholders": {
+            "repaired": {
+                "type": "int",
+                "example": "5"
+            },
+            "failed": {
+                "type": "int",
+                "example": "2"
+            }
+        }
+    },
+    "offlineSettingsHelpTitle": "Ayuda del Modo Sin Conexión",
+    "@offlineSettingsHelpTitle": {
+        "description": "Help dialog title"
+    },
+    "offlineSettingsHelpAutoSync": "Sincronización automática",
+    "@offlineSettingsHelpAutoSync": {
+        "description": "Help section title for auto-sync"
+    },
+    "offlineSettingsHelpAutoSyncDesc": "Sincronizar automáticamente los datos en segundo plano en el intervalo especificado.",
+    "@offlineSettingsHelpAutoSyncDesc": {
+        "description": "Help description for auto-sync"
+    },
+    "offlineSettingsHelpWifiOnly": "Solo WiFi",
+    "@offlineSettingsHelpWifiOnly": {
+        "description": "Help section title for WiFi only"
+    },
+    "offlineSettingsHelpWifiOnlyDesc": "Sincronizar solo cuando esté conectado a WiFi para ahorrar datos móviles.",
+    "@offlineSettingsHelpWifiOnlyDesc": {
+        "description": "Help description for WiFi only"
+    },
+    "offlineSettingsHelpConflictResolution": "Resolución de Conflictos",
+    "@offlineSettingsHelpConflictResolution": {
+        "description": "Help section title for conflict resolution"
+    },
+    "offlineSettingsHelpConflictResolutionDesc": "Elija cómo manejar los conflictos cuando los mismos datos se modifican tanto localmente como en el servidor.",
+    "@offlineSettingsHelpConflictResolutionDesc": {
+        "description": "Help description for conflict resolution"
+    },
+    "offlineSettingsHelpConsistencyCheck": "Verificación de Consistencia",
+    "@offlineSettingsHelpConsistencyCheck": {
+        "description": "Help section title for consistency check"
+    },
+    "offlineSettingsHelpConsistencyCheckDesc": "Verificar la integridad de los datos y corregir cualquier inconsistencia en la base de datos local.",
+    "@offlineSettingsHelpConsistencyCheckDesc": {
+        "description": "Help description for consistency check"
+    },
+    "offlineSettingsStrategyLocalWins": "Ganan los Locales",
+    "@offlineSettingsStrategyLocalWins": {
+        "description": "Conflict resolution strategy: local wins"
+    },
+    "offlineSettingsStrategyRemoteWins": "Ganan los Remotos",
+    "@offlineSettingsStrategyRemoteWins": {
+        "description": "Conflict resolution strategy: remote wins"
+    },
+    "offlineSettingsStrategyLastWriteWins": "Gana la Última Escritura",
+    "@offlineSettingsStrategyLastWriteWins": {
+        "description": "Conflict resolution strategy: last write wins"
+    },
+    "offlineSettingsStrategyManual": "Resolución Manual",
+    "@offlineSettingsStrategyManual": {
+        "description": "Conflict resolution strategy: manual resolution"
+    },
+    "offlineSettingsStrategyMerge": "Combinar Cambios",
+    "@offlineSettingsStrategyMerge": {
+        "description": "Conflict resolution strategy: merge changes"
+    },
+    "offlineSettingsStrategyLocalWinsDesc": "Siempre mantener los cambios locales",
+    "@offlineSettingsStrategyLocalWinsDesc": {
+        "description": "Description for local wins strategy"
+    },
+    "offlineSettingsStrategyRemoteWinsDesc": "Siempre mantener los cambios del servidor",
+    "@offlineSettingsStrategyRemoteWinsDesc": {
+        "description": "Description for remote wins strategy"
+    },
+    "offlineSettingsStrategyLastWriteWinsDesc": "Mantener la versión modificada más recientemente",
+    "@offlineSettingsStrategyLastWriteWinsDesc": {
+        "description": "Description for last write wins strategy"
+    },
+    "offlineSettingsStrategyManualDesc": "Resolver manualmente cada conflicto",
+    "@offlineSettingsStrategyManualDesc": {
+        "description": "Description for manual resolution strategy"
+    },
+    "offlineSettingsStrategyMergeDesc": "Combinar automáticamente los cambios no conflictivos",
+    "@offlineSettingsStrategyMergeDesc": {
+        "description": "Description for merge changes strategy"
+    },
+    "offlineSettingsJustNow": "Ahora mismo",
+    "@offlineSettingsJustNow": {
+        "description": "Time format for just now"
+    },
+    "offlineSettingsMinutesAgo": "hace {minutes} minutos",
+    "@offlineSettingsMinutesAgo": {
+        "description": "Time format for minutes ago",
+        "placeholders": {
+            "minutes": {
+                "type": "int",
+                "example": "5"
+            }
+        }
+    },
+    "offlineSettingsHoursAgo": "hace {hours} horas",
+    "@offlineSettingsHoursAgo": {
+        "description": "Time format for hours ago",
+        "placeholders": {
+            "hours": {
+                "type": "int",
+                "example": "2"
+            }
+        }
+    },
+    "offlineSettingsDaysAgo": "hace {days} días",
+    "@offlineSettingsDaysAgo": {
+        "description": "Time format for days ago",
+        "placeholders": {
+            "days": {
+                "type": "int",
+                "example": "3"
+            }
+        }
+    },
+    "offlineSettingsFailedToUpdateAutoSync": "Error al actualizar la configuración de sincronización automática",
+    "@offlineSettingsFailedToUpdateAutoSync": {
+        "description": "Error message when auto-sync update fails"
+    },
+    "offlineSettingsFailedToUpdateWifiOnly": "Error al actualizar la configuración de solo WiFi",
+    "@offlineSettingsFailedToUpdateWifiOnly": {
+        "description": "Error message when WiFi-only update fails"
+    },
+    "offlineSettingsFailedToUpdateSyncInterval": "Error al actualizar el intervalo de sincronización",
+    "@offlineSettingsFailedToUpdateSyncInterval": {
+        "description": "Error message when sync interval update fails"
+    },
+    "offlineSettingsFailedToUpdateConflictStrategy": "Error al actualizar la estrategia de conflicto",
+    "@offlineSettingsFailedToUpdateConflictStrategy": {
+        "description": "Error message when conflict strategy update fails"
+    },
+    "offlineSettingsFailedToClearCache": "Error al limpiar la caché: {error}",
+    "@offlineSettingsFailedToClearCache": {
+        "description": "Error message when cache clear fails",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Permiso denegado"
+            }
+        }
+    },
+    "offlineSettingsFailedToClearData": "Error al limpiar los datos",
+    "@offlineSettingsFailedToClearData": {
+        "description": "Error message when data clear fails"
+    },
+    "offlineSettingsSyncFailed": "Error en la sincronización: {error}",
+    "@offlineSettingsSyncFailed": {
+        "description": "Error message when sync fails",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Error de red"
+            }
+        }
+    },
+    "offlineSettingsFullSyncFailed": "Error en la sincronización completa: {error}",
+    "@offlineSettingsFullSyncFailed": {
+        "description": "Error message when full sync fails",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Error de red"
+            }
+        }
+    },
+    "offlineSettingsConsistencyCheckFailed": "Error en la verificación de consistencia: {error}",
+    "@offlineSettingsConsistencyCheckFailed": {
+        "description": "Error message when consistency check fails",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Error de base de datos"
+            }
+        }
+    },
+    "offlineSettingsRepairFailed": "Error en la reparación: {error}",
+    "@offlineSettingsRepairFailed": {
+        "description": "Error message when repair fails",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Error de base de datos"
+            }
+        }
+    },
+    "offlineSettingsIncrementalSyncNotAvailable": "La sincronización incremental no está disponible. Por favor, realice una sincronización completa primero.",
+    "@offlineSettingsIncrementalSyncNotAvailable": {
+        "description": "Message when incremental sync is not available"
+    },
+    "offlineSettingsIncrementalSyncFailed": "Error en la sincronización incremental: {error}",
+    "@offlineSettingsIncrementalSyncFailed": {
+        "description": "Error message when incremental sync fails",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Error de red"
+            }
+        }
+    },
+    "offlineSettingsSyncServiceNotAvailable": "Servicio de sincronización no disponible. Por favor, reinicie la aplicación.",
+    "@offlineSettingsSyncServiceNotAvailable": {
+        "description": "Error message when sync service is not available"
+    },
+    "offlineSettingsFailedToGetSyncService": "Error al obtener el servicio de sincronización: {error}",
+    "@offlineSettingsFailedToGetSyncService": {
+        "description": "Error message when sync service cannot be retrieved",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Servicio no inicializado"
+            }
+        }
+    },
+    "offlineSettingsIncrementalSyncServiceNotAvailable": "Servicio de sincronización incremental no disponible",
+    "@offlineSettingsIncrementalSyncServiceNotAvailable": {
+        "description": "Error message when incremental sync service is not available"
+    },
+    "offlineSettingsDismiss": "Descartar",
+    "@offlineSettingsDismiss": {
+        "description": "Dismiss button label"
+    },
+    "offlineSettingsSyncIntervalManual": "Manual",
+    "@offlineSettingsSyncIntervalManual": {
+        "description": "Manual sync interval option"
+    },
+    "offlineSettingsSyncInterval15Minutes": "15 minutos",
+    "@offlineSettingsSyncInterval15Minutes": {
+        "description": "15 minutes sync interval option"
+    },
+    "offlineSettingsSyncInterval30Minutes": "30 minutos",
+    "@offlineSettingsSyncInterval30Minutes": {
+        "description": "30 minutes sync interval option"
+    },
+    "offlineSettingsSyncInterval1Hour": "1 hora",
+    "@offlineSettingsSyncInterval1Hour": {
+        "description": "1 hour sync interval option"
+    },
+    "offlineSettingsSyncInterval6Hours": "6 horas",
+    "@offlineSettingsSyncInterval6Hours": {
+        "description": "6 hours sync interval option"
+    },
+    "offlineSettingsSyncInterval12Hours": "12 horas",
+    "@offlineSettingsSyncInterval12Hours": {
+        "description": "12 hours sync interval option"
+    },
+    "offlineSettingsSyncInterval24Hours": "24 horas",
+    "@offlineSettingsSyncInterval24Hours": {
+        "description": "24 hours sync interval option"
+    },
+    "incrementalSyncTitle": "Sincronización Incremental",
+    "@incrementalSyncTitle": {
+        "description": "Incremental sync section title"
+    },
+    "incrementalSyncDescription": "Optimizar el rendimiento de sincronización obteniendo solo datos modificados",
+    "@incrementalSyncDescription": {
+        "description": "Incremental sync section description"
+    },
+    "incrementalSyncEnable": "Habilitar Sincronización Incremental",
+    "@incrementalSyncEnable": {
+        "description": "Enable incremental sync toggle label"
+    },
+    "incrementalSyncEnabledDesc": "Obtener solo datos modificados desde la última sincronización (70-80% más rápido)",
+    "@incrementalSyncEnabledDesc": {
+        "description": "Description when incremental sync is enabled"
+    },
+    "incrementalSyncDisabledDesc": "La sincronización completa obtiene todos los datos cada vez",
+    "@incrementalSyncDisabledDesc": {
+        "description": "Description when incremental sync is disabled"
+    },
+    "incrementalSyncEnabled": "Sincronización incremental habilitada",
+    "@incrementalSyncEnabled": {
+        "description": "Message when incremental sync is enabled"
+    },
+    "incrementalSyncDisabled": "Sincronización incremental deshabilitada",
+    "@incrementalSyncDisabled": {
+        "description": "Message when incremental sync is disabled"
+    },
+    "incrementalSyncFailedToUpdate": "Error al actualizar la configuración",
+    "@incrementalSyncFailedToUpdate": {
+        "description": "Error message when incremental sync setting update fails"
+    },
+    "incrementalSyncWindow": "Ventana de Sincronización",
+    "@incrementalSyncWindow": {
+        "description": "Sync window selector label"
+    },
+    "incrementalSyncWindowDesc": "Cuánto tiempo atrás buscar cambios",
+    "@incrementalSyncWindowDesc": {
+        "description": "Sync window description"
+    },
+    "incrementalSyncWindowSet": "Ventana de sincronización establecida en {window}",
+    "@incrementalSyncWindowSet": {
+        "description": "Message when sync window is set",
+        "placeholders": {
+            "window": {
+                "type": "String",
+                "example": "7 días"
+            }
+        }
+    },
+    "incrementalSyncWindowFailed": "Error al actualizar la ventana de sincronización",
+    "@incrementalSyncWindowFailed": {
+        "description": "Error message when sync window update fails"
+    },
+    "incrementalSyncCacheDuration": "Duración de la Caché",
+    "@incrementalSyncCacheDuration": {
+        "description": "Cache duration selector label"
+    },
+    "incrementalSyncCacheDurationDesc": "Cuánto tiempo almacenar en caché categorías, facturas y alcancías antes de actualizar. Estas entidades cambian con poca frecuencia, por lo que duraciones de caché más largas reducen las llamadas a la API.",
+    "@incrementalSyncCacheDurationDesc": {
+        "description": "Cache duration description"
+    },
+    "incrementalSyncCacheDurationFailed": "Error al actualizar la duración de la caché",
+    "@incrementalSyncCacheDurationFailed": {
+        "description": "Error message when cache duration update fails"
+    },
+    "incrementalSyncLastIncremental": "Última Sincronización Incremental",
+    "@incrementalSyncLastIncremental": {
+        "description": "Last incremental sync timestamp label"
+    },
+    "incrementalSyncLastFull": "Última Sincronización Completa",
+    "@incrementalSyncLastFull": {
+        "description": "Last full sync timestamp label"
+    },
+    "incrementalSyncNever": "Nunca",
+    "@incrementalSyncNever": {
+        "description": "Text shown when sync has never occurred"
+    },
+    "incrementalSyncToday": "Hoy",
+    "@incrementalSyncToday": {
+        "description": "Text shown when sync occurred today"
+    },
+    "incrementalSyncDaysAgo": "hace {days}d",
+    "@incrementalSyncDaysAgo": {
+        "description": "Text shown for days since sync",
+        "placeholders": {
+            "days": {
+                "type": "int",
+                "example": "3"
+            }
+        }
+    },
+    "incrementalSyncFullSyncRecommended": "Sincronización Completa Recomendada",
+    "@incrementalSyncFullSyncRecommended": {
+        "description": "Full sync warning title"
+    },
+    "incrementalSyncFullSyncRecommendedDesc": "Han pasado más de 7 días desde la última sincronización completa. Se recomienda una sincronización completa para garantizar la integridad de los datos.",
+    "@incrementalSyncFullSyncRecommendedDesc": {
+        "description": "Full sync warning description"
+    },
+    "incrementalSyncIncrementalButton": "Sincronización Incremental",
+    "@incrementalSyncIncrementalButton": {
+        "description": "Incremental sync button label"
+    },
+    "incrementalSyncFullButton": "Sincronización Completa",
+    "@incrementalSyncFullButton": {
+        "description": "Full sync button label"
+    },
+    "incrementalSyncResetStatistics": "Restablecer Estadísticas",
+    "@incrementalSyncResetStatistics": {
+        "description": "Reset statistics button label"
+    },
+    "incrementalSyncResetting": "Restableciendo...",
+    "@incrementalSyncResetting": {
+        "description": "Resetting statistics in progress message"
+    },
+    "incrementalSyncResetStatisticsTitle": "Restablecer Estadísticas",
+    "@incrementalSyncResetStatisticsTitle": {
+        "description": "Reset statistics dialog title"
+    },
+    "incrementalSyncResetStatisticsMessage": "Esto eliminará todas las estadísticas de sincronización incremental (elementos obtenidos, ancho de banda ahorrado, etc.).\n\nLa configuración se conservará. Esta acción no se puede deshacer.",
+    "@incrementalSyncResetStatisticsMessage": {
+        "description": "Reset statistics confirmation message"
+    },
+    "incrementalSyncResetStatisticsSuccess": "Estadísticas restablecidas exitosamente",
+    "@incrementalSyncResetStatisticsSuccess": {
+        "description": "Message when statistics are reset successfully"
+    },
+    "incrementalSyncResetStatisticsFailed": "Error al restablecer las estadísticas",
+    "@incrementalSyncResetStatisticsFailed": {
+        "description": "Error message when reset statistics fails"
+    },
+    "incrementalSyncWindowLabel": "Ventana de sincronización: ",
+    "@incrementalSyncWindowLabel": {
+        "description": "Sync window label in compact view"
+    },
+    "incrementalSyncFullSyncEnabled": "Sincronización completa habilitada",
+    "@incrementalSyncFullSyncEnabled": {
+        "description": "Text shown when full sync is enabled (incremental disabled)"
+    },
+    "incrementalSyncWindowDays": "{days} días",
+    "@incrementalSyncWindowDays": {
+        "description": "Sync window option with days",
+        "placeholders": {
+            "days": {
+                "type": "int",
+                "example": "7"
+            }
+        }
+    },
+    "incrementalSyncCacheHours": "{hours} horas",
+    "@incrementalSyncCacheHours": {
+        "description": "Cache TTL option with hours",
+        "placeholders": {
+            "hours": {
+                "type": "int",
+                "example": "1"
+            }
+        }
+    },
+    "incrementalSyncWindowWord": "ventana",
+    "@incrementalSyncWindowWord": {
+        "description": "Word 'window' used in sync window context"
+    },
+    "generalBackOnline": "Conectado nuevamente",
+    "@generalBackOnline": {
+        "description": "Message shown when connection is restored"
+    },
+    "generalOfflineModeWifiOnly": "Modo sin conexión (solo WiFi)",
+    "@generalOfflineModeWifiOnly": {
+        "description": "Message shown when offline mode is enabled with WiFi-only restriction"
+    },
+    "generalCheckingConnection": "Verificando conexión...",
+    "@generalCheckingConnection": {
+        "description": "Message shown when checking network connection"
+    },
+    "generalNetworkStatus": "Estado de la Red",
+    "@generalNetworkStatus": {
+        "description": "Network status dialog title"
+    },
+    "generalAppStatus": "Estado de la Aplicación",
+    "@generalAppStatus": {
+        "description": "App status label in network dialog"
+    },
+    "generalOnline": "En línea",
+    "@generalOnline": {
+        "description": "Online status label"
+    },
+    "generalNetwork": "Red",
+    "@generalNetwork": {
+        "description": "Network label in network dialog"
+    },
+    "generalNoConnection": "Sin conexión",
+    "@generalNoConnection": {
+        "description": "Message shown when there is no network connection"
+    },
+    "generalWifiOnlyModeEnabled": "El modo solo WiFi está habilitado. Los datos móviles están deshabilitados. Conéctese a WiFi para usar las funciones en línea.",
+    "@generalWifiOnlyModeEnabled": {
+        "description": "Message explaining WiFi-only mode restriction"
+    },
+    "generalOfflineFeaturesLimited": "Algunas funciones pueden estar limitadas sin conexión. Los datos se sincronizarán automáticamente cuando se restaure la conexión.",
+    "@generalOfflineFeaturesLimited": {
+        "description": "Message explaining offline mode limitations"
+    },
+    "generalAllFeaturesAvailable": "Todas las funciones están disponibles.",
+    "@generalAllFeaturesAvailable": {
+        "description": "Message shown when all features are available"
+    },
+    "generalConnectionRestored": "¡Conexión restaurada!",
+    "@generalConnectionRestored": {
+        "description": "Message shown when connection is successfully restored"
+    },
+    "generalStillOffline": "Todavía sin conexión. Por favor, verifique la configuración de su red.",
+    "@generalStillOffline": {
+        "description": "Message shown when still offline after connectivity check"
+    },
+    "generalFailedToCheckConnectivity": "Error al verificar la conectividad",
+    "@generalFailedToCheckConnectivity": {
+        "description": "Error message when connectivity check fails"
+    },
+    "generalRetry": "Reintentar",
+    "@generalRetry": {
+        "description": "Retry button label"
+    },
+    "incrementalSyncStatsTitle": "Estadísticas de Sincronización",
+    "@incrementalSyncStatsTitle": {
+        "description": "Sync statistics section title"
+    },
+    "incrementalSyncStatsDescription": "{count} sincronizaciones incrementales realizadas",
+    "@incrementalSyncStatsDescription": {
+        "description": "Sync statistics description with count",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "5"
+            }
+        }
+    },
+    "incrementalSyncStatsDescriptionEmpty": "Rastree la eficiencia de sincronización y el ahorro de ancho de banda",
+    "@incrementalSyncStatsDescriptionEmpty": {
+        "description": "Sync statistics description when no syncs performed"
+    },
+    "incrementalSyncStatsRefresh": "Actualizar estadísticas",
+    "@incrementalSyncStatsRefresh": {
+        "description": "Refresh statistics button tooltip"
+    },
+    "incrementalSyncStatsNoData": "Aún No Hay Estadísticas de Sincronización",
+    "@incrementalSyncStatsNoData": {
+        "description": "Title when no sync statistics are available"
+    },
+    "incrementalSyncStatsNoDataDesc": "Las estadísticas aparecerán aquí después de su primera sincronización incremental.",
+    "@incrementalSyncStatsNoDataDesc": {
+        "description": "Description when no sync statistics are available"
+    },
+    "incrementalSyncStatsNoDataYet": "Aún no hay datos de sincronización incremental",
+    "@incrementalSyncStatsNoDataYet": {
+        "description": "Message when no incremental sync data is available (compact mode)"
+    },
+    "incrementalSyncStatsNoDataAvailable": "No hay datos de sincronización disponibles",
+    "@incrementalSyncStatsNoDataAvailable": {
+        "description": "Message when no sync data is available (summary mode)"
+    },
+    "incrementalSyncStatsEfficiencyExcellent": "Eficiencia Excelente",
+    "@incrementalSyncStatsEfficiencyExcellent": {
+        "description": "Efficiency label for excellent (>=80%)"
+    },
+    "incrementalSyncStatsEfficiencyGood": "Buena Eficiencia",
+    "@incrementalSyncStatsEfficiencyGood": {
+        "description": "Efficiency label for good (>=60%)"
+    },
+    "incrementalSyncStatsEfficiencyModerate": "Eficiencia Moderada",
+    "@incrementalSyncStatsEfficiencyModerate": {
+        "description": "Efficiency label for moderate (>=40%)"
+    },
+    "incrementalSyncStatsEfficiencyLow": "Baja Eficiencia",
+    "@incrementalSyncStatsEfficiencyLow": {
+        "description": "Efficiency label for low (>=20%)"
+    },
+    "incrementalSyncStatsEfficiencyVeryLow": "Eficiencia Muy Baja",
+    "@incrementalSyncStatsEfficiencyVeryLow": {
+        "description": "Efficiency label for very low (<20%)"
+    },
+    "incrementalSyncStatsEfficiencyDescExcellent": "La mayoría de los datos sin cambios - ¡la sincronización incremental es muy efectiva!",
+    "@incrementalSyncStatsEfficiencyDescExcellent": {
+        "description": "Efficiency description for excellent"
+    },
+    "incrementalSyncStatsEfficiencyDescGood": "Buen ahorro - la sincronización incremental funciona bien.",
+    "@incrementalSyncStatsEfficiencyDescGood": {
+        "description": "Efficiency description for good"
+    },
+    "incrementalSyncStatsEfficiencyDescModerate": "Cambios moderados detectados - se ahorró algo de ancho de banda.",
+    "@incrementalSyncStatsEfficiencyDescModerate": {
+        "description": "Efficiency description for moderate"
+    },
+    "incrementalSyncStatsEfficiencyDescLow": "Muchos cambios - considere ajustar la ventana de sincronización.",
+    "@incrementalSyncStatsEfficiencyDescLow": {
+        "description": "Efficiency description for low"
+    },
+    "incrementalSyncStatsEfficiencyDescVeryLow": "La mayoría de los datos cambiaron - la sincronización incremental proporciona un beneficio mínimo.",
+    "@incrementalSyncStatsEfficiencyDescVeryLow": {
+        "description": "Efficiency description for very low"
+    },
+    "incrementalSyncStatsLabelFetched": "Obtenidos",
+    "@incrementalSyncStatsLabelFetched": {
+        "description": "Label for fetched items count"
+    },
+    "incrementalSyncStatsLabelUpdated": "Actualizados",
+    "@incrementalSyncStatsLabelUpdated": {
+        "description": "Label for updated items count"
+    },
+    "incrementalSyncStatsLabelSkipped": "Omitidos",
+    "@incrementalSyncStatsLabelSkipped": {
+        "description": "Label for skipped items count"
+    },
+    "incrementalSyncStatsLabelSaved": "Ahorrado",
+    "@incrementalSyncStatsLabelSaved": {
+        "description": "Label for saved bandwidth"
+    },
+    "incrementalSyncStatsLabelSyncs": "Sincronizaciones",
+    "@incrementalSyncStatsLabelSyncs": {
+        "description": "Label for sync count"
+    },
+    "incrementalSyncStatsLabelBandwidthSaved": "Ancho de Banda Ahorrado",
+    "@incrementalSyncStatsLabelBandwidthSaved": {
+        "description": "Label for bandwidth saved"
+    },
+    "incrementalSyncStatsLabelApiCallsSaved": "Llamadas API Ahorradas",
+    "@incrementalSyncStatsLabelApiCallsSaved": {
+        "description": "Label for API calls saved"
+    },
+    "incrementalSyncStatsLabelUpdateRate": "Tasa de Actualización",
+    "@incrementalSyncStatsLabelUpdateRate": {
+        "description": "Label for update rate"
+    },
+    "incrementalSyncStatsCurrentSync": "Sincronización Actual",
+    "@incrementalSyncStatsCurrentSync": {
+        "description": "Current sync section title"
+    },
+    "incrementalSyncStatsDuration": "Duración: {duration}",
+    "@incrementalSyncStatsDuration": {
+        "description": "Sync duration label",
+        "placeholders": {
+            "duration": {
+                "type": "String",
+                "example": "2m 30s"
+            }
+        }
+    },
+    "incrementalSyncStatsStatusSuccess": "Estado: Exitoso",
+    "@incrementalSyncStatsStatusSuccess": {
+        "description": "Status label for successful sync"
+    },
+    "incrementalSyncStatsStatusFailed": "Estado: Fallido",
+    "@incrementalSyncStatsStatusFailed": {
+        "description": "Status label for failed sync"
+    },
+    "incrementalSyncStatsError": "Error: {error}",
+    "@incrementalSyncStatsError": {
+        "description": "Error label in sync details",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Error de red"
+            }
+        }
+    },
+    "incrementalSyncStatsByEntityType": "Por Tipo de Entidad:",
+    "@incrementalSyncStatsByEntityType": {
+        "description": "Label for entity type breakdown section"
+    },
+    "incrementalSyncStatsEfficient": "{rate}% eficiente",
+    "@incrementalSyncStatsEfficient": {
+        "description": "Efficiency summary text",
+        "placeholders": {
+            "rate": {
+                "type": "String",
+                "example": "75"
+            }
+        }
+    },
+    "offlineBannerTitle": "Estás sin conexión",
+    "@offlineBannerTitle": {
+        "description": "Offline banner title"
+    },
+    "offlineBannerMessage": "Los cambios se sincronizarán cuando estés en línea.",
+    "@offlineBannerMessage": {
+        "description": "Offline banner message"
+    },
+    "offlineBannerLearnMore": "Más información",
+    "@offlineBannerLearnMore": {
+        "description": "Learn More button label"
+    },
+    "offlineBannerDismiss": "Descartar",
+    "@offlineBannerDismiss": {
+        "description": "Dismiss button tooltip"
+    },
+    "offlineBannerSemanticLabel": "Estás sin conexión. Los cambios se sincronizarán cuando vuelvas a estar en línea. Desliza para descartar o toca Más información para detalles.",
+    "@offlineBannerSemanticLabel": {
+        "description": "Accessibility label for offline banner"
+    },
+    "transactionOfflineMode": "Modo Sin Conexión",
+    "@transactionOfflineMode": {
+        "description": "Offline mode indicator title"
+    },
+    "transactionOfflineSaveNew": "La transacción se guardará localmente y se sincronizará cuando estés en línea",
+    "@transactionOfflineSaveNew": {
+        "description": "Message for new transaction saved offline"
+    },
+    "transactionOfflineSaveEdit": "Los cambios se guardarán localmente y se sincronizarán cuando estés en línea",
+    "@transactionOfflineSaveEdit": {
+        "description": "Message for edited transaction saved offline"
+    },
+    "transactionSaveOffline": "Guardar Sin Conexión",
+    "@transactionSaveOffline": {
+        "description": "Save button label when offline"
+    },
+    "transactionSave": "Guardar",
+    "@transactionSave": {
+        "description": "Save button label when online"
+    },
+    "transactionSavedSynced": "Transacción guardada y sincronizada",
+    "@transactionSavedSynced": {
+        "description": "Message when transaction is saved and synced"
+    },
+    "transactionSavedOffline": "Transacción guardada sin conexión. Se sincronizará cuando estés en línea.",
+    "@transactionSavedOffline": {
+        "description": "Message when transaction is saved offline"
+    },
+    "transactionSaved": "Transacción guardada",
+    "@transactionSaved": {
+        "description": "Message when transaction is saved online"
+    },
+    "syncStatusSynced": "Sincronizado",
+    "@syncStatusSynced": {
+        "description": "Sync status: synced"
+    },
+    "syncStatusSyncing": "Sincronizando...",
+    "@syncStatusSyncing": {
+        "description": "Sync status: syncing"
+    },
+    "syncStatusPending": "{count} elementos pendientes",
+    "@syncStatusPending": {
+        "description": "Sync status: pending items",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "5"
+            }
+        }
+    },
+    "syncStatusFailed": "Sincronización fallida",
+    "@syncStatusFailed": {
+        "description": "Sync status: failed"
+    },
+    "syncStatusOffline": "Sin conexión",
+    "@syncStatusOffline": {
+        "description": "Sync status: offline"
+    },
+    "syncStatusJustNow": "Ahora mismo",
+    "@syncStatusJustNow": {
+        "description": "Last sync time: just now"
+    },
+    "syncStatusMinutesAgo": "hace {minutes}m",
+    "@syncStatusMinutesAgo": {
+        "description": "Last sync time: minutes ago",
+        "placeholders": {
+            "minutes": {
+                "type": "int",
+                "example": "5"
+            }
+        }
+    },
+    "syncStatusHoursAgo": "hace {hours}h",
+    "@syncStatusHoursAgo": {
+        "description": "Last sync time: hours ago",
+        "placeholders": {
+            "hours": {
+                "type": "int",
+                "example": "2"
+            }
+        }
+    },
+    "syncStatusDaysAgo": "hace {days}d",
+    "@syncStatusDaysAgo": {
+        "description": "Last sync time: days ago",
+        "placeholders": {
+            "days": {
+                "type": "int",
+                "example": "3"
+            }
+        }
+    },
+    "syncStatusOverWeekAgo": "Hace más de una semana",
+    "@syncStatusOverWeekAgo": {
+        "description": "Last sync time: over a week ago"
+    },
+    "syncActionSyncNow": "Sincronizar ahora",
+    "@syncActionSyncNow": {
+        "description": "Sync now action label"
+    },
+    "syncActionForceFullSync": "Forzar sincronización completa",
+    "@syncActionForceFullSync": {
+        "description": "Force full sync action label"
+    },
+    "syncActionViewStatus": "Ver estado de sincronización",
+    "@syncActionViewStatus": {
+        "description": "View sync status action label"
+    },
+    "syncActionSettings": "Configuración de sincronización",
+    "@syncActionSettings": {
+        "description": "Sync settings action label"
+    },
+    "syncStarted": "Sincronización iniciada",
+    "@syncStarted": {
+        "description": "Message when sync is started"
+    },
+    "syncFullStarted": "Sincronización completa iniciada",
+    "@syncFullStarted": {
+        "description": "Message when full sync is started"
+    },
+    "syncFailedToStart": "Error al iniciar la sincronización: {error}",
+    "@syncFailedToStart": {
+        "description": "Error message when sync fails to start",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Error de red"
+            }
+        }
+    },
+    "syncFailedToStartFull": "Error al iniciar la sincronización completa: {error}",
+    "@syncFailedToStartFull": {
+        "description": "Error message when full sync fails to start",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Error de red"
+            }
+        }
+    },
+    "syncServiceNotAvailable": "Servicio de sincronización no disponible. Por favor, reinicie la aplicación.",
+    "@syncServiceNotAvailable": {
+        "description": "Message when sync service is not available"
+    },
+    "syncProgressProviderNotAvailable": "Proveedor de Estado de Sincronización No Disponible",
+    "@syncProgressProviderNotAvailable": {
+        "description": "Error title when sync status provider is not available"
+    },
+    "syncProgressProviderNotAvailableDesc": "Por favor, reinicie la aplicación para habilitar el seguimiento del progreso de sincronización.",
+    "@syncProgressProviderNotAvailableDesc": {
+        "description": "Error description when sync status provider is not available"
+    },
+    "syncProgressServiceUnavailable": "Servicio de Sincronización No Disponible",
+    "@syncProgressServiceUnavailable": {
+        "description": "Dialog title when sync service is unavailable"
+    },
+    "syncProgressServiceUnavailableDesc": "El Proveedor de Estado de Sincronización no está disponible. Por favor, reinicie la aplicación.",
+    "@syncProgressServiceUnavailableDesc": {
+        "description": "Dialog message when sync service is unavailable"
+    },
+    "syncProgressCancel": "Cancelar",
+    "@syncProgressCancel": {
+        "description": "Cancel button label"
+    },
+    "syncProgressFailed": "Sincronización Fallida",
+    "@syncProgressFailed": {
+        "description": "Sync failed title"
+    },
+    "syncProgressComplete": "Sincronización Completa",
+    "@syncProgressComplete": {
+        "description": "Sync complete title"
+    },
+    "syncProgressSyncing": "Sincronizando...",
+    "@syncProgressSyncing": {
+        "description": "Syncing title"
+    },
+    "incrementalSyncCacheCurrent": "Actual: {ttl}",
+    "@incrementalSyncCacheCurrent": {
+        "description": "Current cache TTL label",
+        "placeholders": {
+            "ttl": {
+                "type": "String",
+                "example": "24 horas"
+            }
+        }
+    },
+    "syncStatusProgressComplete": "{percentage}% completo",
+    "@syncStatusProgressComplete": {
+        "description": "Sync progress percentage complete",
+        "placeholders": {
+            "percentage": {
+                "type": "String",
+                "example": "75"
+            }
+        }
+    },
+    "syncProgressSuccessfullySynced": "Sincronizadas exitosamente {count} operaciones",
+    "@syncProgressSuccessfullySynced": {
+        "description": "Message when sync completes successfully",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "10"
+            }
+        }
+    },
+    "syncProgressConflictsDetected": "{count} conflictos detectados",
+    "@syncProgressConflictsDetected": {
+        "description": "Message when conflicts are detected",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "2"
+            }
+        }
+    },
+    "syncProgressOperationsFailed": "{count} operaciones fallaron",
+    "@syncProgressOperationsFailed": {
+        "description": "Message when operations fail",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "1"
+            }
+        }
+    },
+    "syncProgressOperationsCount": "{completed}/{total} operaciones",
+    "@syncProgressOperationsCount": {
+        "description": "Operations count display",
+        "placeholders": {
+            "completed": {
+                "type": "int",
+                "example": "5"
+            },
+            "total": {
+                "type": "int",
+                "example": "10"
+            }
+        }
+    },
+    "syncProgressSyncingOperations": "Sincronizando operaciones...",
+    "@syncProgressSyncingOperations": {
+        "description": "Message when syncing operations"
+    },
+    "syncProgressPreparing": "Preparando...",
+    "@syncProgressPreparing": {
+        "description": "Sync phase: preparing"
+    },
+    "syncProgressDetectingConflicts": "Detectando conflictos...",
+    "@syncProgressDetectingConflicts": {
+        "description": "Sync phase: detecting conflicts"
+    },
+    "syncProgressResolvingConflicts": "Resolviendo conflictos...",
+    "@syncProgressResolvingConflicts": {
+        "description": "Sync phase: resolving conflicts"
+    },
+    "syncProgressPullingUpdates": "Obteniendo actualizaciones...",
+    "@syncProgressPullingUpdates": {
+        "description": "Sync phase: pulling updates"
+    },
+    "syncProgressFinalizing": "Finalizando...",
+    "@syncProgressFinalizing": {
+        "description": "Sync phase: finalizing"
+    },
+    "syncProgressCompleted": "Completado",
+    "@syncProgressCompleted": {
+        "description": "Sync phase: completed"
+    },
+    "syncStatusSyncingCount": "Sincronizando... {synced} de {total}",
+    "@syncStatusSyncingCount": {
+        "description": "Syncing progress with count",
+        "placeholders": {
+            "synced": {
+                "type": "int",
+                "example": "5"
+            },
+            "total": {
+                "type": "int",
+                "example": "10"
+            }
+        }
+    },
+    "listViewOfflineFilterPending": "Pendiente",
+    "@listViewOfflineFilterPending": {
+        "description": "Pending filter label"
+    },
+    "listViewOfflineNoDataAvailable": "No hay {entityType} Disponibles",
+    "@listViewOfflineNoDataAvailable": {
+        "description": "No data available message",
+        "placeholders": {
+            "entityType": {
+                "type": "String",
+                "example": "transacciones"
+            }
+        }
+    },
+    "listViewOfflineNoDataMessage": "Estás sin conexión. {entityType} aparecerán aquí cuando te conectes a internet.",
+    "@listViewOfflineNoDataMessage": {
+        "description": "Offline no data message",
+        "placeholders": {
+            "entityType": {
+                "type": "String",
+                "example": "transacciones"
+            }
+        }
+    },
+    "listViewOfflineLastUpdated": "Última actualización: {age}",
+    "@listViewOfflineLastUpdated": {
+        "description": "Last updated label",
+        "placeholders": {
+            "age": {
+                "type": "String",
+                "example": "hace 5m"
+            }
+        }
+    },
+    "dashboardOfflineIncludesUnsynced": "Incluye datos no sincronizados",
+    "@dashboardOfflineIncludesUnsynced": {
+        "description": "Message when data includes unsynced items"
+    },
+    "dashboardOfflineDataAsOf": "Datos desde {age}",
+    "@dashboardOfflineDataAsOf": {
+        "description": "Data timestamp label",
+        "placeholders": {
+            "age": {
+                "type": "String",
+                "example": "hace 5m"
+            }
+        }
+    },
+    "dashboardOfflineUnsynced": "No sincronizado",
+    "@dashboardOfflineUnsynced": {
+        "description": "Unsynced label"
+    },
+    "dashboardOfflineViewingOfflineData": "Viendo datos sin conexión. Algunos datos pueden estar desactualizados.",
+    "@dashboardOfflineViewingOfflineData": {
+        "description": "Offline data viewing message"
+    },
+    "dashboardOfflineNoDataAvailable": "No hay {dataType} Disponibles",
+    "@dashboardOfflineNoDataAvailable": {
+        "description": "No data available message",
+        "placeholders": {
+            "dataType": {
+                "type": "String",
+                "example": "transacciones"
+            }
+        }
+    },
+    "dashboardOfflineConnectToLoad": "Conéctate a internet para cargar {dataType}",
+    "@dashboardOfflineConnectToLoad": {
+        "description": "Connect to load data message",
+        "placeholders": {
+            "dataType": {
+                "type": "String",
+                "example": "transacciones"
+            }
+        }
+    },
+    "dashboardOfflineDataOutdated": "Los datos pueden estar desactualizados. Última actualización: {age}.",
+    "@dashboardOfflineDataOutdated": {
+        "description": "Data outdated warning",
+        "placeholders": {
+            "age": {
+                "type": "String",
+                "example": "hace 5m"
+            }
+        }
+    },
+    "generalNetworkTypeWifi": "WiFi",
+    "@generalNetworkTypeWifi": {
+        "description": "Network type: WiFi"
+    },
+    "generalNetworkTypeMobile": "Datos Móviles",
+    "@generalNetworkTypeMobile": {
+        "description": "Network type: Mobile Data"
+    },
+    "generalNetworkTypeEthernet": "Ethernet",
+    "@generalNetworkTypeEthernet": {
+        "description": "Network type: Ethernet"
+    },
+    "generalNetworkTypeVpn": "VPN",
+    "@generalNetworkTypeVpn": {
+        "description": "Network type: VPN"
+    },
+    "generalNetworkTypeBluetooth": "Bluetooth",
+    "@generalNetworkTypeBluetooth": {
+        "description": "Network type: Bluetooth"
+    },
+    "generalNetworkTypeOther": "Otro",
+    "@generalNetworkTypeOther": {
+        "description": "Network type: Other"
+    },
+    "generalNetworkTypeNone": "Ninguno",
+    "@generalNetworkTypeNone": {
+        "description": "Network type: None"
+    },
+    "generalNetworkTypeSeparator": "+",
+    "@generalNetworkTypeSeparator": {
+        "description": "Separator for multiple network types (e.g., WiFi + VPN)"
     }
 }

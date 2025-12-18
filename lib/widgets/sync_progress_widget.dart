@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/models/sync_progress.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
 
@@ -121,33 +122,33 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
                 children: <Widget>[
                   const Icon(Icons.error_outline, size: 48, color: Colors.grey),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Sync Status Provider Not Available',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    S.of(context).syncProgressProviderNotAvailable,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Please restart the app to enable sync progress tracking.',
+                  Text(
+                    S.of(context).syncProgressProviderNotAvailableDesc,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Close'),
+                    child: Text(S.of(context).generalDismiss),
                   ),
                 ],
               ),
             )
           : AlertDialog(
-              title: const Text('Sync Service Unavailable'),
-              content: const Text(
-                'Sync Status Provider is not available. Please restart the app.',
+              title: Text(S.of(context).syncProgressServiceUnavailable),
+              content: Text(
+                S.of(context).syncProgressServiceUnavailableDesc,
               ),
               actions: <Widget>[
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('OK'),
+                  child: Text(S.of(context).generalDismiss),
                 ),
               ],
             );
@@ -230,7 +231,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
               ? <Widget>[
                 TextButton(
                   onPressed: () => _handleCancel(context),
-                  child: const Text('Cancel'),
+                  child: Text(S.of(context).syncProgressCancel),
                 ),
               ]
               : null,
@@ -248,22 +249,23 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
     final Color iconColor;
     final String title;
 
+    final S localizations = S.of(context);
     if (error != null) {
       icon = Icons.error;
       iconColor = Colors.red;
-      title = 'Sync Failed';
+      title = localizations.syncProgressFailed;
     } else if (progress != null && progress.isComplete) {
       icon = Icons.check_circle;
       iconColor = Colors.green;
-      title = 'Sync Complete';
+      title = localizations.syncProgressComplete;
     } else if (isSyncing) {
       icon = Icons.sync;
       iconColor = Theme.of(context).colorScheme.primary;
-      title = 'Syncing...';
+      title = localizations.syncProgressSyncing;
     } else {
       icon = Icons.cloud_sync;
       iconColor = Colors.grey;
-      title = 'Preparing...';
+      title = localizations.syncProgressPreparing;
     }
 
     return Row(
@@ -360,21 +362,21 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
         Icon(Icons.check_circle_outline, color: Colors.green[600], size: 64),
         const SizedBox(height: 16),
         Text(
-          'Successfully synced ${progress.completedOperations} operations',
+          S.of(context).syncProgressSuccessfullySynced(progress.completedOperations),
           style: Theme.of(context).textTheme.bodyLarge,
           textAlign: TextAlign.center,
         ),
         if (progress.conflictsDetected > 0) ...<Widget>[
           const SizedBox(height: 8),
           Text(
-            '${progress.conflictsDetected} conflicts detected',
+            S.of(context).syncProgressConflictsDetected(progress.conflictsDetected),
             style: TextStyle(color: Colors.orange[700]),
           ),
         ],
         if (progress.failedOperations > 0) ...<Widget>[
           const SizedBox(height: 8),
           Text(
-            '${progress.failedOperations} operations failed',
+            S.of(context).syncProgressOperationsFailed(progress.failedOperations),
             style: TextStyle(color: Colors.red[700]),
           ),
         ],
@@ -402,7 +404,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              '${progress.completedOperations}/${progress.totalOperations} operations',
+              S.of(context).syncProgressOperationsCount(progress.completedOperations, progress.totalOperations),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(
@@ -528,7 +530,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
         const SizedBox(height: 12),
         Center(
           child: Text(
-            _formatSyncPhase(progress.phase),
+            _formatSyncPhase(progress.phase, context),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Colors.grey[600],
               fontStyle: FontStyle.italic,
@@ -656,24 +658,25 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
   }
 
   /// Format sync phase for display.
-  String _formatSyncPhase(SyncPhase phase) {
+  String _formatSyncPhase(SyncPhase phase, BuildContext context) {
+    final S localizations = S.of(context);
     switch (phase) {
       case SyncPhase.preparing:
-        return 'Preparing...';
+        return localizations.syncProgressPreparing;
       case SyncPhase.syncing:
-        return 'Syncing operations...';
+        return localizations.syncProgressSyncingOperations;
       case SyncPhase.detectingConflicts:
-        return 'Detecting conflicts...';
+        return localizations.syncProgressDetectingConflicts;
       case SyncPhase.resolvingConflicts:
-        return 'Resolving conflicts...';
+        return localizations.syncProgressResolvingConflicts;
       case SyncPhase.pulling:
-        return 'Pulling updates...';
+        return localizations.syncProgressPullingUpdates;
       case SyncPhase.finalizing:
-        return 'Finalizing...';
+        return localizations.syncProgressFinalizing;
       case SyncPhase.completed:
-        return 'Completed';
+        return localizations.syncProgressCompleted;
       case SyncPhase.failed:
-        return 'Failed';
+        return localizations.syncProgressFailed;
     }
   }
 
