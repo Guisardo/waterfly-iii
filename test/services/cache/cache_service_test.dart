@@ -241,7 +241,7 @@ void main() {
         expect(fetcherCallCount, equals(0));
 
         // Wait for background refresh to complete
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
 
         // Fetcher called once during background refresh
         expect(fetcherCallCount, equals(1));
@@ -339,7 +339,7 @@ void main() {
           ); // Fetcher not called - data returned from _lastSuccessfulData
 
           // Wait to ensure background refresh doesn't happen
-          await Future.delayed(const Duration(milliseconds: 100));
+          await Future<void>.delayed(const Duration(milliseconds: 100));
           expect(
             fetcherCallCount,
             equals(0),
@@ -502,7 +502,7 @@ void main() {
         await cacheService.invalidate('test_entity', '999');
 
         // Wait for event emission
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         // Assert: Cache no longer fresh
         final bool isFresh = await cacheService.isFresh('test_entity', '999');
@@ -557,7 +557,7 @@ void main() {
         await cacheService.invalidateType('test_entity');
 
         // Wait for database update
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         // Assert: test_entity entries invalidated, other_entity not affected
         expect(await cacheService.isFresh('test_entity', 'a1'), isFalse);
@@ -580,7 +580,7 @@ void main() {
 
         // Act
         await cacheService.invalidateType('test_entity');
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         // Assert: Type-level event emitted with '*' entityId
         final List<CacheInvalidationEvent> typeEvents =
@@ -619,7 +619,7 @@ void main() {
         await cacheService.clearAll();
 
         // Wait for database operation
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         // Assert: All entries cleared
         expect(await cacheService.isFresh('test_entity', 'd1'), isFalse);
@@ -749,7 +749,7 @@ void main() {
         await cacheService.cleanExpired();
 
         // Wait for cleanup
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         // Assert: Expired entry removed, fresh entry remains
         final List<CacheMetadataEntity> entries =
@@ -844,7 +844,7 @@ void main() {
           ); // This should trigger eviction
 
           // Wait for eviction
-          await Future.delayed(const Duration(milliseconds: 200));
+          await Future<void>.delayed(const Duration(milliseconds: 200));
 
           // Assert: Cache size within limit (after eviction)
           final CacheStats stats = await cacheService.getStats();
@@ -876,7 +876,7 @@ void main() {
 
         // Wait to ensure time passes before reading initial timestamp
         // This ensures the set() operation completes fully
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
 
         // Get initial lastAccessedAt
         CacheMetadataEntity metadata =
@@ -890,7 +890,7 @@ void main() {
         // Critical: Wait to ensure DateTime.now() in get() will be different
         // This is the key - we need time to pass at the SOURCE (DateTime.now())
         // not just in our test
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future<void>.delayed(const Duration(milliseconds: 500));
 
         // Act: Access cache entry - this should update lastAccessedAt
         await cacheService.get<TestEntity>(
@@ -902,7 +902,7 @@ void main() {
         );
 
         // Wait for database write to complete and flush
-        await Future.delayed(const Duration(milliseconds: 300));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
 
         // Assert: lastAccessedAt should be updated to a later time
         metadata =
@@ -985,7 +985,7 @@ void main() {
               entityType: 'test_entity',
               entityId: 'm$i',
               fetcher: () async {
-                await Future.delayed(const Duration(milliseconds: 10));
+                await Future<void>.delayed(const Duration(milliseconds: 10));
                 return TestEntity(id: 'm$i', name: 'M${i}_new', value: i + 100);
               },
               backgroundRefresh: true,
@@ -998,7 +998,7 @@ void main() {
         expect(results, hasLength(5));
 
         // Wait for background refreshes
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
       });
     });
 
@@ -1055,7 +1055,7 @@ void main() {
         expect(fetcherCallCount, equals(0));
 
         // Wait for background refresh attempt (should fail silently)
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
 
         // Background refresh error should not propagate - fetcher called once during background refresh
         expect(fetcherCallCount, equals(1));
@@ -1082,7 +1082,7 @@ void main() {
         await cacheService.invalidateType('test_entity');
 
         // Wait for event emission
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
         // Assert: Events emitted
         expect(
