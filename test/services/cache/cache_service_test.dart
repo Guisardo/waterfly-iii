@@ -138,7 +138,7 @@ void main() {
               entityId: '456',
               fetcher: () async {
                 firstFetchCount++;
-                await Future.delayed(
+                await Future<void>.delayed(
                   const Duration(milliseconds: 10),
                 ); // Simulate API delay
                 // Simulate API storing to repository DB
