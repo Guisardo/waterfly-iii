@@ -312,7 +312,12 @@ class DateRangeIterator {
         consecutiveErrors = 0; // Reset error counter on success
 
         for (final Map<String, dynamic> item in result.data) {
+          // Yield item first so it can be processed and counted
+          yield item;
+          totalFetched++;
+
           // Check if should stop early (for incremental sync optimization)
+          // This happens after yielding so the item is still processed and counted
           if (stopWhenProcessed != null) {
             final bool shouldStop = await stopWhenProcessed!(item);
             if (shouldStop) {
@@ -323,9 +328,6 @@ class DateRangeIterator {
               break;
             }
           }
-
-          yield item;
-          totalFetched++;
         }
 
         // Break if terminated early

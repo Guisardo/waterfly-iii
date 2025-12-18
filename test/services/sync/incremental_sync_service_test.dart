@@ -1368,6 +1368,8 @@ void _setupTransactionResponse(
       start: any(named: 'start'),
       end: any(named: 'end'),
       limit: any(named: 'limit'),
+      sort: any(named: 'sort'),
+      order: any(named: 'order'),
     ),
   ).thenAnswer(
     (_) async => PaginatedResult<Map<String, dynamic>>(
@@ -1390,6 +1392,8 @@ void _setupAccountResponse(
       page: any(named: 'page'),
       start: any(named: 'start'),
       limit: any(named: 'limit'),
+      sort: any(named: 'sort'),
+      order: any(named: 'order'),
     ),
   ).thenAnswer(
     (_) async => PaginatedResult<Map<String, dynamic>>(
@@ -1413,6 +1417,8 @@ void _setupBudgetResponse(
       start: any(named: 'start'),
       end: any(named: 'end'),
       limit: any(named: 'limit'),
+      sort: any(named: 'sort'),
+      order: any(named: 'order'),
     ),
   ).thenAnswer(
     (_) async => PaginatedResult<Map<String, dynamic>>(
