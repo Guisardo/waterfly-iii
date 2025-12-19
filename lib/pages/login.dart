@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:waterflyiii/animations.dart';
@@ -174,6 +175,12 @@ class _LoginPageState extends State<LoginPage> {
                       controller: _hostTextController,
                       //readOnly: _formSubmitted,
                       focusNode: _hostFocusNode,
+                      keyboardType: TextInputType.url,
+                      textCapitalization: TextCapitalization.none,
+                      autofillHints: const <String>[AutofillHints.url],
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                      ],
                       decoration: InputDecoration(
                         filled: true,
                         labelText: S.of(context).loginFormLabelHost,
