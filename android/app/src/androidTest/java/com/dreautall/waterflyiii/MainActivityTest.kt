@@ -33,6 +33,18 @@ class MainActivityTest {
         get() = activityRule.activity
 
     /**
+     * Helper method to assert that the activity is not null.
+     * 
+     * This extracts the common assertion pattern used across multiple tests,
+     * following DRY principles while maintaining test clarity.
+     * 
+     * @param message The assertion message to display if the activity is null
+     */
+    private fun assertActivityNotNull(message: String) {
+        assertNotNull(message, activity)
+    }
+
+    /**
      * Tests that the application context is correctly configured.
      * 
      * Validates:
@@ -59,7 +71,7 @@ class MainActivityTest {
      */
     @Test
     fun testMainActivityLaunches() {
-        assertNotNull("MainActivity should not be null", activity)
+        assertActivityNotNull("MainActivity should not be null")
     }
 
     /**
@@ -74,6 +86,6 @@ class MainActivityTest {
      */
     @Test
     fun testNotificationPermission() {
-        assertNotNull("Activity should handle notification permissions", activity)
+        assertActivityNotNull("Activity should handle notification permissions")
     }
 }
