@@ -293,7 +293,8 @@ class ListViewOfflineHelper {
   static String _formatAge(Duration age, BuildContext context) {
     final S localizations = S.of(context);
     if (age.inMinutes < 1) return localizations.syncStatusJustNow;
-    if (age.inHours < 1) return localizations.syncStatusMinutesAgo(age.inMinutes);
+    if (age.inHours < 1)
+      return localizations.syncStatusMinutesAgo(age.inMinutes);
     if (age.inDays < 1) return localizations.syncStatusHoursAgo(age.inHours);
     return localizations.syncStatusDaysAgo(age.inDays);
   }

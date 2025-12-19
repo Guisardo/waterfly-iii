@@ -329,8 +329,19 @@ class _WaterflyAppState extends State<WaterflyApp> {
 
             // Data Services (Phase 2: Cached API Access)
             // These services provide cached access to computed/aggregate data.
-            ProxyProvider3<FireflyService, CacheService, TransactionRepository, InsightsService?>(
-              update: (_, FireflyService firefly, CacheService cache, TransactionRepository transactionRepo, _) {
+            ProxyProvider3<
+              FireflyService,
+              CacheService,
+              TransactionRepository,
+              InsightsService?
+            >(
+              update: (
+                _,
+                FireflyService firefly,
+                CacheService cache,
+                TransactionRepository transactionRepo,
+                _,
+              ) {
                 // Only create service when signed in
                 if (!firefly.signedIn) return null;
                 return InsightsService(
@@ -398,7 +409,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
           builder: (BuildContext context, _) {
             // Force AppModeProvider to be created early
             context.read<AppModeProvider>();
-            
+
             late bool signedIn;
             log.finest(() => "_startup = $_startup");
             _requiresAuth = context.watch<SettingsProvider>().lock;

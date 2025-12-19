@@ -778,7 +778,9 @@ class FireflyApiAdapter {
 
   /// Get accounts updated since timestamp
   Future<List<Map<String, dynamic>>> getAccountsSince(DateTime since) async {
-    _logger.fine('Fetching accounts updated since $since (no sort/order - API doesn\'t support it)');
+    _logger.fine(
+      'Fetching accounts updated since $since (no sort/order - API doesn\'t support it)',
+    );
 
     final List<Map<String, dynamic>> accounts = <Map<String, dynamic>>[];
     int page = 1;
@@ -786,12 +788,12 @@ class FireflyApiAdapter {
     while (true) {
       final PaginatedResult<Map<String, dynamic>> result =
           await getAccountsPaginated(
-        page: page,
-        start: since,
-        // Accounts API doesn't support sort/order parameters
-        sort: null,
-        order: null,
-      );
+            page: page,
+            start: since,
+            // Accounts API doesn't support sort/order parameters
+            sort: null,
+            order: null,
+          );
 
       if (result.data.isEmpty) break;
 
@@ -807,7 +809,9 @@ class FireflyApiAdapter {
 
   /// Get categories updated since timestamp
   Future<List<Map<String, dynamic>>> getCategoriesSince(DateTime since) async {
-    _logger.fine('Fetching categories updated since $since (no sort/order - API doesn\'t support it)');
+    _logger.fine(
+      'Fetching categories updated since $since (no sort/order - API doesn\'t support it)',
+    );
 
     final List<Map<String, dynamic>> categories = <Map<String, dynamic>>[];
     int page = 1;
@@ -816,11 +820,11 @@ class FireflyApiAdapter {
     while (true) {
       final PaginatedResult<Map<String, dynamic>> result =
           await getCategoriesPaginated(
-        page: page,
-        // Categories API doesn't support sort/order parameters
-        sort: null,
-        order: null,
-      );
+            page: page,
+            // Categories API doesn't support sort/order parameters
+            sort: null,
+            order: null,
+          );
 
       if (result.data.isEmpty) break;
 
@@ -836,7 +840,9 @@ class FireflyApiAdapter {
 
   /// Get budgets updated since timestamp
   Future<List<Map<String, dynamic>>> getBudgetsSince(DateTime since) async {
-    _logger.fine('Fetching budgets updated since $since (no sort/order - API doesn\'t support it)');
+    _logger.fine(
+      'Fetching budgets updated since $since (no sort/order - API doesn\'t support it)',
+    );
 
     final List<Map<String, dynamic>> budgets = <Map<String, dynamic>>[];
     int page = 1;
@@ -844,12 +850,12 @@ class FireflyApiAdapter {
     while (true) {
       final PaginatedResult<Map<String, dynamic>> result =
           await getBudgetsPaginated(
-        page: page,
-        start: since,
-        // Budgets API doesn't support sort/order parameters
-        sort: null,
-        order: null,
-      );
+            page: page,
+            start: since,
+            // Budgets API doesn't support sort/order parameters
+            sort: null,
+            order: null,
+          );
 
       if (result.data.isEmpty) break;
 
@@ -865,7 +871,9 @@ class FireflyApiAdapter {
 
   /// Get bills updated since timestamp
   Future<List<Map<String, dynamic>>> getBillsSince(DateTime since) async {
-    _logger.fine('Fetching bills updated since $since (no sort/order - API doesn\'t support it)');
+    _logger.fine(
+      'Fetching bills updated since $since (no sort/order - API doesn\'t support it)',
+    );
 
     final List<Map<String, dynamic>> bills = <Map<String, dynamic>>[];
     int page = 1;
@@ -874,11 +882,11 @@ class FireflyApiAdapter {
     while (true) {
       final PaginatedResult<Map<String, dynamic>> result =
           await getBillsPaginated(
-        page: page,
-        // Bills API doesn't support sort/order parameters
-        sort: null,
-        order: null,
-      );
+            page: page,
+            // Bills API doesn't support sort/order parameters
+            sort: null,
+            order: null,
+          );
 
       if (result.data.isEmpty) break;
 
@@ -894,7 +902,9 @@ class FireflyApiAdapter {
 
   /// Get piggy banks updated since timestamp
   Future<List<Map<String, dynamic>>> getPiggyBanksSince(DateTime since) async {
-    _logger.fine('Fetching piggy banks updated since $since (no sort/order - API doesn\'t support it)');
+    _logger.fine(
+      'Fetching piggy banks updated since $since (no sort/order - API doesn\'t support it)',
+    );
 
     final List<Map<String, dynamic>> piggyBanks = <Map<String, dynamic>>[];
     int page = 1;
@@ -903,11 +913,11 @@ class FireflyApiAdapter {
     while (true) {
       final PaginatedResult<Map<String, dynamic>> result =
           await getPiggyBanksPaginated(
-        page: page,
-        // Piggy banks API doesn't support sort/order parameters
-        sort: null,
-        order: null,
-      );
+            page: page,
+            // Piggy banks API doesn't support sort/order parameters
+            sort: null,
+            order: null,
+          );
 
       if (result.data.isEmpty) break;
 
@@ -925,7 +935,9 @@ class FireflyApiAdapter {
   Future<List<Map<String, dynamic>>> getTransactionsSince(
     DateTime since,
   ) async {
-    _logger.fine('Fetching transactions updated since $since (with sort=updated_at&order=desc)');
+    _logger.fine(
+      'Fetching transactions updated since $since (with sort=updated_at&order=desc)',
+    );
 
     final List<Map<String, dynamic>> transactions = <Map<String, dynamic>>[];
     int page = 1;
@@ -933,11 +945,11 @@ class FireflyApiAdapter {
     while (true) {
       final PaginatedResult<Map<String, dynamic>> result =
           await getTransactionsPaginated(
-        page: page,
-        start: since,
-        sort: 'updated_at',
-        order: 'desc',
-      );
+            page: page,
+            start: since,
+            sort: 'updated_at',
+            order: 'desc',
+          );
 
       if (result.data.isEmpty) break;
 
@@ -1022,10 +1034,13 @@ class FireflyApiAdapter {
       final String errorMessage = response.error?.toString() ?? 'Unknown error';
       final int? statusCode = response.statusCode;
       final String? responseBody = response.bodyString;
-      final String error = 'Failed to fetch transactions: $errorMessage (status: $statusCode)';
+      final String error =
+          'Failed to fetch transactions: $errorMessage (status: $statusCode)';
       _logger.severe('Transaction fetch error (without sort): $error');
       _logger.severe('Response body: $responseBody');
-      _logger.severe('Request params: page=$page, limit=$limit, start=${start?.toIso8601String().split('T')[0]}, end=${end?.toIso8601String().split('T')[0]}');
+      _logger.severe(
+        'Request params: page=$page, limit=$limit, start=${start?.toIso8601String().split('T')[0]}, end=${end?.toIso8601String().split('T')[0]}',
+      );
       throw ApiException(error, statusCode: statusCode);
     }
 
@@ -1069,7 +1084,7 @@ class FireflyApiAdapter {
   /// Uses ChopperClient directly to add sort/order query parameters that
   /// are not in the generated Swagger client.
   Future<PaginatedResult<Map<String, dynamic>>>
-      _getTransactionsPaginatedWithSort({
+  _getTransactionsPaginatedWithSort({
     required int page,
     DateTime? start,
     DateTime? end,
@@ -1094,24 +1109,31 @@ class FireflyApiAdapter {
       parameters: params,
     );
 
-    _logger.fine('Sending transaction request: ${request.url} with params: $params');
+    _logger.fine(
+      'Sending transaction request: ${request.url} with params: $params',
+    );
 
     Response<dynamic> response;
     try {
       // Use dynamic to get raw response, then parse manually
-      response = await apiClient.client.send<dynamic, dynamic>(
-        request,
+      response = await apiClient.client.send<dynamic, dynamic>(request);
+      _logger.fine(
+        'Transaction response received: isSuccessful=${response.isSuccessful}, statusCode=${response.statusCode}',
       );
-      _logger.fine('Transaction response received: isSuccessful=${response.isSuccessful}, statusCode=${response.statusCode}');
     } catch (e, stackTrace) {
-      _logger.severe('Exception during transaction API call (with sort)', e, stackTrace);
+      _logger.severe(
+        'Exception during transaction API call (with sort)',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
 
     if (!response.isSuccessful) {
       final String errorMessage = response.error?.toString() ?? 'Unknown error';
       final int? statusCode = response.statusCode;
-      final String error = 'Failed to fetch transactions: $errorMessage (status: $statusCode)';
+      final String error =
+          'Failed to fetch transactions: $errorMessage (status: $statusCode)';
       _logger.severe(error);
       throw ApiException(error, statusCode: statusCode);
     }
@@ -1121,7 +1143,10 @@ class FireflyApiAdapter {
     try {
       final dynamic responseBody = response.body;
       if (responseBody == null) {
-        throw ApiException('Response body is null', statusCode: response.statusCode);
+        throw ApiException(
+          'Response body is null',
+          statusCode: response.statusCode,
+        );
       }
 
       // Handle both Map and String response bodies
@@ -1281,8 +1306,8 @@ class FireflyApiAdapter {
       parameters: params,
     );
 
-    final Response<AccountArray> response =
-        await apiClient.client.send<AccountArray, AccountArray>(request);
+    final Response<AccountArray> response = await apiClient.client
+        .send<AccountArray, AccountArray>(request);
 
     if (!response.isSuccessful || response.body == null) {
       final String error = 'Failed to fetch accounts: ${response.error}';
@@ -1433,8 +1458,8 @@ class FireflyApiAdapter {
       parameters: params,
     );
 
-    final Response<BudgetArray> response =
-        await apiClient.client.send<BudgetArray, BudgetArray>(request);
+    final Response<BudgetArray> response = await apiClient.client
+        .send<BudgetArray, BudgetArray>(request);
 
     if (!response.isSuccessful || response.body == null) {
       final String error = 'Failed to fetch budgets: ${response.error}';
@@ -1553,7 +1578,7 @@ class FireflyApiAdapter {
 
   /// Internal method to fetch categories with sort/order parameters.
   Future<PaginatedResult<Map<String, dynamic>>>
-      _getCategoriesPaginatedWithSort({
+  _getCategoriesPaginatedWithSort({
     required int page,
     int limit = 50,
     String? sort,
@@ -1574,8 +1599,8 @@ class FireflyApiAdapter {
       parameters: params,
     );
 
-    final Response<CategoryArray> response =
-        await apiClient.client.send<CategoryArray, CategoryArray>(request);
+    final Response<CategoryArray> response = await apiClient.client
+        .send<CategoryArray, CategoryArray>(request);
 
     if (!response.isSuccessful || response.body == null) {
       final String error = 'Failed to fetch categories: ${response.error}';
@@ -1714,8 +1739,8 @@ class FireflyApiAdapter {
       parameters: params,
     );
 
-    final Response<BillArray> response =
-        await apiClient.client.send<BillArray, BillArray>(request);
+    final Response<BillArray> response = await apiClient.client
+        .send<BillArray, BillArray>(request);
 
     if (!response.isSuccessful || response.body == null) {
       final String error = 'Failed to fetch bills: ${response.error}';
@@ -1834,7 +1859,7 @@ class FireflyApiAdapter {
 
   /// Internal method to fetch piggy banks with sort/order parameters.
   Future<PaginatedResult<Map<String, dynamic>>>
-      _getPiggyBanksPaginatedWithSort({
+  _getPiggyBanksPaginatedWithSort({
     required int page,
     int limit = 50,
     String? sort,
@@ -1855,8 +1880,8 @@ class FireflyApiAdapter {
       parameters: params,
     );
 
-    final Response<PiggyBankArray> response =
-        await apiClient.client.send<PiggyBankArray, PiggyBankArray>(request);
+    final Response<PiggyBankArray> response = await apiClient.client
+        .send<PiggyBankArray, PiggyBankArray>(request);
 
     if (!response.isSuccessful || response.body == null) {
       final String error = 'Failed to fetch piggy banks: ${response.error}';

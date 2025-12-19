@@ -108,16 +108,20 @@ class OfflineSettingsProvider extends ChangeNotifier {
       _prefs = prefs;
       _syncScheduler = BackgroundSyncScheduler(prefs);
       _loadSettings();
-      
+
       // Load existing statistics from database if available
       await _loadStatisticsFromDatabase();
-      
+
       _isLoading = false;
       _isInitialized = true;
       notifyListeners();
     } catch (error, stackTrace) {
       final Logger log = Logger('OfflineSettingsProvider');
-      log.severe('Failed to initialize OfflineSettingsProvider', error, stackTrace);
+      log.severe(
+        'Failed to initialize OfflineSettingsProvider',
+        error,
+        stackTrace,
+      );
       _isLoading = false;
       notifyListeners();
     }
@@ -131,9 +135,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
     try {
       final AppDatabase database = AppDatabase();
       // Import the generated types - they're available through app_database.dart
-      final allStats = await database
-          .select(database.syncStatistics)
-          .get();
+      final allStats = await database.select(database.syncStatistics).get();
 
       if (allStats.isEmpty) {
         return;
@@ -172,7 +174,8 @@ class OfflineSettingsProvider extends ChangeNotifier {
 
       // Only update if database has more recent data than SharedPreferences
       // (i.e., if SharedPreferences values are 0 or database has newer timestamp)
-      final bool shouldUpdate = _totalItemsFetched == 0 ||
+      final bool shouldUpdate =
+          _totalItemsFetched == 0 ||
           (latestIncrementalSync != null &&
               (_lastIncrementalSyncTime == null ||
                   latestIncrementalSync.isAfter(_lastIncrementalSyncTime!)));
@@ -184,7 +187,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
         _totalItemsSkipped = totalSkipped;
         _totalBandwidthSaved = totalBandwidthSaved;
         _totalApiCallsSaved = totalApiCallsSaved;
-        
+
         if (latestIncrementalSync != null) {
           _lastIncrementalSyncTime = latestIncrementalSync;
         }
@@ -199,7 +202,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
           await _prefs!.setInt(_keyTotalItemsSkipped, _totalItemsSkipped);
           await _prefs!.setInt(_keyTotalBandwidthSaved, _totalBandwidthSaved);
           await _prefs!.setInt(_keyTotalApiCallsSaved, _totalApiCallsSaved);
-          
+
           if (_lastIncrementalSyncTime != null) {
             await _prefs!.setInt(
               _keyLastIncrementalSync,
@@ -440,7 +443,9 @@ class OfflineSettingsProvider extends ChangeNotifier {
       }
 
       // Load incremental sync timestamps
-      final int? lastIncrementalMillis = _prefs!.getInt(_keyLastIncrementalSync);
+      final int? lastIncrementalMillis = _prefs!.getInt(
+        _keyLastIncrementalSync,
+      );
       if (lastIncrementalMillis != null) {
         _lastIncrementalSyncTime = DateTime.fromMillisecondsSinceEpoch(
           lastIncrementalMillis,
@@ -463,7 +468,6 @@ class OfflineSettingsProvider extends ChangeNotifier {
       _totalBandwidthSaved = _prefs!.getInt(_keyTotalBandwidthSaved) ?? 0;
       _totalApiCallsSaved = _prefs!.getInt(_keyTotalApiCallsSaved) ?? 0;
       _incrementalSyncCount = _prefs!.getInt(_keyIncrementalSyncCount) ?? 0;
-
 
       _log.info(
         'Loaded settings: interval=$_syncInterval, '
@@ -618,10 +622,12 @@ class OfflineSettingsProvider extends ChangeNotifier {
 
     try {
       if (_prefs == null) {
-        _log.warning('Cannot update database size: SharedPreferences not initialized');
+        _log.warning(
+          'Cannot update database size: SharedPreferences not initialized',
+        );
         return;
       }
-      
+
       _databaseSize = sizeInBytes;
       await _prefs!.setInt(_keyDatabaseSize, sizeInBytes);
       notifyListeners();

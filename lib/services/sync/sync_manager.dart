@@ -2457,7 +2457,9 @@ class SyncManager {
     if (appModeManager != null) {
       final appMode = appModeManager.currentMode;
       if (appMode == AppMode.offline) {
-        _logger.warning('Cannot sync: app is in offline mode (mobile data may be disabled)');
+        _logger.warning(
+          'Cannot sync: app is in offline mode (mobile data may be disabled)',
+        );
         return false;
       }
     }

@@ -226,23 +226,17 @@ void main() {
         <String, dynamic>{
           'id': '1',
           'type': 'transaction',
-          'attributes': <String, dynamic>{
-            'updated_at': '2024-12-20T10:00:00Z',
-          },
+          'attributes': <String, dynamic>{'updated_at': '2024-12-20T10:00:00Z'},
         },
         <String, dynamic>{
           'id': '2',
           'type': 'transaction',
-          'attributes': <String, dynamic>{
-            'updated_at': '2024-12-19T10:00:00Z',
-          },
+          'attributes': <String, dynamic>{'updated_at': '2024-12-19T10:00:00Z'},
         },
         <String, dynamic>{
           'id': '3',
           'type': 'transaction',
-          'attributes': <String, dynamic>{
-            'updated_at': '2024-12-18T10:00:00Z',
-          },
+          'attributes': <String, dynamic>{'updated_at': '2024-12-18T10:00:00Z'},
         },
       ];
 
@@ -291,75 +285,79 @@ void main() {
       // Should have checked 1 item and yielded it before stopping
       // (This allows the item to be processed/counted even when stopping early)
       expect(processedCount, equals(1));
-      expect(fetched.length, equals(1)); // Item is yielded before checking for early termination
+      expect(
+        fetched.length,
+        equals(1),
+      ); // Item is yielded before checking for early termination
     });
 
-    test('should continue iteration when stopWhenProcessed returns false', () async {
-      final List<Map<String, dynamic>> items = <Map<String, dynamic>>[
-        <String, dynamic>{
-          'id': '1',
-          'type': 'transaction',
-          'attributes': <String, dynamic>{
-            'updated_at': '2024-12-20T10:00:00Z',
+    test(
+      'should continue iteration when stopWhenProcessed returns false',
+      () async {
+        final List<Map<String, dynamic>> items = <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': '1',
+            'type': 'transaction',
+            'attributes': <String, dynamic>{
+              'updated_at': '2024-12-20T10:00:00Z',
+            },
           },
-        },
-        <String, dynamic>{
-          'id': '2',
-          'type': 'transaction',
-          'attributes': <String, dynamic>{
-            'updated_at': '2024-12-19T10:00:00Z',
+          <String, dynamic>{
+            'id': '2',
+            'type': 'transaction',
+            'attributes': <String, dynamic>{
+              'updated_at': '2024-12-19T10:00:00Z',
+            },
           },
-        },
-      ];
+        ];
 
-      when(
-        () => mockApiAdapter.getTransactionsPaginated(
-          page: any(named: 'page'),
-          start: any(named: 'start'),
-          end: any(named: 'end'),
-          limit: any(named: 'limit'),
-          sort: any(named: 'sort'),
-          order: any(named: 'order'),
-        ),
-      ).thenAnswer(
-        (_) async => PaginatedResult<Map<String, dynamic>>(
-          data: items,
-          total: 2,
-          currentPage: 1,
-          totalPages: 1,
-          perPage: 50,
-        ),
-      );
+        when(
+          () => mockApiAdapter.getTransactionsPaginated(
+            page: any(named: 'page'),
+            start: any(named: 'start'),
+            end: any(named: 'end'),
+            limit: any(named: 'limit'),
+            sort: any(named: 'sort'),
+            order: any(named: 'order'),
+          ),
+        ).thenAnswer(
+          (_) async => PaginatedResult<Map<String, dynamic>>(
+            data: items,
+            total: 2,
+            currentPage: 1,
+            totalPages: 1,
+            perPage: 50,
+          ),
+        );
 
-      final DateRangeIterator iterator = DateRangeIterator(
-        apiClient: mockApiAdapter,
-        entityType: 'transaction',
-        start: DateTime(2024, 1, 1),
-        sort: 'updated_at',
-        order: 'desc',
-        stopWhenProcessed: (Map<String, dynamic> item) async {
-          // Never stop
-          return false;
-        },
-      );
+        final DateRangeIterator iterator = DateRangeIterator(
+          apiClient: mockApiAdapter,
+          entityType: 'transaction',
+          start: DateTime(2024, 1, 1),
+          sort: 'updated_at',
+          order: 'desc',
+          stopWhenProcessed: (Map<String, dynamic> item) async {
+            // Never stop
+            return false;
+          },
+        );
 
-      final List<Map<String, dynamic>> fetched = <Map<String, dynamic>>[];
-      await for (final Map<String, dynamic> item in iterator.iterate()) {
-        fetched.add(item);
-      }
+        final List<Map<String, dynamic>> fetched = <Map<String, dynamic>>[];
+        await for (final Map<String, dynamic> item in iterator.iterate()) {
+          fetched.add(item);
+        }
 
-      // Should have processed all items
-      expect(fetched.length, equals(2));
-    });
+        // Should have processed all items
+        expect(fetched.length, equals(2));
+      },
+    );
 
     test('should handle missing stopWhenProcessed callback', () async {
       final List<Map<String, dynamic>> items = <Map<String, dynamic>>[
         <String, dynamic>{
           'id': '1',
           'type': 'transaction',
-          'attributes': <String, dynamic>{
-            'updated_at': '2024-12-20T10:00:00Z',
-          },
+          'attributes': <String, dynamic>{'updated_at': '2024-12-20T10:00:00Z'},
         },
       ];
 
@@ -465,4 +463,3 @@ void main() {
     });
   });
 }
-

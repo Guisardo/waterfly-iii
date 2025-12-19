@@ -50,7 +50,7 @@ class ConnectivityInfo {
       networkTypes.isNotEmpty ? networkTypes.first : ConnectivityResult.none;
 
   /// Human-readable network type description (English, for logging/debugging).
-  /// 
+  ///
   /// For UI display, use [getLocalizedNetworkTypeDescription] instead.
   String get networkTypeDescription {
     if (networkTypes.isEmpty ||
@@ -90,7 +90,7 @@ class ConnectivityInfo {
   /// Get localized network type description for UI display.
   String getLocalizedNetworkTypeDescription(BuildContext context) {
     final S localizations = S.of(context);
-    
+
     if (networkTypes.isEmpty ||
         networkTypes.contains(ConnectivityResult.none)) {
       return localizations.generalNoConnection;
@@ -108,7 +108,10 @@ class ConnectivityInfo {
   }
 
   /// Get localized name for network type.
-  String _getLocalizedNetworkTypeName(ConnectivityResult type, S localizations) {
+  String _getLocalizedNetworkTypeName(
+    ConnectivityResult type,
+    S localizations,
+  ) {
     switch (type) {
       case ConnectivityResult.wifi:
         return localizations.generalNetworkTypeWifi;
@@ -176,7 +179,7 @@ extension ConnectivityStatusExtension on ConnectivityStatus {
   bool get isUnknown => this == ConnectivityStatus.unknown;
 
   /// Returns a human-readable string representation of the status (English, for logging/debugging).
-  /// 
+  ///
   /// For UI display, use [getLocalizedDisplayName] instead.
   String get displayName {
     switch (this) {

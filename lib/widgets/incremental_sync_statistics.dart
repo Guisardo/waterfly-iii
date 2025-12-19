@@ -204,7 +204,9 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
         Icon(Icons.speed, size: 16, color: _getEfficiencyColor(skipRate)),
         const SizedBox(width: 4),
         Text(
-          S.of(context).incrementalSyncStatsEfficient(skipRate.toStringAsFixed(0)),
+          S
+              .of(context)
+              .incrementalSyncStatsEfficient(skipRate.toStringAsFixed(0)),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: _getEfficiencyColor(skipRate),
             fontWeight: FontWeight.w600,
@@ -253,7 +255,11 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
               ),
               Text(
                 settings.incrementalSyncCount > 0
-                    ? S.of(context).incrementalSyncStatsDescription(settings.incrementalSyncCount)
+                    ? S
+                        .of(context)
+                        .incrementalSyncStatsDescription(
+                          settings.incrementalSyncCount,
+                        )
                     : S.of(context).incrementalSyncStatsDescriptionEmpty,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -488,12 +494,18 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          S.of(context).incrementalSyncStatsDuration(_formatDuration(liveResult!.duration)),
+          S
+              .of(context)
+              .incrementalSyncStatsDuration(
+                _formatDuration(liveResult!.duration),
+              ),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 4),
         Text(
-          liveResult!.success ? S.of(context).incrementalSyncStatsStatusSuccess : S.of(context).incrementalSyncStatsStatusFailed,
+          liveResult!.success
+              ? S.of(context).incrementalSyncStatsStatusSuccess
+              : S.of(context).incrementalSyncStatsStatusFailed,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: liveResult!.success ? Colors.green : Colors.red,
           ),
@@ -655,9 +667,11 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
   /// Get efficiency label based on skip rate.
   String _getEfficiencyLabel(double skipRate, BuildContext context) {
     final S localizations = S.of(context);
-    if (skipRate >= 80) return localizations.incrementalSyncStatsEfficiencyExcellent;
+    if (skipRate >= 80)
+      return localizations.incrementalSyncStatsEfficiencyExcellent;
     if (skipRate >= 60) return localizations.incrementalSyncStatsEfficiencyGood;
-    if (skipRate >= 40) return localizations.incrementalSyncStatsEfficiencyModerate;
+    if (skipRate >= 40)
+      return localizations.incrementalSyncStatsEfficiencyModerate;
     if (skipRate >= 20) return localizations.incrementalSyncStatsEfficiencyLow;
     return localizations.incrementalSyncStatsEfficiencyVeryLow;
   }

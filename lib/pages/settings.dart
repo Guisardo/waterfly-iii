@@ -234,8 +234,8 @@ class SettingsPageState extends State<SettingsPage>
             Navigator.push(
               context,
               MaterialPageRoute<Widget>(
-                builder: (BuildContext context) =>
-                    const OfflineSettingsScreen(),
+                builder:
+                    (BuildContext context) => const OfflineSettingsScreen(),
               ),
             );
           },

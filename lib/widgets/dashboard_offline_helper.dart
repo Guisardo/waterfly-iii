@@ -46,8 +46,8 @@ class DashboardOfflineHelper {
           ),
           const SizedBox(width: 4),
           Text(
-            hasUnsyncedData 
-                ? S.of(context).dashboardOfflineIncludesUnsynced 
+            hasUnsyncedData
+                ? S.of(context).dashboardOfflineIncludesUnsynced
                 : S.of(context).dashboardOfflineDataAsOf(ageText),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color:
@@ -79,7 +79,10 @@ class DashboardOfflineHelper {
           ),
         ),
         const SizedBox(width: 4),
-        Text(S.of(context).dashboardOfflineUnsynced, style: Theme.of(context).textTheme.labelSmall),
+        Text(
+          S.of(context).dashboardOfflineUnsynced,
+          style: Theme.of(context).textTheme.labelSmall,
+        ),
       ],
     );
   }
@@ -163,7 +166,8 @@ class DashboardOfflineHelper {
   static String _formatAge(Duration age, BuildContext context) {
     final S localizations = S.of(context);
     if (age.inMinutes < 1) return localizations.syncStatusJustNow;
-    if (age.inHours < 1) return localizations.syncStatusMinutesAgo(age.inMinutes);
+    if (age.inHours < 1)
+      return localizations.syncStatusMinutesAgo(age.inMinutes);
     if (age.inDays < 1) return localizations.syncStatusHoursAgo(age.inHours);
     if (age.inDays < 7) return localizations.syncStatusDaysAgo(age.inDays);
     return localizations.syncStatusDaysAgo(age.inDays);
@@ -201,7 +205,11 @@ class DashboardOfflineHelper {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              S.of(context).dashboardOfflineDataOutdated(_formatAge(DateTime.now().difference(lastUpdate), context)),
+              S
+                  .of(context)
+                  .dashboardOfflineDataOutdated(
+                    _formatAge(DateTime.now().difference(lastUpdate), context),
+                  ),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onTertiaryContainer,
               ),

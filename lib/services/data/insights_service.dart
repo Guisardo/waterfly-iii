@@ -106,24 +106,27 @@ class InsightsService {
         'Expense total fetched from ${result.source} (fresh: ${result.isFresh})',
       );
       final List<InsightTotalEntry> data = result.data ?? <InsightTotalEntry>[];
-      
+
       // If cache returned empty data and we're offline, try computing from local transactions
       if (data.isEmpty) {
         final AppModeManager appModeManager = AppModeManager();
-        if (appModeManager.isInitialized && 
+        if (appModeManager.isInitialized &&
             appModeManager.currentMode == AppMode.offline &&
             _transactionRepository != null) {
           _log.info(
             'Cache returned empty expense total. Attempting to compute from local transactions for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
           );
-          final List<InsightTotalEntry> computed = await _computeExpenseTotalFromLocal(start, end);
+          final List<InsightTotalEntry> computed =
+              await _computeExpenseTotalFromLocal(start, end);
           if (computed.isNotEmpty) {
-            _log.info('Computed ${computed.length} expense total entries from local transactions');
+            _log.info(
+              'Computed ${computed.length} expense total entries from local transactions',
+            );
             return computed;
           }
         }
       }
-      
+
       return data;
     } catch (error, stackTrace) {
       _log.severe('Failed to get expense total', error, stackTrace);
@@ -159,24 +162,27 @@ class InsightsService {
         'Income total fetched from ${result.source} (fresh: ${result.isFresh})',
       );
       final List<InsightTotalEntry> data = result.data ?? <InsightTotalEntry>[];
-      
+
       // If cache returned empty data and we're offline, try computing from local transactions
       if (data.isEmpty) {
         final AppModeManager appModeManager = AppModeManager();
-        if (appModeManager.isInitialized && 
+        if (appModeManager.isInitialized &&
             appModeManager.currentMode == AppMode.offline &&
             _transactionRepository != null) {
           _log.info(
             'Cache returned empty income total. Attempting to compute from local transactions for ${_dateFormat.format(start)} to ${_dateFormat.format(end)}',
           );
-          final List<InsightTotalEntry> computed = await _computeIncomeTotalFromLocal(start, end);
+          final List<InsightTotalEntry> computed =
+              await _computeIncomeTotalFromLocal(start, end);
           if (computed.isNotEmpty) {
-            _log.info('Computed ${computed.length} income total entries from local transactions');
+            _log.info(
+              'Computed ${computed.length} income total entries from local transactions',
+            );
             return computed;
           }
         }
       }
-      
+
       return data;
     } catch (error, stackTrace) {
       _log.severe('Failed to get income total', error, stackTrace);
@@ -332,7 +338,9 @@ class InsightsService {
       await appModeManager.initialize();
     }
     if (appModeManager.currentMode == AppMode.offline) {
-      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      _log.info(
+        'Skipping API call - app is in offline mode (mobile data may be disabled)',
+      );
       return <InsightTotalEntry>[];
     }
 
@@ -363,7 +371,9 @@ class InsightsService {
       await appModeManager.initialize();
     }
     if (appModeManager.currentMode == AppMode.offline) {
-      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      _log.info(
+        'Skipping API call - app is in offline mode (mobile data may be disabled)',
+      );
       return <InsightTotalEntry>[];
     }
 
@@ -394,7 +404,9 @@ class InsightsService {
       await appModeManager.initialize();
     }
     if (appModeManager.currentMode == AppMode.offline) {
-      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      _log.info(
+        'Skipping API call - app is in offline mode (mobile data may be disabled)',
+      );
       return <InsightGroupEntry>[];
     }
 
@@ -428,7 +440,9 @@ class InsightsService {
       await appModeManager.initialize();
     }
     if (appModeManager.currentMode == AppMode.offline) {
-      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      _log.info(
+        'Skipping API call - app is in offline mode (mobile data may be disabled)',
+      );
       return <InsightGroupEntry>[];
     }
 
@@ -538,15 +552,14 @@ class InsightsService {
 
     try {
       _log.fine('Computing expense total from local transactions');
-      
+
       // Get all transactions in date range
       final List<TransactionEntity> transactions = await _transactionRepository
           .getByDateRange(start, end);
 
       // Filter to withdrawals (expenses) only
-      final List<TransactionEntity> expenses = transactions
-          .where((t) => t.type == 'withdrawal')
-          .toList();
+      final List<TransactionEntity> expenses =
+          transactions.where((t) => t.type == 'withdrawal').toList();
 
       if (expenses.isEmpty) {
         _log.fine('No expense transactions found in local database');
@@ -557,17 +570,19 @@ class InsightsService {
       final Map<String, double> totalsByCurrency = <String, double>{};
       for (final TransactionEntity txn in expenses) {
         final String currencyCode = txn.currencyCode;
-        totalsByCurrency[currencyCode] = (totalsByCurrency[currencyCode] ?? 0.0) + txn.amount;
+        totalsByCurrency[currencyCode] =
+            (totalsByCurrency[currencyCode] ?? 0.0) + txn.amount;
       }
 
       // Convert to InsightTotalEntry format
       // Note: Using currencyCode as currencyId since we don't have CurrencyRepository
-      final List<InsightTotalEntry> entries = totalsByCurrency.entries.map((entry) {
-        return InsightTotalEntry(
-          currencyId: entry.key, // Using currency code as ID
-          differenceFloat: -entry.value, // Negative for expenses
-        );
-      }).toList();
+      final List<InsightTotalEntry> entries =
+          totalsByCurrency.entries.map((entry) {
+            return InsightTotalEntry(
+              currencyId: entry.key, // Using currency code as ID
+              differenceFloat: -entry.value, // Negative for expenses
+            );
+          }).toList();
 
       _log.info(
         'Computed ${entries.length} expense total entries from ${expenses.length} local transactions',
@@ -598,15 +613,14 @@ class InsightsService {
 
     try {
       _log.fine('Computing income total from local transactions');
-      
+
       // Get all transactions in date range
       final List<TransactionEntity> transactions = await _transactionRepository
           .getByDateRange(start, end);
 
       // Filter to deposits (income) only
-      final List<TransactionEntity> incomes = transactions
-          .where((t) => t.type == 'deposit')
-          .toList();
+      final List<TransactionEntity> incomes =
+          transactions.where((t) => t.type == 'deposit').toList();
 
       if (incomes.isEmpty) {
         _log.fine('No income transactions found in local database');
@@ -617,17 +631,19 @@ class InsightsService {
       final Map<String, double> totalsByCurrency = <String, double>{};
       for (final TransactionEntity txn in incomes) {
         final String currencyCode = txn.currencyCode;
-        totalsByCurrency[currencyCode] = (totalsByCurrency[currencyCode] ?? 0.0) + txn.amount;
+        totalsByCurrency[currencyCode] =
+            (totalsByCurrency[currencyCode] ?? 0.0) + txn.amount;
       }
 
       // Convert to InsightTotalEntry format
       // Note: Using currencyCode as currencyId since we don't have CurrencyRepository
-      final List<InsightTotalEntry> entries = totalsByCurrency.entries.map((entry) {
-        return InsightTotalEntry(
-          currencyId: entry.key, // Using currency code as ID
-          differenceFloat: entry.value, // Positive for income
-        );
-      }).toList();
+      final List<InsightTotalEntry> entries =
+          totalsByCurrency.entries.map((entry) {
+            return InsightTotalEntry(
+              currencyId: entry.key, // Using currency code as ID
+              differenceFloat: entry.value, // Positive for income
+            );
+          }).toList();
 
       _log.info(
         'Computed ${entries.length} income total entries from ${incomes.length} local transactions',

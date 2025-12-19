@@ -63,9 +63,11 @@ String _convertDbAccountTypeToApiType(String dbType) {
       return 'Debt';
     default:
       // Try to find matching AccountTypeProperty by value
-      final AccountTypeProperty? matched = AccountTypeProperty.values.firstWhereOrNull(
-        (AccountTypeProperty e) => e.value?.toLowerCase() == dbType.toLowerCase(),
-      );
+      final AccountTypeProperty? matched = AccountTypeProperty.values
+          .firstWhereOrNull(
+            (AccountTypeProperty e) =>
+                e.value?.toLowerCase() == dbType.toLowerCase(),
+          );
       return matched?.value ?? dbType;
   }
 }
@@ -1068,17 +1070,29 @@ class _TransactionPageState extends State<TransactionPage>
                       } else {
                         // New transaction
                         // Check if offline and use offline save path
-                        if (isOffline && transactionRepo != null && accountRepo != null) {
+                        if (isOffline &&
+                            transactionRepo != null &&
+                            accountRepo != null) {
                           // Get account IDs from account names
                           late String sourceName, destinationName;
                           sourceName = _sourceAccountTextController.text;
-                          destinationName = _destinationAccountTextController.text;
-                          
-                          final List<AccountEntity> sourceAccounts = await accountRepo.search(sourceName, activeOnly: true);
-                          final List<AccountEntity> destAccounts = await accountRepo.search(destinationName, activeOnly: true);
-                          
+                          destinationName =
+                              _destinationAccountTextController.text;
+
+                          final List<AccountEntity> sourceAccounts =
+                              await accountRepo.search(
+                                sourceName,
+                                activeOnly: true,
+                              );
+                          final List<AccountEntity> destAccounts =
+                              await accountRepo.search(
+                                destinationName,
+                                activeOnly: true,
+                              );
+
                           if (sourceAccounts.isEmpty || destAccounts.isEmpty) {
-                            error = S.of(context).transactionErrorInvalidAccount;
+                            error =
+                                S.of(context).transactionErrorInvalidAccount;
                             msg.showSnackBar(
                               SnackBar(
                                 content: Text(error),
@@ -1090,30 +1104,46 @@ class _TransactionPageState extends State<TransactionPage>
                             });
                             return;
                           }
-                          
-                          final String sourceId = sourceAccounts.first.serverId ?? sourceAccounts.first.id;
-                          final String destinationId = destAccounts.first.serverId ?? destAccounts.first.id;
-                          
+
+                          final String sourceId =
+                              sourceAccounts.first.serverId ??
+                              sourceAccounts.first.id;
+                          final String destinationId =
+                              destAccounts.first.serverId ??
+                              destAccounts.first.id;
+
                           // Convert to offline format
                           final Map<String, dynamic> txData = <String, dynamic>{
                             'type': _transactionType.value,
-                            'date': _date.copyWith(
-                              second: 0,
-                              millisecond: 0,
-                              microsecond: 0,
-                            ).toIso8601String(),
+                            'date':
+                                _date
+                                    .copyWith(
+                                      second: 0,
+                                      millisecond: 0,
+                                      microsecond: 0,
+                                    )
+                                    .toIso8601String(),
                             'amount': _localAmounts[0],
                             'description': _titleTextController.text,
                             'source_id': sourceId,
                             'destination_id': destinationId,
-                            'currency_code': _localCurrency?.attributes.code ?? 'USD',
-                            'notes': _noteTextControllers[0].text.isNotEmpty ? _noteTextControllers[0].text : null,
-                            'tags': _tags[0].tags.isNotEmpty ? _tags[0].tags.join(',') : null,
+                            'currency_code':
+                                _localCurrency?.attributes.code ?? 'USD',
+                            'notes':
+                                _noteTextControllers[0].text.isNotEmpty
+                                    ? _noteTextControllers[0].text
+                                    : null,
+                            'tags':
+                                _tags[0].tags.isNotEmpty
+                                    ? _tags[0].tags.join(',')
+                                    : null,
                           };
-                          
+
                           try {
-                            await transactionRepo.createTransactionOffline(txData);
-                            
+                            await transactionRepo.createTransactionOffline(
+                              txData,
+                            );
+
                             // Show success message
                             if (context.mounted) {
                               msg.showSnackBar(
@@ -1123,9 +1153,9 @@ class _TransactionPageState extends State<TransactionPage>
                                 ),
                               );
                             }
-                            
+
                             setState(() => _savingInProgress = false);
-                            
+
                             if (nav.canPop()) {
                               nav.pop(true);
                             } else {
@@ -1134,13 +1164,18 @@ class _TransactionPageState extends State<TransactionPage>
                               );
                               await nav.pushReplacement(
                                 MaterialPageRoute<bool>(
-                                  builder: (BuildContext context) => const NavPage(),
+                                  builder:
+                                      (BuildContext context) => const NavPage(),
                                 ),
                               );
                             }
                             return;
                           } catch (e, stackTrace) {
-                            log.severe('Failed to create transaction offline', e, stackTrace);
+                            log.severe(
+                              'Failed to create transaction offline',
+                              e,
+                              stackTrace,
+                            );
                             error = e.toString();
                             msg.showSnackBar(
                               SnackBar(
@@ -1154,7 +1189,7 @@ class _TransactionPageState extends State<TransactionPage>
                             return;
                           }
                         }
-                        
+
                         // Online path - use API
                         final List<TransactionSplitStore> txS =
                             <TransactionSplitStore>[];
@@ -1572,42 +1607,47 @@ class _TransactionPageState extends State<TransactionPage>
                         if (_destinationAccountType ==
                             AccountTypeProperty.swaggerGeneratedUnknown) {
                           // No destination account type selected yet - show only asset accounts by default
-                          filteredAccounts = accounts
-                              .where((AccountEntity a) =>
-                                  a.type == 'asset' || a.type == 'liability')
-                              .toList();
+                          filteredAccounts =
+                              accounts
+                                  .where(
+                                    (AccountEntity a) =>
+                                        a.type == 'asset' ||
+                                        a.type == 'liability',
+                                  )
+                                  .toList();
                         } else {
                           final List<AccountTypeFilter> allowedTypes =
-                              _destinationAccountType.allowedOpposingTypes(false);
-                          filteredAccounts = accounts
-                              .where((AccountEntity a) {
+                              _destinationAccountType.allowedOpposingTypes(
+                                false,
+                              );
+                          filteredAccounts =
+                              accounts.where((AccountEntity a) {
                                 if (allowedTypes.isEmpty) return true;
                                 // Convert database type to API format for comparison
-                                final String apiType = _convertDbAccountTypeToApiType(a.type);
+                                final String apiType =
+                                    _convertDbAccountTypeToApiType(a.type);
                                 return allowedTypes.any(
                                   (AccountTypeFilter t) => t.value == apiType,
                                 );
-                              })
-                              .toList();
+                              }).toList();
                         }
-                        final Iterable<AutocompleteAccount> filtered = filteredAccounts
-                            .map(
-                              (AccountEntity a) {
-                                // Convert database type string to API format
-                                final String apiType = _convertDbAccountTypeToApiType(a.type);
-                                return AutocompleteAccount(
-                                  id: a.serverId ?? a.id,
-                                  name: a.name,
-                                  nameWithBalance: a.name,
-                                  type: apiType,
-                                  currencyId: '0',
-                                  currencyName: '',
-                                  currencyCode: a.currencyCode,
-                                  currencySymbol: a.currencyCode,
-                                  currencyDecimalPlaces: 2,
-                                );
-                              },
-                            );
+                        final Iterable<AutocompleteAccount> filtered =
+                            filteredAccounts.map((AccountEntity a) {
+                              // Convert database type string to API format
+                              final String apiType =
+                                  _convertDbAccountTypeToApiType(a.type);
+                              return AutocompleteAccount(
+                                id: a.serverId ?? a.id,
+                                name: a.name,
+                                nameWithBalance: a.name,
+                                type: apiType,
+                                currencyId: '0',
+                                currencyName: '',
+                                currencyCode: a.currencyCode,
+                                currencySymbol: a.currencyCode,
+                                currencyDecimalPlaces: 2,
+                              );
+                            });
                         return filtered;
                       }
 
@@ -1729,35 +1769,34 @@ class _TransactionPageState extends State<TransactionPage>
                           } else {
                             final List<AccountTypeFilter> allowedTypes =
                                 _sourceAccountType.allowedOpposingTypes(true);
-                            filteredAccounts = accounts
-                                .where((AccountEntity a) {
+                            filteredAccounts =
+                                accounts.where((AccountEntity a) {
                                   if (allowedTypes.isEmpty) return true;
                                   // Convert database type to API format for comparison
-                                  final String apiType = _convertDbAccountTypeToApiType(a.type);
+                                  final String apiType =
+                                      _convertDbAccountTypeToApiType(a.type);
                                   return allowedTypes.any(
                                     (AccountTypeFilter t) => t.value == apiType,
                                   );
-                                })
-                                .toList();
+                                }).toList();
                           }
-                          final Iterable<AutocompleteAccount> filtered = filteredAccounts
-                              .map(
-                                (AccountEntity a) {
-                                  // Convert database type string to API format
-                                  final String apiType = _convertDbAccountTypeToApiType(a.type);
-                                  return AutocompleteAccount(
-                                    id: a.serverId ?? a.id,
-                                    name: a.name,
-                                    nameWithBalance: a.name,
-                                    type: apiType,
-                                    currencyId: '0',
-                                    currencyName: '',
-                                    currencyCode: a.currencyCode,
-                                    currencySymbol: a.currencyCode,
-                                    currencyDecimalPlaces: 2,
-                                  );
-                                },
-                              );
+                          final Iterable<AutocompleteAccount> filtered =
+                              filteredAccounts.map((AccountEntity a) {
+                                // Convert database type string to API format
+                                final String apiType =
+                                    _convertDbAccountTypeToApiType(a.type);
+                                return AutocompleteAccount(
+                                  id: a.serverId ?? a.id,
+                                  name: a.name,
+                                  nameWithBalance: a.name,
+                                  type: apiType,
+                                  currencyId: '0',
+                                  currencyName: '',
+                                  currencyCode: a.currencyCode,
+                                  currencySymbol: a.currencyCode,
+                                  currencyDecimalPlaces: 2,
+                                );
+                              });
                           return filtered;
                         }
 
@@ -2772,13 +2811,14 @@ class TransactionTitle extends StatelessWidget {
                 context.read<TransactionRepository?>();
 
             if (transactionRepo != null) {
-              final List<TransactionEntity> transactions =
-                  await transactionRepo.getTransactionsOffline(
-                searchQuery: textEditingValue.text.isNotEmpty
-                    ? textEditingValue.text
-                    : null,
-                limit: 20,
-              );
+              final List<TransactionEntity> transactions = await transactionRepo
+                  .getTransactionsOffline(
+                    searchQuery:
+                        textEditingValue.text.isNotEmpty
+                            ? textEditingValue.text
+                            : null,
+                    limit: 20,
+                  );
               // Extract unique descriptions
               final Set<String> uniqueDescriptions = <String>{};
               for (final TransactionEntity t in transactions) {
@@ -2786,8 +2826,8 @@ class TransactionTitle extends StatelessWidget {
                   uniqueDescriptions.add(t.description);
                 }
               }
-              final List<String> descriptions = uniqueDescriptions.toList()
-                ..sort();
+              final List<String> descriptions =
+                  uniqueDescriptions.toList()..sort();
               return descriptions;
             }
 

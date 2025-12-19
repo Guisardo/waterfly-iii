@@ -99,9 +99,10 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
         // Use app mode instead of raw connectivity status to respect WiFi-only setting
         final bool isAppOnline = appMode.isOnline;
         final ConnectivityStatus rawStatus = connectivity.status;
-        
+
         // Determine effective status: if app mode is offline, treat as offline even if connectivity is online
-        final ConnectivityStatus effectiveStatus = isAppOnline ? rawStatus : ConnectivityStatus.offline;
+        final ConnectivityStatus effectiveStatus =
+            isAppOnline ? rawStatus : ConnectivityStatus.offline;
 
         // Handle status changes after build completes
         if (_previousStatus != effectiveStatus) {
@@ -146,14 +147,19 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              _getStatusText(effectiveStatus, isAppOnline, rawStatus),
+                              _getStatusText(
+                                effectiveStatus,
+                                isAppOnline,
+                                rawStatus,
+                              ),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
                             ),
-                            if (widget.showNetworkType && effectiveStatus.isOnline)
+                            if (widget.showNetworkType &&
+                                effectiveStatus.isOnline)
                               Text(
                                 _getNetworkTypeText(rawStatus),
                                 style: TextStyle(
@@ -240,7 +246,11 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
   }
 
   /// Get text for status.
-  String _getStatusText(ConnectivityStatus status, bool isAppOnline, ConnectivityStatus rawStatus) {
+  String _getStatusText(
+    ConnectivityStatus status,
+    bool isAppOnline,
+    ConnectivityStatus rawStatus,
+  ) {
     final S localizations = S.of(context);
     if (status.isOnline) {
       return localizations.generalBackOnline;
@@ -268,7 +278,9 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
       return localizations.generalNoConnection;
     }
 
-    return connectivity.connectivityInfo.getLocalizedNetworkTypeDescription(context);
+    return connectivity.connectivityInfo.getLocalizedNetworkTypeDescription(
+      context,
+    );
   }
 
   /// Show network details dialog.
@@ -297,14 +309,17 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
               children: <Widget>[
                 _buildDetailRow(
                   S.of(context).generalAppStatus,
-                  appMode.isOnline ? S.of(context).generalOnline : S.of(context).generalOffline,
+                  appMode.isOnline
+                      ? S.of(context).generalOnline
+                      : S.of(context).generalOffline,
                   appMode.isOnline ? Colors.green : Colors.red,
                 ),
                 const SizedBox(height: 12),
                 _buildDetailRow(
                   S.of(context).generalNetwork,
-                  connectivity.isOnline 
-                      ? connectivity.connectivityInfo.getLocalizedNetworkTypeDescription(context)
+                  connectivity.isOnline
+                      ? connectivity.connectivityInfo
+                          .getLocalizedNetworkTypeDescription(context)
                       : S.of(context).generalNoConnection,
                   null,
                 ),
@@ -368,7 +383,9 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(S.of(context).generalFailedToCheckConnectivity),
+                            content: Text(
+                              S.of(context).generalFailedToCheckConnectivity,
+                            ),
                             backgroundColor: Colors.red,
                           ),
                         );

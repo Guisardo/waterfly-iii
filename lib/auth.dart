@@ -196,8 +196,11 @@ class AuthUser {
       }
     }
 
-    if (appModeManager.isInitialized && appModeManager.currentMode == AppMode.offline) {
-      log.info('Skipping authentication API call - app is in offline mode (mobile data may be disabled)');
+    if (appModeManager.isInitialized &&
+        appModeManager.currentMode == AppMode.offline) {
+      log.info(
+        'Skipping authentication API call - app is in offline mode (mobile data may be disabled)',
+      );
       throw const AuthError("App is in offline mode");
     }
 
@@ -319,8 +322,11 @@ class FireflyService with ChangeNotifier {
       }
     }
 
-    if (appModeManager.isInitialized && appModeManager.currentMode == AppMode.offline) {
-      log.info('App is in offline mode (mobile data may be disabled), attempting offline sign-in');
+    if (appModeManager.isInitialized &&
+        appModeManager.currentMode == AppMode.offline) {
+      log.info(
+        'App is in offline mode (mobile data may be disabled), attempting offline sign-in',
+      );
       return _signInOffline(apiHost, apiKey);
     }
 
@@ -333,7 +339,9 @@ class FireflyService with ChangeNotifier {
           e is TimeoutException ||
           e is http.ClientException ||
           (e is AuthError && e.cause == "App is in offline mode")) {
-        log.info("Network error or offline mode during sign in, attempting offline mode");
+        log.info(
+          "Network error or offline mode during sign in, attempting offline mode",
+        );
         return _signInOffline(apiHost, apiKey);
       }
       _storageSignInException = e;
@@ -416,8 +424,11 @@ class FireflyService with ChangeNotifier {
       }
     }
 
-    if (appModeManager.isInitialized && appModeManager.currentMode == AppMode.offline) {
-      log.info('Skipping sign-in API calls - app is in offline mode (mobile data may be disabled)');
+    if (appModeManager.isInitialized &&
+        appModeManager.currentMode == AppMode.offline) {
+      log.info(
+        'Skipping sign-in API calls - app is in offline mode (mobile data may be disabled)',
+      );
       // Try offline sign-in instead
       return _signInOffline(host, apiKey);
     }
@@ -513,7 +524,9 @@ class FireflyService with ChangeNotifier {
           }
           final AppMode currentMode = appModeManager.currentMode;
           if (currentMode == AppMode.offline) {
-            log.info('Skipping initial sync - app is in offline mode (mobile data may be disabled)');
+            log.info(
+              'Skipping initial sync - app is in offline mode (mobile data may be disabled)',
+            );
             return;
           }
 
@@ -536,30 +549,43 @@ class FireflyService with ChangeNotifier {
           );
 
           // Try incremental sync first if possible
-          final bool canUseIncremental = await incrementalSync.canUseIncrementalSync();
+          final bool canUseIncremental =
+              await incrementalSync.canUseIncrementalSync();
           if (canUseIncremental) {
             log.info('Using incremental sync (with sort/order optimization)');
             try {
-              final IncrementalSyncResult result = await incrementalSync.performIncrementalSync();
+              final IncrementalSyncResult result =
+                  await incrementalSync.performIncrementalSync();
               // Use incremental sync if it was actually incremental, even if some entities failed
               // (partial success is better than falling back to full sync)
               if (result.isIncremental) {
                 if (result.success) {
                   log.info('Incremental sync completed successfully');
                 } else {
-                  log.warning('Incremental sync completed with some failures: ${result.error}');
+                  log.warning(
+                    'Incremental sync completed with some failures: ${result.error}',
+                  );
                 }
                 // Store timestamp in both SharedPreferences (for backward compatibility) and database
                 await prefs.setInt('last_full_sync_time', now);
                 final MetadataService metadata = MetadataService(database);
-                await metadata.set('last_full_sync', DateTime.now().toIso8601String());
+                await metadata.set(
+                  'last_full_sync',
+                  DateTime.now().toIso8601String(),
+                );
                 notifyGlobalSyncState(false);
                 return;
               } else {
-                log.info('Incremental sync not possible, falling back to full sync');
+                log.info(
+                  'Incremental sync not possible, falling back to full sync',
+                );
               }
             } catch (e, stackTrace) {
-              log.warning('Incremental sync failed, falling back to full sync', e, stackTrace);
+              log.warning(
+                'Incremental sync failed, falling back to full sync',
+                e,
+                stackTrace,
+              );
             }
           } else {
             log.info('Performing full sync (incremental sync not available)');
@@ -571,7 +597,10 @@ class FireflyService with ChangeNotifier {
           // Store timestamp in both SharedPreferences (for backward compatibility) and database
           await prefs.setInt('last_full_sync_time', now);
           final MetadataService metadata = MetadataService(database);
-          await metadata.set('last_full_sync', DateTime.now().toIso8601String());
+          await metadata.set(
+            'last_full_sync',
+            DateTime.now().toIso8601String(),
+          );
 
           // Notify sync completed
           notifyGlobalSyncState(false);
@@ -743,24 +772,24 @@ class FireflyService with ChangeNotifier {
           batch.insert(
             database.accounts,
             AccountEntityCompanion.insert(
-            id: account['id'] as String,
-            serverId: Value<String?>(account['id'] as String),
-            name: attrs['name'] as String,
-            type: attrs['type'] as String,
-            accountNumber: Value<String?>(attrs['account_number'] as String?),
-            accountRole: Value<String?>(attrs['account_role'] as String?),
-            iban: Value<String?>(attrs['iban'] as String?),
-            currencyCode: attrs['currency_code'] as String? ?? 'USD',
-            currentBalance: balance,
-            notes: Value<String?>(attrs['notes'] as String?),
-            createdAt:
-                DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
-                DateTime.now(),
-            updatedAt:
-                DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
-                DateTime.now(),
-            isSynced: const Value<bool>(true),
-            syncStatus: const Value<String>('synced'),
+              id: account['id'] as String,
+              serverId: Value<String?>(account['id'] as String),
+              name: attrs['name'] as String,
+              type: attrs['type'] as String,
+              accountNumber: Value<String?>(attrs['account_number'] as String?),
+              accountRole: Value<String?>(attrs['account_role'] as String?),
+              iban: Value<String?>(attrs['iban'] as String?),
+              currencyCode: attrs['currency_code'] as String? ?? 'USD',
+              currentBalance: balance,
+              notes: Value<String?>(attrs['notes'] as String?),
+              createdAt:
+                  DateTime.tryParse(attrs['created_at'] as String? ?? '') ??
+                  DateTime.now(),
+              updatedAt:
+                  DateTime.tryParse(attrs['updated_at'] as String? ?? '') ??
+                  DateTime.now(),
+              isSynced: const Value<bool>(true),
+              syncStatus: const Value<String>('synced'),
             ),
             mode: InsertMode.insertOrReplace,
           );
@@ -959,7 +988,9 @@ class FireflyService with ChangeNotifier {
             ),
             order: Value<int?>(order),
             objectGroupOrder: Value<int?>(groupOrder),
-            objectGroupTitle: Value<String?>(attrs['object_group_title'] as String?),
+            objectGroupTitle: Value<String?>(
+              attrs['object_group_title'] as String?,
+            ),
             notes: Value<String?>(attrs['notes'] as String?),
             createdAt:
                 DateTime.tryParse(attrs['created_at'] as String? ?? '') ??

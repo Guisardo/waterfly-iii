@@ -112,46 +112,49 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
       // SyncStatusProvider not available, show error message
       return widget.displayMode == SyncProgressDisplayMode.sheet
           ? Container(
-              padding: const EdgeInsets.all(24.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  Text(
-                    S.of(context).syncProgressProviderNotAvailable,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                const SizedBox(height: 16),
+                Text(
+                  S.of(context).syncProgressProviderNotAvailable,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    S.of(context).syncProgressProviderNotAvailableDesc,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(S.of(context).generalDismiss),
-                  ),
-                ],
-              ),
-            )
-          : AlertDialog(
-              title: Text(S.of(context).syncProgressServiceUnavailable),
-              content: Text(
-                S.of(context).syncProgressServiceUnavailableDesc,
-              ),
-              actions: <Widget>[
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  S.of(context).syncProgressProviderNotAvailableDesc,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(S.of(context).generalDismiss),
                 ),
               ],
-            );
+            ),
+          )
+          : AlertDialog(
+            title: Text(S.of(context).syncProgressServiceUnavailable),
+            content: Text(S.of(context).syncProgressServiceUnavailableDesc),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(S.of(context).generalDismiss),
+              ),
+            ],
+          );
     }
 
     return Consumer<SyncStatusProvider>(
@@ -362,21 +365,27 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
         Icon(Icons.check_circle_outline, color: Colors.green[600], size: 64),
         const SizedBox(height: 16),
         Text(
-          S.of(context).syncProgressSuccessfullySynced(progress.completedOperations),
+          S
+              .of(context)
+              .syncProgressSuccessfullySynced(progress.completedOperations),
           style: Theme.of(context).textTheme.bodyLarge,
           textAlign: TextAlign.center,
         ),
         if (progress.conflictsDetected > 0) ...<Widget>[
           const SizedBox(height: 8),
           Text(
-            S.of(context).syncProgressConflictsDetected(progress.conflictsDetected),
+            S
+                .of(context)
+                .syncProgressConflictsDetected(progress.conflictsDetected),
             style: TextStyle(color: Colors.orange[700]),
           ),
         ],
         if (progress.failedOperations > 0) ...<Widget>[
           const SizedBox(height: 8),
           Text(
-            S.of(context).syncProgressOperationsFailed(progress.failedOperations),
+            S
+                .of(context)
+                .syncProgressOperationsFailed(progress.failedOperations),
             style: TextStyle(color: Colors.red[700]),
           ),
         ],
@@ -404,7 +413,12 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Text(
-              S.of(context).syncProgressOperationsCount(progress.completedOperations, progress.totalOperations),
+              S
+                  .of(context)
+                  .syncProgressOperationsCount(
+                    progress.completedOperations,
+                    progress.totalOperations,
+                  ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(

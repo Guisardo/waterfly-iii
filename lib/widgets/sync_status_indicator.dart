@@ -270,7 +270,11 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  S.of(context).syncStatusProgressComplete(provider.currentProgress!.percentage.toStringAsFixed(0)),
+                  S
+                      .of(context)
+                      .syncStatusProgressComplete(
+                        provider.currentProgress!.percentage.toStringAsFixed(0),
+                      ),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -374,7 +378,11 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator>
   }
 
   /// Get text for status.
-  String _getStatusText(SyncStatus status, int pendingCount, BuildContext context) {
+  String _getStatusText(
+    SyncStatus status,
+    int pendingCount,
+    BuildContext context,
+  ) {
     final S localizations = S.of(context);
     switch (status) {
       case SyncStatus.synced:

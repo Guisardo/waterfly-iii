@@ -452,7 +452,11 @@ class IncrementalSyncService {
             apiCallsSaved: totalApiCallsSaved,
           );
         } catch (e, stackTrace) {
-          _logger.warning('Failed to update OfflineSettingsProvider', e, stackTrace);
+          _logger.warning(
+            'Failed to update OfflineSettingsProvider',
+            e,
+            stackTrace,
+          );
         }
       }
 
@@ -1596,7 +1600,9 @@ class IncrementalSyncService {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final int? lastSyncTimeMs = prefs.getInt('last_full_sync_time');
       if (lastSyncTimeMs != null && lastSyncTimeMs > 0) {
-        final DateTime lastSyncTime = DateTime.fromMillisecondsSinceEpoch(lastSyncTimeMs);
+        final DateTime lastSyncTime = DateTime.fromMillisecondsSinceEpoch(
+          lastSyncTimeMs,
+        );
         // Migrate to database for future use
         await _database
             .into(_database.syncMetadata)
@@ -1607,11 +1613,17 @@ class IncrementalSyncService {
                 updatedAt: DateTime.now(),
               ),
             );
-        _logger.fine('Migrated last_full_sync from SharedPreferences to database');
+        _logger.fine(
+          'Migrated last_full_sync from SharedPreferences to database',
+        );
         return lastSyncTime;
       }
     } catch (e, stackTrace) {
-      _logger.warning('Failed to check SharedPreferences for last_full_sync_time', e, stackTrace);
+      _logger.warning(
+        'Failed to check SharedPreferences for last_full_sync_time',
+        e,
+        stackTrace,
+      );
     }
 
     return null;

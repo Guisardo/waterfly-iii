@@ -49,9 +49,7 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
     } catch (e) {
       // SyncStatusProvider not available, show error message
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Conflicts'),
-        ),
+        appBar: AppBar(title: const Text('Conflicts')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),

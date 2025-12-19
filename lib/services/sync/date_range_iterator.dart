@@ -369,9 +369,7 @@ class DateRangeIterator {
   /// Fetch a page with retry logic.
   ///
   /// Uses exponential backoff to retry failed API requests.
-  Future<PaginatedResult<Map<String, dynamic>>> _fetchPageWithRetry(
-    int page,
-  ) {
+  Future<PaginatedResult<Map<String, dynamic>>> _fetchPageWithRetry(int page) {
     int attemptCount = 0;
 
     return _retryOptions.retry(

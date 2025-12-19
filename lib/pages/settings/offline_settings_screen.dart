@@ -59,7 +59,7 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   Future<void> _calculateDatabaseSize() async {
     if (_isCalculatingDatabaseSize) return;
     if (!mounted) return;
-    
+
     setState(() => _isCalculatingDatabaseSize = true);
 
     try {
@@ -72,10 +72,8 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         currentContext,
         listen: false,
       );
-      final OfflineSettingsProvider settings = Provider.of<OfflineSettingsProvider>(
-        currentContext,
-        listen: false,
-      );
+      final OfflineSettingsProvider settings =
+          Provider.of<OfflineSettingsProvider>(currentContext, listen: false);
 
       final int sizeInBytes = await database.getDatabaseSize();
       await settings.updateDatabaseSize(sizeInBytes);
@@ -91,7 +89,7 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final S localizations = S.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.offlineSettingsTitle),
@@ -183,7 +181,9 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
             ),
             ListTile(
               title: Text(S.of(context).offlineSettingsSyncInterval),
-              subtitle: Text(_getSyncIntervalLabel(context, settings.syncInterval)),
+              subtitle: Text(
+                _getSyncIntervalLabel(context, settings.syncInterval),
+              ),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               enabled: settings.autoSyncEnabled,
               onTap:
@@ -227,9 +227,11 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
                   vertical: 8.0,
                 ),
                 child: Text(
-                  S.of(context).offlineSettingsLastSync(
-                    _formatDateTime(context, settings.lastSyncTime!),
-                  ),
+                  S
+                      .of(context)
+                      .offlineSettingsLastSync(
+                        _formatDateTime(context, settings.lastSyncTime!),
+                      ),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
@@ -240,9 +242,11 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
                   vertical: 8.0,
                 ),
                 child: Text(
-                  S.of(context).offlineSettingsNextSync(
-                    _formatDateTime(context, settings.nextSyncTime!),
-                  ),
+                  S
+                      .of(context)
+                      .offlineSettingsNextSync(
+                        _formatDateTime(context, settings.nextSyncTime!),
+                      ),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
@@ -301,8 +305,10 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
       // Get IncrementalSyncService from Provider
       IncrementalSyncService? incrementalSyncService;
       try {
-        incrementalSyncService =
-            Provider.of<IncrementalSyncService?>(context, listen: false);
+        incrementalSyncService = Provider.of<IncrementalSyncService?>(
+          context,
+          listen: false,
+        );
       } catch (e, stackTrace) {
         _log.severe('Failed to get IncrementalSyncService', e, stackTrace);
         if (mounted) {
@@ -329,7 +335,9 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
       final bool canUseIncremental =
           await incrementalSyncService.canUseIncrementalSync();
       if (!canUseIncremental) {
-        _log.warning('Incremental sync not available, performing full sync instead');
+        _log.warning(
+          'Incremental sync not available, performing full sync instead',
+        );
         if (mounted) {
           _showError(
             context,
@@ -355,7 +363,9 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        S.of(dialogContext).offlineSettingsPerformingIncrementalSync,
+                        S
+                            .of(dialogContext)
+                            .offlineSettingsPerformingIncrementalSync,
                       ),
                     ),
                   ],
@@ -377,7 +387,11 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         try {
           Navigator.of(context).pop(); // Close progress dialog
         } catch (e, stackTrace) {
-          _log.warning('Failed to close dialog (may already be closed)', e, stackTrace);
+          _log.warning(
+            'Failed to close dialog (may already be closed)',
+            e,
+            stackTrace,
+          );
           // Continue - dialog might already be closed
         }
       }
@@ -417,9 +431,11 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        S.of(context).offlineSettingsIncrementalSyncIssues(
-                          result.error ?? S.of(context).errorUnknown,
-                        ),
+                        S
+                            .of(context)
+                            .offlineSettingsIncrementalSyncIssues(
+                              result.error ?? S.of(context).errorUnknown,
+                            ),
                       ),
                       backgroundColor: Colors.orange,
                     ),
@@ -476,7 +492,9 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
             const SizedBox(height: 16),
             ListTile(
               title: Text(S.of(context).offlineSettingsResolutionStrategy),
-              subtitle: Text(_getStrategyLabel(context, settings.conflictStrategy)),
+              subtitle: Text(
+                _getStrategyLabel(context, settings.conflictStrategy),
+              ),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () => _showConflictStrategyDialog(context, settings),
             ),
@@ -717,9 +735,11 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                S.of(context).offlineSettingsSyncIntervalSet(
-                  _getSyncIntervalLabel(context, selected),
-                ),
+                S
+                    .of(context)
+                    .offlineSettingsSyncIntervalSet(
+                      _getSyncIntervalLabel(context, selected),
+                    ),
               ),
             ),
           );
@@ -755,7 +775,9 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
                     ) {
                       return RadioListTile<ResolutionStrategy>(
                         title: Text(_getStrategyLabel(context, strategy)),
-                        subtitle: Text(_getStrategyDescription(context, strategy)),
+                        subtitle: Text(
+                          _getStrategyDescription(context, strategy),
+                        ),
                         value: strategy,
                         groupValue: settings.conflictStrategy,
                         onChanged:
@@ -783,9 +805,11 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                S.of(context).offlineSettingsConflictStrategySet(
-                  _getStrategyLabel(context, selected),
-                ),
+                S
+                    .of(context)
+                    .offlineSettingsConflictStrategySet(
+                      _getStrategyLabel(context, selected),
+                    ),
               ),
             ),
           );
@@ -894,10 +918,7 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
       } catch (e) {
         _log.severe('Failed to clear all data', e);
         if (mounted) {
-          _showError(
-            context,
-            S.of(context).offlineSettingsFailedToClearData,
-          );
+          _showError(context, S.of(context).offlineSettingsFailedToClearData);
         }
       }
     }
@@ -911,8 +932,10 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
       // Get SyncManager from SyncStatusProvider (if available)
       SyncStatusProvider? syncStatusProvider;
       try {
-        syncStatusProvider =
-            Provider.of<SyncStatusProvider>(context, listen: false);
+        syncStatusProvider = Provider.of<SyncStatusProvider>(
+          context,
+          listen: false,
+        );
       } catch (e) {
         _log.warning('SyncStatusProvider not available: $e');
         if (mounted) {
@@ -932,17 +955,18 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (BuildContext context) => AlertDialog(
-            content: Row(
-              children: <Widget>[
-                const CircularProgressIndicator(),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(S.of(context).offlineSettingsPerformingSync),
+          builder:
+              (BuildContext context) => AlertDialog(
+                content: Row(
+                  children: <Widget>[
+                    const CircularProgressIndicator(),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(S.of(context).offlineSettingsPerformingSync),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
         );
       }
 
@@ -961,10 +985,10 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
     } catch (e, stackTrace) {
       _log.severe('Manual sync failed', e, stackTrace);
       if (mounted) {
-          _showError(
-            context,
-            S.of(context).offlineSettingsSyncFailed(e.toString()),
-          );
+        _showError(
+          context,
+          S.of(context).offlineSettingsSyncFailed(e.toString()),
+        );
       }
     } finally {
       if (mounted) {
@@ -977,7 +1001,7 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   Future<void> _triggerFullSync(BuildContext context) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
-          builder:
+      builder:
           (BuildContext context) => AlertDialog(
             title: Text(S.of(context).offlineSettingsForceFullSyncTitle),
             content: Text(S.of(context).offlineSettingsForceFullSyncMessage),
@@ -1003,8 +1027,10 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
         // Get SyncManager from SyncStatusProvider (if available)
         SyncStatusProvider? syncStatusProvider;
         try {
-          syncStatusProvider =
-              Provider.of<SyncStatusProvider>(context, listen: false);
+          syncStatusProvider = Provider.of<SyncStatusProvider>(
+            context,
+            listen: false,
+          );
         } catch (e) {
           _log.warning('SyncStatusProvider not available: $e');
           if (mounted) {
@@ -1024,17 +1050,20 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (BuildContext context) => AlertDialog(
-              content: Row(
-                children: <Widget>[
-                  const CircularProgressIndicator(),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(S.of(context).offlineSettingsPerformingFullSync),
+            builder:
+                (BuildContext context) => AlertDialog(
+                  content: Row(
+                    children: <Widget>[
+                      const CircularProgressIndicator(),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          S.of(context).offlineSettingsPerformingFullSync,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
           );
         }
 
@@ -1094,23 +1123,31 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
           context: context,
           builder:
               (BuildContext context) => AlertDialog(
-                title: Text(S.of(context).offlineSettingsConsistencyCheckComplete),
+                title: Text(
+                  S.of(context).offlineSettingsConsistencyCheckComplete,
+                ),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
                       issues.isEmpty
-                          ? S.of(context).offlineSettingsConsistencyCheckNoIssues
-                          : S.of(context).offlineSettingsConsistencyCheckIssuesFound(
-                              issues.length,
-                            ),
+                          ? S
+                              .of(context)
+                              .offlineSettingsConsistencyCheckNoIssues
+                          : S
+                              .of(context)
+                              .offlineSettingsConsistencyCheckIssuesFound(
+                                issues.length,
+                              ),
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     if (issues.isNotEmpty) ...<Widget>[
                       const SizedBox(height: 16),
                       Text(
-                        S.of(context).offlineSettingsConsistencyCheckIssueBreakdown,
+                        S
+                            .of(context)
+                            .offlineSettingsConsistencyCheckIssueBreakdown,
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                       const SizedBox(height: 8),
@@ -1127,9 +1164,11 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
                           ),
                       if (issues.length > 5)
                         Text(
-                          S.of(context).offlineSettingsConsistencyCheckMoreIssues(
-                            issues.length - 5,
-                          ),
+                          S
+                              .of(context)
+                              .offlineSettingsConsistencyCheckMoreIssues(
+                                issues.length - 5,
+                              ),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(fontStyle: FontStyle.italic),
                         ),
@@ -1146,13 +1185,13 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
                           consistencyService,
                         );
                       },
-                      child: Text(S.of(context).offlineSettingsRepairInconsistencies),
+                      child: Text(
+                        S.of(context).offlineSettingsRepairInconsistencies,
+                      ),
                     ),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      S.of(context).generalDismiss,
-                    ),
+                    child: Text(S.of(context).generalDismiss),
                   ),
                 ],
               ),
@@ -1161,10 +1200,10 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
     } catch (e, stackTrace) {
       _log.severe('Consistency check failed', e, stackTrace);
       if (mounted) {
-          _showError(
-            context,
-            S.of(context).offlineSettingsConsistencyCheckFailed(e.toString()),
-          );
+        _showError(
+          context,
+          S.of(context).offlineSettingsConsistencyCheckFailed(e.toString()),
+        );
       }
     } finally {
       if (mounted) {
@@ -1180,10 +1219,12 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
   ) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
-          builder:
+      builder:
           (BuildContext context) => AlertDialog(
             title: Text(S.of(context).offlineSettingsRepairInconsistencies),
-            content: Text(S.of(context).offlineSettingsRepairInconsistenciesMessage),
+            content: Text(
+              S.of(context).offlineSettingsRepairInconsistenciesMessage,
+            ),
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -1216,17 +1257,17 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
                 (BuildContext context) => AlertDialog(
                   title: Text(S.of(context).offlineSettingsRepairComplete),
                   content: Text(
-                    S.of(context).offlineSettingsRepairCompleteMessage(
-                      result.repaired,
-                      result.failed,
-                    ),
+                    S
+                        .of(context)
+                        .offlineSettingsRepairCompleteMessage(
+                          result.repaired,
+                          result.failed,
+                        ),
                   ),
                   actions: <Widget>[
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        S.of(context).generalDismiss,
-                      ),
+                      child: Text(S.of(context).generalDismiss),
                     ),
                   ],
                 ),
@@ -1285,9 +1326,7 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(
-                  MaterialLocalizations.of(context).closeButtonLabel,
-                ),
+                child: Text(MaterialLocalizations.of(context).closeButtonLabel),
               ),
             ],
           ),

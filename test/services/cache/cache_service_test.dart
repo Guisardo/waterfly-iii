@@ -210,7 +210,7 @@ void main() {
         );
 
         // Wait for TTL to expire
-          await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         int fetcherCallCount = 0;
         final List<CacheInvalidationEvent> events = <CacheInvalidationEvent>[];
@@ -218,20 +218,20 @@ void main() {
             cacheService.invalidationStream.listen(events.add);
 
         // Act: Fetch with background refresh
-        final CacheResult<TestEntity> result = await cacheService
-            .get<TestEntity>(
-              entityType: 'test_entity',
-              entityId: '789',
-              fetcher: () async {
-                fetcherCallCount++;
-                // Fetcher only called during background refresh (not during initial get when persistedData exists)
-                // Return new data from API/repository
-                await Future<void>.delayed(const Duration(milliseconds: 50));
-                dataStore['789'] = newData; // Update repository DB
-                return newData;
-              },
-              backgroundRefresh: true,
-            );
+        final CacheResult<TestEntity>
+        result = await cacheService.get<TestEntity>(
+          entityType: 'test_entity',
+          entityId: '789',
+          fetcher: () async {
+            fetcherCallCount++;
+            // Fetcher only called during background refresh (not during initial get when persistedData exists)
+            // Return new data from API/repository
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+            dataStore['789'] = newData; // Update repository DB
+            return newData;
+          },
+          backgroundRefresh: true,
+        );
 
         // Assert: Returns stale data immediately from cache (persistedData)
         expect(result.data, isNotNull);
@@ -451,7 +451,7 @@ void main() {
         );
 
         // Wait for TTL to expire
-          await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Act & Assert
         final bool isFresh = await cacheService.isFresh('test_entity', '777');
@@ -687,7 +687,7 @@ void main() {
         );
 
         // Wait for staleness
-          await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Act: Fetch stale data
         await cacheService.get<TestEntity>(
@@ -743,7 +743,7 @@ void main() {
         );
 
         // Wait for first entry to expire
-          await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Act: Clean expired entries
         await cacheService.cleanExpired();
@@ -976,7 +976,7 @@ void main() {
         }
 
         // Wait for staleness
-          await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Act: Trigger concurrent background refreshes
         final List<Future<dynamic>> futures = <Future>[];
@@ -1027,23 +1027,23 @@ void main() {
           ttl: const Duration(milliseconds: 1),
         );
 
-          await Future<void>.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         int fetcherCallCount = 0;
 
         // Act: Fetch with failing background refresh (second call)
-        final CacheResult<TestEntity> result = await cacheService
-            .get<TestEntity>(
-              entityType: 'test_entity',
-              entityId: 'n1',
-              fetcher: () async {
-                fetcherCallCount++;
-                // Fetcher only called during background refresh (not during initial get when persistedData exists)
-                // Throw error during background refresh
-                throw Exception('Background refresh error');
-              },
-              backgroundRefresh: true,
-            );
+        final CacheResult<TestEntity>
+        result = await cacheService.get<TestEntity>(
+          entityType: 'test_entity',
+          entityId: 'n1',
+          fetcher: () async {
+            fetcherCallCount++;
+            // Fetcher only called during background refresh (not during initial get when persistedData exists)
+            // Throw error during background refresh
+            throw Exception('Background refresh error');
+          },
+          backgroundRefresh: true,
+        );
 
         // Assert: Returns stale data from cache (persistedData)
         expect(result.data, isNotNull);

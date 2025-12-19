@@ -45,7 +45,8 @@ class ConnectivityProvider extends ChangeNotifier {
   /// even if raw connectivity is online.
   ConnectivityStatus get status {
     // If app mode is offline, return offline regardless of raw connectivity
-    if (_appModeManager.isInitialized && _appModeManager.currentMode == AppMode.offline) {
+    if (_appModeManager.isInitialized &&
+        _appModeManager.currentMode == AppMode.offline) {
       return ConnectivityStatus.offline;
     }
     return _status;
@@ -81,7 +82,7 @@ class ConnectivityProvider extends ChangeNotifier {
       _connectivityService.connectivityInfo;
 
   /// Human-readable network type description (English, for logging/debugging).
-  /// 
+  ///
   /// For UI display, use [getLocalizedNetworkTypeDescription] instead.
   String get networkTypeDescription => connectivityInfo.networkTypeDescription;
 

@@ -292,7 +292,8 @@ class IncrementalSyncResult {
     'overallSkipRate': overallSkipRate,
     'error': error,
     'statsByEntity': statsByEntity.map(
-      (String k, IncrementalSyncStats v) => MapEntry<String, dynamic>(k, v.toJson()),
+      (String k, IncrementalSyncStats v) =>
+          MapEntry<String, dynamic>(k, v.toJson()),
     ),
   };
 

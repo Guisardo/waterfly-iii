@@ -115,11 +115,11 @@ class AppDatabase extends _$AppDatabase {
       final Directory dbFolder = await getApplicationDocumentsDirectory();
       final String dbPath = p.join(dbFolder.path, 'waterfly_offline.db');
       final File file = File(dbPath);
-      
+
       if (await file.exists()) {
         return await file.length();
       }
-      
+
       return 0;
     } catch (e, stackTrace) {
       final Logger log = Logger('AppDatabase');

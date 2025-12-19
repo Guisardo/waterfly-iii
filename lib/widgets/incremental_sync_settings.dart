@@ -239,9 +239,11 @@ class _IncrementalSyncSettingsSectionState
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            S.of(context).incrementalSyncWindowSet(
-                              _getSyncWindowLabel(context, window),
-                            ),
+                            S
+                                .of(context)
+                                .incrementalSyncWindowSet(
+                                  _getSyncWindowLabel(context, window),
+                                ),
                           ),
                           behavior: SnackBarBehavior.floating,
                         ),
@@ -250,7 +252,10 @@ class _IncrementalSyncSettingsSectionState
                   } catch (e) {
                     _log.severe('Failed to set sync window', e);
                     if (mounted) {
-                      _showError(context, S.of(context).incrementalSyncWindowFailed);
+                      _showError(
+                        context,
+                        S.of(context).incrementalSyncWindowFailed,
+                      );
                     }
                   }
                 }
@@ -269,7 +274,11 @@ class _IncrementalSyncSettingsSectionState
       leading: const Icon(Icons.timer),
       title: Text(S.of(context).incrementalSyncCacheDuration),
       subtitle: Text(
-        S.of(context).incrementalSyncCacheCurrent(_getCacheTtlLabel(context, settings.cacheTtl)),
+        S
+            .of(context)
+            .incrementalSyncCacheCurrent(
+              _getCacheTtlLabel(context, settings.cacheTtl),
+            ),
         style: Theme.of(context).textTheme.bodySmall,
       ),
       childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
@@ -302,7 +311,9 @@ class _IncrementalSyncSettingsSectionState
                               if (mounted) {
                                 _showError(
                                   context,
-                                  S.of(context).incrementalSyncCacheDurationFailed,
+                                  S
+                                      .of(context)
+                                      .incrementalSyncCacheDurationFailed,
                                 );
                               }
                             }
@@ -617,7 +628,10 @@ class IncrementalSyncSettingsCompact extends StatelessWidget {
         OfflineSettingsProvider settings,
         Widget? child,
       ) {
-        final String syncWindowLabel = _getSyncWindowLabel(context, settings.syncWindow);
+        final String syncWindowLabel = _getSyncWindowLabel(
+          context,
+          settings.syncWindow,
+        );
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[

@@ -76,14 +76,18 @@ class _HomeTransactionsState extends State<HomeTransactions>
     // Look up account names
     String sourceName = entity.sourceAccountId;
     String destinationName = entity.destinationAccountId;
-    
+
     if (accountRepo != null) {
       try {
-        final AccountEntity? sourceAccount = await accountRepo.getById(entity.sourceAccountId);
+        final AccountEntity? sourceAccount = await accountRepo.getById(
+          entity.sourceAccountId,
+        );
         if (sourceAccount != null) {
           sourceName = sourceAccount.name;
         }
-        final AccountEntity? destAccount = await accountRepo.getById(entity.destinationAccountId);
+        final AccountEntity? destAccount = await accountRepo.getById(
+          entity.destinationAccountId,
+        );
         if (destAccount != null) {
           destinationName = destAccount.name;
         }
@@ -106,10 +110,11 @@ class _HomeTransactionsState extends State<HomeTransactions>
     }
 
     // Convert transaction type
-    final TransactionTypeProperty txType = TransactionTypeProperty.values.firstWhere(
-      (TransactionTypeProperty t) => t.value == entity.type,
-      orElse: () => TransactionTypeProperty.withdrawal,
-    );
+    final TransactionTypeProperty txType = TransactionTypeProperty.values
+        .firstWhere(
+          (TransactionTypeProperty t) => t.value == entity.type,
+          orElse: () => TransactionTypeProperty.withdrawal,
+        );
 
     return TransactionRead(
       id: entity.serverId ?? entity.id,
@@ -274,8 +279,10 @@ class _HomeTransactionsState extends State<HomeTransactions>
     }
 
     // Check if offline and use repository
-    final ConnectivityProvider? connectivity = context.read<ConnectivityProvider?>();
-    final TransactionRepository? transactionRepo = context.read<TransactionRepository?>();
+    final ConnectivityProvider? connectivity =
+        context.read<ConnectivityProvider?>();
+    final TransactionRepository? transactionRepo =
+        context.read<TransactionRepository?>();
     final AccountRepository? accountRepo = context.read<AccountRepository?>();
     final bool isOffline = connectivity?.isOffline ?? false;
 
@@ -332,43 +339,53 @@ class _HomeTransactionsState extends State<HomeTransactions>
         // Use offline repository
         // For offline transactions, add a 1-day buffer to endDate to account for timezone differences
         // or clock skew, since all transactions are local and should be visible
-        final DateTime? endDate = context.read<SettingsProvider>().showFutureTXs
-            ? null
-            : now.add(const Duration(days: 1));
-        
-        final String? accountId = widget.filters?.account != null
-            ? _filters.account!.id
-            : null;
-        final String? categoryId = _filters.category != null && _filters.category!.id != "-1"
-            ? _filters.category!.id
-            : null;
-        final String? searchQuery = _filters.text != null && _filters.text!.isNotEmpty
-            ? _filters.text
-            : null;
-        
-        final List<TransactionEntity> entities = await transactionRepo.getTransactionsOffline(
-          startDate: startDate,
-          endDate: endDate,
-          accountId: accountId,
-          categoryId: categoryId,
-          searchQuery: searchQuery,
-          limit: _numberOfPostsPerRequest,
-          offset: (pageKey - 1) * _numberOfPostsPerRequest,
-        );
-        
+        final DateTime? endDate =
+            context.read<SettingsProvider>().showFutureTXs
+                ? null
+                : now.add(const Duration(days: 1));
+
+        final String? accountId =
+            widget.filters?.account != null ? _filters.account!.id : null;
+        final String? categoryId =
+            _filters.category != null && _filters.category!.id != "-1"
+                ? _filters.category!.id
+                : null;
+        final String? searchQuery =
+            _filters.text != null && _filters.text!.isNotEmpty
+                ? _filters.text
+                : null;
+
+        final List<TransactionEntity> entities = await transactionRepo
+            .getTransactionsOffline(
+              startDate: startDate,
+              endDate: endDate,
+              accountId: accountId,
+              categoryId: categoryId,
+              searchQuery: searchQuery,
+              limit: _numberOfPostsPerRequest,
+              offset: (pageKey - 1) * _numberOfPostsPerRequest,
+            );
+
         // Convert entities to TransactionRead
         transactionList = <TransactionRead>[];
         for (final TransactionEntity entity in entities) {
           try {
-            final TransactionRead txRead = await _entityToTransactionRead(entity, accountRepo);
+            final TransactionRead txRead = await _entityToTransactionRead(
+              entity,
+              accountRepo,
+            );
             transactionList.add(txRead);
           } catch (e, stackTrace) {
-            log.warning('Failed to convert transaction entity ${entity.id}: $e', e, stackTrace);
+            log.warning(
+              'Failed to convert transaction entity ${entity.id}: $e',
+              e,
+              stackTrace,
+            );
           }
         }
       } else {
         // Online path - use TransStock
-        
+
         // Faster than searching for an account, and also has cache (stock) behind
         // This search should never have additional filters!
         if (widget.filters?.account != null) {

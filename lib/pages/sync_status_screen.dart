@@ -48,9 +48,7 @@ class _SyncStatusScreenState extends State<SyncStatusScreen>
     } catch (e) {
       // SyncStatusProvider not available, show error message
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Sync Status'),
-        ),
+        appBar: AppBar(title: const Text('Sync Status')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),

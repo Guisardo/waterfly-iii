@@ -212,7 +212,9 @@ class ChartDataService {
       await appModeManager.initialize();
     }
     if (appModeManager.currentMode == AppMode.offline) {
-      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      _log.info(
+        'Skipping API call - app is in offline mode (mobile data may be disabled)',
+      );
       return <ChartDataSet>[];
     }
 
@@ -252,7 +254,9 @@ class ChartDataService {
       await appModeManager.initialize();
     }
     if (appModeManager.currentMode == AppMode.offline) {
-      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      _log.info(
+        'Skipping API call - app is in offline mode (mobile data may be disabled)',
+      );
       return <ChartDataSet>[];
     }
 
@@ -285,7 +289,9 @@ class ChartDataService {
       await appModeManager.initialize();
     }
     if (appModeManager.currentMode == AppMode.offline) {
-      _log.info('Skipping API call - app is in offline mode (mobile data may be disabled)');
+      _log.info(
+        'Skipping API call - app is in offline mode (mobile data may be disabled)',
+      );
       return <BudgetLimitRead>[];
     }
 

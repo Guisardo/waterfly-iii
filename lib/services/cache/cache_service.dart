@@ -295,7 +295,9 @@ class CacheService {
       } catch (e) {
         // In test scenarios, AppModeManager may fail to initialize
         // (e.g., SharedPreferences not available). Assume online mode.
-        _log.fine('AppModeManager initialization failed (likely in test), assuming online: $e');
+        _log.fine(
+          'AppModeManager initialization failed (likely in test), assuming online: $e',
+        );
         isOffline = false;
       }
 
@@ -308,7 +310,8 @@ class CacheService {
         final T? persistedData = await _getFromLocalDb<T>(entityType, entityId);
         if (persistedData != null) {
           // Check if cached data is suspiciously empty (might be from previous offline session)
-          final bool isEmpty = persistedData is List && (persistedData as List).isEmpty;
+          final bool isEmpty =
+              persistedData is List && (persistedData as List).isEmpty;
           if (isEmpty) {
             _log.warning(
               'Cached data is empty for $entityType:$entityId. This may be from a previous offline session. '
@@ -319,7 +322,8 @@ class CacheService {
             if (_lastSuccessfulData.containsKey(cacheKey)) {
               final dynamic memoryData = _lastSuccessfulData[cacheKey];
               // ignore: unnecessary_cast
-              final bool memoryIsEmpty = memoryData is List && (memoryData as List).isEmpty;
+              final bool memoryIsEmpty =
+                  memoryData is List && (memoryData as List).isEmpty;
               if (!memoryIsEmpty) {
                 _log.info(
                   'Using non-empty in-memory cached data for $entityType:$entityId (offline, fresh)',
@@ -466,7 +470,9 @@ class CacheService {
       } catch (e) {
         // In test scenarios, AppModeManager may fail to initialize
         // (e.g., SharedPreferences not available). Assume online mode.
-        _log.fine('AppModeManager initialization failed (likely in test), assuming online: $e');
+        _log.fine(
+          'AppModeManager initialization failed (likely in test), assuming online: $e',
+        );
         isOffline = false;
       }
 
@@ -479,7 +485,8 @@ class CacheService {
         final T? persistedData = await _getFromLocalDb<T>(entityType, entityId);
         if (persistedData != null) {
           // Check if cached data is suspiciously empty (might be from previous offline session)
-          final bool isEmpty = persistedData is List && (persistedData as List).isEmpty;
+          final bool isEmpty =
+              persistedData is List && (persistedData as List).isEmpty;
           if (isEmpty) {
             _log.warning(
               'Cached data is empty for $entityType:$entityId (stale). This may be from a previous offline session. '
@@ -490,7 +497,8 @@ class CacheService {
             if (_lastSuccessfulData.containsKey(cacheKey)) {
               final dynamic memoryData = _lastSuccessfulData[cacheKey];
               // ignore: unnecessary_cast
-              final bool memoryIsEmpty = memoryData is List && (memoryData as List).isEmpty;
+              final bool memoryIsEmpty =
+                  memoryData is List && (memoryData as List).isEmpty;
               if (!memoryIsEmpty) {
                 _log.info(
                   'Using non-empty in-memory cached data for $entityType:$entityId (offline, stale)',
@@ -601,25 +609,25 @@ class CacheService {
           cachedAt: await _getCachedAt(entityType, entityId),
         );
       } catch (e, stackTrace) {
-          _log.warning(
-            'Fetcher failed offline for $entityType:$entityId, no cached data available',
-            e,
-            stackTrace,
-          );
-          // Return empty result - services will handle empty data
-          // For list types, return empty list; for others, return null
-          T emptyData;
-          if (T.toString().startsWith('List<')) {
-            emptyData = <dynamic>[] as T;
-          } else {
-            emptyData = null as T;
-          }
-          return CacheResult<T>(
-            data: emptyData,
-            source: CacheSource.cache,
-            isFresh: false,
-            cachedAt: await _getCachedAt(entityType, entityId),
-          );
+        _log.warning(
+          'Fetcher failed offline for $entityType:$entityId, no cached data available',
+          e,
+          stackTrace,
+        );
+        // Return empty result - services will handle empty data
+        // For list types, return empty list; for others, return null
+        T emptyData;
+        if (T.toString().startsWith('List<')) {
+          emptyData = <dynamic>[] as T;
+        } else {
+          emptyData = null as T;
+        }
+        return CacheResult<T>(
+          data: emptyData,
+          source: CacheSource.cache,
+          isFresh: false,
+          cachedAt: await _getCachedAt(entityType, entityId),
+        );
       }
     }
 
@@ -1016,7 +1024,9 @@ class CacheService {
       } catch (e) {
         // In test scenarios, AppModeManager may fail to initialize
         // (e.g., SharedPreferences not available). Assume online mode.
-        _log.fine('AppModeManager initialization failed (likely in test), assuming online: $e');
+        _log.fine(
+          'AppModeManager initialization failed (likely in test), assuming online: $e',
+        );
         isOffline = false;
       }
       if (isOffline) {
@@ -1176,7 +1186,9 @@ class CacheService {
       if (_shouldPersistData(entityType)) {
         try {
           serializedData = _serializeData(data);
-          _log.fine('Serialized data for $entityType:$entityId (${serializedData.length} bytes)');
+          _log.fine(
+            'Serialized data for $entityType:$entityId (${serializedData.length} bytes)',
+          );
         } catch (e, stackTrace) {
           _log.warning(
             'Failed to serialize data for $entityType:$entityId',
@@ -1185,8 +1197,7 @@ class CacheService {
           );
           // Continue without serialized data - metadata still stored
         }
-      } else {
-      }
+      } else {}
 
       await database
           .into(database.cacheMetadataTable)
@@ -1781,7 +1792,6 @@ class CacheService {
   /// For chart/insight types, retrieves and deserializes data from cachedData column.
   /// For entity types (transactions, accounts), returns null (data in entity tables).
   Future<T?> _getFromLocalDb<T>(String entityType, String entityId) async {
-
     if (!_shouldPersistData(entityType)) {
       // Entity data is stored in entity-specific tables, not here
       return null;
@@ -1790,18 +1800,20 @@ class CacheService {
     try {
       final CacheMetadataEntity? metadata =
           await (database.select(database.cacheMetadataTable)..where(
-        ($CacheMetadataTableTable tbl) =>
-            tbl.entityType.equals(entityType) &
-            tbl.entityId.equals(entityId),
-      )).getSingleOrNull();
-
+            ($CacheMetadataTableTable tbl) =>
+                tbl.entityType.equals(entityType) &
+                tbl.entityId.equals(entityId),
+          )).getSingleOrNull();
 
       if (metadata?.cachedData == null) {
         return null;
       }
 
       _log.fine('Retrieving cached data for $entityType:$entityId');
-      final T result = _deserializeData<T>(metadata!.cachedData!, entityType: entityType);
+      final T result = _deserializeData<T>(
+        metadata!.cachedData!,
+        entityType: entityType,
+      );
       return result;
     } catch (e, stackTrace) {
       _log.warning(
@@ -1809,7 +1821,11 @@ class CacheService {
         e,
         stackTrace,
       );
-      _log.severe('Deserialization failed for $entityType:$entityId', e, stackTrace);
+      _log.severe(
+        'Deserialization failed for $entityType:$entityId',
+        e,
+        stackTrace,
+      );
       return null;
     }
   }
@@ -1885,8 +1901,11 @@ class CacheService {
     // Check for ChartDataSet (has 'entries' field)
     if (first.containsKey('entries') || first.containsKey('label')) {
       return decoded
-          .map<ChartDataSet>((e) => ChartDataSet.fromJson(e as Map<String, dynamic>))
-          .toList() as T;
+              .map<ChartDataSet>(
+                (e) => ChartDataSet.fromJson(e as Map<String, dynamic>),
+              )
+              .toList()
+          as T;
     }
 
     // Check for InsightTotalEntry (has 'difference_float' but no 'id' or 'name')
@@ -1894,23 +1913,32 @@ class CacheService {
         !first.containsKey('id') &&
         !first.containsKey('name')) {
       return decoded
-          .map<InsightTotalEntry>((e) => InsightTotalEntry.fromJson(e as Map<String, dynamic>))
-          .toList() as T;
+              .map<InsightTotalEntry>(
+                (e) => InsightTotalEntry.fromJson(e as Map<String, dynamic>),
+              )
+              .toList()
+          as T;
     }
 
     // Check for InsightGroupEntry (has 'difference_float' and 'id' or 'name')
     if (first.containsKey('difference_float') &&
         (first.containsKey('id') || first.containsKey('name'))) {
       return decoded
-          .map<InsightGroupEntry>((e) => InsightGroupEntry.fromJson(e as Map<String, dynamic>))
-          .toList() as T;
+              .map<InsightGroupEntry>(
+                (e) => InsightGroupEntry.fromJson(e as Map<String, dynamic>),
+              )
+              .toList()
+          as T;
     }
 
     // Check for BudgetLimitRead (has 'attributes' field)
     if (first.containsKey('attributes')) {
       return decoded
-          .map<BudgetLimitRead>((e) => BudgetLimitRead.fromJson(e as Map<String, dynamic>))
-          .toList() as T;
+              .map<BudgetLimitRead>(
+                (e) => BudgetLimitRead.fromJson(e as Map<String, dynamic>),
+              )
+              .toList()
+          as T;
     }
 
     throw FormatException(
@@ -1925,7 +1953,7 @@ class CacheService {
   /// Uses dynamic return to work around Dart's type erasure limitations.
   dynamic _getEmptyListForType<T>(String? entityType) {
     if (entityType != null) {
-      if (entityType.startsWith('chart_balance') || 
+      if (entityType.startsWith('chart_balance') ||
           entityType.startsWith('chart_account')) {
         // Return empty ChartDataSet list
         return <ChartDataSet>[];

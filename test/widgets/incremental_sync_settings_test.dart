@@ -248,7 +248,10 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Cancel'), findsOneWidget);
-      expect(find.text('Reset Statistics'), findsAtLeast(2)); // Button + dialog title
+      expect(
+        find.text('Reset Statistics'),
+        findsAtLeast(2),
+      ); // Button + dialog title
     });
 
     testWidgets(

@@ -406,33 +406,28 @@ class AppModeManager {
   void _triggerIncrementalSync() {
     // Don't trigger if manual override is active
     if (_manualOverride) {
-      _logger.fine(
-        'Skipping auto-sync trigger: manual override is active',
-      );
+      _logger.fine('Skipping auto-sync trigger: manual override is active');
       return;
     }
 
     // Don't trigger if SyncManager is not available
     if (_syncManager == null) {
-      _logger.fine(
-        'Skipping auto-sync trigger: SyncManager not available',
-      );
+      _logger.fine('Skipping auto-sync trigger: SyncManager not available');
       return;
     }
 
     // Check if sync is already in progress
     if (_syncManager!.isSyncing) {
-      _logger.fine(
-        'Skipping auto-sync trigger: sync already in progress',
-      );
+      _logger.fine('Skipping auto-sync trigger: sync already in progress');
       return;
     }
 
     // Debounce: prevent multiple rapid triggers
     final DateTime now = DateTime.now();
     if (_lastSyncTriggerTime != null) {
-      final Duration timeSinceLastTrigger =
-          now.difference(_lastSyncTriggerTime!);
+      final Duration timeSinceLastTrigger = now.difference(
+        _lastSyncTriggerTime!,
+      );
       if (timeSinceLastTrigger < _syncTriggerDebounce) {
         _logger.fine(
           'Skipping auto-sync trigger: debounce period not elapsed '
@@ -449,20 +444,21 @@ class AppModeManager {
     _syncManager!
         .synchronize(fullSync: false)
         .then((SyncResult result) {
-      _logger.info(
-        'Auto-sync on reconnect completed: '
-        'success=${result.success}, '
-        'operations=${result.totalOperations}, '
-        'successful=${result.successfulOperations}, '
-        'failed=${result.failedOperations}',
-      );
-    }).catchError((error, stackTrace) {
-      _logger.warning(
-        'Auto-sync on reconnect failed (non-blocking)',
-        error,
-        stackTrace,
-      );
-    });
+          _logger.info(
+            'Auto-sync on reconnect completed: '
+            'success=${result.success}, '
+            'operations=${result.totalOperations}, '
+            'successful=${result.successfulOperations}, '
+            'failed=${result.failedOperations}',
+          );
+        })
+        .catchError((error, stackTrace) {
+          _logger.warning(
+            'Auto-sync on reconnect failed (non-blocking)',
+            error,
+            stackTrace,
+          );
+        });
   }
 
   /// Disposes of the service and releases resources.
