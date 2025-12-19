@@ -531,10 +531,11 @@ The following files are **auto-generated** and should **NOT** be manually edited
 - Files that are regenerated when running `dart run build_runner build`
 
 **Code Review Process:**
-- Exclude auto-generated files from code review tools
-- Ignore code quality findings (complexity, length, testability) in generated files
-- Focus code review on manually-written source files only
-- Generated files will be regenerated and any manual changes will be lost
+- **Exclude auto-generated files from code review tools** - When running code review tools (e.g., MCP code reviewer, SonarQube, CodeClimate), configure them to exclude these files
+- **Ignore all findings in generated files** - Code quality findings (complexity, length, testability, SOLID violations, DRY violations) in generated files should be ignored
+- **Focus on manually-written code** - Code review should focus on manually-written source files only
+- **No manual edits** - Generated files will be regenerated and any manual changes will be lost
+- **Reference documentation** - See `docs/code-review-execution-plan.md` for detailed code review findings and execution plan
 
 ## Testing Guidelines
 
