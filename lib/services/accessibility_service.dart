@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show FlutterView;
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:logging/logging.dart';
@@ -191,7 +192,8 @@ class AccessibilityService {
     final String message = _announcementQueue.removeAt(0);
 
     // Use SemanticsService to announce
-    SemanticsService.announce(message, TextDirection.ltr);
+    final FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
+    SemanticsService.sendAnnouncement(view, message, TextDirection.ltr);
 
     // Wait before processing next announcement to avoid overlap
     _announcementTimer = Timer(const Duration(milliseconds: 1500), () {

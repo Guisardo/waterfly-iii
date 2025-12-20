@@ -1,5 +1,6 @@
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waterflyiii/models/sync_progress.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/services/sync/database_adapter.dart';
@@ -257,7 +258,7 @@ void backgroundSyncCallback() {
 
       // Perform incremental sync
       logger.info('Starting incremental sync from background task');
-      final result = await syncService.sync(mode: SyncMode.incremental);
+      final SyncResult result = await syncService.sync(mode: SyncMode.incremental);
 
       // Record result for interval adjustment
       final SharedPreferences prefs = await SharedPreferences.getInstance();

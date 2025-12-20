@@ -559,7 +559,7 @@ class InsightsService {
 
       // Filter to withdrawals (expenses) only
       final List<TransactionEntity> expenses =
-          transactions.where((t) => t.type == 'withdrawal').toList();
+          transactions.where((TransactionEntity t) => t.type == 'withdrawal').toList();
 
       if (expenses.isEmpty) {
         _log.fine('No expense transactions found in local database');
@@ -577,7 +577,7 @@ class InsightsService {
       // Convert to InsightTotalEntry format
       // Note: Using currencyCode as currencyId since we don't have CurrencyRepository
       final List<InsightTotalEntry> entries =
-          totalsByCurrency.entries.map((entry) {
+          totalsByCurrency.entries.map((MapEntry<String, double> entry) {
             return InsightTotalEntry(
               currencyId: entry.key, // Using currency code as ID
               differenceFloat: -entry.value, // Negative for expenses
@@ -620,7 +620,7 @@ class InsightsService {
 
       // Filter to deposits (income) only
       final List<TransactionEntity> incomes =
-          transactions.where((t) => t.type == 'deposit').toList();
+          transactions.where((TransactionEntity t) => t.type == 'deposit').toList();
 
       if (incomes.isEmpty) {
         _log.fine('No income transactions found in local database');
@@ -638,7 +638,7 @@ class InsightsService {
       // Convert to InsightTotalEntry format
       // Note: Using currencyCode as currencyId since we don't have CurrencyRepository
       final List<InsightTotalEntry> entries =
-          totalsByCurrency.entries.map((entry) {
+          totalsByCurrency.entries.map((MapEntry<String, double> entry) {
             return InsightTotalEntry(
               currencyId: entry.key, // Using currency code as ID
               differenceFloat: entry.value, // Positive for income

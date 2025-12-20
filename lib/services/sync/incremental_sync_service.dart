@@ -424,23 +424,23 @@ class IncrementalSyncService {
           // Calculate totals for provider update
           final int totalFetched = statsByEntity.values.fold<int>(
             0,
-            (sum, stats) => sum + stats.itemsFetched,
+            (int sum, IncrementalSyncStats stats) => sum + stats.itemsFetched,
           );
           final int totalUpdated = statsByEntity.values.fold<int>(
             0,
-            (sum, stats) => sum + stats.itemsUpdated,
+            (int sum, IncrementalSyncStats stats) => sum + stats.itemsUpdated,
           );
           final int totalSkipped = statsByEntity.values.fold<int>(
             0,
-            (sum, stats) => sum + stats.itemsSkipped,
+            (int sum, IncrementalSyncStats stats) => sum + stats.itemsSkipped,
           );
           final int totalBandwidthSaved = statsByEntity.values.fold<int>(
             0,
-            (sum, stats) => sum + stats.bandwidthSavedBytes,
+            (int sum, IncrementalSyncStats stats) => sum + stats.bandwidthSavedBytes,
           );
           final int totalApiCallsSaved = statsByEntity.values.fold<int>(
             0,
-            (sum, stats) => sum + stats.apiCallsSaved,
+            (int sum, IncrementalSyncStats stats) => sum + stats.apiCallsSaved,
           );
 
           await settingsProvider.updateIncrementalSyncStatistics(
@@ -634,7 +634,7 @@ class IncrementalSyncService {
           if (processedInThisSync.contains(serverId)) {
             return false;
           }
-          return await _shouldStopIteration(item, 'transaction');
+          return _shouldStopIteration(item, 'transaction');
         },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
@@ -726,7 +726,7 @@ class IncrementalSyncService {
           if (processedInThisSync.contains(serverId)) {
             return false;
           }
-          return await _shouldStopIteration(item, 'account');
+          return _shouldStopIteration(item, 'account');
         },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
@@ -808,7 +808,7 @@ class IncrementalSyncService {
           if (processedInThisSync.contains(serverId)) {
             return false;
           }
-          return await _shouldStopIteration(item, 'budget');
+          return _shouldStopIteration(item, 'budget');
         },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,
@@ -910,7 +910,7 @@ class IncrementalSyncService {
           if (processedInThisSync.contains(serverId)) {
             return false;
           }
-          return await _shouldStopIteration(item, 'category');
+          return _shouldStopIteration(item, 'category');
         },
         retryConfig: RetryConfig(
           maxAttempts: maxRetryAttempts,

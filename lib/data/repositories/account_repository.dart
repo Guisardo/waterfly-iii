@@ -918,7 +918,7 @@ class AccountRepository extends BaseRepository<AccountEntity, String> {
       );
       final String searchPattern = '%${query.toLowerCase()}%';
 
-      var selectQuery = database.select(database.accounts);
+      SimpleSelectStatement<$AccountsTable, AccountEntity> selectQuery = database.select(database.accounts);
 
       selectQuery =
           selectQuery..where(($AccountsTable a) {

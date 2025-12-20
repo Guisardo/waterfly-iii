@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_status.dart';
@@ -138,7 +137,7 @@ class ConnectivityProvider extends ChangeNotifier {
   /// Checks if the server is reachable.
   ///
   /// Returns `true` if the Firefly III server can be reached.
-  Future<bool> checkServerReachability() async {
+  Future<bool> checkServerReachability() {
     return _connectivityService.checkServerReachability();
   }
 

@@ -2455,7 +2455,7 @@ class SyncManager {
     // First check app mode - if offline, don't sync even if connectivity is online
     final AppModeManager? appModeManager = _appModeManager;
     if (appModeManager != null) {
-      final appMode = appModeManager.currentMode;
+      final AppMode appMode = appModeManager.currentMode;
       if (appMode == AppMode.offline) {
         _logger.warning(
           'Cannot sync: app is in offline mode (mobile data may be disabled)',

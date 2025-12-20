@@ -304,7 +304,7 @@ class _ConflictManualEditDialogState extends State<ConflictManualEditDialog> {
                     isConflicting
                         ? Theme.of(
                           context,
-                        ).colorScheme.errorContainer.withOpacity(0.1)
+                        ).colorScheme.errorContainer.withValues(alpha: 0.1)
                         : null,
               ),
               validator: (String? value) => _validateField(field, value),

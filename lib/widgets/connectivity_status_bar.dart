@@ -163,7 +163,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                               Text(
                                 _getNetworkTypeText(rawStatus),
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                   fontSize: 12,
                                 ),
                               ),
@@ -172,7 +172,7 @@ class _ConnectivityStatusBarState extends State<ConnectivityStatusBar>
                       ),
                       Icon(
                         Icons.info_outline,
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         size: 16,
                       ),
                     ],

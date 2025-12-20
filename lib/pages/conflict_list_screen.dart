@@ -50,21 +50,21 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
       // SyncStatusProvider not available, show error message
       return Scaffold(
         appBar: AppBar(title: const Text('Conflicts')),
-        body: Center(
+        body: const Center(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const Icon(Icons.error_outline, size: 64, color: Colors.grey),
-                const SizedBox(height: 16),
-                const Text(
+                Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
                   'Sync Status Provider Not Available',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                SizedBox(height: 8),
+                Text(
                   'Please restart the app to enable conflict tracking.',
                   textAlign: TextAlign.center,
                 ),
@@ -368,9 +368,9 @@ class _ConflictListScreenState extends State<ConflictListScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         severity,

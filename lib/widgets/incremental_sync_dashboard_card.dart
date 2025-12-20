@@ -190,7 +190,7 @@ class _IncrementalSyncDashboardCardState
                     Theme.of(context).colorScheme.primaryContainer,
                     Theme.of(
                       context,
-                    ).colorScheme.primaryContainer.withOpacity(0.7),
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.7),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -216,7 +216,7 @@ class _IncrementalSyncDashboardCardState
                           ).textTheme.bodySmall?.copyWith(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onPrimaryContainer.withOpacity(0.8),
+                            ).colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -396,7 +396,7 @@ class _IncrementalSyncDashboardCardState
     return Container(
       padding: EdgeInsets.all(size / 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: iconWidget,
@@ -429,7 +429,7 @@ class _IncrementalSyncDashboardCardState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
@@ -512,7 +512,7 @@ class _IncrementalSyncDashboardCardState
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.1),
+          color: Colors.grey.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -538,7 +538,7 @@ class _IncrementalSyncDashboardCardState
         decoration: BoxDecoration(
           color: Theme.of(
             context,
-          ).colorScheme.primaryContainer.withOpacity(0.3),
+          ).colorScheme.primaryContainer.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -606,7 +606,7 @@ class _IncrementalSyncDashboardCardState
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -664,9 +664,9 @@ class _IncrementalSyncDashboardCardState
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.1),
+        color: Colors.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: <Widget>[
@@ -762,12 +762,12 @@ class _IncrementalSyncDashboardCardState
       return Theme.of(context).colorScheme.primaryContainer;
     }
     if (settings.needsFullSync) {
-      return Colors.orange.withOpacity(0.2);
+      return Colors.orange.withValues(alpha: 0.2);
     }
     if (!settings.incrementalSyncEnabled) {
-      return Colors.grey.withOpacity(0.2);
+      return Colors.grey.withValues(alpha: 0.2);
     }
-    return Colors.green.withOpacity(0.2);
+    return Colors.green.withValues(alpha: 0.2);
   }
 
   /// Format entity type for display.

@@ -200,15 +200,15 @@ class ListViewOfflineHelper {
       if (hasSyncError) {
         backgroundColor = Theme.of(
           context,
-        ).colorScheme.errorContainer.withOpacity(0.05);
+        ).colorScheme.errorContainer.withValues(alpha: 0.05);
       } else if (isSyncing) {
         backgroundColor = Theme.of(
           context,
-        ).colorScheme.primaryContainer.withOpacity(0.05);
+        ).colorScheme.primaryContainer.withValues(alpha: 0.05);
       } else {
         backgroundColor = Theme.of(
           context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.1);
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.1);
       }
     }
 
@@ -293,8 +293,9 @@ class ListViewOfflineHelper {
   static String _formatAge(Duration age, BuildContext context) {
     final S localizations = S.of(context);
     if (age.inMinutes < 1) return localizations.syncStatusJustNow;
-    if (age.inHours < 1)
+    if (age.inHours < 1) {
       return localizations.syncStatusMinutesAgo(age.inMinutes);
+    }
     if (age.inDays < 1) return localizations.syncStatusHoursAgo(age.inHours);
     return localizations.syncStatusDaysAgo(age.inDays);
   }

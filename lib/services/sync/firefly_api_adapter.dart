@@ -1032,8 +1032,8 @@ class FireflyApiAdapter {
 
     if (!response.isSuccessful || response.body == null) {
       final String errorMessage = response.error?.toString() ?? 'Unknown error';
-      final int? statusCode = response.statusCode;
-      final String? responseBody = response.bodyString;
+      final int statusCode = response.statusCode;
+      final String responseBody = response.bodyString;
       final String error =
           'Failed to fetch transactions: $errorMessage (status: $statusCode)';
       _logger.severe('Transaction fetch error (without sort): $error');
@@ -1131,7 +1131,7 @@ class FireflyApiAdapter {
 
     if (!response.isSuccessful) {
       final String errorMessage = response.error?.toString() ?? 'Unknown error';
-      final int? statusCode = response.statusCode;
+      final int statusCode = response.statusCode;
       final String error =
           'Failed to fetch transactions: $errorMessage (status: $statusCode)';
       _logger.severe(error);

@@ -102,7 +102,7 @@ class ConnectivityInfo {
 
     // Multiple connections
     final String types = networkTypes
-        .map((type) => _getLocalizedNetworkTypeName(type, localizations))
+        .map((ConnectivityResult type) => _getLocalizedNetworkTypeName(type, localizations))
         .join(' ${localizations.generalNetworkTypeSeparator} ');
     return types;
   }

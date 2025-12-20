@@ -317,7 +317,7 @@ class SyncService {
     int successfulOperations = 0;
     int failedOperations = 0;
     int conflictsDetected = 0;
-    int conflictsResolved = 0;
+    final int conflictsResolved = 0;
     final List<String> errors = <String>[];
 
     try {
@@ -523,17 +523,17 @@ class SyncService {
   ) async {
     switch (entityType) {
       case 'transactions':
-        return await _apiAdapter.getAllTransactions();
+        return _apiAdapter.getAllTransactions();
       case 'accounts':
-        return await _apiAdapter.getAllAccounts();
+        return _apiAdapter.getAllAccounts();
       case 'categories':
-        return await _apiAdapter.getAllCategories();
+        return _apiAdapter.getAllCategories();
       case 'budgets':
-        return await _apiAdapter.getAllBudgets();
+        return _apiAdapter.getAllBudgets();
       case 'bills':
-        return await _apiAdapter.getAllBills();
+        return _apiAdapter.getAllBills();
       case 'piggy_banks':
-        return await _apiAdapter.getAllPiggyBanks();
+        return _apiAdapter.getAllPiggyBanks();
       default:
         _logger.warning('Unknown entity type: $entityType');
         return <Map<String, dynamic>>[];
@@ -547,17 +547,17 @@ class SyncService {
   ) async {
     switch (entityType) {
       case 'transactions':
-        return await _apiAdapter.getTransactionsSince(since);
+        return _apiAdapter.getTransactionsSince(since);
       case 'accounts':
-        return await _apiAdapter.getAccountsSince(since);
+        return _apiAdapter.getAccountsSince(since);
       case 'categories':
-        return await _apiAdapter.getCategoriesSince(since);
+        return _apiAdapter.getCategoriesSince(since);
       case 'budgets':
-        return await _apiAdapter.getBudgetsSince(since);
+        return _apiAdapter.getBudgetsSince(since);
       case 'bills':
-        return await _apiAdapter.getBillsSince(since);
+        return _apiAdapter.getBillsSince(since);
       case 'piggy_banks':
-        return await _apiAdapter.getPiggyBanksSince(since);
+        return _apiAdapter.getPiggyBanksSince(since);
       default:
         _logger.warning('Unknown entity type: $entityType');
         return <Map<String, dynamic>>[];

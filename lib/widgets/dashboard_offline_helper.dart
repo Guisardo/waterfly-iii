@@ -70,7 +70,7 @@ class DashboardOfflineHelper {
           width: 12,
           height: 12,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.tertiary.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.5),
             border: Border.all(
               color: Theme.of(context).colorScheme.tertiary,
               width: 2,
@@ -89,7 +89,7 @@ class DashboardOfflineHelper {
 
   /// Get color for unsynced data in charts
   static Color getUnsyncedDataColor(BuildContext context) {
-    return Theme.of(context).colorScheme.tertiary.withOpacity(0.5);
+    return Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.5);
   }
 
   /// Get border color for unsynced data in charts
@@ -166,8 +166,9 @@ class DashboardOfflineHelper {
   static String _formatAge(Duration age, BuildContext context) {
     final S localizations = S.of(context);
     if (age.inMinutes < 1) return localizations.syncStatusJustNow;
-    if (age.inHours < 1)
+    if (age.inHours < 1) {
       return localizations.syncStatusMinutesAgo(age.inMinutes);
+    }
     if (age.inDays < 1) return localizations.syncStatusHoursAgo(age.inHours);
     if (age.inDays < 7) return localizations.syncStatusDaysAgo(age.inDays);
     return localizations.syncStatusDaysAgo(age.inDays);

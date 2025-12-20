@@ -44,12 +44,7 @@ class _CategoriesPageState extends State<CategoriesPage>
     );
     selectedMonth = now.copyWith(day: 15);
 
-    final InsightsService? insightsService = context.read<InsightsService>();
-    if (insightsService == null) {
-      throw StateError(
-        'InsightsService not available - user may not be signed in',
-      );
-    }
+    final InsightsService insightsService = context.read<InsightsService>();
     stock = CatStock(
       insightsService,
       context.read<FireflyService>().defaultCurrency,

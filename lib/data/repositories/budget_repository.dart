@@ -689,7 +689,7 @@ class BudgetRepository extends BaseRepository<BudgetEntity, String> {
       logger.fine('Searching budgets: "$query" (activeOnly: $activeOnly)');
       final String searchPattern = '%${query.toLowerCase()}%';
 
-      var selectQuery = database.select(database.budgets);
+      SimpleSelectStatement<$BudgetsTable, BudgetEntity> selectQuery = database.select(database.budgets);
 
       selectQuery =
           selectQuery..where(($BudgetsTable b) {

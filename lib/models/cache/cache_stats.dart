@@ -395,8 +395,9 @@ class CacheStats {
   /// }
   /// ```
   double get refreshSuccessRate {
-    if (staleServed == 0)
+    if (staleServed == 0) {
       return 1.0; // No stale served = 100% success (vacuous)
+    }
     return backgroundRefreshes / staleServed;
   }
 

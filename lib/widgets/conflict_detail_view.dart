@@ -145,7 +145,7 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
       margin: const EdgeInsets.only(bottom: 8),
       color:
           isConflicting
-              ? Theme.of(context).colorScheme.errorContainer.withOpacity(0.3)
+              ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3)
               : null,
       child: Column(
         children: <Widget>[
@@ -246,7 +246,7 @@ class _ConflictDetailViewState extends State<ConflictDetailView> {
               isSelected
                   ? Theme.of(
                     context,
-                  ).colorScheme.primaryContainer.withOpacity(0.3)
+                  ).colorScheme.primaryContainer.withValues(alpha: 0.3)
                   : null,
         ),
         child: Row(

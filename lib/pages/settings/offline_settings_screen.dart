@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/models/conflict.dart';
+import 'package:waterflyiii/models/incremental_sync_stats.dart';
 import 'package:waterflyiii/models/sync_progress.dart';
 import 'package:waterflyiii/providers/offline_settings_provider.dart';
 import 'package:waterflyiii/providers/sync_status_provider.dart';
@@ -63,8 +64,8 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
     setState(() => _isCalculatingDatabaseSize = true);
 
     try {
-      final BuildContext? currentContext = context;
-      if (currentContext == null || !mounted) {
+      final BuildContext currentContext = context;
+      if (!mounted) {
         return;
       }
 
@@ -380,7 +381,7 @@ class _OfflineSettingsScreenState extends State<OfflineSettingsScreen> {
       }
 
       // Start incremental sync in background
-      final result = await incrementalSyncService.performIncrementalSync();
+      final IncrementalSyncResult result = await incrementalSyncService.performIncrementalSync();
 
       // Close progress dialog
       if (mounted) {

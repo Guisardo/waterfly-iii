@@ -80,7 +80,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
   /// This constructor initializes the provider asynchronously.
   /// The provider will be in a loading state until initialization completes.
   factory OfflineSettingsProvider.create() {
-    final provider = OfflineSettingsProvider._internal();
+    final OfflineSettingsProvider provider = OfflineSettingsProvider._internal();
     provider._initializeAsync();
     return provider;
   }
@@ -135,7 +135,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
     try {
       final AppDatabase database = AppDatabase();
       // Import the generated types - they're available through app_database.dart
-      final allStats = await database.select(database.syncStatistics).get();
+      final List<SyncStatisticsEntity> allStats = await database.select(database.syncStatistics).get();
 
       if (allStats.isEmpty) {
         return;
@@ -150,7 +150,7 @@ class OfflineSettingsProvider extends ChangeNotifier {
       DateTime? latestIncrementalSync;
       DateTime? latestFullSync;
 
-      for (final stats in allStats) {
+      for (final SyncStatisticsEntity stats in allStats) {
         totalFetched += stats.itemsFetchedTotal;
         totalUpdated += stats.itemsUpdatedTotal;
         totalSkipped += stats.itemsSkippedTotal;

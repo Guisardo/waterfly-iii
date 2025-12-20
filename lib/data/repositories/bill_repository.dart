@@ -972,7 +972,7 @@ class BillRepository extends BaseRepository<BillEntity, String> {
       logger.fine('Searching bills: "$query" (activeOnly: $activeOnly)');
       final String searchPattern = '%${query.toLowerCase()}%';
 
-      var selectQuery = database.select(database.bills);
+      SimpleSelectStatement<$BillsTable, BillEntity> selectQuery = database.select(database.bills);
 
       selectQuery =
           selectQuery..where(($BillsTable b) {

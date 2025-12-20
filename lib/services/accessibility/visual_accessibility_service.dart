@@ -41,7 +41,7 @@ class VisualAccessibilityService {
     if (!meetsRequirement) {
       _logger.warning(
         'Insufficient contrast: $contrast:1 (required: $requiredRatio:1) '
-        'for ${foreground.value.toRadixString(16)} on ${background.value.toRadixString(16)}',
+        'for ${foreground.toARGB32().toRadixString(16)} on ${background.toARGB32().toRadixString(16)}',
       );
     }
 
@@ -181,12 +181,12 @@ class VisualAccessibilityService {
 
   /// Get recommended text size multiplier based on accessibility settings
   double getTextScaleFactor(BuildContext context) {
-    return MediaQuery.of(context).textScaleFactor;
+    return MediaQuery.textScalerOf(context).scale(1.0);
   }
 
   /// Check if large text is enabled
   bool isLargeTextEnabled(BuildContext context) {
-    return MediaQuery.of(context).textScaleFactor > 1.0;
+    return MediaQuery.textScalerOf(context).scale(1.0) > 1.0;
   }
 
   /// Build text with minimum size for accessibility

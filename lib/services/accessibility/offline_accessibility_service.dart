@@ -1,3 +1,4 @@
+import 'dart:ui' show FlutterView;
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:logging/logging.dart';
@@ -45,7 +46,8 @@ class OfflineAccessibilityService {
     }
 
     _logger.fine('Announcing connectivity change: $announcement');
-    SemanticsService.announce(announcement, TextDirection.ltr);
+    final FlutterView view = View.of(context);
+    SemanticsService.sendAnnouncement(view, announcement, TextDirection.ltr);
   }
 
   /// Announce sync progress
@@ -57,13 +59,15 @@ class OfflineAccessibilityService {
       final String announcement =
           'Sync complete. ${progress.completedOperations} operations synced successfully.';
       _logger.fine('Announcing sync completion: $announcement');
-      SemanticsService.announce(announcement, TextDirection.ltr);
+      final FlutterView view = View.of(context);
+      SemanticsService.sendAnnouncement(view, announcement, TextDirection.ltr);
     } else if (progress.completedOperations % 10 == 0) {
       // Announce every 10 operations to avoid spam
       final String announcement =
           'Syncing. ${progress.completedOperations} of ${progress.totalOperations} operations complete.';
       _logger.fine('Announcing sync progress: $announcement');
-      SemanticsService.announce(announcement, TextDirection.ltr);
+      final FlutterView view = View.of(context);
+      SemanticsService.sendAnnouncement(view, announcement, TextDirection.ltr);
     }
   }
 
@@ -77,14 +81,16 @@ class OfflineAccessibilityService {
         'Your attention is required to resolve ${conflictCount == 1 ? 'it' : 'them'}.';
 
     _logger.info('Announcing conflicts: $announcement');
-    SemanticsService.announce(announcement, TextDirection.ltr);
+    final FlutterView view = View.of(context);
+    SemanticsService.sendAnnouncement(view, announcement, TextDirection.ltr);
   }
 
   /// Announce sync error
   static void announceSyncError(BuildContext context, String errorMessage) {
     final String announcement = 'Sync error: $errorMessage';
     _logger.warning('Announcing sync error: $announcement');
-    SemanticsService.announce(announcement, TextDirection.ltr);
+    final FlutterView view = View.of(context);
+    SemanticsService.sendAnnouncement(view, announcement, TextDirection.ltr);
   }
 
   /// Build semantic wrapper for sync status
@@ -180,7 +186,8 @@ class OfflineAccessibilityService {
   ) {
     final String announcement =
         '$itemCount $entityType${itemCount == 1 ? '' : 's'} in list.';
-    SemanticsService.announce(announcement, TextDirection.ltr);
+    final FlutterView view = View.of(context);
+    SemanticsService.sendAnnouncement(view, announcement, TextDirection.ltr);
   }
 
   /// Build focus indicator for keyboard navigation

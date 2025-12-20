@@ -96,9 +96,9 @@ class AnimationService {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: <Color>[
-                Colors.white.withOpacity(0.0),
-                Colors.white.withOpacity(0.3),
-                Colors.white.withOpacity(0.0),
+                Colors.white.withValues(alpha: 0.0),
+                Colors.white.withValues(alpha: 0.3),
+                Colors.white.withValues(alpha: 0.0),
               ],
               stops:
                   <double>[

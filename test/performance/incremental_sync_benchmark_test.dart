@@ -919,7 +919,7 @@ void _setupEmptyBudgetResponse(MockFireflyApiAdapter mockApi) {
       order: any(named: 'order'),
     ),
   ).thenAnswer(
-    (_) async => PaginatedResult<Map<String, dynamic>>(
+    (_) async => const PaginatedResult<Map<String, dynamic>>(
       data: <Map<String, dynamic>>[],
       total: 0,
       currentPage: 1,
@@ -936,7 +936,7 @@ void _setupEmptyCategoryResponse(MockFireflyApiAdapter mockApi) {
       limit: any(named: 'limit'),
     ),
   ).thenAnswer(
-    (_) async => PaginatedResult<Map<String, dynamic>>(
+    (_) async => const PaginatedResult<Map<String, dynamic>>(
       data: <Map<String, dynamic>>[],
       total: 0,
       currentPage: 1,
@@ -953,7 +953,7 @@ void _setupEmptyBillResponse(MockFireflyApiAdapter mockApi) {
       limit: any(named: 'limit'),
     ),
   ).thenAnswer(
-    (_) async => PaginatedResult<Map<String, dynamic>>(
+    (_) async => const PaginatedResult<Map<String, dynamic>>(
       data: <Map<String, dynamic>>[],
       total: 0,
       currentPage: 1,
@@ -970,7 +970,7 @@ void _setupEmptyPiggyBankResponse(MockFireflyApiAdapter mockApi) {
       limit: any(named: 'limit'),
     ),
   ).thenAnswer(
-    (_) async => PaginatedResult<Map<String, dynamic>>(
+    (_) async => const PaginatedResult<Map<String, dynamic>>(
       data: <Map<String, dynamic>>[],
       total: 0,
       currentPage: 1,

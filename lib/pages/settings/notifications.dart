@@ -243,7 +243,7 @@ class NotificationApps extends StatelessWidget {
             );
           }).toList();
 
-      return AccountArray(data: accounts, meta: Meta());
+      return AccountArray(data: accounts, meta: const Meta());
     }
 
     // Fallback to direct API call if repository not available

@@ -130,7 +130,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(
             context,
-          ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -151,7 +151,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(
           context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -290,7 +290,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
             size: 64,
             color: Theme.of(
               context,
-            ).colorScheme.onSurfaceVariant.withOpacity(0.5),
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -326,10 +326,10 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: <Color>[color.withOpacity(0.1), color.withOpacity(0.05)],
+          colors: <Color>[color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: <Widget>[
@@ -342,7 +342,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
                 CircularProgressIndicator(
                   value: skipRate / 100.0,
                   strokeWidth: 8,
-                  backgroundColor: color.withOpacity(0.2),
+                  backgroundColor: color.withValues(alpha: 0.2),
                   valueColor: AlwaysStoppedAnimation<Color>(color),
                 ),
                 Column(
@@ -443,7 +443,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(
           context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -597,7 +597,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -635,7 +635,7 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 16),
@@ -667,11 +667,13 @@ class IncrementalSyncStatisticsWidget extends StatelessWidget {
   /// Get efficiency label based on skip rate.
   String _getEfficiencyLabel(double skipRate, BuildContext context) {
     final S localizations = S.of(context);
-    if (skipRate >= 80)
+    if (skipRate >= 80) {
       return localizations.incrementalSyncStatsEfficiencyExcellent;
+    }
     if (skipRate >= 60) return localizations.incrementalSyncStatsEfficiencyGood;
-    if (skipRate >= 40)
+    if (skipRate >= 40) {
       return localizations.incrementalSyncStatsEfficiencyModerate;
+    }
     if (skipRate >= 20) return localizations.incrementalSyncStatsEfficiencyLow;
     return localizations.incrementalSyncStatsEfficiencyVeryLow;
   }
