@@ -135,10 +135,7 @@ void main() {
 
       test('handles complex partial expressions', () {
         expect(evaluator.evaluatePartial('10+5*2+'), 20.0); // 10 + (5*2) = 20
-        expect(
-          evaluator.evaluatePartial('2*3+4*'),
-          10.0,
-        ); // 2*3+4 = 10 (evaluates before last operator)
+        expect(evaluator.evaluatePartial('2*3+4*'), 10.0); // 2*3+4 = 10 (evaluates before last operator)
       });
 
       test('returns null for invalid partial expressions', () {
@@ -159,9 +156,7 @@ void main() {
       test('invalid expressions', () {
         expect(evaluator.isValidExpression(''), false);
         expect(evaluator.isValidExpression('++'), false);
-        // Note: the expressions package supports unary +, so '10++5' evaluates
-        // to 10 + (+5) = 15. The NumberInput widget's input formatter already
-        // blocks consecutive operators at the UI layer.
+        expect(evaluator.isValidExpression('10++5'), false);
         expect(evaluator.isValidExpression('10/0'), false);
         expect(evaluator.isValidExpression('abc'), false);
         expect(evaluator.isValidExpression('10+'), false); // Trailing operator
@@ -181,10 +176,7 @@ void main() {
 
       test('returns null for invalid expressions', () {
         expect(evaluator.evaluate('++'), null);
-        // Note: '10++5' is NOT null — the expressions package interprets the
-        // second '+' as unary plus: 10 + (+5) = 15. Consecutive operators are
-        // blocked at the widget input formatter layer, not the evaluator layer.
-        expect(evaluator.evaluate('10++5'), closeTo(15.0, 0.0001));
+        expect(evaluator.evaluate('10++5'), null);
         expect(evaluator.evaluate('abc'), null);
       });
 
@@ -192,6 +184,7 @@ void main() {
         expect(evaluator.evaluate('10/0'), isNull);
         expect(evaluator.evaluate('5/0'), isNull);
         expect(evaluator.evaluate('1/0'), isNull);
+        expect(evaluator.evaluate('5+10/0'), isNull);
       });
 
       test('returns null for division by zero (decimal divisor)', () {
