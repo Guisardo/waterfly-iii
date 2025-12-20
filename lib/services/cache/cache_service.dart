@@ -318,18 +318,16 @@ class CacheService {
               'Checking in-memory cache for non-empty data.',
             );
             // Check in-memory cache for non-empty data
-            final String cacheKey = '${entityType}:${entityId}';
+            final String cacheKey = '$entityType:$entityId';
             if (_lastSuccessfulData.containsKey(cacheKey)) {
               final dynamic memoryData = _lastSuccessfulData[cacheKey];
-              // ignore: unnecessary_cast
               final bool memoryIsEmpty =
-                  memoryData is List && (memoryData as List).isEmpty;
+                  memoryData is List && memoryData.isEmpty;
               if (!memoryIsEmpty) {
                 _log.info(
                   'Using non-empty in-memory cached data for $entityType:$entityId (offline, fresh)',
                 );
                 return CacheResult<T>(
-                  // ignore: unnecessary_cast
                   data: memoryData as T,
                   source: CacheSource.cache,
                   isFresh: false,
@@ -342,7 +340,7 @@ class CacheService {
             'Returning persisted cached data for $entityType:$entityId (offline, fresh)',
           );
           // Also update in-memory cache for faster access
-          final String cacheKey = '${entityType}:${entityId}';
+          final String cacheKey = '$entityType:$entityId';
           _lastSuccessfulData[cacheKey] = persistedData;
           return CacheResult<T>(
             data: persistedData,
@@ -352,7 +350,7 @@ class CacheService {
           );
         }
         // Check if we have last successful data in memory
-        final String cacheKey = '${entityType}:${entityId}';
+        final String cacheKey = '$entityType:$entityId';
         if (_lastSuccessfulData.containsKey(cacheKey)) {
           _log.info(
             'Returning in-memory cached data for $entityType:$entityId (offline, fresh)',
@@ -407,7 +405,7 @@ class CacheService {
       final T data = await fetcher();
 
       // Store successful fetch for offline use
-      final String cacheKey = '${entityType}:${entityId}';
+      final String cacheKey = '$entityType:$entityId';
       _lastSuccessfulData[cacheKey] = data;
 
       await _updateLastAccessed(entityType, entityId);
@@ -438,7 +436,7 @@ class CacheService {
           'Returning persisted cached data for $entityType:$entityId (stale, will refresh in background)',
         );
         // Update in-memory cache for faster access
-        final String cacheKey = '${entityType}:${entityId}';
+        final String cacheKey = '$entityType:$entityId';
         _lastSuccessfulData[cacheKey] = persistedData;
 
         // Update lastAccessedAt for LRU tracking
@@ -493,18 +491,16 @@ class CacheService {
               'Checking in-memory cache for non-empty data.',
             );
             // Check in-memory cache for non-empty data
-            final String cacheKey = '${entityType}:${entityId}';
+            final String cacheKey = '$entityType:$entityId';
             if (_lastSuccessfulData.containsKey(cacheKey)) {
               final dynamic memoryData = _lastSuccessfulData[cacheKey];
-              // ignore: unnecessary_cast
               final bool memoryIsEmpty =
-                  memoryData is List && (memoryData as List).isEmpty;
+                  memoryData is List && memoryData.isEmpty;
               if (!memoryIsEmpty) {
                 _log.info(
                   'Using non-empty in-memory cached data for $entityType:$entityId (offline, stale)',
                 );
                 return CacheResult<T>(
-                  // ignore: unnecessary_cast
                   data: memoryData as T,
                   source: CacheSource.cache,
                   isFresh: false,
@@ -517,7 +513,7 @@ class CacheService {
             'Returning persisted cached data for $entityType:$entityId (offline, stale)',
           );
           // Also update in-memory cache for faster access
-          final String cacheKey = '${entityType}:${entityId}';
+          final String cacheKey = '$entityType:$entityId';
           _lastSuccessfulData[cacheKey] = persistedData;
           return CacheResult<T>(
             data: persistedData,
@@ -527,7 +523,7 @@ class CacheService {
           );
         }
         // Check if we have last successful data in memory
-        final String cacheKey = '${entityType}:${entityId}';
+        final String cacheKey = '$entityType:$entityId';
         if (_lastSuccessfulData.containsKey(cacheKey)) {
           _log.info(
             'Returning in-memory cached data for $entityType:$entityId (offline, stale)',
@@ -571,7 +567,7 @@ class CacheService {
       }
 
       // Online: Check in-memory cache first for stale data (stale-while-revalidate)
-      final String cacheKey = '${entityType}:${entityId}';
+      final String cacheKey = '$entityType:$entityId';
       if (_lastSuccessfulData.containsKey(cacheKey)) {
         _log.info(
           'Returning in-memory cached data for $entityType:$entityId (stale, will refresh in background)',
@@ -1066,7 +1062,7 @@ class CacheService {
       );
 
       // Store successful fetch for offline use
-      final String cacheKey = '${entityType}:${entityId}';
+      final String cacheKey = '$entityType:$entityId';
       _lastSuccessfulData[cacheKey] = data;
 
       _log.info('Background refresh completed: $entityType:$entityId');
@@ -1127,7 +1123,7 @@ class CacheService {
       );
 
       // Store successful fetch for offline use
-      final String cacheKey = '${entityType}:${entityId}';
+      final String cacheKey = '$entityType:$entityId';
       _lastSuccessfulData[cacheKey] = data;
 
       return CacheResult<T>(
@@ -1215,7 +1211,7 @@ class CacheService {
           );
 
       // Store in in-memory cache for faster access (especially for non-persisted entities)
-      final String cacheKey = '${entityType}:${entityId}';
+      final String cacheKey = '$entityType:$entityId';
       _lastSuccessfulData[cacheKey] = data;
 
       _log.fine('Cached metadata: $entityType:$entityId');
@@ -1858,19 +1854,19 @@ class CacheService {
 
       if (first is ChartDataSet) {
         return jsonEncode(
-          (data as List<ChartDataSet>).map((e) => e.toJson()).toList(),
+          (data as List<ChartDataSet>).map((ChartDataSet e) => e.toJson()).toList(),
         );
       } else if (first is InsightTotalEntry) {
         return jsonEncode(
-          (data as List<InsightTotalEntry>).map((e) => e.toJson()).toList(),
+          (data as List<InsightTotalEntry>).map((InsightTotalEntry e) => e.toJson()).toList(),
         );
       } else if (first is InsightGroupEntry) {
         return jsonEncode(
-          (data as List<InsightGroupEntry>).map((e) => e.toJson()).toList(),
+          (data as List<InsightGroupEntry>).map((InsightGroupEntry e) => e.toJson()).toList(),
         );
       } else if (first is BudgetLimitRead) {
         return jsonEncode(
-          (data as List<BudgetLimitRead>).map((e) => e.toJson()).toList(),
+          (data as List<BudgetLimitRead>).map((BudgetLimitRead e) => e.toJson()).toList(),
         );
       }
     }
