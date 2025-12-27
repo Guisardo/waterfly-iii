@@ -179,12 +179,14 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                       DateFormat.yMd().add_Hms().format(nextRetryAt),
                     ),
                   ),
-                if (lastError != null)
-                  Text(
-                    S.of(context).syncSettingsError(lastError),
-                    style: const TextStyle(color: Colors.red),
-                  ),
-              ] else if (!isSyncing)
+              ],
+              // Show errors even when not paused if they exist
+              if (lastError != null && !isSyncing)
+                Text(
+                  S.of(context).syncSettingsError(lastError),
+                  style: const TextStyle(color: Colors.red),
+                ),
+              if (!isPaused && !isSyncing && lastError == null)
                 Text(S.of(context).syncSettingsStatusActive),
             ],
           ),
