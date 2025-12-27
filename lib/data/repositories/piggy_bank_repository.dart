@@ -14,7 +14,7 @@ class PiggyBankRepository {
 
   Future<List<PiggyBankRead>> getAll() async {
     final List<PiggyBanks> rows = await isar.piggyBanks.where().findAll();
-    rows.sort((a, b) {
+    rows.sort((PiggyBanks a, PiggyBanks b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
       if (dateA == null && dateB == null) return 0;
@@ -23,7 +23,7 @@ class PiggyBankRepository {
       return dateB.compareTo(dateA);
     });
 
-    return rows.map((row) {
+    return rows.map((PiggyBanks row) {
       return PiggyBankRead.fromJson(
         jsonDecode(row.data) as Map<String, dynamic>,
       );
@@ -38,15 +38,16 @@ class PiggyBankRepository {
     if (row == null) {
       return null;
     }
-    return PiggyBankRead.fromJson(
+    final PiggyBankRead piggyBank = PiggyBankRead.fromJson(
       jsonDecode(row.data) as Map<String, dynamic>,
     );
+    return piggyBank;
   }
 
   Future<List<PiggyBankRead>> search(String query) async {
     final List<PiggyBankRead> all = await getAll();
     final String queryLower = query.toLowerCase();
-    return all.where((piggyBank) {
+    return all.where((PiggyBankRead piggyBank) {
       // Search in piggy bank name directly (most common case)
       if (piggyBank.attributes.name.toLowerCase().contains(queryLower)) {
         return true;
@@ -57,7 +58,7 @@ class PiggyBankRepository {
     }).toList();
   }
 
-  Future<List<PiggyBankRead>> getByDateRange(DateTime start, DateTime end) async {
+  Future<List<PiggyBankRead>> getByDateRange(DateTime start, DateTime end) {
     return getAll();
   }
 
@@ -132,7 +133,7 @@ class PiggyBankRepository {
         .findFirst();
 
     if (existing != null) {
-      existing..synced = false;
+      existing.synced = false;
 
       await isar.writeTxn(() async {
         await isar.piggyBanks.put(existing);

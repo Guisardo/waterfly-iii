@@ -915,6 +915,10 @@ class SFa extends S {
   String get transactionErrorNoAccounts => 'لطفاً ابتدا حساب‌ها را وارد کنید.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'لطفاً یک حساب دارایی انتخاب کنید.';
 
@@ -1021,6 +1025,9 @@ class SFa extends S {
 
   @override
   String get syncSettingsStatusActive => 'وضعیت: فعال';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

@@ -922,6 +922,10 @@ class SDe extends S {
       'Bitte tragen Sie zuerst die Konten ein.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Bitte ein Bestandskonto auswählen.';
 
@@ -1030,6 +1034,9 @@ class SDe extends S {
 
   @override
   String get syncSettingsStatusActive => 'Status: Aktiv';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

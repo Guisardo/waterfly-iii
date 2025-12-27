@@ -923,6 +923,10 @@ class SCs extends S {
   String get transactionErrorNoAccounts => 'Prosím, nejprve vyplňte účty.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Prosím, vyberte majetkový účet.';
 
@@ -1030,6 +1034,9 @@ class SCs extends S {
 
   @override
   String get syncSettingsStatusActive => 'Stav: Aktivní';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

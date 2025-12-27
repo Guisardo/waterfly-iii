@@ -918,6 +918,10 @@ class SSv extends S {
   String get transactionErrorNoAccounts => 'Fyll i kontona först.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Vänligen välj ett tillgångskonto.';
 
@@ -1025,6 +1029,9 @@ class SSv extends S {
 
   @override
   String get syncSettingsStatusActive => 'Status: Aktiv';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

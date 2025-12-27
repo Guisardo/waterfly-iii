@@ -919,6 +919,10 @@ class SDa extends S {
   String get transactionErrorNoAccounts => 'Udfyld venligst konti først.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount => 'Vælg venligst en aktivkonto.';
 
   @override
@@ -1025,6 +1029,9 @@ class SDa extends S {
 
   @override
   String get syncSettingsStatusActive => 'Status: Aktiv';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

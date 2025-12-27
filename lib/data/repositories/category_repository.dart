@@ -14,7 +14,7 @@ class CategoryRepository {
 
   Future<List<CategoryRead>> getAll() async {
     final List<Categories> rows = await isar.categories.where().findAll();
-    rows.sort((a, b) {
+    rows.sort((Categories a, Categories b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
       if (dateA == null && dateB == null) return 0;
@@ -23,7 +23,7 @@ class CategoryRepository {
       return dateB.compareTo(dateA);
     });
 
-    return rows.map((row) {
+    return rows.map((Categories row) {
       return CategoryRead.fromJson(
         jsonDecode(row.data) as Map<String, dynamic>,
       );
@@ -46,7 +46,7 @@ class CategoryRepository {
   Future<List<CategoryRead>> search(String query) async {
     final List<CategoryRead> all = await getAll();
     final String queryLower = query.toLowerCase();
-    return all.where((category) {
+    return all.where((CategoryRead category) {
       // Search in category name directly (most common case)
       if (category.attributes.name.toLowerCase().contains(queryLower)) {
         return true;
@@ -59,13 +59,13 @@ class CategoryRepository {
 
   Future<List<String>> autocomplete(String query) async {
     final List<CategoryRead> categories = await search(query);
-    return categories.map((category) => category.attributes.name).toList();
+    return categories.map((CategoryRead category) => category.attributes.name).toList();
   }
 
   Future<List<CategoryRead>> getByDateRange(
     DateTime start,
     DateTime end,
-  ) async {
+  ) {
     // Categories don't have date ranges, return all
     return getAll();
   }
@@ -141,7 +141,7 @@ class CategoryRepository {
         .findFirst();
 
     if (existing != null) {
-      existing..synced = false;
+      existing.synced = false;
 
       await isar.writeTxn(() async {
         await isar.categories.put(existing);

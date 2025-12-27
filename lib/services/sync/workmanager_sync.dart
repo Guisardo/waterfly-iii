@@ -33,7 +33,7 @@ void callbackDispatcher() {
 
       if (apiHost == null || apiKey == null) {
         log.warning("No credentials found in background task");
-        return Future.value(false);
+        return Future<bool>.value(false);
       }
 
       // Create FireflyService and sign in (this validates credentials)
@@ -43,12 +43,12 @@ void callbackDispatcher() {
         await fireflyService.signIn(apiHost, apiKey);
       } catch (e) {
         log.warning("Failed to sign in with stored credentials in background task", e);
-        return Future.value(false);
+        return Future<bool>.value(false);
       }
       
       if (!fireflyService.signedIn) {
         log.warning("Sign in completed but signedIn is false");
-        return Future.value(false);
+        return Future<bool>.value(false);
       }
 
       // Initialize services
@@ -82,14 +82,14 @@ void callbackDispatcher() {
         await uploadService.uploadPendingChanges();
       } else {
         log.warning("Unknown task: $task");
-        return Future.value(false);
+        return Future<bool>.value(false);
       }
 
       log.config("Background task completed: $task");
-      return Future.value(true);
+      return Future<bool>.value(true);
     } catch (e, stackTrace) {
       log.severe("Background task failed: $task", e, stackTrace);
-      return Future.value(false);
+      return Future<bool>.value(false);
     }
   });
 }

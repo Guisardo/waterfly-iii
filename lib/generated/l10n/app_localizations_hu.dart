@@ -929,6 +929,10 @@ class SHu extends S {
       'Kérjük, először töltse ki a számlákat.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Kérjük, válasszon ki egy eszközzámlát.';
 
@@ -1038,6 +1042,9 @@ class SHu extends S {
 
   @override
   String get syncSettingsStatusActive => 'Állapot: Aktív';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

@@ -917,6 +917,10 @@ class STr extends S {
   String get transactionErrorNoAccounts => 'Please fill in the accounts first.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Please select an asset account.';
 
@@ -1024,6 +1028,9 @@ class STr extends S {
 
   @override
   String get syncSettingsStatusActive => 'Durum: Aktif';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

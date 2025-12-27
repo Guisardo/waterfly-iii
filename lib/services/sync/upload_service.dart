@@ -82,8 +82,8 @@ class UploadService extends ChangeNotifier {
           .filter()
           .syncedEqualTo(false)
           .findAll()
-          .then((list) => list.toList()
-            ..sort((a, b) => a.createdAt.compareTo(b.createdAt)));
+          .then((List<PendingChanges> list) => list.toList()
+            ..sort((PendingChanges a, PendingChanges b) => a.createdAt.compareTo(b.createdAt)));
 
       if (pending.isEmpty) {
         log.config("No pending changes to upload");
@@ -183,7 +183,7 @@ class UploadService extends ChangeNotifier {
     final Map<String, dynamic> data = jsonDecode(change.data!) as Map<String, dynamic>;
 
     try {
-      Response? response;
+      Response<dynamic>? response;
 
       switch (change.entityType) {
         case 'transactions':
@@ -266,7 +266,7 @@ class UploadService extends ChangeNotifier {
     final Map<String, dynamic> data = jsonDecode(change.data!) as Map<String, dynamic>;
 
     try {
-      Response? response;
+      Response<dynamic>? response;
 
       switch (change.entityType) {
         case 'transactions':
@@ -369,7 +369,7 @@ class UploadService extends ChangeNotifier {
     }
 
     try {
-      Response? response;
+      Response<dynamic>? response;
 
       switch (change.entityType) {
         case 'transactions':

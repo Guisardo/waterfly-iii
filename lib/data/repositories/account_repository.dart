@@ -20,7 +20,7 @@ class AccountRepository {
 
   Future<List<AccountRead>> getAll() async {
     final List<Accounts> rows = await isar.accounts.where().findAll();
-    rows.sort((a, b) {
+    rows.sort((Accounts a, Accounts b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
       if (dateA == null && dateB == null) return 0;
@@ -29,7 +29,7 @@ class AccountRepository {
       return dateB.compareTo(dateA);
     });
 
-    return rows.map((row) {
+    return rows.map((Accounts row) {
       return AccountRead.fromJson(
         jsonDecode(row.data) as Map<String, dynamic>,
       );
@@ -52,7 +52,7 @@ class AccountRepository {
   Future<List<AccountRead>> search(String query) async {
     final List<AccountRead> all = await getAll();
     final String queryLower = query.toLowerCase();
-    return all.where((account) {
+    return all.where((AccountRead account) {
       // Search in account name directly (most common case)
       if (account.attributes.name.toLowerCase().contains(queryLower)) {
         return true;
@@ -63,7 +63,7 @@ class AccountRepository {
     }).toList();
   }
 
-  Future<List<AccountRead>> getByDateRange(DateTime start, DateTime end) async {
+  Future<List<AccountRead>> getByDateRange(DateTime start, DateTime end) {
     // Accounts don't have date ranges, return all
     return getAll();
   }
@@ -78,9 +78,10 @@ class AccountRepository {
 
     // Filter by type if provided
     if (type != null) {
-      filtered = all.where((account) {
+      filtered = all.where((AccountRead account) {
         final enums.ShortAccountTypeProperty? accountType = account.attributes.type;
-        switch (type) {
+        final enums.AccountTypeFilter typeFilter = type;
+        switch (typeFilter) {
           case enums.AccountTypeFilter.assetAccount:
             return accountType == enums.ShortAccountTypeProperty.asset;
           case enums.AccountTypeFilter.expenseAccount:
@@ -133,7 +134,7 @@ class AccountRepository {
   }) async {
     final List<AccountRead> filtered = await getByType(type);
     final String queryLower = query.toLowerCase();
-    final List<AccountRead> results = filtered.where((account) {
+    final List<AccountRead> results = filtered.where((AccountRead account) {
       final String json = jsonEncode(account.toJson());
       return json.toLowerCase().contains(queryLower);
     }).toList();
@@ -158,24 +159,28 @@ class AccountRepository {
     String? query,
     List<enums.AccountTypeFilter>? types,
   }) async {
-    final List<AccountRead> accounts = await getByType(
-      types?.isNotEmpty == true ? types!.first : null,
-    );
+    // Fetch all accounts if multiple types are provided, otherwise use getByType for efficiency
+    final List<AccountRead> accounts = (types != null && types.length > 1)
+        ? await getAll()
+        : await getByType(
+            (types?.isNotEmpty ?? false) ? types!.first : null,
+          );
 
     // Filter by query if provided
     List<AccountRead> filtered = accounts;
     if (query != null && query.isNotEmpty) {
       final String queryLower = query.toLowerCase();
-      filtered = accounts.where((account) {
+      filtered = accounts.where((AccountRead account) {
         return account.attributes.name.toLowerCase().contains(queryLower);
       }).toList();
     }
 
     // Filter by types if provided
     if (types != null && types.isNotEmpty) {
-      filtered = filtered.where((account) {
+      filtered = filtered.where((AccountRead account) {
         final enums.ShortAccountTypeProperty? accountType = account.attributes.type;
-        return types.any((type) {
+        final List<enums.AccountTypeFilter> typesList = types;
+        return typesList.any((enums.AccountTypeFilter type) {
           switch (type) {
             case enums.AccountTypeFilter.assetAccount:
               return accountType == enums.ShortAccountTypeProperty.asset;
@@ -210,11 +215,11 @@ class AccountRepository {
     // Get currency repository for currency names
     final CurrencyRepository currencyRepo = CurrencyRepository(isar);
     final List<CurrencyRead> currencies = await currencyRepo.getAll();
-    final Map<String, CurrencyRead> currencyMap = {
+    final Map<String, CurrencyRead> currencyMap = <String, CurrencyRead>{
       for (final CurrencyRead currency in currencies) currency.id: currency,
     };
 
-    return filtered.map((account) {
+    final List<AutocompleteAccount> result = filtered.map((AccountRead account) {
       final CurrencyRead? currency = account.attributes.currencyId != null
           ? currencyMap[account.attributes.currencyId]
           : null;
@@ -240,6 +245,7 @@ class AccountRepository {
         accountCurrencyDecimalPlaces: account.attributes.currencyDecimalPlaces,
       );
     }).toList();
+    return result;
   }
 
   Future<void> create(AccountRead account) async {
@@ -313,7 +319,7 @@ class AccountRepository {
         .findFirst();
 
     if (existing != null) {
-      existing..synced = false;
+      existing.synced = false;
 
       await isar.writeTxn(() async {
         await isar.accounts.put(existing);

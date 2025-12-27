@@ -24,11 +24,7 @@ import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/widgets/logo.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/sync/workmanager_sync.dart';
-import 'package:waterflyiii/services/sync/sync_service.dart';
-import 'package:waterflyiii/services/sync/upload_service.dart';
-import 'package:waterflyiii/services/sync/sync_notifications.dart';
-import 'package:waterflyiii/data/local/database/app_database.dart';
-import 'package:isar_community/isar.dart';
+import 'package:waterflyiii/services/sync/sync_status_provider.dart';
 
 final Logger log = Logger("App");
 
@@ -243,6 +239,9 @@ class _WaterflyAppState extends State<WaterflyApp> {
             ChangeNotifierProvider<ConnectivityService>(
               create: (_) => ConnectivityService(),
             ),
+            ChangeNotifierProvider<SyncStatusProvider>(
+              create: (_) => SyncStatusProvider(),
+            ),
           ],
           builder: (BuildContext context, _) {
             // Listen to connectivity changes and trigger sync when device comes online
@@ -255,35 +254,12 @@ class _WaterflyAppState extends State<WaterflyApp> {
               final FireflyService fireflyService =
                   context.read<FireflyService>();
               if (fireflyService.signedIn) {
-                // Trigger sync in background
-                final SettingsProvider settingsProvider =
-                    context.read<SettingsProvider>();
+                // Use sync status provider to trigger sync
+                final SyncStatusProvider syncStatusProvider =
+                    context.read<SyncStatusProvider>();
                 Future<void>.microtask(() async {
                   try {
-                    final Isar isar = await AppDatabase.instance;
-                    final SyncNotifications notifications =
-                        SyncNotifications();
-                    await notifications.initialize();
-                    
-                    final SyncService syncService = SyncService(
-                      isar: isar,
-                      fireflyService: fireflyService,
-                      connectivityService: connectivityService,
-                      notifications: notifications,
-                      settingsProvider: settingsProvider,
-                    );
-                    
-                    final UploadService uploadService = UploadService(
-                      isar: isar,
-                      fireflyService: fireflyService,
-                      connectivityService: connectivityService,
-                      notifications: notifications,
-                      settingsProvider: settingsProvider,
-                    );
-                    
-                    // Trigger both download and upload sync
-                    await syncService.sync();
-                    await uploadService.uploadPendingChanges();
+                    await syncStatusProvider.syncAll();
                   } catch (e) {
                     log.warning("Failed to trigger sync on connectivity change", e);
                   }
@@ -324,13 +300,29 @@ class _WaterflyAppState extends State<WaterflyApp> {
                   });
                 } else {
                   log.finest(() => "signing in");
-                  context.read<FireflyService>().signInFromStorage().then(
+                  // Capture context values before async gap
+                  final FireflyService fireflyService = context.read<FireflyService>();
+                  final SyncStatusProvider syncStatusProvider =
+                      context.read<SyncStatusProvider>();
+                  final SettingsProvider settingsProvider =
+                      context.read<SettingsProvider>();
+                  
+                  fireflyService.signInFromStorage().then(
                     (bool signedIn) async {
                       if (signedIn) {
                         // Initialize WorkManager for background sync
                         await WorkManagerSync.initialize();
                         await WorkManagerSync.registerPeriodicSync();
+                        
+                        // Initialize sync status provider
+                        if (!mounted) return;
+                        await syncStatusProvider.initialize(
+                          fireflyService: fireflyService,
+                          connectivityService: connectivityService,
+                          settingsProvider: settingsProvider,
+                        );
                       }
+                      if (!mounted) return;
                       setState(() {
                         log.finest(() => "set _startup = false");
                         _authed = true;

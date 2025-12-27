@@ -925,6 +925,10 @@ class SRo extends S {
       'Te rugăm să completezi conturile mai întâi.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Te rugăm să selectezi un cont de active.';
 
@@ -1032,6 +1036,9 @@ class SRo extends S {
 
   @override
   String get syncSettingsStatusActive => 'Status: Activ';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

@@ -921,6 +921,10 @@ class SNl extends S {
   String get transactionErrorNoAccounts => 'Vul eerst de rekeningen in.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount => 'Selecteer een betaalrekening.';
 
   @override
@@ -1026,6 +1030,9 @@ class SNl extends S {
 
   @override
   String get syncSettingsStatusActive => 'Status: Actief';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

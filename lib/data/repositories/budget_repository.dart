@@ -19,7 +19,7 @@ class BudgetRepository {
 
   Future<List<BudgetRead>> getAll() async {
     final List<Budgets> rows = await isar.budgets.where().findAll();
-    rows.sort((a, b) {
+    rows.sort((Budgets a, Budgets b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
       if (dateA == null && dateB == null) return 0;
@@ -28,7 +28,7 @@ class BudgetRepository {
       return dateB.compareTo(dateA);
     });
 
-    return rows.map((row) {
+    return rows.map((Budgets row) {
       return BudgetRead.fromJson(
         jsonDecode(row.data) as Map<String, dynamic>,
       );
@@ -43,15 +43,16 @@ class BudgetRepository {
     if (row == null) {
       return null;
     }
-    return BudgetRead.fromJson(
+    final BudgetRead budget = BudgetRead.fromJson(
       jsonDecode(row.data) as Map<String, dynamic>,
     );
+    return budget;
   }
 
   Future<List<BudgetRead>> search(String query) async {
     final List<BudgetRead> all = await getAll();
     final String queryLower = query.toLowerCase();
-    return all.where((budget) {
+    return all.where((BudgetRead budget) {
       // Search in budget name directly (most common case)
       if (budget.attributes.name.toLowerCase().contains(queryLower)) {
         return true;
@@ -64,7 +65,7 @@ class BudgetRepository {
 
   Future<List<AutocompleteBudget>> autocomplete(String query) async {
     final List<BudgetRead> budgets = await search(query);
-    return budgets.map((budget) {
+    return budgets.map((BudgetRead budget) {
       return AutocompleteBudget(
         id: budget.id,
         name: budget.attributes.name,
@@ -72,7 +73,7 @@ class BudgetRepository {
     }).toList();
   }
 
-  Future<List<BudgetRead>> getByDateRange(DateTime start, DateTime end) async {
+  Future<List<BudgetRead>> getByDateRange(DateTime start, DateTime end) {
     return getAll();
   }
 
@@ -147,7 +148,7 @@ class BudgetRepository {
         .findFirst();
 
     if (existing != null) {
-      existing..synced = false;
+      existing.synced = false;
 
       await isar.writeTxn(() async {
         await isar.budgets.put(existing);
@@ -187,7 +188,7 @@ class BudgetRepository {
   // Budget Limits methods
   Future<List<BudgetLimitRead>> getAllBudgetLimits() async {
     final List<BudgetLimits> rows = await isar.budgetLimits.where().findAll();
-    rows.sort((a, b) {
+    rows.sort((BudgetLimits a, BudgetLimits b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
       if (dateA == null && dateB == null) return 0;
@@ -196,7 +197,7 @@ class BudgetRepository {
       return dateB.compareTo(dateA);
     });
 
-    return rows.map((row) {
+    return rows.map((BudgetLimits row) {
       return BudgetLimitRead.fromJson(
         jsonDecode(row.data) as Map<String, dynamic>,
       );
@@ -205,7 +206,7 @@ class BudgetRepository {
 
   Future<List<BudgetLimitRead>> getBudgetLimitsByBudgetId(String budgetId) async {
     final List<BudgetLimitRead> all = await getAllBudgetLimits();
-    return all.where((limit) => limit.attributes.budgetId == budgetId).toList();
+    return all.where((BudgetLimitRead limit) => limit.attributes.budgetId == budgetId).toList();
   }
 
   Future<List<BudgetLimitRead>> getBudgetLimitsByDateRange(
@@ -213,7 +214,7 @@ class BudgetRepository {
     DateTime end,
   ) async {
     final List<BudgetLimitRead> all = await getAllBudgetLimits();
-    return all.where((limit) {
+    return all.where((BudgetLimitRead limit) {
       final DateTime? limitStart = limit.attributes.start;
       final DateTime? limitEnd = limit.attributes.end;
       if (limitStart == null || limitEnd == null) {
@@ -309,7 +310,7 @@ class BudgetRepository {
         .findFirst();
 
     if (existing != null) {
-      existing..synced = false;
+      existing.synced = false;
 
       await isar.writeTxn(() async {
         await isar.budgetLimits.put(existing);

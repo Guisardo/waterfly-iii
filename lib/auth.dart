@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:async' show FutureOr, unawaited;
 import 'dart:convert';
 import 'dart:io';
 
@@ -402,7 +402,7 @@ class FireflyService with ChangeNotifier {
 
   Future<void> _triggerInitialSync() async {
     // Run sync in background without blocking
-    Future<void>.microtask(() async {
+    unawaited(Future<void>.microtask(() async {
       try {
         final Isar isar = await AppDatabase.instance;
 
@@ -453,7 +453,7 @@ class FireflyService with ChangeNotifier {
         log.warning("Failed to trigger initial sync", e, stackTrace);
         // Don't throw - sync failure shouldn't prevent login
       }
-    });
+    }));
   }
 
   Future<bool> signIn(
@@ -536,7 +536,7 @@ class FireflyService with ChangeNotifier {
     }
 
     // Trigger initial sync in background
-    _triggerInitialSync();
+    unawaited(_triggerInitialSync());
 
     return true;
   }

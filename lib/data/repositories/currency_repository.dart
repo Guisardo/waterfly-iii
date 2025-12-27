@@ -14,7 +14,7 @@ class CurrencyRepository {
 
   Future<List<CurrencyRead>> getAll() async {
     final List<Currencies> rows = await isar.currencies.where().findAll();
-    rows.sort((a, b) {
+    rows.sort((Currencies a, Currencies b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
       if (dateA == null && dateB == null) return 0;
@@ -23,7 +23,7 @@ class CurrencyRepository {
       return dateB.compareTo(dateA);
     });
 
-    return rows.map((row) {
+    return rows.map((Currencies row) {
       return CurrencyRead.fromJson(
         jsonDecode(row.data) as Map<String, dynamic>,
       );
@@ -38,15 +38,16 @@ class CurrencyRepository {
     if (row == null) {
       return null;
     }
-    return CurrencyRead.fromJson(
+    final CurrencyRead currency = CurrencyRead.fromJson(
       jsonDecode(row.data) as Map<String, dynamic>,
     );
+    return currency;
   }
 
   Future<List<CurrencyRead>> search(String query) async {
     final List<CurrencyRead> all = await getAll();
     final String queryLower = query.toLowerCase();
-    return all.where((currency) {
+    return all.where((CurrencyRead currency) {
       // Search in currency name and code directly (most common case)
       if (currency.attributes.name.toLowerCase().contains(queryLower)) {
         return true;
@@ -60,7 +61,7 @@ class CurrencyRepository {
     }).toList();
   }
 
-  Future<List<CurrencyRead>> getByDateRange(DateTime start, DateTime end) async {
+  Future<List<CurrencyRead>> getByDateRange(DateTime start, DateTime end) {
     return getAll();
   }
 
@@ -135,7 +136,7 @@ class CurrencyRepository {
         .findFirst();
 
     if (existing != null) {
-      existing..synced = false;
+      existing.synced = false;
 
       await isar.writeTxn(() async {
         await isar.currencies.put(existing);

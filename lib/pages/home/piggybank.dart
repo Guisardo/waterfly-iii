@@ -864,7 +864,7 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
                   // Create updated piggy bank by copying JSON and updating accounts
                   final Map<String, dynamic> piggyJson = currentPiggy.toJson();
                   piggyJson['attributes'] = (piggyJson['attributes'] as Map<String, dynamic>)
-                    ..['accounts'] = updatedAccounts.map((a) => a.toJson()).toList();
+                    ..['accounts'] = updatedAccounts.map((PiggyBankAccountRead a) => a.toJson()).toList();
                   final PiggyBankRead updatedPiggy = PiggyBankRead.fromJson(piggyJson);
 
                   // Update via repository (queues for sync)

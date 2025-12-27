@@ -14,7 +14,7 @@ class BillRepository {
 
   Future<List<BillRead>> getAll() async {
     final List<Bills> rows = await isar.bills.where().findAll();
-    rows.sort((a, b) {
+    rows.sort((Bills a, Bills b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
       if (dateA == null && dateB == null) return 0;
@@ -23,7 +23,7 @@ class BillRepository {
       return dateB.compareTo(dateA);
     });
 
-    return rows.map((row) {
+    return rows.map((Bills row) {
       return BillRead.fromJson(
         jsonDecode(row.data) as Map<String, dynamic>,
       );
@@ -46,7 +46,7 @@ class BillRepository {
   Future<List<BillRead>> search(String query) async {
     final List<BillRead> all = await getAll();
     final String queryLower = query.toLowerCase();
-    return all.where((bill) {
+    return all.where((BillRead bill) {
       // Search in bill name directly (most common case)
       if (bill.attributes.name?.toLowerCase().contains(queryLower) ?? false) {
         return true;
@@ -57,7 +57,7 @@ class BillRepository {
     }).toList();
   }
 
-  Future<List<BillRead>> getByDateRange(DateTime start, DateTime end) async {
+  Future<List<BillRead>> getByDateRange(DateTime start, DateTime end) {
     return getAll();
   }
 
@@ -132,7 +132,7 @@ class BillRepository {
         .findFirst();
 
     if (existing != null) {
-      existing..synced = false;
+      existing.synced = false;
 
       await isar.writeTxn(() async {
         await isar.bills.put(existing);

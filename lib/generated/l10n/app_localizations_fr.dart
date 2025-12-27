@@ -932,6 +932,10 @@ class SFr extends S {
       'Veuillez d\'abord renseigner les comptes.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Veuillez sélectionner un compte d\'actif.';
 
@@ -1039,6 +1043,9 @@ class SFr extends S {
 
   @override
   String get syncSettingsStatusActive => 'Statut : Actif';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

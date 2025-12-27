@@ -928,6 +928,10 @@ class SRu extends S {
   String get transactionErrorNoAccounts => 'Пожалуйста, сначала укажите счета.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Пожалуйста, выберите счёт актива.';
 
@@ -1036,6 +1040,9 @@ class SRu extends S {
 
   @override
   String get syncSettingsStatusActive => 'Статус: Активно';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

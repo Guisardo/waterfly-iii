@@ -925,6 +925,10 @@ class SPl extends S {
   String get transactionErrorNoAccounts => 'Proszę najpierw wypełnić konta.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount => 'Proszę wybrać konto aktywów.';
 
   @override
@@ -1029,6 +1033,9 @@ class SPl extends S {
 
   @override
   String get syncSettingsStatusActive => 'Status: Aktywne';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

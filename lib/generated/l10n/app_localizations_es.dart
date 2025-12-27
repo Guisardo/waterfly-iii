@@ -926,6 +926,10 @@ class SEs extends S {
       'Por favor, primero rellene las cuentas.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Por favor, seleccione una cuenta de activo.';
 
@@ -1034,6 +1038,9 @@ class SEs extends S {
 
   @override
   String get syncSettingsStatusActive => 'Estado: Activo';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

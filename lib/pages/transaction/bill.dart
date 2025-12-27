@@ -106,7 +106,7 @@ class _BillDialogState extends State<BillDialog> {
               final List<BillRead> bills = await billRepo.search(textEditingValue.text);
 
               // Convert BillRead to AutocompleteBill format
-              return bills.map((bill) {
+              return bills.map((BillRead bill) {
                 return AutocompleteBill(
                   id: bill.id,
                   name: bill.attributes.name ?? "",

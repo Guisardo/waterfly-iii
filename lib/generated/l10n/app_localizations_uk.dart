@@ -920,6 +920,10 @@ class SUk extends S {
   String get transactionErrorNoAccounts => 'Please fill in the accounts first.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Please select an asset account.';
 
@@ -1027,6 +1031,9 @@ class SUk extends S {
 
   @override
   String get syncSettingsStatusActive => 'Статус: Активно';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {
