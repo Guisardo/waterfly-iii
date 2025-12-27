@@ -15,7 +15,7 @@ class AttachmentRepository {
 
   Future<List<AttachmentRead>> getAll() async {
     final List<Attachments> rows = await isar.attachments.where().findAll();
-    rows.sort((a, b) {
+    rows.sort((Attachments a, Attachments b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
       if (dateA == null && dateB == null) return 0;
@@ -24,7 +24,7 @@ class AttachmentRepository {
       return dateB.compareTo(dateA);
     });
 
-    return rows.map((row) {
+    return rows.map((Attachments row) {
       return AttachmentRead.fromJson(
         jsonDecode(row.data) as Map<String, dynamic>,
       );
@@ -39,9 +39,10 @@ class AttachmentRepository {
     if (row == null) {
       return null;
     }
-    return AttachmentRead.fromJson(
+    final AttachmentRead attachment = AttachmentRead.fromJson(
       jsonDecode(row.data) as Map<String, dynamic>,
     );
+    return attachment;
   }
 
   Future<List<AttachmentRead>> getByTransactionId(String transactionId) async {
@@ -67,7 +68,7 @@ class AttachmentRepository {
     
     // Match attachments where attachableId matches any journal ID
     final List<AttachmentRead> all = await getAll();
-    return all.where((attachment) {
+    return all.where((AttachmentRead attachment) {
       final String? attachableId = attachment.attributes.attachableId;
       return attachableId != null && journalIds.contains(attachableId);
     }).toList();

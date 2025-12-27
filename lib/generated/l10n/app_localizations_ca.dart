@@ -931,6 +931,10 @@ class SCa extends S {
       'Si us plau, omple els comptes primer.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Si us plau, selecciona un compte d\'actiu.';
 
@@ -1039,6 +1043,9 @@ class SCa extends S {
 
   @override
   String get syncSettingsStatusActive => 'Estat: Actiu';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

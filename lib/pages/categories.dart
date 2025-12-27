@@ -33,7 +33,7 @@ class _CategoriesPageState extends State<CategoriesPage>
   final Logger log = Logger("Pages.Categories.Page");
   late DateTime selectedMonth;
   late DateTime now;
-  late InsightRepository _insightRepo;
+  InsightRepository? _insightRepo;
 
   @override
   void initState() {
@@ -44,34 +44,42 @@ class _CategoriesPageState extends State<CategoriesPage>
     );
     selectedMonth = now.copyWith(day: 15);
 
-    // Initialize repositories asynchronously
-    AppDatabase.instance.then((Isar isar) {
-      _insightRepo = InsightRepository(isar);
-    });
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       refreshAppBarButtons();
     });
   }
 
   Future<CategoryArray> _buildCategoryArrayFromRepository(DateTime date) async {
+    // Capture context values before async gaps
+    final FireflyService fireflyService = context.read<FireflyService>();
+    final CurrencyRead defaultCurrency = fireflyService.defaultCurrency;
+    
+    // Ensure repository is initialized
+    if (_insightRepo == null) {
+      final Isar isar = await AppDatabase.instance;
+      if (!mounted) {
+        throw StateError('Widget disposed during initialization');
+      }
+      _insightRepo = InsightRepository(isar);
+      // Set FireflyService so repository can fetch from API if needed
+      _insightRepo!.setFireflyService(fireflyService);
+    }
+    final InsightRepository repo = _insightRepo!;
+    
     final DateTime startDate = date.copyWith(day: 1);
     final DateTime endDate = date;
 
-    final CurrencyRead defaultCurrency =
-        context.read<FireflyService>().defaultCurrency;
+    try {
+      final List<InsightGroupEntry> incomeCats =
+          await repo.getGrouped('income', 'category', startDate, endDate);
+      final List<InsightTotalEntry> incomeNoCats =
+          await repo.getNoGroup('income', 'category', startDate, endDate);
+      final List<InsightGroupEntry> expenseCats =
+          await repo.getGrouped('expense', 'category', startDate, endDate);
+      final List<InsightTotalEntry> expenseNoCats =
+          await repo.getNoGroup('expense', 'category', startDate, endDate);
 
-    // Get insights from repository
-    final List<InsightGroupEntry> incomeCats =
-        await _insightRepo.getGrouped('income', 'category', startDate, endDate);
-    final List<InsightTotalEntry> incomeNoCats =
-        await _insightRepo.getNoGroup('income', 'category', startDate, endDate);
-    final List<InsightGroupEntry> expenseCats =
-        await _insightRepo.getGrouped('expense', 'category', startDate, endDate);
-    final List<InsightTotalEntry> expenseNoCats =
-        await _insightRepo.getNoGroup('expense', 'category', startDate, endDate);
-
-    final Map<String, CategoryRead> categories = <String, CategoryRead>{};
+      final Map<String, CategoryRead> categories = <String, CategoryRead>{};
 
     // Process income categories
     for (final InsightGroupEntry cat in incomeCats) {
@@ -202,10 +210,14 @@ class _CategoriesPageState extends State<CategoriesPage>
       );
     });
 
-    return CategoryArray(
-      data: categories.values.toList(growable: false),
-      meta: const Meta(),
-    );
+      return CategoryArray(
+        data: categories.values.toList(growable: false),
+        meta: const Meta(),
+      );
+    } catch (e, stackTrace) {
+      log.severe("Error building category array", e, stackTrace);
+      rethrow;
+    }
   }
 
   void refreshAppBarButtons() {

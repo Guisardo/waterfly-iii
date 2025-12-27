@@ -1530,6 +1530,12 @@ abstract class S {
   /// **'Please fill in the accounts first.'**
   String get transactionErrorNoAccounts;
 
+  /// Message shown when transaction is saved offline and queued for sync
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction saved. Will sync when online.'**
+  String get transactionSavedOffline;
+
   /// Transaction Save Error: No account is an asset (own) account
   ///
   /// In en, this message translates to:
@@ -1733,6 +1739,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Status: Active'**
   String get syncSettingsStatusActive;
+
+  /// Text shown when sync is in progress
+  ///
+  /// In en, this message translates to:
+  /// **'Status: Syncing...'**
+  String get syncSettingsStatusSyncing;
 
   /// Text showing retry count
   ///

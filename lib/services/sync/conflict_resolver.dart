@@ -72,7 +72,7 @@ class ConflictResolver {
             .findAll()
         : await isar.syncConflicts.where().findAll();
     
-    conflicts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    conflicts.sort((SyncConflicts a, SyncConflicts b) => b.timestamp.compareTo(a.timestamp));
 
     if (limit != null && limit < conflicts.length) {
       return conflicts.sublist(0, limit);

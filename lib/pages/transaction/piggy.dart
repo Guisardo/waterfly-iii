@@ -97,7 +97,7 @@ class _PiggyDialogState extends State<PiggyDialog> {
               final List<PiggyBankRead> piggyBanks = await piggyRepo.search(textEditingValue.text);
               
               // Convert PiggyBankRead to AutocompletePiggy format
-              return piggyBanks.map((piggy) {
+              return piggyBanks.map((PiggyBankRead piggy) {
                 return AutocompletePiggy(
                   id: piggy.id,
                   name: piggy.attributes.name,

@@ -27,8 +27,8 @@ class AppDatabase {
 
     final Directory dbFolder = await getApplicationDocumentsDirectory();
 
-    _isar = await Isar.open(
-      [
+    final Isar isarInstance = await Isar.open(
+      <CollectionSchema<dynamic>>[
         TransactionsSchema,
         AccountsSchema,
         CategoriesSchema,
@@ -48,6 +48,7 @@ class AppDatabase {
       name: 'waterflyiii',
     );
 
+    _isar = isarInstance;
     return _isar!;
   }
 

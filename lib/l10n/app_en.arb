@@ -1181,6 +1181,10 @@
     "@transactionErrorNoAccounts": {
         "description": "Transaction Save Error: No accounts have been entered"
     },
+    "transactionSavedOffline": "Transaction saved. Will sync when online.",
+    "@transactionSavedOffline": {
+        "description": "Message shown when transaction is saved offline and queued for sync"
+    },
     "transactionErrorNoAssetAccount": "Please select an asset account.",
     "@transactionErrorNoAssetAccount": {
         "description": "Transaction Save Error: No account is an asset (own) account"
@@ -1322,6 +1326,10 @@
     "syncSettingsStatusActive": "Status: Active",
     "@syncSettingsStatusActive": {
         "description": "Text shown when sync is active"
+    },
+    "syncSettingsStatusSyncing": "Status: Syncing...",
+    "@syncSettingsStatusSyncing": {
+        "description": "Text shown when sync is in progress"
     },
     "syncSettingsRetryCount": "Retry count: {count}",
     "@syncSettingsRetryCount": {

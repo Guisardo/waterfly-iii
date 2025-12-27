@@ -921,6 +921,10 @@ class SId extends S {
   String get transactionErrorNoAccounts => 'Harap isi akun terlebih dahulu.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount => 'Harap pilih akun aset.';
 
   @override
@@ -1028,6 +1032,9 @@ class SId extends S {
 
   @override
   String get syncSettingsStatusActive => 'Status: Aktif';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

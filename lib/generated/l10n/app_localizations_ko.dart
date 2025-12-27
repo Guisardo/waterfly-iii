@@ -907,6 +907,10 @@ class SKo extends S {
   String get transactionErrorNoAccounts => '먼저 계정을 입력해 주세요.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount => '자산 계정을 선택해 주세요.';
 
   @override
@@ -1012,6 +1016,9 @@ class SKo extends S {
 
   @override
   String get syncSettingsStatusActive => '상태: 활성';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

@@ -223,12 +223,13 @@ class _HomeMainState extends State<HomeMain>
       return true;
     }
 
+    // Capture context values before async gap
+    final FireflyService fireflyService = context.read<FireflyService>();
+    final TimeZoneHandler tzHandler = fireflyService.tzHandler;
+    final CurrencyRead defaultCurrency = fireflyService.defaultCurrency;
+    
     final Isar isar = await AppDatabase.instance;
     final InsightRepository insightRepo = InsightRepository(isar);
-    final TimeZoneHandler tzHandler = context.read<FireflyService>().tzHandler;
-    final CurrencyRead defaultCurrency = context
-        .read<FireflyService>()
-        .defaultCurrency;
 
     final DateTime now = tzHandler.sNow().clearTime();
     final DateTime start = now.copyWith(day: 1);
@@ -280,9 +281,12 @@ class _HomeMainState extends State<HomeMain>
   }
 
   Future<List<BudgetLimitRead>> _fetchBudgets() async {
+    // Capture context values before async gap
+    final FireflyService fireflyService = context.read<FireflyService>();
+    final TimeZoneHandler tzHandler = fireflyService.tzHandler;
+
     final Isar isar = await AppDatabase.instance;
     final BudgetRepository repo = BudgetRepository(isar);
-    final TimeZoneHandler tzHandler = context.read<FireflyService>().tzHandler;
 
     final DateTime now = tzHandler.sNow().clearTime();
 

@@ -14,7 +14,7 @@ class TagRepository {
 
   Future<List<TagRead>> getAll() async {
     final List<Tags> rows = await isar.tags.where().findAll();
-    rows.sort((a, b) {
+    rows.sort((Tags a, Tags b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
       if (dateA == null && dateB == null) return 0;
@@ -23,7 +23,7 @@ class TagRepository {
       return dateB.compareTo(dateA);
     });
 
-    return rows.map((row) {
+    return rows.map((Tags row) {
       return TagRead.fromJson(
         jsonDecode(row.data) as Map<String, dynamic>,
       );
@@ -38,15 +38,16 @@ class TagRepository {
     if (row == null) {
       return null;
     }
-    return TagRead.fromJson(
+    final TagRead tag = TagRead.fromJson(
       jsonDecode(row.data) as Map<String, dynamic>,
     );
+    return tag;
   }
 
   Future<List<TagRead>> search(String query) async {
     final List<TagRead> all = await getAll();
     final String queryLower = query.toLowerCase();
-    return all.where((tag) {
+    return all.where((TagRead tag) {
       // Search in tag name directly (most common case)
       if (tag.attributes.tag.toLowerCase().contains(queryLower)) {
         return true;
@@ -57,7 +58,7 @@ class TagRepository {
     }).toList();
   }
 
-  Future<List<TagRead>> getByDateRange(DateTime start, DateTime end) async {
+  Future<List<TagRead>> getByDateRange(DateTime start, DateTime end) {
     return getAll();
   }
 
@@ -132,7 +133,7 @@ class TagRepository {
         .findFirst();
 
     if (existing != null) {
-      existing..synced = false;
+      existing.synced = false;
 
       await isar.writeTxn(() async {
         await isar.tags.put(existing);

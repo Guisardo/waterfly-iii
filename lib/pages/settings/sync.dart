@@ -1,15 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:waterflyiii/auth.dart';
-import 'package:isar_community/isar.dart';
-import 'package:waterflyiii/data/local/database/app_database.dart';
-import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
-import 'package:waterflyiii/services/sync/sync_notifications.dart';
-import 'package:waterflyiii/services/sync/sync_service.dart';
-import 'package:waterflyiii/services/sync/upload_service.dart';
+import 'package:waterflyiii/services/sync/sync_status_provider.dart';
 import 'package:waterflyiii/settings.dart';
 
 class SyncSettingsPage extends StatefulWidget {
@@ -20,46 +14,29 @@ class SyncSettingsPage extends StatefulWidget {
 }
 
 class _SyncSettingsPageState extends State<SyncSettingsPage> {
-  SyncMetadata? _downloadMetadata;
-  SyncMetadata? _uploadMetadata;
-  SyncMetadata? _authMetadata;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
-    _loadMetadata();
+    // Refresh metadata every 2 seconds when page is visible
+    _refreshTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (mounted) {
+        context.read<SyncStatusProvider>().refreshMetadata();
+      }
+    });
   }
 
-  Future<void> _loadMetadata() async {
-    final Isar isar = await AppDatabase.instance;
-    final SyncMetadata? download = await isar.syncMetadatas
-        .filter()
-        .entityTypeEqualTo('download')
-        .findFirst();
-    final SyncMetadata? upload = await isar.syncMetadatas
-        .filter()
-        .entityTypeEqualTo('upload')
-        .findFirst();
-    final SyncMetadata? auth = await isar.syncMetadatas
-        .filter()
-        .entityTypeEqualTo('auth')
-        .findFirst();
-
-    if (mounted) {
-      setState(() {
-        _downloadMetadata = download;
-        _uploadMetadata = upload;
-        _authMetadata = auth;
-      });
-    }
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final SettingsProvider settings = context.watch<SettingsProvider>();
-    final FireflyService fireflyService = context.watch<FireflyService>();
-    final ConnectivityService connectivityService =
-        context.watch<ConnectivityService>();
+    final SyncStatusProvider syncStatus = context.watch<SyncStatusProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -83,13 +60,13 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
           ListTile(
             title: Text(S.of(context).syncSettingsCredentialsTitle),
             subtitle: Text(
-              _authMetadata?.credentialsInvalid ?? false
+              syncStatus.authMetadata?.credentialsInvalid ?? false
                   ? S.of(context).syncSettingsCredentialsInvalid
-                  : _authMetadata?.credentialsValidated ?? false
+                  : syncStatus.authMetadata?.credentialsValidated ?? false
                       ? S.of(context).syncSettingsCredentialsValidated
                       : S.of(context).syncSettingsCredentialsNotValidated,
             ),
-            trailing: _authMetadata?.credentialsInvalid ?? false
+            trailing: syncStatus.authMetadata?.credentialsInvalid ?? false
                 ? ElevatedButton(
                     onPressed: () {
                       // Navigate to login or show credential update dialog
@@ -105,18 +82,10 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
           _buildSyncStatusSection(
             context,
             S.of(context).syncSettingsDownloadSync,
-            _downloadMetadata,
+            syncStatus.downloadMetadata,
+            syncStatus.isDownloadSyncing,
             () async {
-              final Isar isar = await AppDatabase.instance;
-              final SyncService syncService = SyncService(
-                isar: isar,
-                fireflyService: fireflyService,
-                connectivityService: connectivityService,
-                notifications: SyncNotifications(),
-                settingsProvider: settings,
-              );
-              await syncService.sync();
-              _loadMetadata();
+              await syncStatus.sync();
             },
           ),
 
@@ -124,18 +93,10 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
           _buildSyncStatusSection(
             context,
             S.of(context).syncSettingsUploadSync,
-            _uploadMetadata,
+            syncStatus.uploadMetadata,
+            syncStatus.isUploading,
             () async {
-              final Isar isar = await AppDatabase.instance;
-              final UploadService uploadService = UploadService(
-                isar: isar,
-                fireflyService: fireflyService,
-                connectivityService: connectivityService,
-                notifications: SyncNotifications(),
-                settingsProvider: settings,
-              );
-              await uploadService.uploadPendingChanges(forceRetry: true);
-              _loadMetadata();
+              await syncStatus.upload();
             },
           ),
 
@@ -144,30 +105,18 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
           ListTile(
             title: Text(S.of(context).syncSettingsManualSyncTitle),
             subtitle: Text(S.of(context).syncSettingsManualSyncSubtitle),
-            trailing: ElevatedButton(
-              onPressed: () async {
-                final Isar isar = await AppDatabase.instance;
-                final SyncService syncService = SyncService(
-                  isar: isar,
-                  fireflyService: fireflyService,
-                  connectivityService: connectivityService,
-                  notifications: SyncNotifications(),
-                  settingsProvider: settings,
-                );
-                final UploadService uploadService = UploadService(
-                  isar: isar,
-                  fireflyService: fireflyService,
-                  connectivityService: connectivityService,
-                  notifications: SyncNotifications(),
-                  settingsProvider: settings,
-                );
-
-                await syncService.sync();
-                await uploadService.uploadPendingChanges(forceRetry: true);
-                _loadMetadata();
-              },
-              child: Text(S.of(context).syncSettingsSyncNowButton),
-            ),
+            trailing: syncStatus.isSyncing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : ElevatedButton(
+                    onPressed: () async {
+                      await syncStatus.syncAll();
+                    },
+                    child: Text(S.of(context).syncSettingsSyncNowButton),
+                  ),
           ),
         ],
       ),
@@ -177,7 +126,8 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
   Widget _buildSyncStatusSection(
     BuildContext context,
     String title,
-    SyncMetadata? metadata,
+    dynamic metadata,
+    bool isSyncing,
     VoidCallback onResume,
   ) {
     final bool isPaused = metadata?.syncPaused ?? false;
@@ -190,15 +140,33 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         ListTile(
-          title: Text(title),
+          title: Row(
+            children: <Widget>[
+              Expanded(child: Text(title)),
+              if (isSyncing)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+            ],
+          ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              if (lastSync != null)
+              if (isSyncing)
+                Text(
+                  S.of(context).syncSettingsStatusSyncing,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              if (lastSync != null && !isSyncing)
                 Text(S.of(context).syncSettingsLastSync(
                   DateFormat.yMd().add_Hms().format(lastSync),
                 )),
-              if (isPaused) ...[
+              if (isPaused && !isSyncing) ...[
                 Text(
                   S.of(context).syncSettingsStatusPaused,
                   style: const TextStyle(color: Colors.orange),
@@ -216,11 +184,11 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                     S.of(context).syncSettingsError(lastError),
                     style: const TextStyle(color: Colors.red),
                   ),
-              ] else
+              ] else if (!isSyncing)
                 Text(S.of(context).syncSettingsStatusActive),
             ],
           ),
-          trailing: isPaused
+          trailing: isPaused && !isSyncing
               ? ElevatedButton(
                   onPressed: onResume,
                   child: Text(S.of(context).syncSettingsResumeButton),

@@ -19,6 +19,8 @@ import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
+import 'package:waterflyiii/data/local/database/tables/transactions.dart';
 import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/data/repositories/attachment_repository.dart';
 import 'package:waterflyiii/data/repositories/budget_repository.dart';
@@ -41,6 +43,56 @@ import 'package:waterflyiii/timezonehandler.dart';
 import 'package:waterflyiii/widgets/autocompletetext.dart';
 import 'package:waterflyiii/widgets/input_number.dart';
 import 'package:waterflyiii/widgets/materialiconbutton.dart';
+
+AccountTypeProperty _mapShortAccountTypeToAccountType(dynamic shortTypeInput) {
+  enums.ShortAccountTypeProperty? shortType;
+  
+  if (shortTypeInput is enums.ShortAccountTypeProperty) {
+    shortType = shortTypeInput;
+  } else if (shortTypeInput is String) {
+    // Parse ShortAccountTypeProperty from string like "ShortAccountTypeProperty.asset"
+    final String enumName = shortTypeInput.contains('.') 
+        ? shortTypeInput.split('.').last 
+        : shortTypeInput;
+    
+    // Try to find by enum name first
+    shortType = enums.ShortAccountTypeProperty.values.firstWhereOrNull(
+      (enums.ShortAccountTypeProperty e) => e.name == enumName,
+    );
+    
+    // If not found, try by value
+    if (shortType == null) {
+      shortType = enums.ShortAccountTypeProperty.values.firstWhereOrNull(
+        (enums.ShortAccountTypeProperty e) => e.value == enumName || e.value == shortTypeInput,
+      );
+    }
+  }
+  
+  if (shortType == null) {
+    return AccountTypeProperty.swaggerGeneratedUnknown;
+  }
+  
+  // Map based on the value property
+  switch (shortType.value) {
+    case 'asset':
+      return AccountTypeProperty.assetAccount;
+    case 'expense':
+      return AccountTypeProperty.expenseAccount;
+    case 'revenue':
+      return AccountTypeProperty.revenueAccount;
+    case 'cash':
+      return AccountTypeProperty.cashAccount;
+    case 'liability':
+    case 'liabilities':
+      return AccountTypeProperty.debt; // Default to debt for liability
+    case 'initial-balance':
+      return AccountTypeProperty.initialBalanceAccount;
+    case 'reconciliation':
+      return AccountTypeProperty.reconciliationAccount;
+    default:
+      return AccountTypeProperty.swaggerGeneratedUnknown;
+  }
+}
 
 final Logger log = Logger("Pages.Transaction");
 
@@ -849,6 +901,12 @@ class _TransactionPageState extends State<TransactionPage>
         return;
       }
 
+      // Capture context values before any async gaps
+      final FireflyService fireflyService = context.read<FireflyService>();
+      final FireflyIii api = fireflyService.api;
+      // Capture context before async - apiThrowErrorIfEmpty checks context?.mounted internally
+      final BuildContext capturedContext = context;
+
       final Isar isar = await AppDatabase.instance;
       final AttachmentRepository attachmentRepo = AttachmentRepository(isar);
       
@@ -863,10 +921,10 @@ class _TransactionPageState extends State<TransactionPage>
       }
 
       // Also fetch from API to ensure we have the latest (and cache it)
-      final FireflyIii api = context.read<FireflyService>().api;
+      
       final Response<AttachmentArray> response = await api
           .v1TransactionsIdAttachmentsGet(id: widget.transaction!.id);
-      apiThrowErrorIfEmpty(response, mounted ? context : null);
+      apiThrowErrorIfEmpty(response, mounted ? capturedContext : null);
 
       _attachments = response.body!.data;
       
@@ -907,28 +965,89 @@ class _TransactionPageState extends State<TransactionPage>
                 _savingInProgress
                     ? null
                     : () async {
+                      // Capture context values before async gaps
                       final ScaffoldMessengerState msg = ScaffoldMessenger.of(
                         context,
                       );
                       final NavigatorState nav = Navigator.of(context);
-                      final FireflyIii api = context.read<FireflyService>().api;
-                      final AuthUser? user =
-                          context.read<FireflyService>().user;
+                      final FireflyService fireflyService = context.read<FireflyService>();
+                      final FireflyIii api = fireflyService.api;
+                      final AuthUser? user = fireflyService.user;
+                      final S localizations = S.of(context);
+                      
+                      // Try to resolve account names from text input if account types are unknown
+                      if (_transactionType ==
+                          TransactionTypeProperty.swaggerGeneratedUnknown ||
+                          _ownAccountId == null) {
+                        try {
+                          final Isar isar = await AppDatabase.instance;
+                          final AccountRepository accountRepo =
+                              AccountRepository(isar);
+                          
+                          // Try to resolve source account
+                          if (_sourceAccountTextController.text.isNotEmpty &&
+                              _sourceAccountType ==
+                                  AccountTypeProperty.swaggerGeneratedUnknown) {
+                            final List<AccountRead> sourceAccounts =
+                                await accountRepo.search(
+                              _sourceAccountTextController.text,
+                            );
+                            if (sourceAccounts.isNotEmpty) {
+                              final AccountRead account = sourceAccounts.first;
+                              _sourceAccountType = _mapShortAccountTypeToAccountType(
+                                account.attributes.type,
+                              );
+                              if (_sourceAccountType ==
+                                      AccountTypeProperty.assetAccount ||
+                                  _sourceAccountType == AccountTypeProperty.debt) {
+                                _ownAccountId = account.id;
+                              }
+                            }
+                          }
+                          
+                          // Try to resolve destination account
+                          if (_destinationAccountTextController.text.isNotEmpty &&
+                              _destinationAccountType ==
+                                  AccountTypeProperty.swaggerGeneratedUnknown) {
+                            final List<AccountRead> destAccounts =
+                                await accountRepo.search(
+                              _destinationAccountTextController.text,
+                            );
+                            if (destAccounts.isNotEmpty) {
+                              final AccountRead account = destAccounts.first;
+                              _destinationAccountType = _mapShortAccountTypeToAccountType(
+                                account.attributes.type,
+                              );
+                              if (_destinationAccountType ==
+                                      AccountTypeProperty.assetAccount ||
+                                  _destinationAccountType == AccountTypeProperty.debt) {
+                                _ownAccountId = account.id;
+                              }
+                            }
+                          }
+                          
+                          // Re-check transaction type after resolving accounts
+                          checkTXType();
+                        } catch (e) {
+                          log.warning("Error resolving accounts", e);
+                        }
+                      }
+                      
                       // Sanity checks
                       String? error;
 
                       if (_ownAccountId == null) {
-                        error = S.of(context).transactionErrorNoAssetAccount;
+                        error = localizations.transactionErrorNoAssetAccount;
                       }
                       if (_titleTextController.text.isEmpty) {
-                        error = S.of(context).transactionErrorTitle;
+                        error = localizations.transactionErrorTitle;
                       }
                       if (user == null) {
-                        error = S.of(context).errorAPIUnavailable;
+                        error = localizations.errorAPIUnavailable;
                       }
                       if (_transactionType ==
                           TransactionTypeProperty.swaggerGeneratedUnknown) {
-                        error = S.of(context).transactionErrorNoAccounts;
+                        error = localizations.transactionErrorNoAccounts;
                       }
                       if (error != null) {
                         msg.showSnackBar(
@@ -950,10 +1069,135 @@ class _TransactionPageState extends State<TransactionPage>
                       setState(() {
                         _savingInProgress = true;
                       });
-                      late Response<TransactionSingle> resp;
+                      
+                      // Always queue new transactions for sync (local-first architecture)
+                      if (_newTX) {
+                        try {
+                          // Build TransactionStore
+                          final List<TransactionSplitStore> txS =
+                              <TransactionSplitStore>[];
+                          for (int i = 0; i < _localAmounts.length; i++) {
+                            late String sourceName, destinationName;
 
-                      // Update existing transaction
+                            sourceName = _sourceAccountTextControllers[i].text;
+                            if (sourceName.isEmpty) {
+                              sourceName = _sourceAccountTextController.text;
+                            }
+                            destinationName =
+                                _destinationAccountTextControllers[i].text;
+                            if (destinationName.isEmpty) {
+                              destinationName =
+                                  _destinationAccountTextController.text;
+                            }
+
+                            txS.add(
+                              TransactionSplitStore(
+                                type: _transactionType,
+                                date: _date.copyWith(
+                                  second: 0,
+                                  millisecond: 0,
+                                  microsecond: 0,
+                                ),
+                                amount: _localAmounts[i].toString(),
+                                description:
+                                    _split
+                                        ? _titleTextControllers[i].text
+                                        : _titleTextController.text,
+                                billId: _bills[i]?.id ?? "0",
+                                piggyBankId:
+                                    (_piggy[i]?.id != null)
+                                        ? (int.parse(_piggy[i]!.id))
+                                        : null,
+                                budgetName:
+                                    (_transactionType ==
+                                            TransactionTypeProperty.withdrawal)
+                                        ? _budgetTextControllers[i].text
+                                        : "",
+                                categoryName: _categoryTextControllers[i].text,
+                                destinationName: destinationName,
+                                foreignAmount:
+                                    _foreignCurrencies[i] != null
+                                        ? _foreignAmounts[i].toString()
+                                        : "0",
+                                foreignCurrencyId: _foreignCurrencies[i]?.id,
+                                notes: _noteTextControllers[i].text,
+                                order: i,
+                                sourceName: sourceName,
+                                tags: _tags[i].tags,
+                                reconciled: _reconciled,
+                              ),
+                            );
+                          }
+                          final TransactionStore newTx = TransactionStore(
+                            groupTitle: _split ? _titleTextController.text : null,
+                            transactions: txS,
+                            applyRules: true,
+                            fireWebhooks: true,
+                            errorIfDuplicateHash: true,
+                          );
+
+                          // Capture localization strings before async gap
+                          final String savedOfflineMsg = localizations.transactionSavedOffline;
+                          
+                          // Create pending change for offline sync
+                          final Isar isar = await AppDatabase.instance;
+                          final PendingChanges pendingChange = PendingChanges()
+                            ..entityType = 'transactions'
+                            ..entityId = null
+                            ..operation = 'CREATE'
+                            ..data = jsonEncode(newTx.toJson())
+                            ..createdAt = DateTime.now().toUtc()
+                            ..retryCount = 0
+                            ..synced = false;
+                          
+                          // Create a temporary local transaction row so it appears in the list immediately
+                          // The sync service will update it with the real ID when it processes the PendingChange
+                          final String tempTransactionId = 'pending-${DateTime.now().millisecondsSinceEpoch}';
+                          final Transactions tempTransactionRow = Transactions()
+                            ..transactionId = tempTransactionId
+                            ..data = jsonEncode(newTx.toJson())
+                            ..updatedAt = null
+                            ..localUpdatedAt = DateTime.now().toUtc()
+                            ..synced = false;
+                          
+                          await isar.writeTxn(() async {
+                            await isar.pendingChanges.put(pendingChange);
+                            await isar.transactions.put(tempTransactionRow);
+                          });
+
+                          if (mounted) {
+                            msg.showSnackBar(
+                              SnackBar(
+                                content: Text(savedOfflineMsg),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            nav.pop();
+                          }
+                        } catch (e, stackTrace) {
+                          log.severe("Error saving transaction offline", e, stackTrace);
+                          if (mounted) {
+                            final String errorMsg = localizations.errorUnknown;
+                            msg.showSnackBar(
+                              SnackBar(
+                                content: Text(errorMsg),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        } finally {
+                          if (mounted) {
+                            setState(() {
+                              _savingInProgress = false;
+                            });
+                          }
+                        }
+                        return;
+                      }
+                      
+                      // Update existing transaction (new transactions are handled above via queuing)
                       if (!_newTX) {
+                        late Response<TransactionSingle> resp;
                         final String id = widget.transaction!.id;
                         final List<TransactionSplitUpdate> txS =
                             <TransactionSplitUpdate>[];
@@ -1042,76 +1286,9 @@ class _TransactionPageState extends State<TransactionPage>
                           id: id,
                           body: txUpdate,
                         );
-                      } else {
-                        // New transaction
-                        final List<TransactionSplitStore> txS =
-                            <TransactionSplitStore>[];
-                        for (int i = 0; i < _localAmounts.length; i++) {
-                          late String sourceName, destinationName;
 
-                          sourceName = _sourceAccountTextControllers[i].text;
-                          if (sourceName.isEmpty) {
-                            sourceName = _sourceAccountTextController.text;
-                          }
-                          destinationName =
-                              _destinationAccountTextControllers[i].text;
-                          if (destinationName.isEmpty) {
-                            destinationName =
-                                _destinationAccountTextController.text;
-                          }
-
-                          txS.add(
-                            TransactionSplitStore(
-                              type: _transactionType,
-                              date: _date.copyWith(
-                                second: 0,
-                                millisecond: 0,
-                                microsecond: 0,
-                              ),
-                              amount: _localAmounts[i].toString(),
-                              description:
-                                  _split
-                                      ? _titleTextControllers[i].text
-                                      : _titleTextController.text,
-                              billId: _bills[i]?.id ?? "0",
-                              piggyBankId:
-                                  (_piggy[i]?.id != null)
-                                      ? (int.parse(_piggy[i]!.id))
-                                      : null,
-                              budgetName:
-                                  (_transactionType ==
-                                          TransactionTypeProperty.withdrawal)
-                                      ? _budgetTextControllers[i].text
-                                      : "",
-                              categoryName: _categoryTextControllers[i].text,
-                              destinationName: destinationName,
-                              // :HAX: Since nulled fields are not submitted, we set
-                              // the value to 0 so the foreign currency is gone...
-                              foreignAmount:
-                                  _foreignCurrencies[i] != null
-                                      ? _foreignAmounts[i].toString()
-                                      : "0",
-                              foreignCurrencyId: _foreignCurrencies[i]?.id,
-                              notes: _noteTextControllers[i].text,
-                              order: i,
-                              sourceName: sourceName,
-                              tags: _tags[i].tags,
-                              reconciled: _reconciled,
-                            ),
-                          );
-                        }
-                        final TransactionStore newTx = TransactionStore(
-                          groupTitle: _split ? _titleTextController.text : null,
-                          transactions: txS,
-                          applyRules: true,
-                          fireWebhooks: true,
-                          errorIfDuplicateHash: true,
-                        );
-                        resp = await api.v1TransactionsPost(body: newTx);
-                      }
-
-                      // Check if insert/update was successful
-                      if (!resp.isSuccessful || resp.body == null) {
+                        // Check if update was successful
+                        if (!resp.isSuccessful || resp.body == null) {
                         try {
                           final ValidationErrorResponse valError =
                               ValidationErrorResponse.fromJson(
@@ -1237,10 +1414,10 @@ class _TransactionPageState extends State<TransactionPage>
                         }
                       }
 
-                      // Done saving
-                      setState(() => _savingInProgress = false);
+                        // Done saving
+                        setState(() => _savingInProgress = false);
 
-                      if (nav.canPop()) {
+                        if (nav.canPop()) {
                         // Popping true means that the TX list will be refreshed.
                         // This should only happen if:
                         // 1. it is a new transaction
@@ -1268,6 +1445,7 @@ class _TransactionPageState extends State<TransactionPage>
                             builder: (BuildContext context) => const NavPage(),
                           ),
                         );
+                        }
                       }
                     },
             child:
@@ -1433,10 +1611,7 @@ class _TransactionPageState extends State<TransactionPage>
                         in _sourceAccountTextControllers) {
                       e.text = option.name;
                     }
-                    _sourceAccountType = AccountTypeProperty.values.firstWhere(
-                      (AccountTypeProperty e) => e.value == option.type,
-                      orElse: () => AccountTypeProperty.swaggerGeneratedUnknown,
-                    );
+                    _sourceAccountType = _mapShortAccountTypeToAccountType(option.type);
                     log.finer(
                       () =>
                           "selected source account ${option.name}, type ${_sourceAccountType.toString()} (${option.type})",
@@ -1458,9 +1633,10 @@ class _TransactionPageState extends State<TransactionPage>
                       final Isar isar = await AppDatabase.instance;
                       final AccountRepository repo = AccountRepository(isar);
                       
-                      // Get allowed opposing account types (already returns AccountTypeFilter list)
-                      final List<enums.AccountTypeFilter> types =
-                          _destinationAccountType.allowedOpposingTypes(false);
+                      // Source account should only show asset accounts
+                      final List<enums.AccountTypeFilter> types = <enums.AccountTypeFilter>[
+                        enums.AccountTypeFilter.assetAccount,
+                      ];
 
                       fetchOpSource = CancelableOperation<List<AutocompleteAccount>>.fromFuture(
                         repo.autocomplete(
@@ -1534,13 +1710,7 @@ class _TransactionPageState extends State<TransactionPage>
                           in _destinationAccountTextControllers) {
                         e.text = option.name;
                       }
-                      _destinationAccountType = AccountTypeProperty.values
-                          .firstWhere(
-                            (AccountTypeProperty e) => e.value == option.type,
-                            orElse:
-                                () =>
-                                    AccountTypeProperty.swaggerGeneratedUnknown,
-                          );
+                      _destinationAccountType = _mapShortAccountTypeToAccountType(option.type);
                       if (_destinationAccountType ==
                               AccountTypeProperty.assetAccount ||
                           _destinationAccountType == AccountTypeProperty.debt) {
@@ -1848,9 +2018,10 @@ class _TransactionPageState extends State<TransactionPage>
                                         final Isar isar = await AppDatabase.instance;
                                         final AccountRepository repo = AccountRepository(isar);
                                         
-                                        // Get allowed opposing account types (already returns AccountTypeFilter list)
-                                        final List<enums.AccountTypeFilter> types =
-                                            _destinationAccountType.allowedOpposingTypes(false);
+                                        // Source account should only show asset accounts
+                                        final List<enums.AccountTypeFilter> types = <enums.AccountTypeFilter>[
+                                          enums.AccountTypeFilter.assetAccount,
+                                        ];
 
                                         fetchOp = CancelableOperation<List<AutocompleteAccount>>.fromFuture(
                                           repo.autocomplete(
@@ -2482,7 +2653,7 @@ class TransactionTitle extends StatelessWidget {
             }
             
             fetchOp = CancelableOperation<List<String>>.fromFuture(
-              Future.value(uniqueTitles.toList()),
+              Future<List<String>>.value(uniqueTitles.toList()),
             );
             final List<String>? results =
                 await fetchOp?.valueOrCancellation();

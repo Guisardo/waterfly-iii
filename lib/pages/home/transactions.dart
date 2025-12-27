@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -49,7 +48,7 @@ class _HomeTransactionsState extends State<HomeTransactions>
 
   DateTime? _lastDate;
   List<int> _rowsWithDate = <int>[];
-  late TransactionRepository _transactionRepo;
+  TransactionRepository? _transactionRepo;
   late TimeZoneHandler _tzHandler;
 
   TransactionSum _txSum = TransactionSum();
@@ -171,10 +170,7 @@ class _HomeTransactionsState extends State<HomeTransactions>
       });
     }
 
-    // Initialize repository asynchronously
-    AppDatabase.instance.then((Isar isar) {
-      _transactionRepo = TransactionRepository(isar);
-    });
+    // Repository will be initialized lazily in _fetchPage when needed
   }
 
   @override
@@ -192,7 +188,15 @@ class _HomeTransactionsState extends State<HomeTransactions>
   Future<void> _fetchPage() async {
     if (_pagingState.isLoading) return;
 
-    // Repository is always available
+    // Capture context values before any async gaps
+    final SettingsProvider settingsProvider = context.read<SettingsProvider>();
+
+    // Ensure repository is initialized
+    if (_transactionRepo == null) {
+      final Isar isar = await AppDatabase.instance;
+      _transactionRepo = TransactionRepository(isar);
+    }
+    final TransactionRepository repo = _transactionRepo!;
 
     setState(() {
       _pagingState = _pagingState.copyWith(isLoading: true, error: null);
@@ -220,8 +224,8 @@ class _HomeTransactionsState extends State<HomeTransactions>
       // Get start date
       late DateTime startDate;
       final DateTime now = _tzHandler.sNow().clearTime();
-      switch (context.read<SettingsProvider>().transactionDateFilter) {
-        case .currentMonth:
+      switch (settingsProvider.transactionDateFilter) {
+        case TransactionDateFilter.currentMonth:
           startDate = now.copyWith(day: 1);
           break;
         case .currentYear:
@@ -243,12 +247,12 @@ class _HomeTransactionsState extends State<HomeTransactions>
       }
 
       // Use repository instead of stock
-      final DateTime? endDate = context.read<SettingsProvider>().showFutureTXs
+      final DateTime? endDate = settingsProvider.showFutureTXs
           ? null
           : now;
 
       if (widget.filters?.account != null) {
-        transactionList = await _transactionRepo.getByAccount(
+        transactionList = await repo.getByAccount(
           _filters.account!.id,
           startDate,
           endDate,
@@ -256,7 +260,7 @@ class _HomeTransactionsState extends State<HomeTransactions>
           limit: _numberOfPostsPerRequest,
         );
       } else if (_filters.hasFilters) {
-        transactionList = await _transactionRepo.searchWithFilters(
+        transactionList = await repo.searchWithFilters(
           text: _filters.text,
           accountId: _filters.account?.id,
           currencyCode: _filters.currency?.attributes.code,
@@ -273,7 +277,7 @@ class _HomeTransactionsState extends State<HomeTransactions>
           limit: _numberOfPostsPerRequest,
         );
       } else {
-        transactionList = await _transactionRepo.getByDateRange(
+        transactionList = await repo.getByDateRange(
           startDate,
           endDate ?? now.add(const Duration(days: 365)),
           page: pageKey,
@@ -391,7 +395,39 @@ class _HomeTransactionsState extends State<HomeTransactions>
       child: PagedListView<int, TransactionRead>(
         state: _pagingState,
         fetchNextPage: _fetchPage,
-        builderDelegate: customPagedChildBuilderDelegate<TransactionRead>(
+        builderDelegate: PagedChildBuilderDelegate<TransactionRead>(
+          animateTransitions: true,
+          transitionDuration: animDurationStandard,
+          invisibleItemsThreshold: 10,
+          firstPageErrorIndicatorBuilder: (BuildContext context) {
+            final Object? error = _pagingState.error;
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      S.of(context).errorUnknown,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      error?.toString() ?? '',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
           itemBuilder: transactionRowBuilder,
           noMoreItemsIndicatorBuilder: (BuildContext context) {
             final CurrencyRead defaultCurrency = context

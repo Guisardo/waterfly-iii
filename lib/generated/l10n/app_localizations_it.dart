@@ -922,6 +922,10 @@ class SIt extends S {
       'Si prega di compilare prima i conti.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Si prega di selezionare un conto attività.';
 
@@ -1030,6 +1034,9 @@ class SIt extends S {
 
   @override
   String get syncSettingsStatusActive => 'Stato: Attivo';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {

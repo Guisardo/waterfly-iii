@@ -12,9 +12,95 @@ class TransactionRepository {
 
   DateTime _getNow() => DateTime.now().toUtc();
 
+  /// Converts a TransactionStore (API request format) to TransactionRead (API response format)
+  /// for displaying pending transactions in the UI
+  TransactionRead? _convertStoreToRead(
+    TransactionStore store,
+    String transactionId,
+  ) {
+    try {
+      // Convert TransactionSplitStore to TransactionSplit
+      final List<TransactionSplit> transactionSplits = store.transactions.map((TransactionSplitStore splitStore) {
+        return TransactionSplit(
+          transactionJournalId: null, // Pending transactions don't have journal IDs yet
+          type: splitStore.type,
+          date: splitStore.date,
+          order: splitStore.order,
+          amount: splitStore.amount,
+          description: splitStore.description,
+          sourceId: null, // Will be resolved by sync service
+          sourceName: splitStore.sourceName,
+          sourceIban: null,
+          sourceType: null,
+          destinationId: null, // Will be resolved by sync service
+          destinationName: splitStore.destinationName,
+          destinationIban: null,
+          destinationType: null,
+          billId: splitStore.billId != null && splitStore.billId != "0" ? splitStore.billId : null,
+          billName: null,
+          categoryId: null,
+          categoryName: (splitStore.categoryName?.isNotEmpty ?? false) ? splitStore.categoryName : null,
+          budgetId: null,
+          budgetName: (splitStore.budgetName?.isNotEmpty ?? false) ? splitStore.budgetName : null,
+          tags: (splitStore.tags?.isNotEmpty ?? false) ? splitStore.tags : null,
+          notes: (splitStore.notes?.isNotEmpty ?? false) ? splitStore.notes : null,
+          internalReference: splitStore.internalReference,
+          externalUrl: splitStore.externalUrl,
+          originalSource: null,
+          reconciled: splitStore.reconciled ?? false,
+          hasAttachments: false,
+          foreignAmount: splitStore.foreignAmount != null && splitStore.foreignAmount != "0" ? splitStore.foreignAmount : null,
+          foreignCurrencyId: splitStore.foreignCurrencyId,
+          foreignCurrencyCode: splitStore.foreignCurrencyCode,
+          foreignCurrencySymbol: null,
+          foreignCurrencyDecimalPlaces: null,
+          sepaCc: splitStore.sepaCc,
+          sepaCtOp: splitStore.sepaCtOp,
+          sepaCtId: splitStore.sepaCtId,
+          sepaDb: splitStore.sepaDb,
+          sepaCountry: splitStore.sepaCountry,
+          sepaEp: splitStore.sepaEp,
+          sepaCi: splitStore.sepaCi,
+          sepaBatchId: splitStore.sepaBatchId,
+          interestDate: splitStore.interestDate,
+          bookDate: splitStore.bookDate,
+          processDate: splitStore.processDate,
+          dueDate: splitStore.dueDate,
+          paymentDate: splitStore.paymentDate,
+          invoiceDate: splitStore.invoiceDate,
+        );
+      }).toList();
+
+      // Create Transaction attributes
+      final Transaction transactionAttributes = Transaction(
+        createdAt: null,
+        updatedAt: null,
+        user: null,
+        groupTitle: store.groupTitle,
+        transactions: transactionSplits,
+      );
+
+      // Create ObjectLink (minimal, just for structure)
+      const ObjectLink links = ObjectLink(
+        self: null,
+      );
+
+      // Create TransactionRead
+      return TransactionRead(
+        type: "transactions",
+        id: transactionId,
+        attributes: transactionAttributes,
+        links: links,
+      );
+    } catch (e) {
+      // If conversion fails, return null
+      return null;
+    }
+  }
+
   Future<List<TransactionRead>> getAll() async {
     final List<Transactions> rows = await isar.transactions.where().findAll();
-    rows.sort((a, b) {
+    rows.sort((Transactions a, Transactions b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
       if (dateA == null && dateB == null) return 0;
@@ -23,11 +109,40 @@ class TransactionRepository {
       return dateB.compareTo(dateA);
     });
 
-    return rows.map((row) {
-      return TransactionRead.fromJson(
-        jsonDecode(row.data) as Map<String, dynamic>,
-      );
-    }).toList();
+    final List<TransactionRead> result = <TransactionRead>[];
+    for (final Transactions row in rows) {
+      try {
+        final Map<String, dynamic> jsonData = jsonDecode(row.data) as Map<String, dynamic>;
+        
+        // Check if it's a pending transaction (TransactionStore format)
+        if (row.transactionId.startsWith('pending-')) {
+          // Try to convert TransactionStore to TransactionRead
+          try {
+            final TransactionStore store = TransactionStore.fromJson(jsonData);
+            final TransactionRead? converted = _convertStoreToRead(store, row.transactionId);
+            if (converted != null) {
+              result.add(converted);
+            }
+          } catch (e) {
+            // Skip if conversion fails
+            continue;
+          }
+        } else {
+          // It's a regular TransactionRead format
+          // Verify it's a TransactionRead format (has 'type', 'id', 'attributes', 'links')
+          if (jsonData.containsKey('type') && 
+              jsonData.containsKey('id') && 
+              jsonData.containsKey('attributes') && 
+              jsonData.containsKey('links')) {
+            result.add(TransactionRead.fromJson(jsonData));
+          }
+        }
+      } catch (e) {
+        // Skip invalid transaction data
+        continue;
+      }
+    }
+    return result;
   }
 
   Future<TransactionRead?> getById(String id) async {
@@ -38,15 +153,36 @@ class TransactionRepository {
     if (row == null) {
       return null;
     }
-    return TransactionRead.fromJson(
-      jsonDecode(row.data) as Map<String, dynamic>,
-    );
+    // Handle pending transactions (they have TransactionStore format, not TransactionRead)
+    if (row.transactionId.startsWith('pending-')) {
+      try {
+        final Map<String, dynamic> jsonData = jsonDecode(row.data) as Map<String, dynamic>;
+        final TransactionStore store = TransactionStore.fromJson(jsonData);
+        return _convertStoreToRead(store, row.transactionId);
+      } catch (e) {
+        return null;
+      }
+    }
+    try {
+      final Map<String, dynamic> jsonData = jsonDecode(row.data) as Map<String, dynamic>;
+      // Verify it's a TransactionRead format
+      if (jsonData.containsKey('type') && 
+          jsonData.containsKey('id') && 
+          jsonData.containsKey('attributes') && 
+          jsonData.containsKey('links')) {
+        return TransactionRead.fromJson(jsonData);
+      }
+    } catch (e) {
+      // Invalid transaction data
+      return null;
+    }
+    return null;
   }
 
   Future<List<TransactionRead>> search(String query) async {
     final List<TransactionRead> all = await getAll();
     final String queryLower = query.toLowerCase();
-    return all.where((transaction) {
+    return all.where((TransactionRead transaction) {
       // Search in transaction descriptions directly (most common case)
       for (final TransactionSplit split in transaction.attributes.transactions) {
         if (split.description.toLowerCase().contains(queryLower)) {
@@ -66,7 +202,7 @@ class TransactionRepository {
     int? limit,
   }) async {
     final List<TransactionRead> all = await getAll();
-    final List<TransactionRead> filtered = all.where((transaction) {
+    final List<TransactionRead> filtered = all.where((TransactionRead transaction) {
       final DateTime? date = transaction.attributes.transactions.firstOrNull?.date;
       if (date == null) {
         return false;
@@ -76,7 +212,7 @@ class TransactionRepository {
     }).toList();
 
     // Sort by date descending (newest first)
-    filtered.sort((a, b) {
+    filtered.sort((TransactionRead a, TransactionRead b) {
       final DateTime? dateA = a.attributes.transactions.firstOrNull?.date;
       final DateTime? dateB = b.attributes.transactions.firstOrNull?.date;
       if (dateA == null && dateB == null) return 0;
@@ -109,7 +245,7 @@ class TransactionRepository {
     int? limit,
   }) async {
     final List<TransactionRead> all = await getAll();
-    final List<TransactionRead> filtered = all.where((transaction) {
+    final List<TransactionRead> filtered = all.where((TransactionRead transaction) {
       // Check if transaction involves this account
       bool involvesAccount = false;
       for (final TransactionSplit split in transaction.attributes.transactions) {
@@ -141,7 +277,7 @@ class TransactionRepository {
     }).toList();
 
     // Sort by date descending
-    filtered.sort((a, b) {
+    filtered.sort((TransactionRead a, TransactionRead b) {
       final DateTime? dateA = a.attributes.transactions.firstOrNull?.date;
       final DateTime? dateB = b.attributes.transactions.firstOrNull?.date;
       if (dateA == null && dateB == null) return 0;
@@ -183,7 +319,7 @@ class TransactionRepository {
     int? limit,
   }) async {
     final List<TransactionRead> all = await getAll();
-    final List<TransactionRead> filtered = all.where((transaction) {
+    final List<TransactionRead> filtered = all.where((TransactionRead transaction) {
       // Text search
       if (text != null && text.isNotEmpty) {
         final String json = jsonEncode(transaction.toJson()).toLowerCase();
@@ -358,7 +494,7 @@ class TransactionRepository {
     }).toList();
 
     // Sort by date descending
-    filtered.sort((a, b) {
+    filtered.sort((TransactionRead a, TransactionRead b) {
       final DateTime? dateA = a.attributes.transactions.firstOrNull?.date;
       final DateTime? dateB = b.attributes.transactions.firstOrNull?.date;
       if (dateA == null && dateB == null) return 0;

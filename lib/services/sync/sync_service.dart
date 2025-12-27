@@ -163,7 +163,7 @@ class SyncService extends ChangeNotifier {
 
       // Sync entities
       final List<String> entityTypes = entityType != null
-          ? [entityType]
+          ? <String>[entityType]
           : <String>[
               'transactions',
               'accounts',
@@ -756,7 +756,7 @@ class SyncService extends ChangeNotifier {
                         );
 
           if (response.isSuccessful && response.body != null) {
-            data = response.body!.map((e) => e.toJson()).toList();
+            data = response.body!.map((InsightTotalEntry e) => e.toJson()).toList();
           }
         } else if (insight.insightSubtype.startsWith('no-')) {
           final String baseType = insight.insightSubtype.substring(3);
@@ -790,7 +790,7 @@ class SyncService extends ChangeNotifier {
                     );
 
           if (response.isSuccessful && response.body != null) {
-            data = response.body!.map((e) => e.toJson()).toList();
+            data = response.body!.map((InsightTotalEntry e) => e.toJson()).toList();
           }
         } else {
           final Response<InsightGroup> response =
@@ -830,7 +830,7 @@ class SyncService extends ChangeNotifier {
                         );
 
           if (response.isSuccessful && response.body != null) {
-            data = response.body!.map((e) => e.toJson()).toList();
+            data = response.body!.map((InsightGroupEntry e) => e.toJson()).toList();
           }
         }
 

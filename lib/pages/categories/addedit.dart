@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:chopper/chopper.dart';
 import 'package:flutter/material.dart';
 import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
@@ -8,7 +9,6 @@ import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/data/repositories/category_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/settings.dart';
 
@@ -152,17 +152,23 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
         FilledButton(
           child: Text(MaterialLocalizations.of(context).saveButtonLabel),
           onPressed: () async {
+            // Capture context values before async gaps
             final ScaffoldMessengerState msg = ScaffoldMessenger.of(context);
+            final FireflyService fireflyService = context.read<FireflyService>();
+            final FireflyIii api = fireflyService.api;
+            final S localizations = S.of(context);
 
             try {
               final Isar isar = await AppDatabase.instance;
               final CategoryRepository categoryRepo = CategoryRepository(isar);
 
               if (widget.category == null) {
-                // Create new category — call the API to get the server-generated ID,
-                // then store the result in the local repository.
-                final FireflyIii api = context.read<FireflyService>().api;
-                final resp = await api.v1CategoriesPost(
+                // Create new category
+                // For now, we'll need to call the API to get the full CategoryRead
+                // TODO: Consider creating a method that generates a temporary ID
+                // For now, keeping API call for create to get server-generated ID
+                if (!mounted) return;
+                final Response<CategorySingle> resp = await api.v1CategoriesPost(
                   body: CategoryStore(
                     name: titleController.text,
                     notes: notesController.text,
@@ -204,9 +210,10 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
                 final CategoryRead? existing =
                     await categoryRepo.getById(widget.category!.id);
                 if (existing == null) {
+                  if (!mounted) return;
                   msg.showSnackBar(
                     SnackBar(
-                      content: Text(S.of(context).errorUnknown),
+                      content: Text(localizations.errorUnknown),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -242,9 +249,10 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
               }
             } catch (e, stackTrace) {
               log.severe("Error saving category", e, stackTrace);
+              if (!mounted) return;
               msg.showSnackBar(
                 SnackBar(
-                  content: Text(S.of(context).errorUnknown),
+                  content: Text(localizations.errorUnknown),
                   behavior: SnackBarBehavior.floating,
                 ),
               );

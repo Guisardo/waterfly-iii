@@ -922,6 +922,10 @@ class SSl extends S {
   String get transactionErrorNoAccounts => 'Najprej izpolni račune.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount => 'Izberi račun sredstev.';
 
   @override
@@ -1028,6 +1032,9 @@ class SSl extends S {
 
   @override
   String get syncSettingsStatusActive => 'Status: Aktivno';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {
