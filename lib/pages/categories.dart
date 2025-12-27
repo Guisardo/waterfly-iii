@@ -15,7 +15,9 @@ import 'package:waterflyiii/pages/home/transactions.dart';
 import 'package:waterflyiii/pages/home/transactions/filter.dart';
 import 'package:waterflyiii/pages/navigation.dart';
 import 'package:waterflyiii/settings.dart';
-import 'package:waterflyiii/stock.dart';
+import 'package:isar_community/isar.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/insight_repository.dart';
 
 final Logger log = Logger("Pages.Categories");
 
@@ -31,7 +33,7 @@ class _CategoriesPageState extends State<CategoriesPage>
   final Logger log = Logger("Pages.Categories.Page");
   late DateTime selectedMonth;
   late DateTime now;
-  late CatStock stock;
+  late InsightRepository _insightRepo;
 
   @override
   void initState() {
@@ -42,14 +44,168 @@ class _CategoriesPageState extends State<CategoriesPage>
     );
     selectedMonth = now.copyWith(day: 15);
 
-    stock = CatStock(
-      context.read<FireflyService>().api,
-      context.read<FireflyService>().defaultCurrency,
-    );
+    // Initialize repositories asynchronously
+    AppDatabase.instance.then((Isar isar) {
+      _insightRepo = InsightRepository(isar);
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       refreshAppBarButtons();
     });
+  }
+
+  Future<CategoryArray> _buildCategoryArrayFromRepository(DateTime date) async {
+    final DateTime startDate = date.copyWith(day: 1);
+    final DateTime endDate = date;
+
+    final CurrencyRead defaultCurrency =
+        context.read<FireflyService>().defaultCurrency;
+
+    // Get insights from repository
+    final List<InsightGroupEntry> incomeCats =
+        await _insightRepo.getGrouped('income', 'category', startDate, endDate);
+    final List<InsightTotalEntry> incomeNoCats =
+        await _insightRepo.getNoGroup('income', 'category', startDate, endDate);
+    final List<InsightGroupEntry> expenseCats =
+        await _insightRepo.getGrouped('expense', 'category', startDate, endDate);
+    final List<InsightTotalEntry> expenseNoCats =
+        await _insightRepo.getNoGroup('expense', 'category', startDate, endDate);
+
+    final Map<String, CategoryRead> categories = <String, CategoryRead>{};
+
+    // Process income categories
+    for (final InsightGroupEntry cat in incomeCats) {
+      if ((cat.id?.isEmpty ?? true) || (cat.name?.isEmpty ?? true)) {
+        continue;
+      }
+      if (cat.currencyId != defaultCurrency.id) {
+        continue;
+      }
+      if (!categories.containsKey(cat.id)) {
+        categories[cat.id!] = CategoryRead(
+          id: cat.id!,
+          type: "categories",
+          attributes: CategoryWithSum(
+            name: cat.name!,
+            spent: <ArrayEntryWithCurrencyAndSum>[],
+            earned: <ArrayEntryWithCurrencyAndSum>[],
+          ),
+        );
+      }
+      categories[cat.id!]!.attributes.earned!.add(
+        ArrayEntryWithCurrencyAndSum(
+          currencyId: cat.currencyId,
+          currencyCode: cat.currencyCode,
+          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+          currencySymbol: defaultCurrency.attributes.symbol,
+          sum: cat.difference,
+        ),
+      );
+    }
+
+    // Process expense categories
+    for (final InsightGroupEntry cat in expenseCats) {
+      if ((cat.id?.isEmpty ?? true) || (cat.name?.isEmpty ?? true)) {
+        continue;
+      }
+      if (cat.currencyId != defaultCurrency.id) {
+        continue;
+      }
+      if (!categories.containsKey(cat.id)) {
+        categories[cat.id!] = CategoryRead(
+          id: cat.id!,
+          type: "categories",
+          attributes: CategoryWithSum(
+            name: cat.name!,
+            spent: <ArrayEntryWithCurrencyAndSum>[],
+            earned: <ArrayEntryWithCurrencyAndSum>[],
+          ),
+        );
+      }
+      categories[cat.id!]!.attributes.spent!.add(
+        ArrayEntryWithCurrencyAndSum(
+          currencyId: cat.currencyId,
+          currencyCode: cat.currencyCode,
+          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+          currencySymbol: defaultCurrency.attributes.symbol,
+          sum: cat.difference,
+        ),
+      );
+    }
+
+    // Process no-category income
+    for (final InsightTotalEntry cat in incomeNoCats) {
+      if (cat.currencyId != defaultCurrency.id) {
+        continue;
+      }
+      if (!categories.containsKey("-1")) {
+        categories["-1"] = CategoryRead(
+          id: "-1",
+          type: "no-category",
+          attributes: CategoryWithSum(
+            name: "L10NNONE",
+            spent: <ArrayEntryWithCurrencyAndSum>[],
+            earned: <ArrayEntryWithCurrencyAndSum>[],
+          ),
+        );
+      }
+      categories["-1"]!.attributes.earned!.add(
+        ArrayEntryWithCurrencyAndSum(
+          currencyId: cat.currencyId,
+          currencyCode: cat.currencyCode,
+          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+          currencySymbol: defaultCurrency.attributes.symbol,
+          sum: cat.difference,
+        ),
+      );
+    }
+
+    // Process no-category expense
+    for (final InsightTotalEntry cat in expenseNoCats) {
+      if (cat.currencyId != defaultCurrency.id) {
+        continue;
+      }
+      if (!categories.containsKey("-1")) {
+        categories["-1"] = CategoryRead(
+          id: "-1",
+          type: "no-category",
+          attributes: CategoryWithSum(
+            name: "L10NNONE",
+            spent: <ArrayEntryWithCurrencyAndSum>[],
+            earned: <ArrayEntryWithCurrencyAndSum>[],
+          ),
+        );
+      }
+      categories["-1"]!.attributes.spent!.add(
+        ArrayEntryWithCurrencyAndSum(
+          currencyId: cat.currencyId,
+          currencyCode: cat.currencyCode,
+          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+          currencySymbol: defaultCurrency.attributes.symbol,
+          sum: cat.difference,
+        ),
+      );
+    }
+
+    // Calculate sums
+    categories.forEach((_, CategoryRead c) {
+      final CategoryWithSum cs = c.attributes as CategoryWithSum;
+      cs.sumEarned = c.attributes.earned!.fold<double>(
+        0,
+        (double p, ArrayEntryWithCurrencyAndSum e) =>
+            p += double.parse(e.sum ?? "0"),
+      );
+      cs.sumSpent = c.attributes.spent!.fold<double>(
+        0,
+        (double p, ArrayEntryWithCurrencyAndSum e) =>
+            p += double.parse(e.sum ?? "0"),
+      );
+    });
+
+    return CategoryArray(
+      data: categories.values.toList(growable: false),
+      meta: const Meta(),
+    );
   }
 
   void refreshAppBarButtons() {
@@ -70,8 +226,7 @@ class _CategoriesPageState extends State<CategoriesPage>
             return;
           }
 
-          // Refresh page
-          await stock.reset();
+          // Refresh page - repository will have new data from sync
           setState(() {});
         },
       ),
@@ -121,9 +276,9 @@ class _CategoriesPageState extends State<CategoriesPage>
     }
 
     return FutureBuilder<CategoryArray>(
-      future: stock.get(stockDate),
+      future: _buildCategoryArrayFromRepository(stockDate),
       builder: (BuildContext context, AsyncSnapshot<CategoryArray> snapshot) {
-        if (snapshot.connectionState == .waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator.adaptive());
         }
         if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
@@ -144,16 +299,16 @@ class _CategoriesPageState extends State<CategoriesPage>
         final List<Widget> childs = <Widget>[];
         childs.add(
           Padding(
-            padding: const .symmetric(vertical: 8, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: Row(
-              mainAxisAlignment: .end,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
                 Expanded(
                   child: Align(
-                    alignment: .centerLeft,
+                    alignment: Alignment.centerLeft,
                     child: Text(
                       DateFormat.yMMMM().format(selectedMonth),
-                      textAlign: .end,
+                      textAlign: TextAlign.end,
                       style: Theme.of(context).textTheme.labelMedium,
                     ),
                   ),
@@ -161,21 +316,21 @@ class _CategoriesPageState extends State<CategoriesPage>
                 Expanded(
                   child: Text(
                     S.of(context).generalSpent,
-                    textAlign: .end,
+                    textAlign: TextAlign.end,
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                 ),
                 Expanded(
                   child: Text(
                     S.of(context).generalEarned,
-                    textAlign: .end,
+                    textAlign: TextAlign.end,
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                 ),
                 Expanded(
                   child: Text(
                     S.of(context).generalSum,
-                    textAlign: .end,
+                    textAlign: TextAlign.end,
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                 ),
@@ -228,7 +383,7 @@ class _CategoriesPageState extends State<CategoriesPage>
         if (snapshot.data!.data.length > 5) {
           childs.add(
             Padding(
-              padding: const .symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: SumLine(totalSpent: totalSpent, totalEarned: totalEarned),
             ),
           );
@@ -241,7 +396,6 @@ class _CategoriesPageState extends State<CategoriesPage>
             CategoryLine(
               category: category,
               setState: setState,
-              stock: stock,
               totalSpent: totalSpent,
               totalEarned: totalEarned,
               excluded: categoriesSumExcluded.contains(category.id),
@@ -254,13 +408,13 @@ class _CategoriesPageState extends State<CategoriesPage>
         childs.add(const Divider());
         childs.add(
           Padding(
-            padding: const .fromLTRB(16, 8, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: SumLine(totalSpent: totalSpent, totalEarned: totalEarned),
           ),
         );
         return RefreshIndicator.adaptive(
           onRefresh: () => Future<void>(() async {
-            await stock.reset();
+            // Repository data refreshed by sync service
             setState(() {});
           }),
           child: ListView(children: childs),
@@ -287,58 +441,58 @@ class SumLine extends StatelessWidget {
         .defaultCurrency;
 
     return Row(
-      mainAxisAlignment: .end,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         Expanded(
           child: Text(
             S.of(context).generalSum,
             style: Theme.of(
               context,
-            ).textTheme.bodyLarge?.copyWith(fontWeight: .bold),
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         Expanded(
           child: Text(
             defaultCurrency.fmt(totalSpent),
-            textAlign: .end,
+            textAlign: TextAlign.end,
             style: TextStyle(
               color: totalSpent < 0
                   ? Colors.red
                   : totalSpent > 0
                   ? Colors.green
                   : Colors.grey,
-              fontWeight: .bold,
-              fontFeatures: const <FontFeature>[.tabularFigures()],
+              fontWeight: FontWeight.bold,
+              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
             ),
           ),
         ),
         Expanded(
           child: Text(
             defaultCurrency.fmt(totalEarned),
-            textAlign: .end,
+            textAlign: TextAlign.end,
             style: TextStyle(
               color: totalEarned < 0
                   ? Colors.red
                   : totalEarned > 0
                   ? Colors.green
                   : Colors.grey,
-              fontWeight: .bold,
-              fontFeatures: const <FontFeature>[.tabularFigures()],
+              fontWeight: FontWeight.bold,
+              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
             ),
           ),
         ),
         Expanded(
           child: Text(
             defaultCurrency.fmt(totalSpent + totalEarned),
-            textAlign: .end,
+            textAlign: TextAlign.end,
             style: TextStyle(
               color: (totalSpent + totalEarned) < 0
                   ? Colors.red
                   : (totalSpent + totalEarned) > 0
                   ? Colors.green
                   : Colors.grey,
-              fontWeight: .bold,
-              fontFeatures: const <FontFeature>[.tabularFigures()],
+              fontWeight: FontWeight.bold,
+              fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
             ),
           ),
         ),
@@ -354,7 +508,6 @@ class CategoryLine extends StatelessWidget {
     required this.setState,
     required this.totalSpent,
     required this.totalEarned,
-    required this.stock,
     required this.excluded,
     required this.month,
   });
@@ -363,7 +516,6 @@ class CategoryLine extends StatelessWidget {
   final void Function(void Function()) setState;
   final double totalSpent;
   final double totalEarned;
-  final CatStock stock;
   final bool excluded;
   final DateTime month;
 
@@ -406,7 +558,10 @@ class CategoryLine extends StatelessWidget {
       openColor: Theme.of(context).cardColor,
       closedColor: Theme.of(context).cardColor,
       closedShape: const RoundedRectangleBorder(
-        borderRadius: .only(topLeft: .circular(16), bottomLeft: .circular(16)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          bottomLeft: Radius.circular(16),
+        ),
       ),
       closedElevation: 0,
       closedBuilder: (BuildContext context, Function openContainer) =>
@@ -419,7 +574,7 @@ class CategoryLine extends StatelessWidget {
                     unawaited(HapticFeedback.vibrate());
                     final Function? func = await showMenu<Function>(
                       context: context,
-                      position: .fromLTRB(
+                      position: RelativeRect.fromLTRB(
                         offset.dx,
                         offset.dy,
                         screenSize.width - offset.dx,
@@ -438,7 +593,6 @@ class CategoryLine extends StatelessWidget {
                             }
 
                             // Refresh page
-                            await stock.reset();
                             setState(() {});
                           },
                           child: Row(
@@ -450,7 +604,7 @@ class CategoryLine extends StatelessWidget {
                           ),
                         ),
                       ],
-                      clipBehavior: .hardEdge,
+                      clipBehavior: Clip.hardEdge,
                     );
                     if (func == null) {
                       return;
@@ -459,25 +613,25 @@ class CategoryLine extends StatelessWidget {
                   },
             child: InkWell(
               customBorder: const RoundedRectangleBorder(
-                borderRadius: .only(
-                  topLeft: .circular(16),
-                  bottomLeft: .circular(16),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                 ),
               ),
               onTap: () => openContainer(),
               child: Ink(
                 decoration: const ShapeDecoration(
                   shape: RoundedRectangleBorder(
-                    borderRadius: .only(
-                      topLeft: .circular(16),
-                      bottomLeft: .circular(16),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
                     ),
                   ),
                 ),
                 child: Padding(
-                  padding: const .symmetric(vertical: 8, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: Column(
-                    crossAxisAlignment: .start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Row(
                         children: <Widget>[
@@ -506,11 +660,11 @@ class CategoryLine extends StatelessWidget {
                               labelStyle: Theme.of(
                                 context,
                               ).textTheme.labelLarge,
-                              labelPadding: const .symmetric(
+                              labelPadding: const EdgeInsets.symmetric(
                                 horizontal: 2,
                                 vertical: -4,
                               ),
-                              padding: const .symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 2,
                                 vertical: -4,
                               ),
@@ -530,11 +684,11 @@ class CategoryLine extends StatelessWidget {
                               labelStyle: Theme.of(
                                 context,
                               ).textTheme.labelLarge,
-                              labelPadding: const .symmetric(
+                              labelPadding: const EdgeInsets.symmetric(
                                 horizontal: 4,
                                 vertical: -4,
                               ),
-                              padding: const .symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 4,
                                 vertical: -4,
                               ),
@@ -542,22 +696,22 @@ class CategoryLine extends StatelessWidget {
                         ],
                       ),
                       Row(
-                        mainAxisAlignment: .end,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: <Widget>[
                           const Expanded(child: SizedBox.shrink()),
                           Expanded(
                             child: Text(
                               defaultCurrency.fmt(cs.sumSpent),
-                              textAlign: .end,
+                              textAlign: TextAlign.end,
                               style: TextStyle(
                                 color: cs.sumSpent < 0
                                     ? Colors.red
                                     : cs.sumSpent > 0
                                     ? Colors.green
                                     : Colors.grey,
-                                fontWeight: .bold,
+                                fontWeight: FontWeight.bold,
                                 fontFeatures: const <FontFeature>[
-                                  .tabularFigures(),
+                                  FontFeature.tabularFigures(),
                                 ],
                               ),
                             ),
@@ -565,16 +719,16 @@ class CategoryLine extends StatelessWidget {
                           Expanded(
                             child: Text(
                               defaultCurrency.fmt(cs.sumEarned),
-                              textAlign: .end,
+                              textAlign: TextAlign.end,
                               style: TextStyle(
                                 color: cs.sumEarned < 0
                                     ? Colors.red
                                     : cs.sumEarned > 0
                                     ? Colors.green
                                     : Colors.grey,
-                                fontWeight: .bold,
+                                fontWeight: FontWeight.bold,
                                 fontFeatures: const <FontFeature>[
-                                  .tabularFigures(),
+                                  FontFeature.tabularFigures(),
                                 ],
                               ),
                             ),
@@ -582,16 +736,16 @@ class CategoryLine extends StatelessWidget {
                           Expanded(
                             child: Text(
                               defaultCurrency.fmt(cs.sumSpent + cs.sumEarned),
-                              textAlign: .end,
+                              textAlign: TextAlign.end,
                               style: TextStyle(
                                 color: totalBalance < 0
                                     ? Colors.red
                                     : totalBalance > 0
                                     ? Colors.green
                                     : Colors.grey,
-                                fontWeight: .bold,
+                                fontWeight: FontWeight.bold,
                                 fontFeatures: const <FontFeature>[
-                                  .tabularFigures(),
+                                  FontFeature.tabularFigures(),
                                 ],
                               ),
                             ),

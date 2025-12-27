@@ -1208,5 +1208,159 @@
     "transactionTypeWithdrawal": "Uttag",
     "@transactionTypeWithdrawal": {
         "description": "Withdrawal transaction type"
+    },
+    "syncSettingsTitle": "Synkroniseringsinställningar",
+    "@syncSettingsTitle": {
+        "description": "Title for sync settings page"
+    },
+    "syncSettingsMobileDataTitle": "Synkronisera med mobildata",
+    "@syncSettingsMobileDataTitle": {
+        "description": "Title for mobile data sync toggle"
+    },
+    "syncSettingsMobileDataSubtitle": "Tillåt synkronisering vid användning av mobildata (inaktiverat som standard för att spara data)",
+    "@syncSettingsMobileDataSubtitle": {
+        "description": "Subtitle for mobile data sync toggle"
+    },
+    "syncSettingsCredentialsTitle": "Inloggningsuppgifter",
+    "@syncSettingsCredentialsTitle": {
+        "description": "Title for credentials status section"
+    },
+    "syncSettingsCredentialsInvalid": "Ogiltigt - Vänligen ange inloggningsuppgifter igen",
+    "@syncSettingsCredentialsInvalid": {
+        "description": "Text shown when credentials are invalid"
+    },
+    "syncSettingsCredentialsValidated": "Validerat",
+    "@syncSettingsCredentialsValidated": {
+        "description": "Text shown when credentials are validated"
+    },
+    "syncSettingsCredentialsNotValidated": "Inte validerat",
+    "@syncSettingsCredentialsNotValidated": {
+        "description": "Text shown when credentials are not yet validated"
+    },
+    "syncSettingsReenterButton": "Ange igen",
+    "@syncSettingsReenterButton": {
+        "description": "Button text to re-enter credentials"
+    },
+    "syncSettingsDownloadSync": "Nedladdningssynkronisering",
+    "@syncSettingsDownloadSync": {
+        "description": "Title for download sync status section"
+    },
+    "syncSettingsUploadSync": "Uppladdningssynkronisering",
+    "@syncSettingsUploadSync": {
+        "description": "Title for upload sync status section"
+    },
+    "syncSettingsLastSync": "Senaste synkronisering: {date}",
+    "@syncSettingsLastSync": {
+        "description": "Text showing last sync time",
+        "placeholders": {
+            "date": {
+                "type": "String",
+                "example": "1 jan 2024 12:00"
+            }
+        }
+    },
+    "syncSettingsStatusPaused": "Status: Pausad",
+    "@syncSettingsStatusPaused": {
+        "description": "Text shown when sync is paused"
+    },
+    "syncSettingsStatusActive": "Status: Aktiv",
+    "@syncSettingsStatusActive": {
+        "description": "Text shown when sync is active"
+    },
+    "syncSettingsRetryCount": "Antal försök: {count}",
+    "@syncSettingsRetryCount": {
+        "description": "Text showing retry count",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "3"
+            }
+        }
+    },
+    "syncSettingsNextRetry": "Nästa försök: {date}",
+    "@syncSettingsNextRetry": {
+        "description": "Text showing next retry time",
+        "placeholders": {
+            "date": {
+                "type": "String",
+                "example": "1 jan 2024 12:00"
+            }
+        }
+    },
+    "syncSettingsError": "Fel: {error}",
+    "@syncSettingsError": {
+        "description": "Text showing sync error",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Nätverksfel"
+            }
+        }
+    },
+    "syncSettingsResumeButton": "Återuppta nu",
+    "@syncSettingsResumeButton": {
+        "description": "Button text to resume paused sync"
+    },
+    "syncSettingsManualSyncTitle": "Manuell synkronisering",
+    "@syncSettingsManualSyncTitle": {
+        "description": "Title for manual sync section"
+    },
+    "syncSettingsManualSyncSubtitle": "Utlös synkronisering nu",
+    "@syncSettingsManualSyncSubtitle": {
+        "description": "Subtitle for manual sync section"
+    },
+    "syncSettingsSyncNowButton": "Synkronisera nu",
+    "@syncSettingsSyncNowButton": {
+        "description": "Button text to trigger manual sync"
+    },
+    "syncNotificationSyncing": "Synkroniserar...",
+    "@syncNotificationSyncing": {
+        "description": "Notification title when sync is in progress"
+    },
+    "syncNotificationSyncingBody": "Synkroniserar med Firefly III",
+    "@syncNotificationSyncingBody": {
+        "description": "Notification body when sync is in progress"
+    },
+    "syncNotificationSyncingEntity": "Synkroniserar {entityType}...",
+    "@syncNotificationSyncingEntity": {
+        "description": "Notification title when syncing specific entity type",
+        "placeholders": {
+            "entityType": {
+                "type": "String",
+                "example": "transaktioner"
+            }
+        }
+    },
+    "syncNotificationCompleted": "Synkronisering slutförd",
+    "@syncNotificationCompleted": {
+        "description": "Notification title when sync is completed"
+    },
+    "syncNotificationCompletedBody": "Synkronisering med Firefly III slutfördes framgångsrikt",
+    "@syncNotificationCompletedBody": {
+        "description": "Notification body when sync is completed"
+    },
+    "syncNotificationPaused": "Synkronisering pausad",
+    "@syncNotificationPaused": {
+        "description": "Notification title when sync is paused"
+    },
+    "syncNotificationPausedBody": "Synkronisering pausad på grund av ett fel. Kommer automatiskt att försöka igen.",
+    "@syncNotificationPausedBody": {
+        "description": "Notification body when sync is paused"
+    },
+    "syncNotificationAuthError": "Autentiseringsfel",
+    "@syncNotificationAuthError": {
+        "description": "Notification title for authentication error"
+    },
+    "syncNotificationAuthErrorBody": "Vänligen ange dina inloggningsuppgifter igen i inställningarna",
+    "@syncNotificationAuthErrorBody": {
+        "description": "Notification body for authentication error"
+    },
+    "syncNotificationChannelName": "Synkronisering",
+    "@syncNotificationChannelName": {
+        "description": "Name of the sync notification channel"
+    },
+    "syncNotificationChannelDescription": "Status för bakgrundssynkronisering",
+    "@syncNotificationChannelDescription": {
+        "description": "Description of the sync notification channel"
     }
 }

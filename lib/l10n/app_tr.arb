@@ -36,5 +36,159 @@
     "generalLiabilities": "",
     "@generalLiabilities": {
         "description": "Firefly Translation String: liabilities"
+    },
+    "syncSettingsTitle": "Senkronizasyon Ayarları",
+    "@syncSettingsTitle": {
+        "description": "Title for sync settings page"
+    },
+    "syncSettingsMobileDataTitle": "Mobil veri ile senkronize et",
+    "@syncSettingsMobileDataTitle": {
+        "description": "Title for mobile data sync toggle"
+    },
+    "syncSettingsMobileDataSubtitle": "Mobil veri kullanırken senkronizasyona izin ver (veri tasarrufu için varsayılan olarak devre dışı)",
+    "@syncSettingsMobileDataSubtitle": {
+        "description": "Subtitle for mobile data sync toggle"
+    },
+    "syncSettingsCredentialsTitle": "Kimlik Bilgileri",
+    "@syncSettingsCredentialsTitle": {
+        "description": "Title for credentials status section"
+    },
+    "syncSettingsCredentialsInvalid": "Geçersiz - Lütfen kimlik bilgilerini yeniden girin",
+    "@syncSettingsCredentialsInvalid": {
+        "description": "Text shown when credentials are invalid"
+    },
+    "syncSettingsCredentialsValidated": "Doğrulandı",
+    "@syncSettingsCredentialsValidated": {
+        "description": "Text shown when credentials are validated"
+    },
+    "syncSettingsCredentialsNotValidated": "Doğrulanmadı",
+    "@syncSettingsCredentialsNotValidated": {
+        "description": "Text shown when credentials are not yet validated"
+    },
+    "syncSettingsReenterButton": "Yeniden gir",
+    "@syncSettingsReenterButton": {
+        "description": "Button text to re-enter credentials"
+    },
+    "syncSettingsDownloadSync": "İndirme Senkronizasyonu",
+    "@syncSettingsDownloadSync": {
+        "description": "Title for download sync status section"
+    },
+    "syncSettingsUploadSync": "Yükleme Senkronizasyonu",
+    "@syncSettingsUploadSync": {
+        "description": "Title for upload sync status section"
+    },
+    "syncSettingsLastSync": "Son senkronizasyon: {date}",
+    "@syncSettingsLastSync": {
+        "description": "Text showing last sync time",
+        "placeholders": {
+            "date": {
+                "type": "String",
+                "example": "1 Oca 2024 12:00"
+            }
+        }
+    },
+    "syncSettingsStatusPaused": "Durum: Duraklatıldı",
+    "@syncSettingsStatusPaused": {
+        "description": "Text shown when sync is paused"
+    },
+    "syncSettingsStatusActive": "Durum: Aktif",
+    "@syncSettingsStatusActive": {
+        "description": "Text shown when sync is active"
+    },
+    "syncSettingsRetryCount": "Yeniden deneme sayısı: {count}",
+    "@syncSettingsRetryCount": {
+        "description": "Text showing retry count",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "3"
+            }
+        }
+    },
+    "syncSettingsNextRetry": "Sonraki yeniden deneme: {date}",
+    "@syncSettingsNextRetry": {
+        "description": "Text showing next retry time",
+        "placeholders": {
+            "date": {
+                "type": "String",
+                "example": "1 Oca 2024 12:00"
+            }
+        }
+    },
+    "syncSettingsError": "Hata: {error}",
+    "@syncSettingsError": {
+        "description": "Text showing sync error",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Ağ hatası"
+            }
+        }
+    },
+    "syncSettingsResumeButton": "Şimdi devam et",
+    "@syncSettingsResumeButton": {
+        "description": "Button text to resume paused sync"
+    },
+    "syncSettingsManualSyncTitle": "Manuel Senkronizasyon",
+    "@syncSettingsManualSyncTitle": {
+        "description": "Title for manual sync section"
+    },
+    "syncSettingsManualSyncSubtitle": "Senkronizasyonu şimdi tetikle",
+    "@syncSettingsManualSyncSubtitle": {
+        "description": "Subtitle for manual sync section"
+    },
+    "syncSettingsSyncNowButton": "Şimdi senkronize et",
+    "@syncSettingsSyncNowButton": {
+        "description": "Button text to trigger manual sync"
+    },
+    "syncNotificationSyncing": "Senkronize ediliyor...",
+    "@syncNotificationSyncing": {
+        "description": "Notification title when sync is in progress"
+    },
+    "syncNotificationSyncingBody": "Firefly III ile senkronize ediliyor",
+    "@syncNotificationSyncingBody": {
+        "description": "Notification body when sync is in progress"
+    },
+    "syncNotificationSyncingEntity": "{entityType} senkronize ediliyor...",
+    "@syncNotificationSyncingEntity": {
+        "description": "Notification title when syncing specific entity type",
+        "placeholders": {
+            "entityType": {
+                "type": "String",
+                "example": "işlemler"
+            }
+        }
+    },
+    "syncNotificationCompleted": "Senkronizasyon tamamlandı",
+    "@syncNotificationCompleted": {
+        "description": "Notification title when sync is completed"
+    },
+    "syncNotificationCompletedBody": "Firefly III ile senkronizasyon başarıyla tamamlandı",
+    "@syncNotificationCompletedBody": {
+        "description": "Notification body when sync is completed"
+    },
+    "syncNotificationPaused": "Senkronizasyon duraklatıldı",
+    "@syncNotificationPaused": {
+        "description": "Notification title when sync is paused"
+    },
+    "syncNotificationPausedBody": "Bir hata nedeniyle senkronizasyon duraklatıldı. Otomatik olarak yeniden denenecek.",
+    "@syncNotificationPausedBody": {
+        "description": "Notification body when sync is paused"
+    },
+    "syncNotificationAuthError": "Kimlik doğrulama hatası",
+    "@syncNotificationAuthError": {
+        "description": "Notification title for authentication error"
+    },
+    "syncNotificationAuthErrorBody": "Lütfen ayarlarda kimlik bilgilerinizi yeniden girin",
+    "@syncNotificationAuthErrorBody": {
+        "description": "Notification body for authentication error"
+    },
+    "syncNotificationChannelName": "Senkronizasyon",
+    "@syncNotificationChannelName": {
+        "description": "Name of the sync notification channel"
+    },
+    "syncNotificationChannelDescription": "Arka plan senkronizasyon durumu",
+    "@syncNotificationChannelDescription": {
+        "description": "Description of the sync notification channel"
     }
 }

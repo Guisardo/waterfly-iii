@@ -69,6 +69,7 @@ enum BoolSettings {
   hideTags,
   billsShowOnlyActive,
   billsShowOnlyExpected,
+  syncUseMobileData,
 }
 
 enum TransactionDateFilter {
@@ -176,21 +177,22 @@ class SettingsProvider with ChangeNotifier {
   static const String settingsDashboardHidden = "DASHBOARD_HIDDEN";
   static const String settingTransactionDateFilter = "TX_DATE_FILTER";
 
-  bool get debug => _loaded ? _boolSettings[.debug] : false;
-
-  bool get lock => _loaded ? _boolSettings[.lock] : false;
-
-  bool get showFutureTXs => _loaded ? _boolSettings[.showFutureTXs] : false;
-
-  bool get dynamicColors => _loaded ? _boolSettings[.dynamicColors] : false;
-
-  bool get useServerTime => _loaded ? _boolSettings[.useServerTime] : true;
-
-  bool get hideTags => _loaded ? _boolSettings[.hideTags] : false;
+  bool get debug => _loaded ? _boolSettings[BoolSettings.debug] : false;
+  bool get lock => _loaded ? _boolSettings[BoolSettings.lock] : false;
+  bool get showFutureTXs =>
+      _loaded ? _boolSettings[BoolSettings.showFutureTXs] : false;
+  bool get dynamicColors =>
+      _loaded ? _boolSettings[BoolSettings.dynamicColors] : false;
+  bool get useServerTime =>
+      _loaded ? _boolSettings[BoolSettings.useServerTime] : true;
+  bool get hideTags => _loaded ? _boolSettings[BoolSettings.hideTags] : false;
   bool get billsShowOnlyActive =>
-      _loaded ? _boolSettings[.billsShowOnlyActive] : false;
+      _loaded ? _boolSettings[BoolSettings.billsShowOnlyActive] : false;
   bool get billsShowOnlyExpected =>
-      _loaded ? _boolSettings[.billsShowOnlyExpected] : false;
+      _loaded ? _boolSettings[BoolSettings.billsShowOnlyExpected] : false;
+  bool get syncUseMobileData =>
+      _loaded ? _boolSettings[BoolSettings.syncUseMobileData] : false;
+
 
   ThemeMode _theme = .system;
   ThemeMode get theme => _theme;
@@ -247,9 +249,10 @@ class SettingsProvider with ChangeNotifier {
           oldPrefs.getBool(settingDynamicColors) ?? false;
       _boolSettings[.useServerTime] =
           oldPrefs.getBool(settingUseServerTime) ?? true;
-      _boolSettings[.hideTags] = false;
-      _boolSettings[.billsShowOnlyActive] = false;
-      _boolSettings[.billsShowOnlyExpected] = false;
+      _boolSettings[BoolSettings.hideTags] = false;
+      _boolSettings[BoolSettings.billsShowOnlyActive] = false;
+      _boolSettings[BoolSettings.billsShowOnlyExpected] = false;
+      _boolSettings[BoolSettings.syncUseMobileData] = false;
     }
     await prefs.setInt(settingsBitmask, _boolSettings.value);
 
@@ -499,7 +502,9 @@ class SettingsProvider with ChangeNotifier {
   set billsShowOnlyActive(bool enabled) =>
       _setBool(.billsShowOnlyActive, enabled);
   set billsShowOnlyExpected(bool enabled) =>
-      _setBool(.billsShowOnlyExpected, enabled);
+      _setBool(BoolSettings.billsShowOnlyExpected, enabled);
+  set syncUseMobileData(bool enabled) =>
+      _setBool(BoolSettings.syncUseMobileData, enabled);
 
   Future<void> setTheme(ThemeMode theme) async {
     _theme = theme;
