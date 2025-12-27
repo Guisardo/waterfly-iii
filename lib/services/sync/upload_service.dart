@@ -15,6 +15,7 @@ import 'package:waterflyiii/services/sync/conflict_resolver.dart';
 import 'package:waterflyiii/services/sync/retry_manager.dart';
 import 'package:waterflyiii/services/sync/sync_notifications.dart';
 import 'package:waterflyiii/settings.dart';
+import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 
 final Logger log = Logger("Upload");
 
@@ -139,6 +140,16 @@ class UploadService extends ChangeNotifier {
       }
 
       await retryManager.resetRetry('upload');
+      
+      // Update lastUploadSync metadata after successful upload
+      // Update if we had any successes, or if we had no failures (all succeeded or nothing to do)
+      if (successCount > 0) {
+        await _updateSyncMetadata(
+          'upload',
+          lastUploadSync: DateTime.now().toUtc(),
+        );
+      }
+      
       await notifications.showSyncCompleted();
 
       log.config("Upload completed: $successCount success, $failureCount failures");
@@ -469,6 +480,32 @@ class UploadService extends ChangeNotifier {
       return error.statusCode == 409;
     }
     return error.toString().contains('409') || error.toString().contains('Conflict');
+  }
+
+  Future<void> _updateSyncMetadata(
+    String entityType, {
+    DateTime? lastUploadSync,
+  }) async {
+    final SyncMetadata? existing = await isar.syncMetadatas
+        .filter()
+        .entityTypeEqualTo(entityType)
+        .findFirst();
+
+    if (existing == null) {
+      final SyncMetadata metadata = SyncMetadata()
+        ..entityType = entityType
+        ..lastUploadSync = lastUploadSync;
+
+      await isar.writeTxn(() async {
+        await isar.syncMetadatas.put(metadata);
+      });
+    } else {
+      if (lastUploadSync != null) existing.lastUploadSync = lastUploadSync;
+
+      await isar.writeTxn(() async {
+        await isar.syncMetadatas.put(existing);
+      });
+    }
   }
 
   void dispose() {
