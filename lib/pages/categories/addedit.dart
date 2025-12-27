@@ -1,11 +1,14 @@
 import 'dart:convert';
 
-import 'package:chopper/chopper.dart';
 import 'package:flutter/material.dart';
+import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/category_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/settings.dart';
 
@@ -27,6 +30,48 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
   bool loaded = false;
   bool includeInSum = true;
 
+  Future<void> _loadCategory() async {
+    if (widget.category == null) {
+      setState(() {
+        loaded = true;
+      });
+      return;
+    }
+
+    titleController.text = widget.category!.attributes.name;
+
+    try {
+      final Isar isar = await AppDatabase.instance;
+      final CategoryRepository categoryRepo = CategoryRepository(isar);
+      final CategoryRead? category = await categoryRepo.getById(widget.category!.id);
+
+      if (category == null) {
+        log.severe("Category not found in repository");
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          includeInSum =
+              !context
+                  .read<SettingsProvider>()
+                  .categoriesSumExcluded
+                  .contains(widget.category!.id);
+          notesController.text = category.attributes.notes ?? "";
+          loaded = true;
+        });
+      }
+    } catch (e, stackTrace) {
+      log.severe("Error fetching category from repository", e, stackTrace);
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -39,26 +84,8 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
 
     titleController.text = widget.category!.attributes.name;
 
-    context
-        .read<FireflyService>()
-        .api
-        .v1CategoriesIdGet(id: widget.category!.id)
-        .then((Response<CategorySingle> resp) {
-          if (!resp.isSuccessful || resp.body == null) {
-            log.severe("Error fetching information", resp.error);
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          }
-          setState(() {
-            includeInSum = !context
-                .read<SettingsProvider>()
-                .categoriesSumExcluded
-                .contains(widget.category!.id);
-            notesController.text = resp.body?.data.attributes.notes ?? "";
-            loaded = true;
-          });
-        });
+    // Fetch category from repository
+    _loadCategory();
   }
 
   @override
@@ -73,7 +100,7 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
             ? S.of(context).categoryTitleAdd
             : S.of(context).categoryTitleEdit,
       ),
-      clipBehavior: .hardEdge,
+      clipBehavior: Clip.hardEdge,
       actions: <Widget>[
         if (widget.category != null)
           OutlinedButton(
@@ -85,8 +112,6 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
             ),
             child: Text(MaterialLocalizations.of(context).deleteButtonTooltip),
             onPressed: () async {
-              final FireflyIii api = context.read<FireflyService>().api;
-
               final bool? ok = await showDialog(
                 context: context,
                 builder: (BuildContext context) =>
@@ -96,7 +121,22 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
                 return;
               }
 
-              await api.v1CategoriesIdDelete(id: widget.category!.id);
+              try {
+                final Isar isar = await AppDatabase.instance;
+                final CategoryRepository categoryRepo = CategoryRepository(isar);
+                await categoryRepo.delete(widget.category!.id);
+              } catch (e, stackTrace) {
+                log.severe("Error deleting category", e, stackTrace);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(S.of(context).errorUnknown),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+                return;
+              }
 
               if (context.mounted) {
                 Navigator.of(context).pop(true);
@@ -114,71 +154,107 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
           onPressed: () async {
             final ScaffoldMessengerState msg = ScaffoldMessenger.of(context);
 
-            late Response<CategorySingle> resp;
-            if (widget.category == null) {
-              resp = await context.read<FireflyService>().api.v1CategoriesPost(
-                body: CategoryStore(
-                  name: titleController.text,
-                  notes: notesController.text,
-                ),
-              );
-            } else {
-              resp = await context.read<FireflyService>().api.v1CategoriesIdPut(
-                id: widget.category!.id,
-                body: CategoryUpdate(
-                  name: titleController.text,
-                  notes: notesController.text,
-                ),
-              );
-            }
+            try {
+              final Isar isar = await AppDatabase.instance;
+              final CategoryRepository categoryRepo = CategoryRepository(isar);
 
-            // Check if insert/update was successful
-            if (!resp.isSuccessful || resp.body == null) {
-              late String error;
-              try {
-                final ValidationErrorResponse valError = .fromJson(
-                  json.decode(resp.error.toString()),
+              if (widget.category == null) {
+                // Create new category — call the API to get the server-generated ID,
+                // then store the result in the local repository.
+                final FireflyIii api = context.read<FireflyService>().api;
+                final resp = await api.v1CategoriesPost(
+                  body: CategoryStore(
+                    name: titleController.text,
+                    notes: notesController.text,
+                  ),
                 );
-                error =
-                    valError.message ??
-                    (context.mounted
-                        ? S.of(context).errorUnknown
-                        : "[nocontext] Unknown error.");
-              } catch (_) {
-                error = context.mounted
-                    ? S.of(context).errorUnknown
-                    : "[nocontext] Unknown error.";
+
+                if (!resp.isSuccessful || resp.body == null) {
+                  late String error;
+                  try {
+                    final ValidationErrorResponse valError =
+                        ValidationErrorResponse.fromJson(
+                          json.decode(resp.error.toString()),
+                        );
+                    error =
+                        valError.message ??
+                        (context.mounted
+                            ? S.of(context).errorUnknown
+                            : "[nocontext] Unknown error.");
+                  } catch (_) {
+                    error =
+                        context.mounted
+                            ? S.of(context).errorUnknown
+                            : "[nocontext] Unknown error.";
+                  }
+
+                  msg.showSnackBar(
+                    SnackBar(
+                      content: Text(error),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  return;
+                }
+
+                // Store in repository after successful API call
+                await categoryRepo.upsertFromSync(resp.body!.data);
+              } else {
+                // Update existing category
+                final CategoryRead? existing =
+                    await categoryRepo.getById(widget.category!.id);
+                if (existing == null) {
+                  msg.showSnackBar(
+                    SnackBar(
+                      content: Text(S.of(context).errorUnknown),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  return;
+                }
+
+                // Create updated category by patching JSON attributes
+                final Map<String, dynamic> categoryJson = existing.toJson();
+                categoryJson['attributes'] =
+                    (categoryJson['attributes'] as Map<String, dynamic>)
+                      ..['name'] = titleController.text
+                      ..['notes'] = notesController.text;
+                final CategoryRead updatedCategory =
+                    CategoryRead.fromJson(categoryJson);
+
+                // Update via repository (queues for sync)
+                await categoryRepo.update(updatedCategory);
               }
 
+              if (context.mounted && widget.category != null) {
+                if (includeInSum) {
+                  await context
+                      .read<SettingsProvider>()
+                      .categoryRemoveSumExcluded(widget.category!.id);
+                } else {
+                  await context.read<SettingsProvider>().categoryAddSumExcluded(
+                    widget.category!.id,
+                  );
+                }
+              }
+              if (context.mounted) {
+                Navigator.of(context).pop(true);
+              }
+            } catch (e, stackTrace) {
+              log.severe("Error saving category", e, stackTrace);
               msg.showSnackBar(
                 SnackBar(
-                  content: Text(error),
+                  content: Text(S.of(context).errorUnknown),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
-              return;
-            }
-
-            if (context.mounted) {
-              if (includeInSum) {
-                await context
-                    .read<SettingsProvider>()
-                    .categoryRemoveSumExcluded(widget.category!.id);
-              } else {
-                await context.read<SettingsProvider>().categoryAddSumExcluded(
-                  widget.category!.id,
-                );
-              }
-            }
-            if (context.mounted) {
-              Navigator.of(context).pop(true);
             }
           },
         ),
       ],
       content: SingleChildScrollView(
         child: Column(
-          mainAxisSize: .min,
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             SizedBox(
               width: inputWidth,
@@ -237,7 +313,7 @@ class DeletionConfirmDialog extends StatelessWidget {
     return AlertDialog(
       icon: const Icon(Icons.delete),
       title: Text(S.of(context).categoryTitleDelete),
-      clipBehavior: .hardEdge,
+      clipBehavior: Clip.hardEdge,
       actions: <Widget>[
         TextButton(
           child: Text(MaterialLocalizations.of(context).cancelButtonLabel),

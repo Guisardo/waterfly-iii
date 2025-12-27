@@ -22,6 +22,13 @@ import 'package:waterflyiii/pages/splash.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/widgets/logo.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
+import 'package:waterflyiii/services/sync/workmanager_sync.dart';
+import 'package:waterflyiii/services/sync/sync_service.dart';
+import 'package:waterflyiii/services/sync/upload_service.dart';
+import 'package:waterflyiii/services/sync/sync_notifications.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:isar_community/isar.dart';
 
 final Logger log = Logger("App");
 
@@ -46,6 +53,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
   List<SharedFile>? _filesSharedToApp;
   bool _requiresAuth = false;
   DateTime? _lcLastOpen;
+  bool _wasOffline = true; // Track previous connectivity state
 
   final LayoutProvider _layoutProvider = LayoutProvider();
 
@@ -232,8 +240,57 @@ class _WaterflyAppState extends State<WaterflyApp> {
             ChangeNotifierProvider<LayoutProvider>.value(
               value: _layoutProvider,
             ),
+            ChangeNotifierProvider<ConnectivityService>(
+              create: (_) => ConnectivityService(),
+            ),
           ],
           builder: (BuildContext context, _) {
+            // Listen to connectivity changes and trigger sync when device comes online
+            final ConnectivityService connectivityService =
+                context.watch<ConnectivityService>();
+            final bool isOnline = connectivityService.isOnline;
+            
+            // Trigger sync when device comes online (was offline, now online)
+            if (_wasOffline && isOnline && !_startup) {
+              final FireflyService fireflyService =
+                  context.read<FireflyService>();
+              if (fireflyService.signedIn) {
+                // Trigger sync in background
+                final SettingsProvider settingsProvider =
+                    context.read<SettingsProvider>();
+                Future<void>.microtask(() async {
+                  try {
+                    final Isar isar = await AppDatabase.instance;
+                    final SyncNotifications notifications =
+                        SyncNotifications();
+                    await notifications.initialize();
+                    
+                    final SyncService syncService = SyncService(
+                      isar: isar,
+                      fireflyService: fireflyService,
+                      connectivityService: connectivityService,
+                      notifications: notifications,
+                      settingsProvider: settingsProvider,
+                    );
+                    
+                    final UploadService uploadService = UploadService(
+                      isar: isar,
+                      fireflyService: fireflyService,
+                      connectivityService: connectivityService,
+                      notifications: notifications,
+                      settingsProvider: settingsProvider,
+                    );
+                    
+                    // Trigger both download and upload sync
+                    await syncService.sync();
+                    await uploadService.uploadPendingChanges();
+                  } catch (e) {
+                    log.warning("Failed to trigger sync on connectivity change", e);
+                  }
+                });
+              }
+            }
+            _wasOffline = !isOnline;
             late bool signedIn;
             log.finest(() => "_startup = $_startup");
             _requiresAuth = context.watch<SettingsProvider>().lock;
@@ -268,11 +325,18 @@ class _WaterflyAppState extends State<WaterflyApp> {
                 } else {
                   log.finest(() => "signing in");
                   context.read<FireflyService>().signInFromStorage().then(
-                    (bool _) => setState(() {
-                      log.finest(() => "set _startup = false");
-                      _authed = true;
-                      _startup = false;
-                    }),
+                    (bool signedIn) async {
+                      if (signedIn) {
+                        // Initialize WorkManager for background sync
+                        await WorkManagerSync.initialize();
+                        await WorkManagerSync.registerPeriodicSync();
+                      }
+                      setState(() {
+                        log.finest(() => "set _startup = false");
+                        _authed = true;
+                        _startup = false;
+                      });
+                    },
                   );
                 }
               }

@@ -4,6 +4,8 @@ targets:
       - swagger_input/**
       - $package$
       - lib/$lib$
+      - lib/data/local/database/**
+      - lib/data/local/database/tables/**
     builders:
       swagger_dart_code_generator:
         options:
@@ -12,4 +14,9 @@ targets:
           with_base_url: true
           separate_models: true
           override_equals_and_hashcode: false
-          include_if_null: false
+          include_if_null: true
+      isar_community_generator:
+        enabled: true
+        generate_for:
+          - lib/data/local/database/**.dart
+          - lib/data/local/database/tables/**.dart

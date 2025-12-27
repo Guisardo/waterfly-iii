@@ -1,10 +1,10 @@
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:logging/logging.dart';
-import 'package:provider/provider.dart';
 import 'package:waterflyiii/animations.dart';
-import 'package:waterflyiii/auth.dart';
+import 'package:isar_community/isar.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/home/accounts/row.dart';
@@ -48,30 +48,29 @@ class _AccountSearchState extends State<AccountSearch> {
     if (_pagingState.isLoading) return;
 
     try {
-      final FireflyIii api = context.read<FireflyService>().api;
+      final Isar isar = await AppDatabase.instance;
+      final AccountRepository repo = AccountRepository(isar);
 
       final int pageKey = (_pagingState.keys?.last ?? 0) + 1;
       log.finest(
         "Getting page $pageKey (${_pagingState.pages?.length} pages loaded)",
       );
 
-      late Response<AccountArray> respAccounts;
+      late List<AccountRead> accountList;
       if (_searchController.text.isNotEmpty) {
-        respAccounts = await api.v1SearchAccountsGet(
-          type: currentFilter,
+        accountList = await repo.searchByType(
+          _searchController.text,
+          currentFilter,
           page: pageKey,
-          query: _searchController.text,
-          field: .all,
+          limit: _numberOfItemsPerRequest,
         );
       } else {
-        respAccounts = await api.v1AccountsGet(
-          type: currentFilter,
+        accountList = await repo.getByType(
+          currentFilter,
           page: pageKey,
+          limit: _numberOfItemsPerRequest,
         );
       }
-      apiThrowErrorIfEmpty(respAccounts, mounted ? context : null);
-
-      final List<AccountRead> accountList = respAccounts.body!.data;
       final bool isLastPage = accountList.length < _numberOfItemsPerRequest;
       if (mounted) {
         setState(() {
@@ -102,7 +101,7 @@ class _AccountSearchState extends State<AccountSearch> {
         AnimatedSize(
           duration: animDurationEmphasized,
           curve: animCurveEmphasized,
-          alignment: .center,
+          alignment: Alignment.center,
           child: SizedBox(
             height: 40,
             child: currentFilter == accType
@@ -159,7 +158,7 @@ class _AccountSearchState extends State<AccountSearch> {
           focusNode: _searchFocusNode,
           decoration: InputDecoration(
             hintText: MaterialLocalizations.of(context).searchFieldLabel,
-            border: .none,
+            border: InputBorder.none,
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.clear),
@@ -190,8 +189,8 @@ class _AccountSearchState extends State<AccountSearch> {
           SizedBox(
             height: 40 + 8 + 8,
             child: ListView(
-              scrollDirection: .horizontal,
-              padding: const .symmetric(horizontal: 16, vertical: 8),
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               children: chips,
             ),
           ),

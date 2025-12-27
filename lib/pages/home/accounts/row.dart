@@ -1,14 +1,15 @@
-import 'dart:convert';
-
 import 'package:animations/animations.dart';
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/home/transactions.dart';
 import 'package:waterflyiii/pages/home/transactions/filter.dart';
@@ -44,7 +45,7 @@ Widget accountRowBuilder(
 
   late String subtitle;
   switch (account.attributes.type) {
-    case .asset:
+    case ShortAccountTypeProperty.asset:
       subtitle =
           account.attributes.accountRole?.friendlyName(context) ??
           S.of(context).generalUnknown;
@@ -52,29 +53,29 @@ Widget accountRowBuilder(
         subtitle += "\nIBAN: ${account.attributes.iban!}";
       }
       break;
-    case .expense:
+    case ShortAccountTypeProperty.expense:
       subtitle = account.attributes.iban ?? "";
       // Switch sign, see #96
       if (currentAmount != 0) {
         currentAmount *= -1;
       }
       break;
-    case .revenue:
+    case ShortAccountTypeProperty.revenue:
       subtitle = account.attributes.iban ?? "";
       // Switch sign, see #96
       if (currentAmount != 0) {
         currentAmount *= -1;
       }
       break;
-    case .liabilities:
+    case ShortAccountTypeProperty.liabilities:
       switch (account.attributes.liabilityType) {
-        case .debt:
+        case LiabilityTypeProperty.debt:
           subtitle = S.of(context).liabilityTypeDebt;
           break;
-        case .loan:
+        case LiabilityTypeProperty.loan:
           subtitle = S.of(context).liabilityTypeLoan;
           break;
-        case .mortgage:
+        case LiabilityTypeProperty.mortgage:
           subtitle = S.of(context).liabilityTypeMortgage;
           break;
         default:
@@ -82,10 +83,10 @@ Widget accountRowBuilder(
       }
       subtitle += "; ";
       switch (account.attributes.liabilityDirection) {
-        case .credit:
+        case LiabilityDirectionProperty.credit:
           subtitle += S.of(context).liabilityDirectionCredit;
           break;
-        case .debit:
+        case LiabilityDirectionProperty.debit:
           subtitle += S.of(context).liabilityDirectionDebit;
           break;
         default:
@@ -120,24 +121,27 @@ Widget accountRowBuilder(
     openColor: Theme.of(context).cardColor,
     closedColor: Theme.of(context).cardColor,
     closedShape: const RoundedRectangleBorder(
-      borderRadius: .only(topLeft: .circular(16), bottomLeft: .circular(16)),
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(16),
+        bottomLeft: Radius.circular(16),
+      ),
     ),
     closedElevation: 0,
     closedBuilder: (BuildContext context, Function openContainer) => ListTile(
-      title: Text(name, maxLines: 1, overflow: .ellipsis),
+      title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(
         subtitle,
         maxLines:
-            account.attributes.type == .asset ||
-                account.attributes.type == .liabilities
+            account.attributes.type == ShortAccountTypeProperty.asset ||
+                account.attributes.type == ShortAccountTypeProperty.liabilities
             ? 2
             : 1,
       ),
       isThreeLine:
-          account.attributes.type == .asset ||
-          account.attributes.type == .liabilities,
+          account.attributes.type == ShortAccountTypeProperty.asset ||
+          account.attributes.type == ShortAccountTypeProperty.liabilities,
       trailing: RichText(
-        textAlign: .end,
+        textAlign: TextAlign.end,
         maxLines: 2,
         text: TextSpan(
           style: Theme.of(context).textTheme.bodyMedium,
@@ -146,8 +150,8 @@ Widget accountRowBuilder(
               text: currency.fmt(currentAmount),
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
                 color: (currentAmount < 0) ? Colors.red : Colors.green,
-                fontWeight: .bold,
-                fontFeatures: const <FontFeature>[.tabularFigures()],
+                fontWeight: FontWeight.bold,
+                fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
               ),
             ),
             const TextSpan(text: "\n"),
@@ -163,7 +167,10 @@ Widget accountRowBuilder(
       ),
       enabled: account.attributes.active ?? true,
       shape: const RoundedRectangleBorder(
-        borderRadius: .only(topLeft: .circular(16), bottomLeft: .circular(16)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          bottomLeft: Radius.circular(16),
+        ),
       ),
       onTap: () => openContainer(),
     ),
@@ -239,41 +246,33 @@ class _AccountTXpageState extends State<AccountTXpage> {
     if (_textController.text.isNotEmpty &&
         _textController.text != widget.account.attributes.name) {
       try {
-        final FireflyIii api = context.read<FireflyService>().api;
-        final Response<AccountSingle> response = await api.v1AccountsIdPut(
-          id: widget.account.id,
-          body: AccountUpdate(name: _textController.text),
-        );
-        if (!response.isSuccessful || response.body == null) {
-          log.severe("Error while submitting new name to API");
-          String error;
-          try {
-            final ValidationErrorResponse valError = .fromJson(
-              json.decode(response.error.toString()),
-            );
-            error =
-                valError.message ??
-                // ignore: use_build_context_synchronously
-                (context.mounted
-                    // ignore: use_build_context_synchronously
-                    ? S.of(context).errorUnknown
-                    : "[nocontext] Unknown error.");
-          } catch (_) {
-            // ignore: use_build_context_synchronously
-            error = context.mounted
-                // ignore: use_build_context_synchronously
-                ? S.of(context).errorUnknown
-                : "[nocontext] Unknown error.";
-          }
+        final Isar isar = await AppDatabase.instance;
+        final AccountRepository accountRepo = AccountRepository(isar);
 
-          msg.showSnackBar(SnackBar(content: Text(error), behavior: .floating));
-          return;
-        }
+        // Create updated account with new name by copying JSON and updating name
+        final Map<String, dynamic> accountJson = widget.account.toJson();
+        accountJson['attributes'] =
+            (accountJson['attributes'] as Map<String, dynamic>)
+              ..['name'] = _textController.text;
+        final AccountRead updatedAccount = AccountRead.fromJson(accountJson);
 
-        _name = response.body!.data.attributes.name;
+        await accountRepo.update(updatedAccount);
+        _name = _textController.text;
         widget.nameUpdateFunc(_name);
       } catch (e, stackTrace) {
-        log.severe("Error while submitting new name to API", e, stackTrace);
+        log.severe("Error while updating account name", e, stackTrace);
+        // ignore: use_build_context_synchronously
+        if (context.mounted) {
+          msg.showSnackBar(
+            SnackBar(
+              content: Text(
+                // ignore: use_build_context_synchronously
+                S.of(context).errorUnknown,
+              ),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     }
 
@@ -291,7 +290,8 @@ class _AccountTXpageState extends State<AccountTXpage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: _titleWidget, actions: <Widget>[_editIcon]),
-      floatingActionButton: widget.account.attributes.type == .asset
+      floatingActionButton: widget.account.attributes.type ==
+              ShortAccountTypeProperty.asset
           ? NewTransactionFab(context: context, accountId: widget.account.id)
           : null,
       body: HomeTransactions(

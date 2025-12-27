@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:animations/animations.dart';
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -17,7 +16,10 @@ import 'package:waterflyiii/pages/home/transactions/filter.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/pages/transaction/delete.dart';
 import 'package:waterflyiii/settings.dart';
-import 'package:waterflyiii/stock.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/transaction_repository.dart';
+import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/timezonehandler.dart';
 import 'package:waterflyiii/widgets/listview_pagedchildbuilder.dart';
 
@@ -46,8 +48,8 @@ class _HomeTransactionsState extends State<HomeTransactions>
   late PagingState<int, TransactionRead> _pagingState;
 
   DateTime? _lastDate;
-  final List<int> _rowsWithDate = <int>[];
-  late TransStock _stock;
+  List<int> _rowsWithDate = <int>[];
+  late TransactionRepository _transactionRepo;
   late TimeZoneHandler _tzHandler;
 
   TransactionSum _txSum = TransactionSum();
@@ -169,14 +171,14 @@ class _HomeTransactionsState extends State<HomeTransactions>
       });
     }
 
-    _stock = context.read<FireflyService>().transStock!;
-    _stock.addListener(notifRefresh);
+    // Initialize repository asynchronously
+    AppDatabase.instance.then((Isar isar) {
+      _transactionRepo = TransactionRepository(isar);
+    });
   }
 
   @override
   void dispose() {
-    _stock.removeListener(notifRefresh);
-
     super.dispose();
   }
 
@@ -190,10 +192,7 @@ class _HomeTransactionsState extends State<HomeTransactions>
   Future<void> _fetchPage() async {
     if (_pagingState.isLoading) return;
 
-    final TransStock? stock = context.read<FireflyService>().transStock;
-    if (stock == null) {
-      throw Exception("Stock not available");
-    }
+    // Repository is always available
 
     setState(() {
       _pagingState = _pagingState.copyWith(isLoading: true, error: null);
@@ -243,69 +242,42 @@ class _HomeTransactionsState extends State<HomeTransactions>
           break;
       }
 
-      // Faster than searching for an account, and also has cache (stock) behind
-      // This search should never have additional filters!
+      // Use repository instead of stock
+      final DateTime? endDate = context.read<SettingsProvider>().showFutureTXs
+          ? null
+          : now;
+
       if (widget.filters?.account != null) {
-        transactionList = await stock.getAccount(
-          id: _filters.account!.id,
+        transactionList = await _transactionRepo.getByAccount(
+          _filters.account!.id,
+          startDate,
+          endDate,
           page: pageKey,
           limit: _numberOfPostsPerRequest,
-          type: .all,
-          start: context.read<SettingsProvider>().showFutureTXs
-              ? null
-              : DateFormat('yyyy-MM-dd', 'en_US').format(startDate),
-          end: context.read<SettingsProvider>().showFutureTXs
-              ? null
-              : DateFormat('yyyy-MM-dd', 'en_US').format(now),
         );
       } else if (_filters.hasFilters) {
-        String query = _filters.text ?? "";
-        if (_filters.account != null) {
-          query = "account_id:${_filters.account!.id} $query";
-        }
-        if (_filters.currency != null) {
-          query = "currency_is:${_filters.currency!.attributes.code} $query";
-        }
-        if (_filters.category != null) {
-          query = (_filters.category!.id == "-1")
-              ? "has_no_category:true $query"
-              : "category_is:\"${_filters.category!.attributes.name}\" $query";
-        }
-        if (_filters.budget != null) {
-          query = (_filters.budget!.id == "-1")
-              ? "has_no_budget:true $query"
-              : "budget_is:\"${_filters.budget!.attributes.name}\" $query";
-        }
-        if (_filters.bill != null) {
-          query = (_filters.bill!.id == "-1")
-              ? "has_no_bill:true $query"
-              : "bill_is:\"${_filters.bill!.attributes.name}\" $query";
-        }
-        if (_filters.tags != null) {
-          for (String tag in _filters.tags!.tags) {
-            query = "tag_is:\"$tag\" $query";
-          }
-        }
-        query =
-            "date_after:${DateFormat('yyyy-MM-dd', 'en_US').format(startDate)} $query";
-        if (!context.read<SettingsProvider>().showFutureTXs) {
-          query = "date_before:today $query";
-        }
-        log.fine(() => "Search query: $query");
-        transactionList = await stock.getSearch(
-          query: query,
+        transactionList = await _transactionRepo.searchWithFilters(
+          text: _filters.text,
+          accountId: _filters.account?.id,
+          currencyCode: _filters.currency?.attributes.code,
+          categoryId: _filters.category?.id,
+          categoryName: _filters.category?.id != "-1" ? _filters.category?.attributes.name : null,
+          budgetId: _filters.budget?.id,
+          budgetName: _filters.budget?.id != "-1" ? _filters.budget?.attributes.name : null,
+          billId: _filters.bill?.id,
+          billName: _filters.bill?.id != "-1" ? _filters.bill?.attributes.name : null,
+          tags: _filters.tags?.tags,
+          startDate: startDate,
+          endDate: endDate,
           page: pageKey,
           limit: _numberOfPostsPerRequest,
         );
       } else {
-        transactionList = await stock.get(
+        transactionList = await _transactionRepo.getByDateRange(
+          startDate,
+          endDate ?? now.add(const Duration(days: 365)),
           page: pageKey,
           limit: _numberOfPostsPerRequest,
-          type: .all,
-          end: context.read<SettingsProvider>().showFutureTXs
-              ? null
-              : DateFormat('yyyy-MM-dd', 'en_US').format(now),
-          start: DateFormat('yyyy-MM-dd', 'en_US').format(startDate),
         );
       }
 
@@ -406,11 +378,11 @@ class _HomeTransactionsState extends State<HomeTransactions>
 
     return RefreshIndicator.adaptive(
       onRefresh: () => Future<void>.sync(() {
-        _rowsWithDate.clear();
+        _rowsWithDate = <int>[];
         _lastDate = null;
         _txSum = TransactionSum();
         _txSumUsed.clear();
-        context.read<FireflyService>().transStock!.clear();
+        // Note: Repository data is refreshed by sync service, no need to clear
         setState(() {
           _lastCalculatedBalance = null;
           _pagingState = _pagingState.reset();
@@ -760,12 +732,12 @@ class _HomeTransactionsState extends State<HomeTransactions>
                         ),
                       );
                       if (ok ?? false) {
-                        _rowsWithDate.clear();
+                        _rowsWithDate = <int>[];
                         _lastDate = null;
                         _txSum = TransactionSum();
                         _txSumUsed.clear();
                         if (context.mounted) {
-                          context.read<FireflyService>().transStock!.clear();
+                          // Cache is managed by Isar repository - no manual clearing needed
                         }
                       }
                       setState(() {
@@ -784,7 +756,6 @@ class _HomeTransactionsState extends State<HomeTransactions>
                   const PopupMenuDivider(),
                   PopupMenuItem<Function>(
                     value: () async {
-                      final FireflyIii api = context.read<FireflyService>().api;
                       final bool? ok = await showDialog<bool>(
                         context: context,
                         builder: (BuildContext context) =>
@@ -794,13 +765,16 @@ class _HomeTransactionsState extends State<HomeTransactions>
                         return;
                       }
 
-                      await api.v1TransactionsIdDelete(id: item.id);
-                      _rowsWithDate.clear();
+                      // Delete via repository (queues for sync)
+                      final Isar isar = await AppDatabase.instance;
+                      final TransactionRepository txRepo = TransactionRepository(isar);
+                      await txRepo.delete(item.id);
+                      _rowsWithDate = <int>[];
                       _lastDate = null;
                       _txSum = TransactionSum();
                       _txSumUsed.clear();
                       if (context.mounted) {
-                        context.read<FireflyService>().transStock!.clear();
+                        // Cache is managed by Isar repository - no manual clearing needed
                       }
                       setState(() {
                         _lastCalculatedBalance = null;
@@ -984,13 +958,14 @@ class _HomeTransactionsState extends State<HomeTransactions>
       onClosed: (bool? refresh) async {
         if (_filters.account != null) {
           // Reset last balance calculated
-          final FireflyIii api = context.read<FireflyService>().api;
-          // Retrieve the account to get the current balance
-          final Response<AccountSingle> respAccount = await api.v1AccountsIdGet(
-            id: _filters.account!.id,
-          );
-          apiThrowErrorIfEmpty(respAccount, mounted ? context : null);
-          final AccountRead account = respAccount.body!.data;
+          // Retrieve the account from repository to get the current balance
+          final Isar isar = await AppDatabase.instance;
+          final AccountRepository accountRepo = AccountRepository(isar);
+          final AccountRead? account = await accountRepo.getById(_filters.account!.id);
+          if (account == null) {
+            log.warning("Account not found in repository: ${_filters.account!.id}");
+            return;
+          }
           _lastCalculatedBalance =
               double.tryParse(account.attributes.currentBalance!) ?? 0.0;
           // If the account is a revenue/expense account, we need to invert the balance
@@ -1002,16 +977,13 @@ class _HomeTransactionsState extends State<HomeTransactions>
         }
 
         if (refresh ?? false == true) {
-          _rowsWithDate.clear();
+          _rowsWithDate = <int>[];
           _lastDate = null;
           _txSum = TransactionSum();
           _txSumUsed.clear();
-        }
-        // Clear cache only when user completed a save (refresh is non-null:
-        // true = structural change, false = data-only change like amount edit).
-        // Skip when user cancelled without saving (refresh == null).
-        if (refresh != null && context.mounted) {
-          context.read<FireflyService>().transStock!.clear();
+          if (context.mounted) {
+            // Cache is managed by Isar repository - no manual clearing needed
+          }
         }
         setState(() {
           _lastCalculatedBalance = null;

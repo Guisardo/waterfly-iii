@@ -16,11 +16,11 @@ Waterfly III is an unofficial Flutter-based Android app for Firefly III, a free 
 
 ### Code Generation
 ```bash
-# Generate API clients and serialization code from OpenAPI specs
-dart run build_runner build
+# Generate API clients, serialization code, and Isar database code
+dart run build_runner build --delete-conflicting-outputs
 
 # Watch mode for continuous generation during development
-dart run build_runner watch
+dart run build_runner watch --delete-conflicting-outputs
 ```
 
 ### Testing
@@ -81,12 +81,13 @@ The app uses **Provider** for state management with two primary providers:
 - **Minimum API version**: 6.3.2 (enforced at login in lib/auth.dart:27)
 - **Authentication**: Bearer token authentication stored in flutter_secure_storage
 
-### Caching Strategy (lib/stock.dart)
-The app uses a **Stock-based caching layer** for transactions and categories:
-- `TransStock`: Caches transactions with separate stocks for get/getAccount/getSearch operations
-- `CatStock`: Caches category data by month
-- `CachedSourceOfTruth`: Local cache that serves data while fetching fresh data from API
-- Cache invalidation happens automatically when data changes (e.g., transaction dates change)
+### Caching Strategy
+The app uses a **local-first architecture** with Isar (NoSQL) database:
+- All data is stored locally in `lib/data/local/database/`
+- Repositories (`lib/data/repositories/`) provide CRUD operations on local data
+- Background sync service keeps local data synchronized with Firefly III API
+- Cache invalidation happens automatically when data changes via sync
+- Database schema defined using Isar `@collection` annotations in `lib/data/local/database/tables/`
 
 ### Data Flow
 1. User authenticates → `AuthUser.create()` validates host/API key → stores credentials
@@ -165,6 +166,16 @@ Strict linting is enabled with flutter_lints package:
 - Use test package for unit tests
 - Math evaluation has comprehensive test coverage (test/services/math_expression_evaluator_test.dart)
 
+### Internationalization Requirements
+**CRITICAL**: Any change that involves visible text (UI strings, notifications, error messages, etc.) MUST implement internationalization:
+- **Always use ARB-based localization**: Add all user-facing strings to `lib/l10n/app_en.arb` with proper keys and descriptions
+- **Provide translations for ALL supported languages**: When adding new strings, you MUST add translations to all 24 supported language ARB files:
+  - English (app_en.arb), German (app_de.arb), French (app_fr.arb), Spanish (app_es.arb), Italian (app_it.arb), Dutch (app_nl.arb), Portuguese (app_pt.arb), Portuguese Brazil (app_pt-BR.arb), Russian (app_ru.arb), Chinese Simplified (app_zh.arb), Chinese Traditional (app_zh-TW.arb), Polish (app_pl.arb), Catalan (app_ca.arb), Czech (app_cs.arb), Danish (app_da.arb), Hungarian (app_hu.arb), Romanian (app_ro.arb), Slovenian (app_sl.arb), Swedish (app_sv.arb), Turkish (app_tr.arb), Ukrainian (app_uk.arb), Persian/Farsi (app_fa.arb), Indonesian (app_id.arb), Korean (app_ko.arb)
+- **Use S.of(context) in code**: Never hardcode strings - always use `S.of(context).keyName` for user-facing text
+- **Include placeholders properly**: For dynamic values, use ARB placeholder syntax with proper type annotations
+- **Notifications and background services**: Even notifications and background services must be localized (see `lib/services/sync/sync_notifications.dart` for an example of accessing locale without BuildContext)
+- **No exceptions**: This applies to all visible text including error messages, button labels, dialog titles, notification text, settings labels, etc.
+
 ### Commit Workflow (.cursor/commands/commit-dart.md)
 1. Run `dart analyze .` and fix all errors/warnings
 2. Run all tests and fix any failures
@@ -182,7 +193,7 @@ Strict linting is enabled with flutter_lints package:
 ### Flutter-Specific Practices
 - Follow Material 3 design guidelines strictly
 - Support both light and dark themes (with dynamic colors when available)
-- Ensure proper localization for all user-facing strings
+- **Ensure proper localization for all user-facing strings** (see Internationalization Requirements section)
 - Test on real Android devices when possible
 - Keep dependencies minimal - evaluate necessity before adding packages
 - Prefer flutter_secure_storage for sensitive data (API keys, tokens)
@@ -194,7 +205,7 @@ Strict linting is enabled with flutter_lints package:
 2. **Provider misuse**: Use `.watch()` for reactive updates, `.read()` for callbacks/one-time reads
 3. **Cache invalidation**: When modifying transactions, clear TransStock cache via `.clear()`
 4. **API compatibility**: New features must work with minimum API version (6.3.2)
-5. **Localization**: Use `S.of(context).keyName` for all user-facing text, never hardcode strings
+5. **Localization**: Use `S.of(context).keyName` for all user-facing text, never hardcode strings. When adding new strings, provide translations for ALL 24 supported languages (see Internationalization Requirements section)
 6. **Type annotations**: Dart analyzer is strict - all types must be explicitly declared
 7. **Const constructors**: Use const wherever possible to improve performance
 8. **Relative imports**: Always use package imports (`package:waterflyiii/...`), never relative paths

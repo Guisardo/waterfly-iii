@@ -1,10 +1,10 @@
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
+import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
-import 'package:provider/provider.dart';
-import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/piggy_bank_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/widgets/autocompletetext.dart';
 
 // :TODO: make versatile and combine with bill.dart
@@ -92,15 +92,27 @@ class _PiggyDialogState extends State<PiggyDialog> {
           },
           optionsBuilder: (TextEditingValue textEditingValue) async {
             try {
-              final FireflyIii api = context.read<FireflyService>().api;
-              final Response<List<AutocompletePiggy>> response = await api
-                  .v1AutocompletePiggyBanksGet(query: textEditingValue.text);
-              apiThrowErrorIfEmpty(response, mounted ? context : null);
-
-              return response.body!;
+              final Isar isar = await AppDatabase.instance;
+              final PiggyBankRepository piggyRepo = PiggyBankRepository(isar);
+              final List<PiggyBankRead> piggyBanks = await piggyRepo.search(textEditingValue.text);
+              
+              // Convert PiggyBankRead to AutocompletePiggy format
+              return piggyBanks.map((piggy) {
+                return AutocompletePiggy(
+                  id: piggy.id,
+                  name: piggy.attributes.name,
+                  currencyId: piggy.attributes.currencyId,
+                  currencyCode: piggy.attributes.currencyCode,
+                  currencySymbol: piggy.attributes.currencySymbol,
+                  currencyName: piggy.attributes.currencyName,
+                  currencyDecimalPlaces: piggy.attributes.currencyDecimalPlaces,
+                  objectGroupId: piggy.attributes.objectGroupId,
+                  objectGroupTitle: piggy.attributes.objectGroupTitle,
+                );
+              }).toList();
             } catch (e, stackTrace) {
               log.severe(
-                "Error while fetching autocomplete from API",
+                "Error while fetching autocomplete from repository",
                 e,
                 stackTrace,
               );
