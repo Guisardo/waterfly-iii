@@ -69,6 +69,7 @@ enum BoolSettings {
   hideTags,
   billsShowOnlyActive,
   billsShowOnlyExpected,
+  syncUseMobileData,
 }
 
 enum TransactionDateFilter {
@@ -158,6 +159,8 @@ class SettingsProvider with ChangeNotifier {
       _loaded ? _boolSettings[BoolSettings.billsShowOnlyActive] : false;
   bool get billsShowOnlyExpected =>
       _loaded ? _boolSettings[BoolSettings.billsShowOnlyExpected] : false;
+  bool get syncUseMobileData =>
+      _loaded ? _boolSettings[BoolSettings.syncUseMobileData] : false;
 
   ThemeMode _theme = ThemeMode.system;
   ThemeMode get theme => _theme;
@@ -218,6 +221,7 @@ class SettingsProvider with ChangeNotifier {
       _boolSettings[BoolSettings.hideTags] = false;
       _boolSettings[BoolSettings.billsShowOnlyActive] = false;
       _boolSettings[BoolSettings.billsShowOnlyExpected] = false;
+      _boolSettings[BoolSettings.syncUseMobileData] = false;
     }
     await prefs.setInt(settingsBitmask, _boolSettings.value);
 
@@ -473,6 +477,8 @@ class SettingsProvider with ChangeNotifier {
       _setBool(BoolSettings.billsShowOnlyActive, enabled);
   set billsShowOnlyExpected(bool enabled) =>
       _setBool(BoolSettings.billsShowOnlyExpected, enabled);
+  set syncUseMobileData(bool enabled) =>
+      _setBool(BoolSettings.syncUseMobileData, enabled);
 
   Future<void> setTheme(ThemeMode theme) async {
     _theme = theme;

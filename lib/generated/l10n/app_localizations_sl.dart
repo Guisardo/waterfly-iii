@@ -941,4 +941,113 @@ class SSl extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Dvig';
+
+  @override
+  String get syncSettingsTitle => 'Nastavitve sinhronizacije';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Sinhroniziraj z mobilnimi podatki';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Dovoli sinhronizacijo pri uporabi mobilnih podatkov (privzeto onemogočeno za varčevanje podatkov)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Poverilnice';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Neveljavno - Prosimo, ponovno vnesite poverilnice';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Potrjeno';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Nepotrjeno';
+
+  @override
+  String get syncSettingsReenterButton => 'Ponovno vnesite';
+
+  @override
+  String get syncSettingsDownloadSync => 'Sinhronizacija prenosa';
+
+  @override
+  String get syncSettingsUploadSync => 'Sinhronizacija nalaganja';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Zadnja sinhronizacija: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Status: Zaustavljeno';
+
+  @override
+  String get syncSettingsStatusActive => 'Status: Aktivno';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Število poskusov: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Naslednji poskus: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Napaka: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Nadaljuj zdaj';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Ročna sinhronizacija';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Zaženi sinhronizacijo zdaj';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Sinhroniziraj zdaj';
+
+  @override
+  String get syncNotificationSyncing => 'Sinhroniziranje...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Sinhroniziranje s Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Sinhroniziranje $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Sinhronizacija končana';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Sinhronizacija s Firefly III je bila uspešno končana';
+
+  @override
+  String get syncNotificationPaused => 'Sinhronizacija zaustavljena';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Sinhronizacija je bila zaustavljena zaradi napake. Avtomatsko bo ponovno poskusila.';
+
+  @override
+  String get syncNotificationAuthError => 'Napaka pri overjanju';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Prosimo, ponovno vnesite poverilnice v nastavitvah';
+
+  @override
+  String get syncNotificationChannelName => 'Sinhronizacija';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Status sinhronizacije v ozadju';
 }

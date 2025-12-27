@@ -1,12 +1,13 @@
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
+import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
-import 'package:provider/provider.dart';
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/tag_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 
 class Tags {
   final List<String>? initialTags;
@@ -168,21 +169,10 @@ class _TagDialogState extends State<TagDialog> {
   }
 
   Future<List<String>>? _getTags() async {
-    final FireflyIii api = context.read<FireflyService>().api;
-    final List<String> tags = <String>[];
-    late Response<TagArray> response;
-    int pageNumber = 0;
-
-    do {
-      pageNumber += 1;
-      response = await api.v1TagsGet(page: pageNumber);
-      apiThrowErrorIfEmpty(response, mounted ? context : null);
-
-      tags.addAll(response.body!.data.map((TagRead e) => e.attributes.tag));
-    } while ((response.body!.meta.pagination?.currentPage ?? 1) <
-        (response.body!.meta.pagination?.totalPages ?? 1));
-
-    return tags;
+    final Isar isar = await AppDatabase.instance;
+    final TagRepository tagRepo = TagRepository(isar);
+    final List<TagRead> tags = await tagRepo.getAll();
+    return tags.map((TagRead e) => e.attributes.tag).where((String tag) => tag.isNotEmpty).toList();
   }
 
   void _newTagSubmitted(

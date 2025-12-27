@@ -1,11 +1,17 @@
 import 'dart:async';
 
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
-import 'package:waterflyiii/auth.dart';
+import 'package:isar_community/isar.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/bill_repository.dart';
+import 'package:waterflyiii/data/repositories/budget_repository.dart';
+import 'package:waterflyiii/data/repositories/category_repository.dart';
+import 'package:waterflyiii/data/repositories/currency_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart' as enums;
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/transaction/tags.dart';
 import 'package:waterflyiii/settings.dart';
@@ -98,33 +104,34 @@ class FilterDialog extends StatelessWidget {
   final TransactionFilters filters;
 
   Future<FilterData> _getData(BuildContext context) async {
-    final FireflyIii api = context.read<FireflyService>().api;
+    final Isar isar = await AppDatabase.instance;
+    final AccountRepository accountRepo = AccountRepository(isar);
+    final CurrencyRepository currencyRepo = CurrencyRepository(isar);
+    final CategoryRepository categoryRepo = CategoryRepository(isar);
+    final BudgetRepository budgetRepo = BudgetRepository(isar);
+    final BillRepository billRepo = BillRepository(isar);
 
+    // Fetch all data from repositories in parallel
     final (
-      Response<AccountArray> respAccounts,
-      Response<CurrencyArray> respCurrencies,
-      Response<CategoryArray> respCats,
-      Response<BudgetArray> respBudgets,
-      Response<BillArray> respBills,
+      List<AccountRead> accounts,
+      List<CurrencyRead> currencies,
+      List<CategoryRead> categories,
+      List<BudgetRead> budgets,
+      List<BillRead> bills,
     ) = await (
-          api.v1AccountsGet(type: AccountTypeFilter.assetAccount),
-          api.v1CurrenciesGet(),
-          api.v1CategoriesGet(),
-          api.v1BudgetsGet(),
-          api.v1BillsGet(),
+          accountRepo.getByType(enums.AccountTypeFilter.assetAccount),
+          currencyRepo.getAll(),
+          categoryRepo.getAll(),
+          budgetRepo.getAll(),
+          billRepo.getAll(),
         ).wait;
-    apiThrowErrorIfEmpty(respAccounts, context.mounted ? context : null);
-    apiThrowErrorIfEmpty(respCurrencies, context.mounted ? context : null);
-    apiThrowErrorIfEmpty(respCats, context.mounted ? context : null);
-    apiThrowErrorIfEmpty(respBudgets, context.mounted ? context : null);
-    apiThrowErrorIfEmpty(respBills, context.mounted ? context : null);
 
     return FilterData(
-      respAccounts.body!.data,
-      respCurrencies.body!.data,
-      respCats.body!.data,
-      respBudgets.body!.data,
-      respBills.body!.data,
+      accounts,
+      currencies,
+      categories,
+      budgets,
+      bills,
     );
   }
 

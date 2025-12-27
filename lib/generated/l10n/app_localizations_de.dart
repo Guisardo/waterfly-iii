@@ -942,4 +942,115 @@ class SDe extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Ausgabe';
+
+  @override
+  String get syncSettingsTitle => 'Synchronisierungseinstellungen';
+
+  @override
+  String get syncSettingsMobileDataTitle =>
+      'Synchronisierung über Mobilfunkdaten';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Synchronisierung bei Verwendung von Mobilfunkdaten zulassen (standardmäßig deaktiviert, um Daten zu sparen)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Anmeldedaten';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Ungültig - Bitte Anmeldedaten erneut eingeben';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Bestätigt';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Nicht bestätigt';
+
+  @override
+  String get syncSettingsReenterButton => 'Erneut eingeben';
+
+  @override
+  String get syncSettingsDownloadSync => 'Download-Synchronisierung';
+
+  @override
+  String get syncSettingsUploadSync => 'Upload-Synchronisierung';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Letzte Synchronisierung: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Status: Pausiert';
+
+  @override
+  String get syncSettingsStatusActive => 'Status: Aktiv';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Wiederholungsanzahl: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Nächster Versuch: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Fehler: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Jetzt fortsetzen';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Manuelle Synchronisierung';
+
+  @override
+  String get syncSettingsManualSyncSubtitle =>
+      'Synchronisierung jetzt auslösen';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Jetzt synchronisieren';
+
+  @override
+  String get syncNotificationSyncing => 'Synchronisiere...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Synchronisiere mit Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Synchronisiere $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Synchronisierung abgeschlossen';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Synchronisierung mit Firefly III erfolgreich abgeschlossen';
+
+  @override
+  String get syncNotificationPaused => 'Synchronisierung pausiert';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Synchronisierung aufgrund eines Fehlers pausiert. Wird automatisch erneut versucht.';
+
+  @override
+  String get syncNotificationAuthError => 'Authentifizierungsfehler';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Bitte geben Sie Ihre Anmeldedaten in den Einstellungen erneut ein';
+
+  @override
+  String get syncNotificationChannelName => 'Synchronisierung';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Status der Hintergrundsynchronisierung';
 }

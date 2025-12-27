@@ -926,4 +926,110 @@ class SKo extends S {
 
   @override
   String get transactionTypeWithdrawal => '출금';
+
+  @override
+  String get syncSettingsTitle => '동기화 설정';
+
+  @override
+  String get syncSettingsMobileDataTitle => '모바일 데이터로 동기화';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      '모바일 데이터 사용 시 동기화 허용 (데이터 절약을 위해 기본적으로 비활성화됨)';
+
+  @override
+  String get syncSettingsCredentialsTitle => '자격 증명';
+
+  @override
+  String get syncSettingsCredentialsInvalid => '유효하지 않음 - 자격 증명을 다시 입력하세요';
+
+  @override
+  String get syncSettingsCredentialsValidated => '확인됨';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => '확인되지 않음';
+
+  @override
+  String get syncSettingsReenterButton => '다시 입력';
+
+  @override
+  String get syncSettingsDownloadSync => '다운로드 동기화';
+
+  @override
+  String get syncSettingsUploadSync => '업로드 동기화';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return '마지막 동기화: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => '상태: 일시 중지됨';
+
+  @override
+  String get syncSettingsStatusActive => '상태: 활성';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return '재시도 횟수: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return '다음 재시도: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return '오류: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => '지금 재개';
+
+  @override
+  String get syncSettingsManualSyncTitle => '수동 동기화';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => '지금 동기화 트리거';
+
+  @override
+  String get syncSettingsSyncNowButton => '지금 동기화';
+
+  @override
+  String get syncNotificationSyncing => '동기화 중...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Firefly III와 동기화 중';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return '$entityType 동기화 중...';
+  }
+
+  @override
+  String get syncNotificationCompleted => '동기화 완료';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Firefly III와의 동기화가 성공적으로 완료되었습니다';
+
+  @override
+  String get syncNotificationPaused => '동기화 일시 중지됨';
+
+  @override
+  String get syncNotificationPausedBody =>
+      '오류로 인해 동기화가 일시 중지되었습니다. 자동으로 다시 시도됩니다.';
+
+  @override
+  String get syncNotificationAuthError => '인증 오류';
+
+  @override
+  String get syncNotificationAuthErrorBody => '설정에서 자격 증명을 다시 입력하세요';
+
+  @override
+  String get syncNotificationChannelName => '동기화';
+
+  @override
+  String get syncNotificationChannelDescription => '백그라운드 동기화 상태';
 }

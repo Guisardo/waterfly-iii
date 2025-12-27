@@ -1,7 +1,5 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 
@@ -36,7 +34,7 @@ class NewTransactionFab extends StatelessWidget {
       onClosed: (bool? refresh) {
         if (refresh ?? false == true) {
           if (context.mounted) {
-            context.read<FireflyService>().transStock!.clear();
+              // Transaction cache cleared automatically on sync
           }
         }
       },

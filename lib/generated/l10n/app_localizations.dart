@@ -1589,6 +1589,192 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Withdrawal'**
   String get transactionTypeWithdrawal;
+
+  /// Title for sync settings page
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Settings'**
+  String get syncSettingsTitle;
+
+  /// Title for mobile data sync toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Sync on mobile data'**
+  String get syncSettingsMobileDataTitle;
+
+  /// Subtitle for mobile data sync toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Allow synchronization when using mobile data (disabled by default to save data)'**
+  String get syncSettingsMobileDataSubtitle;
+
+  /// Title for credentials status section
+  ///
+  /// In en, this message translates to:
+  /// **'Credentials'**
+  String get syncSettingsCredentialsTitle;
+
+  /// Text shown when credentials are invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid - Please re-enter credentials'**
+  String get syncSettingsCredentialsInvalid;
+
+  /// Text shown when credentials are validated
+  ///
+  /// In en, this message translates to:
+  /// **'Validated'**
+  String get syncSettingsCredentialsValidated;
+
+  /// Text shown when credentials are not yet validated
+  ///
+  /// In en, this message translates to:
+  /// **'Not validated'**
+  String get syncSettingsCredentialsNotValidated;
+
+  /// Button text to re-enter credentials
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter'**
+  String get syncSettingsReenterButton;
+
+  /// Title for download sync status section
+  ///
+  /// In en, this message translates to:
+  /// **'Download Sync'**
+  String get syncSettingsDownloadSync;
+
+  /// Title for upload sync status section
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Sync'**
+  String get syncSettingsUploadSync;
+
+  /// Text showing last sync time
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync: {date}'**
+  String syncSettingsLastSync(String date);
+
+  /// Text shown when sync is paused
+  ///
+  /// In en, this message translates to:
+  /// **'Status: Paused'**
+  String get syncSettingsStatusPaused;
+
+  /// Text shown when sync is active
+  ///
+  /// In en, this message translates to:
+  /// **'Status: Active'**
+  String get syncSettingsStatusActive;
+
+  /// Text showing retry count
+  ///
+  /// In en, this message translates to:
+  /// **'Retry count: {count}'**
+  String syncSettingsRetryCount(int count);
+
+  /// Text showing next retry time
+  ///
+  /// In en, this message translates to:
+  /// **'Next retry: {date}'**
+  String syncSettingsNextRetry(String date);
+
+  /// Text showing sync error
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String syncSettingsError(String error);
+
+  /// Button text to resume paused sync
+  ///
+  /// In en, this message translates to:
+  /// **'Resume Now'**
+  String get syncSettingsResumeButton;
+
+  /// Title for manual sync section
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Sync'**
+  String get syncSettingsManualSyncTitle;
+
+  /// Subtitle for manual sync section
+  ///
+  /// In en, this message translates to:
+  /// **'Trigger sync now'**
+  String get syncSettingsManualSyncSubtitle;
+
+  /// Button text to trigger manual sync
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Now'**
+  String get syncSettingsSyncNowButton;
+
+  /// Notification title when sync is in progress
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get syncNotificationSyncing;
+
+  /// Notification body when sync is in progress
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronizing with Firefly III'**
+  String get syncNotificationSyncingBody;
+
+  /// Notification title when syncing specific entity type
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing {entityType}...'**
+  String syncNotificationSyncingEntity(String entityType);
+
+  /// Notification title when sync is completed
+  ///
+  /// In en, this message translates to:
+  /// **'Sync completed'**
+  String get syncNotificationCompleted;
+
+  /// Notification body when sync is completed
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization with Firefly III completed successfully'**
+  String get syncNotificationCompletedBody;
+
+  /// Notification title when sync is paused
+  ///
+  /// In en, this message translates to:
+  /// **'Sync paused'**
+  String get syncNotificationPaused;
+
+  /// Notification body when sync is paused
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization paused due to error. Will retry automatically.'**
+  String get syncNotificationPausedBody;
+
+  /// Notification title for authentication error
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication error'**
+  String get syncNotificationAuthError;
+
+  /// Notification body for authentication error
+  ///
+  /// In en, this message translates to:
+  /// **'Please re-enter your credentials in settings'**
+  String get syncNotificationAuthErrorBody;
+
+  /// Name of the sync notification channel
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization'**
+  String get syncNotificationChannelName;
+
+  /// Description of the sync notification channel
+  ///
+  /// In en, this message translates to:
+  /// **'Background synchronization status'**
+  String get syncNotificationChannelDescription;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

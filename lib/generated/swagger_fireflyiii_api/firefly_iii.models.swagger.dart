@@ -1,3 +1,4 @@
+// coverage:ignore-file
 // ignore_for_file: type=lint
 
 import 'package:json_annotation/json_annotation.dart';
@@ -18,9 +19,9 @@ class AccountArray {
   static const toJsonFactory = _$AccountArrayToJson;
   Map<String, dynamic> toJson() => _$AccountArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <AccountRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <AccountRead>[])
   final List<AccountRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
   static const fromJsonFactory = _$AccountArrayFromJson;
 
@@ -54,9 +55,9 @@ class AttachmentArray {
   static const toJsonFactory = _$AttachmentArrayToJson;
   Map<String, dynamic> toJson() => _$AttachmentArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <AttachmentRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <AttachmentRead>[])
   final List<AttachmentRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
   static const fromJsonFactory = _$AttachmentArrayFromJson;
 
@@ -109,11 +110,11 @@ class AvailableBudgetArray {
 
   @JsonKey(
     name: 'data',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <AvailableBudgetRead>[],
   )
   final List<AvailableBudgetRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
   static const fromJsonFactory = _$AvailableBudgetArrayFromJson;
 
@@ -150,9 +151,9 @@ class BillArray {
   static const toJsonFactory = _$BillArrayToJson;
   Map<String, dynamic> toJson() => _$BillArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <BillRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <BillRead>[])
   final List<BillRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
   static const fromJsonFactory = _$BillArrayFromJson;
 
@@ -186,9 +187,9 @@ class BudgetArray {
   static const toJsonFactory = _$BudgetArrayToJson;
   Map<String, dynamic> toJson() => _$BudgetArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <BudgetRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <BudgetRead>[])
   final List<BudgetRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
   static const fromJsonFactory = _$BudgetArrayFromJson;
 
@@ -222,13 +223,9 @@ class BudgetLimitArray {
   static const toJsonFactory = _$BudgetLimitArrayToJson;
   Map<String, dynamic> toJson() => _$BudgetLimitArrayToJson(this);
 
-  @JsonKey(
-    name: 'data',
-    includeIfNull: false,
-    defaultValue: <BudgetLimitRead>[],
-  )
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <BudgetLimitRead>[])
   final List<BudgetLimitRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
   static const fromJsonFactory = _$BudgetLimitArrayFromJson;
 
@@ -262,9 +259,9 @@ class CategoryArray {
   static const toJsonFactory = _$CategoryArrayToJson;
   Map<String, dynamic> toJson() => _$CategoryArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <CategoryRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <CategoryRead>[])
   final List<CategoryRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
   static const fromJsonFactory = _$CategoryArrayFromJson;
 
@@ -304,11 +301,11 @@ class CurrencyArray {
   static const toJsonFactory = _$CurrencyArrayToJson;
   Map<String, dynamic> toJson() => _$CurrencyArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <CurrencyRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <CurrencyRead>[])
   final List<CurrencyRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$CurrencyArrayFromJson;
 
@@ -358,13 +355,13 @@ class CurrencyExchangeRateArray {
 
   @JsonKey(
     name: 'data',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <CurrencyExchangeRateRead>[],
   )
   final List<CurrencyExchangeRateRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$CurrencyExchangeRateArrayFromJson;
 
@@ -412,11 +409,11 @@ class LinkTypeArray {
   static const toJsonFactory = _$LinkTypeArrayToJson;
   Map<String, dynamic> toJson() => _$LinkTypeArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <LinkTypeRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <LinkTypeRead>[])
   final List<LinkTypeRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$LinkTypeArrayFromJson;
 
@@ -460,13 +457,9 @@ class ObjectGroupArray {
   static const toJsonFactory = _$ObjectGroupArrayToJson;
   Map<String, dynamic> toJson() => _$ObjectGroupArrayToJson(this);
 
-  @JsonKey(
-    name: 'data',
-    includeIfNull: false,
-    defaultValue: <ObjectGroupRead>[],
-  )
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <ObjectGroupRead>[])
   final List<ObjectGroupRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
   static const fromJsonFactory = _$ObjectGroupArrayFromJson;
 
@@ -504,11 +497,11 @@ class PiggyBankArray {
   static const toJsonFactory = _$PiggyBankArrayToJson;
   Map<String, dynamic> toJson() => _$PiggyBankArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <PiggyBankRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <PiggyBankRead>[])
   final List<PiggyBankRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$PiggyBankArrayFromJson;
 
@@ -558,13 +551,13 @@ class PiggyBankEventArray {
 
   @JsonKey(
     name: 'data',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <PiggyBankEventRead>[],
   )
   final List<PiggyBankEventRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$PiggyBankEventArrayFromJson;
 
@@ -612,11 +605,11 @@ class PreferenceArray {
   static const toJsonFactory = _$PreferenceArrayToJson;
   Map<String, dynamic> toJson() => _$PreferenceArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <PreferenceRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <PreferenceRead>[])
   final List<PreferenceRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$PreferenceArrayFromJson;
 
@@ -664,11 +657,11 @@ class RecurrenceArray {
   static const toJsonFactory = _$RecurrenceArrayToJson;
   Map<String, dynamic> toJson() => _$RecurrenceArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <RecurrenceRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <RecurrenceRead>[])
   final List<RecurrenceRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$RecurrenceArrayFromJson;
 
@@ -716,11 +709,11 @@ class RuleArray {
   static const toJsonFactory = _$RuleArrayToJson;
   Map<String, dynamic> toJson() => _$RuleArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <RuleRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <RuleRead>[])
   final List<RuleRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$RuleArrayFromJson;
 
@@ -764,11 +757,11 @@ class RuleGroupArray {
   static const toJsonFactory = _$RuleGroupArrayToJson;
   Map<String, dynamic> toJson() => _$RuleGroupArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <RuleGroupRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <RuleGroupRead>[])
   final List<RuleGroupRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$RuleGroupArrayFromJson;
 
@@ -812,11 +805,11 @@ class TagArray {
   static const toJsonFactory = _$TagArrayToJson;
   Map<String, dynamic> toJson() => _$TagArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <TagRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <TagRead>[])
   final List<TagRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$TagArrayFromJson;
 
@@ -860,15 +853,11 @@ class TransactionArray {
   static const toJsonFactory = _$TransactionArrayToJson;
   Map<String, dynamic> toJson() => _$TransactionArrayToJson(this);
 
-  @JsonKey(
-    name: 'data',
-    includeIfNull: false,
-    defaultValue: <TransactionRead>[],
-  )
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <TransactionRead>[])
   final List<TransactionRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$TransactionArrayFromJson;
 
@@ -918,13 +907,13 @@ class TransactionLinkArray {
 
   @JsonKey(
     name: 'data',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <TransactionLinkRead>[],
   )
   final List<TransactionLinkRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$TransactionLinkArrayFromJson;
 
@@ -972,11 +961,11 @@ class UserArray {
   static const toJsonFactory = _$UserArrayToJson;
   Map<String, dynamic> toJson() => _$UserArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <UserRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <UserRead>[])
   final List<UserRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$UserArrayFromJson;
 
@@ -1020,11 +1009,11 @@ class UserGroupArray {
   static const toJsonFactory = _$UserGroupArrayToJson;
   Map<String, dynamic> toJson() => _$UserGroupArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <UserGroupRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <UserGroupRead>[])
   final List<UserGroupRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$UserGroupArrayFromJson;
 
@@ -1072,11 +1061,11 @@ class WebhookArray {
   static const toJsonFactory = _$WebhookArrayToJson;
   Map<String, dynamic> toJson() => _$WebhookArrayToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false, defaultValue: <WebhookRead>[])
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <WebhookRead>[])
   final List<WebhookRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final PageLink links;
   static const fromJsonFactory = _$WebhookArrayFromJson;
 
@@ -1122,11 +1111,11 @@ class WebhookAttemptArray {
 
   @JsonKey(
     name: 'data',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <WebhookAttemptRead>[],
   )
   final List<WebhookAttemptRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
   static const fromJsonFactory = _$WebhookAttemptArrayFromJson;
 
@@ -1165,11 +1154,11 @@ class WebhookMessageArray {
 
   @JsonKey(
     name: 'data',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <WebhookMessageRead>[],
   )
   final List<WebhookMessageRead> data;
-  @JsonKey(name: 'meta', includeIfNull: false)
+  @JsonKey(name: 'meta', includeIfNull: true)
   final Meta meta;
   static const fromJsonFactory = _$WebhookMessageArrayFromJson;
 
@@ -1222,35 +1211,35 @@ class AutocompleteAccount {
   static const toJsonFactory = _$AutocompleteAccountToJson;
   Map<String, dynamic> toJson() => _$AutocompleteAccountToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'name_with_balance', includeIfNull: false)
+  @JsonKey(name: 'name_with_balance', includeIfNull: true)
   final String nameWithBalance;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int currencyDecimalPlaces;
-  @JsonKey(name: 'account_currency_id', includeIfNull: false)
+  @JsonKey(name: 'account_currency_id', includeIfNull: true)
   final String? accountCurrencyId;
-  @JsonKey(name: 'account_currency_name', includeIfNull: false)
+  @JsonKey(name: 'account_currency_name', includeIfNull: true)
   final String? accountCurrencyName;
-  @JsonKey(name: 'account_currency_code', includeIfNull: false)
+  @JsonKey(name: 'account_currency_code', includeIfNull: true)
   final String? accountCurrencyCode;
-  @JsonKey(name: 'account_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'account_currency_symbol', includeIfNull: true)
   final String? accountCurrencySymbol;
-  @JsonKey(name: 'account_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'account_currency_decimal_places', includeIfNull: true)
   final int? accountCurrencyDecimalPlaces;
   static const fromJsonFactory = _$AutocompleteAccountFromJson;
 
@@ -1365,11 +1354,11 @@ class AutocompleteBill {
   static const toJsonFactory = _$AutocompleteBillToJson;
   Map<String, dynamic> toJson() => _$AutocompleteBillToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
   static const fromJsonFactory = _$AutocompleteBillFromJson;
 
@@ -1409,11 +1398,11 @@ class AutocompleteBudget {
   static const toJsonFactory = _$AutocompleteBudgetToJson;
   Map<String, dynamic> toJson() => _$AutocompleteBudgetToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
   static const fromJsonFactory = _$AutocompleteBudgetFromJson;
 
@@ -1453,9 +1442,9 @@ class AutocompleteCategory {
   static const toJsonFactory = _$AutocompleteCategoryToJson;
   Map<String, dynamic> toJson() => _$AutocompleteCategoryToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
   static const fromJsonFactory = _$AutocompleteCategoryFromJson;
 
@@ -1495,15 +1484,15 @@ class AutocompleteCurrency {
   static const toJsonFactory = _$AutocompleteCurrencyToJson;
   Map<String, dynamic> toJson() => _$AutocompleteCurrencyToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'code', includeIfNull: false)
+  @JsonKey(name: 'code', includeIfNull: true)
   final String code;
-  @JsonKey(name: 'symbol', includeIfNull: false)
+  @JsonKey(name: 'symbol', includeIfNull: true)
   final String symbol;
-  @JsonKey(name: 'decimal_places', includeIfNull: false)
+  @JsonKey(name: 'decimal_places', includeIfNull: true)
   final int decimalPlaces;
   static const fromJsonFactory = _$AutocompleteCurrencyFromJson;
 
@@ -1563,15 +1552,15 @@ class AutocompleteCurrencyCode {
   static const toJsonFactory = _$AutocompleteCurrencyCodeToJson;
   Map<String, dynamic> toJson() => _$AutocompleteCurrencyCodeToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'code', includeIfNull: false)
+  @JsonKey(name: 'code', includeIfNull: true)
   final String code;
-  @JsonKey(name: 'symbol', includeIfNull: false)
+  @JsonKey(name: 'symbol', includeIfNull: true)
   final String symbol;
-  @JsonKey(name: 'decimal_places', includeIfNull: false)
+  @JsonKey(name: 'decimal_places', includeIfNull: true)
   final int decimalPlaces;
   static const fromJsonFactory = _$AutocompleteCurrencyCodeFromJson;
 
@@ -1629,11 +1618,11 @@ class AutocompleteObjectGroup {
   static const toJsonFactory = _$AutocompleteObjectGroupToJson;
   Map<String, dynamic> toJson() => _$AutocompleteObjectGroupToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String title;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
   static const fromJsonFactory = _$AutocompleteObjectGroupFromJson;
 
@@ -1683,23 +1672,23 @@ class AutocompletePiggy {
   static const toJsonFactory = _$AutocompletePiggyToJson;
   Map<String, dynamic> toJson() => _$AutocompletePiggyToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'object_group_id', includeIfNull: false)
+  @JsonKey(name: 'object_group_id', includeIfNull: true)
   final String? objectGroupId;
-  @JsonKey(name: 'object_group_title', includeIfNull: false)
+  @JsonKey(name: 'object_group_title', includeIfNull: true)
   final String? objectGroupTitle;
   static const fromJsonFactory = _$AutocompletePiggyFromJson;
 
@@ -1790,23 +1779,23 @@ class AutocompletePiggyBalance {
   static const toJsonFactory = _$AutocompletePiggyBalanceToJson;
   Map<String, dynamic> toJson() => _$AutocompletePiggyBalanceToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'name_with_balance', includeIfNull: false)
+  @JsonKey(name: 'name_with_balance', includeIfNull: true)
   final String? nameWithBalance;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'object_group_id', includeIfNull: false)
+  @JsonKey(name: 'object_group_id', includeIfNull: true)
   final String? objectGroupId;
-  @JsonKey(name: 'object_group_title', includeIfNull: false)
+  @JsonKey(name: 'object_group_title', includeIfNull: true)
   final String? objectGroupTitle;
   static const fromJsonFactory = _$AutocompletePiggyBalanceFromJson;
 
@@ -1892,13 +1881,13 @@ class AutocompleteRecurrence {
   static const toJsonFactory = _$AutocompleteRecurrenceToJson;
   Map<String, dynamic> toJson() => _$AutocompleteRecurrenceToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
   static const fromJsonFactory = _$AutocompleteRecurrenceFromJson;
 
@@ -1951,13 +1940,13 @@ class AutocompleteRule {
   static const toJsonFactory = _$AutocompleteRuleToJson;
   Map<String, dynamic> toJson() => _$AutocompleteRuleToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
   static const fromJsonFactory = _$AutocompleteRuleFromJson;
 
@@ -2010,13 +1999,13 @@ class AutocompleteRuleGroup {
   static const toJsonFactory = _$AutocompleteRuleGroupToJson;
   Map<String, dynamic> toJson() => _$AutocompleteRuleGroupToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
   static const fromJsonFactory = _$AutocompleteRuleGroupFromJson;
 
@@ -2068,11 +2057,11 @@ class AutocompleteTag {
   static const toJsonFactory = _$AutocompleteTagToJson;
   Map<String, dynamic> toJson() => _$AutocompleteTagToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'tag', includeIfNull: false)
+  @JsonKey(name: 'tag', includeIfNull: true)
   final String tag;
   static const fromJsonFactory = _$AutocompleteTagFromJson;
 
@@ -2117,13 +2106,13 @@ class AutocompleteTransaction {
   static const toJsonFactory = _$AutocompleteTransactionToJson;
   Map<String, dynamic> toJson() => _$AutocompleteTransactionToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'transaction_group_id', includeIfNull: false)
+  @JsonKey(name: 'transaction_group_id', includeIfNull: true)
   final String? transactionGroupId;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String description;
   static const fromJsonFactory = _$AutocompleteTransactionFromJson;
 
@@ -2178,13 +2167,13 @@ class AutocompleteTransactionID {
   static const toJsonFactory = _$AutocompleteTransactionIDToJson;
   Map<String, dynamic> toJson() => _$AutocompleteTransactionIDToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'transaction_group_id', includeIfNull: false)
+  @JsonKey(name: 'transaction_group_id', includeIfNull: true)
   final String? transactionGroupId;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String description;
   static const fromJsonFactory = _$AutocompleteTransactionIDFromJson;
 
@@ -2238,11 +2227,11 @@ class AutocompleteTransactionType {
   static const toJsonFactory = _$AutocompleteTransactionTypeToJson;
   Map<String, dynamic> toJson() => _$AutocompleteTransactionTypeToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
   static const fromJsonFactory = _$AutocompleteTransactionTypeFromJson;
 
@@ -2286,7 +2275,7 @@ class ChartDataPoint {
   static const toJsonFactory = _$ChartDataPointToJson;
   Map<String, dynamic> toJson() => _$ChartDataPointToJson(this);
 
-  @JsonKey(name: 'key', includeIfNull: false)
+  @JsonKey(name: 'key', includeIfNull: true)
   final String? key;
   static const fromJsonFactory = _$ChartDataPointFromJson;
 
@@ -2334,48 +2323,48 @@ class ChartDataSet {
   static const toJsonFactory = _$ChartDataSetToJson;
   Map<String, dynamic> toJson() => _$ChartDataSetToJson(this);
 
-  @JsonKey(name: 'label', includeIfNull: false)
+  @JsonKey(name: 'label', includeIfNull: true)
   final String? label;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'date', includeIfNull: false)
+  @JsonKey(name: 'date', includeIfNull: true)
   final DateTime? date;
-  @JsonKey(name: 'start_date', includeIfNull: false)
+  @JsonKey(name: 'start_date', includeIfNull: true)
   final DateTime? startDate;
-  @JsonKey(name: 'end_date', includeIfNull: false)
+  @JsonKey(name: 'end_date', includeIfNull: true)
   final DateTime? endDate;
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String? type;
   @JsonKey(
     name: 'period',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: chartDatasetPeriodPropertyNullableToJson,
     fromJson: chartDatasetPeriodPropertyNullableFromJson,
   )
   final enums.ChartDatasetPeriodProperty? period;
-  @JsonKey(name: 'yAxisID', includeIfNull: false)
+  @JsonKey(name: 'yAxisID', includeIfNull: true)
   final int? yAxisID;
-  @JsonKey(name: 'entries', includeIfNull: false)
+  @JsonKey(name: 'entries', includeIfNull: true)
   final Object? entries;
-  @JsonKey(name: 'pc_entries', includeIfNull: false)
+  @JsonKey(name: 'pc_entries', includeIfNull: true)
   final Object? pcEntries;
   static const fromJsonFactory = _$ChartDataSetFromJson;
 
@@ -2515,17 +2504,17 @@ class InsightGroupEntry {
   static const toJsonFactory = _$InsightGroupEntryToJson;
   Map<String, dynamic> toJson() => _$InsightGroupEntryToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String? id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String? name;
-  @JsonKey(name: 'difference', includeIfNull: false)
+  @JsonKey(name: 'difference', includeIfNull: true)
   final String? difference;
-  @JsonKey(name: 'difference_float', includeIfNull: false)
+  @JsonKey(name: 'difference_float', includeIfNull: true)
   final double? differenceFloat;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
   static const fromJsonFactory = _$InsightGroupEntryFromJson;
 
@@ -2592,13 +2581,13 @@ class InsightTotalEntry {
   static const toJsonFactory = _$InsightTotalEntryToJson;
   Map<String, dynamic> toJson() => _$InsightTotalEntryToJson(this);
 
-  @JsonKey(name: 'difference', includeIfNull: false)
+  @JsonKey(name: 'difference', includeIfNull: true)
   final String? difference;
-  @JsonKey(name: 'difference_float', includeIfNull: false)
+  @JsonKey(name: 'difference_float', includeIfNull: true)
   final double? differenceFloat;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
   static const fromJsonFactory = _$InsightTotalEntryFromJson;
 
@@ -2663,25 +2652,25 @@ class InsightTransferEntry {
   static const toJsonFactory = _$InsightTransferEntryToJson;
   Map<String, dynamic> toJson() => _$InsightTransferEntryToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String? id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String? name;
-  @JsonKey(name: 'difference', includeIfNull: false)
+  @JsonKey(name: 'difference', includeIfNull: true)
   final String? difference;
-  @JsonKey(name: 'difference_float', includeIfNull: false)
+  @JsonKey(name: 'difference_float', includeIfNull: true)
   final double? differenceFloat;
-  @JsonKey(name: 'in', includeIfNull: false)
+  @JsonKey(name: 'in', includeIfNull: true)
   final String? $in;
-  @JsonKey(name: 'in_float', includeIfNull: false)
+  @JsonKey(name: 'in_float', includeIfNull: true)
   final double? inFloat;
-  @JsonKey(name: 'out', includeIfNull: false)
+  @JsonKey(name: 'out', includeIfNull: true)
   final String? out;
-  @JsonKey(name: 'out_float', includeIfNull: false)
+  @JsonKey(name: 'out_float', includeIfNull: true)
   final double? outFloat;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
   static const fromJsonFactory = _$InsightTransferEntryFromJson;
 
@@ -2761,11 +2750,11 @@ class CategoryRead {
   static const toJsonFactory = _$CategoryReadToJson;
   Map<String, dynamic> toJson() => _$CategoryReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final CategoryProperties attributes;
   static const fromJsonFactory = _$CategoryReadFromJson;
 
@@ -2809,7 +2798,7 @@ class CategorySingle {
   static const toJsonFactory = _$CategorySingleToJson;
   Map<String, dynamic> toJson() => _$CategorySingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final CategoryRead data;
   static const fromJsonFactory = _$CategorySingleFromJson;
 
@@ -2837,7 +2826,7 @@ class ConfigurationSingle {
   static const toJsonFactory = _$ConfigurationSingleToJson;
   Map<String, dynamic> toJson() => _$ConfigurationSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final Configuration data;
   static const fromJsonFactory = _$ConfigurationSingleFromJson;
 
@@ -2869,11 +2858,11 @@ class CurrencyRead {
   static const toJsonFactory = _$CurrencyReadToJson;
   Map<String, dynamic> toJson() => _$CurrencyReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final CurrencyProperties attributes;
   static const fromJsonFactory = _$CurrencyReadFromJson;
 
@@ -2917,7 +2906,7 @@ class CurrencySingle {
   static const toJsonFactory = _$CurrencySingleToJson;
   Map<String, dynamic> toJson() => _$CurrencySingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final CurrencyRead data;
   static const fromJsonFactory = _$CurrencySingleFromJson;
 
@@ -2950,13 +2939,13 @@ class LinkTypeRead {
   static const toJsonFactory = _$LinkTypeReadToJson;
   Map<String, dynamic> toJson() => _$LinkTypeReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final LinkType attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$LinkTypeReadFromJson;
 
@@ -3004,7 +2993,7 @@ class LinkTypeSingle {
   static const toJsonFactory = _$LinkTypeSingleToJson;
   Map<String, dynamic> toJson() => _$LinkTypeSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final LinkTypeRead data;
   static const fromJsonFactory = _$LinkTypeSingleFromJson;
 
@@ -3036,11 +3025,11 @@ class ObjectGroupRead {
   static const toJsonFactory = _$ObjectGroupReadToJson;
   Map<String, dynamic> toJson() => _$ObjectGroupReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final ObjectGroup attributes;
   static const fromJsonFactory = _$ObjectGroupReadFromJson;
 
@@ -3084,7 +3073,7 @@ class ObjectGroupSingle {
   static const toJsonFactory = _$ObjectGroupSingleToJson;
   Map<String, dynamic> toJson() => _$ObjectGroupSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final ObjectGroupRead data;
   static const fromJsonFactory = _$ObjectGroupSingleFromJson;
 
@@ -3117,13 +3106,13 @@ class PiggyBankEventRead {
   static const toJsonFactory = _$PiggyBankEventReadToJson;
   Map<String, dynamic> toJson() => _$PiggyBankEventReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final PiggyBankEventProperties attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$PiggyBankEventReadFromJson;
 
@@ -3176,13 +3165,13 @@ class PiggyBankRead {
   static const toJsonFactory = _$PiggyBankReadToJson;
   Map<String, dynamic> toJson() => _$PiggyBankReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final PiggyBankProperties attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$PiggyBankReadFromJson;
 
@@ -3230,7 +3219,7 @@ class PiggyBankSingle {
   static const toJsonFactory = _$PiggyBankSingleToJson;
   Map<String, dynamic> toJson() => _$PiggyBankSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final PiggyBankRead data;
   static const fromJsonFactory = _$PiggyBankSingleFromJson;
 
@@ -3262,11 +3251,11 @@ class PreferenceRead {
   static const toJsonFactory = _$PreferenceReadToJson;
   Map<String, dynamic> toJson() => _$PreferenceReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final Preference attributes;
   static const fromJsonFactory = _$PreferenceReadFromJson;
 
@@ -3306,7 +3295,7 @@ class PreferenceSingle {
   static const toJsonFactory = _$PreferenceSingleToJson;
   Map<String, dynamic> toJson() => _$PreferenceSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final PreferenceRead data;
   static const fromJsonFactory = _$PreferenceSingleFromJson;
 
@@ -3339,13 +3328,13 @@ class RecurrenceRead {
   static const toJsonFactory = _$RecurrenceReadToJson;
   Map<String, dynamic> toJson() => _$RecurrenceReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final RecurrenceProperties attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$RecurrenceReadFromJson;
 
@@ -3393,7 +3382,7 @@ class RecurrenceSingle {
   static const toJsonFactory = _$RecurrenceSingleToJson;
   Map<String, dynamic> toJson() => _$RecurrenceSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final RecurrenceRead data;
   static const fromJsonFactory = _$RecurrenceSingleFromJson;
 
@@ -3426,13 +3415,13 @@ class RuleGroupRead {
   static const toJsonFactory = _$RuleGroupReadToJson;
   Map<String, dynamic> toJson() => _$RuleGroupReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final RuleGroup attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$RuleGroupReadFromJson;
 
@@ -3480,7 +3469,7 @@ class RuleGroupSingle {
   static const toJsonFactory = _$RuleGroupSingleToJson;
   Map<String, dynamic> toJson() => _$RuleGroupSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final RuleGroupRead data;
   static const fromJsonFactory = _$RuleGroupSingleFromJson;
 
@@ -3513,13 +3502,13 @@ class RuleRead {
   static const toJsonFactory = _$RuleReadToJson;
   Map<String, dynamic> toJson() => _$RuleReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final Rule attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$RuleReadFromJson;
 
@@ -3567,7 +3556,7 @@ class RuleSingle {
   static const toJsonFactory = _$RuleSingleToJson;
   Map<String, dynamic> toJson() => _$RuleSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final RuleRead data;
   static const fromJsonFactory = _$RuleSingleFromJson;
 
@@ -3600,13 +3589,13 @@ class TagRead {
   static const toJsonFactory = _$TagReadToJson;
   Map<String, dynamic> toJson() => _$TagReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final TagModel attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$TagReadFromJson;
 
@@ -3654,7 +3643,7 @@ class TagSingle {
   static const toJsonFactory = _$TagSingleToJson;
   Map<String, dynamic> toJson() => _$TagSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final TagRead data;
   static const fromJsonFactory = _$TagSingleFromJson;
 
@@ -3687,13 +3676,13 @@ class TransactionLinkRead {
   static const toJsonFactory = _$TransactionLinkReadToJson;
   Map<String, dynamic> toJson() => _$TransactionLinkReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final TransactionLink attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$TransactionLinkReadFromJson;
 
@@ -3741,7 +3730,7 @@ class TransactionLinkSingle {
   static const toJsonFactory = _$TransactionLinkSingleToJson;
   Map<String, dynamic> toJson() => _$TransactionLinkSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final TransactionLinkRead data;
   static const fromJsonFactory = _$TransactionLinkSingleFromJson;
 
@@ -3774,13 +3763,13 @@ class TransactionRead {
   static const toJsonFactory = _$TransactionReadToJson;
   Map<String, dynamic> toJson() => _$TransactionReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final Transaction attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$TransactionReadFromJson;
 
@@ -3828,7 +3817,7 @@ class TransactionSingle {
   static const toJsonFactory = _$TransactionSingleToJson;
   Map<String, dynamic> toJson() => _$TransactionSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final TransactionRead data;
   static const fromJsonFactory = _$TransactionSingleFromJson;
 
@@ -3861,13 +3850,13 @@ class UserRead {
   static const toJsonFactory = _$UserReadToJson;
   Map<String, dynamic> toJson() => _$UserReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final User attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$UserReadFromJson;
 
@@ -3919,11 +3908,11 @@ class WebhookAttemptRead {
   static const toJsonFactory = _$WebhookAttemptReadToJson;
   Map<String, dynamic> toJson() => _$WebhookAttemptReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final WebhookAttempt attributes;
   static const fromJsonFactory = _$WebhookAttemptReadFromJson;
 
@@ -3967,7 +3956,7 @@ class WebhookAttemptSingle {
   static const toJsonFactory = _$WebhookAttemptSingleToJson;
   Map<String, dynamic> toJson() => _$WebhookAttemptSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final WebhookAttemptRead data;
   static const fromJsonFactory = _$WebhookAttemptSingleFromJson;
 
@@ -3999,11 +3988,11 @@ class WebhookMessageRead {
   static const toJsonFactory = _$WebhookMessageReadToJson;
   Map<String, dynamic> toJson() => _$WebhookMessageReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final WebhookMessage attributes;
   static const fromJsonFactory = _$WebhookMessageReadFromJson;
 
@@ -4047,7 +4036,7 @@ class WebhookMessageSingle {
   static const toJsonFactory = _$WebhookMessageSingleToJson;
   Map<String, dynamic> toJson() => _$WebhookMessageSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final WebhookMessageRead data;
   static const fromJsonFactory = _$WebhookMessageSingleFromJson;
 
@@ -4080,13 +4069,13 @@ class WebhookRead {
   static const toJsonFactory = _$WebhookReadToJson;
   Map<String, dynamic> toJson() => _$WebhookReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final WebhookProperties attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$WebhookReadFromJson;
 
@@ -4134,7 +4123,7 @@ class WebhookSingle {
   static const toJsonFactory = _$WebhookSingleToJson;
   Map<String, dynamic> toJson() => _$WebhookSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final WebhookRead data;
   static const fromJsonFactory = _$WebhookSingleFromJson;
 
@@ -4211,131 +4200,131 @@ class AccountProperties {
   static const toJsonFactory = _$AccountPropertiesToJson;
   Map<String, dynamic> toJson() => _$AccountPropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'active', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'active', includeIfNull: true, defaultValue: true)
   final bool? active;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: shortAccountTypePropertyToJson,
     fromJson: shortAccountTypePropertyFromJson,
   )
   final enums.ShortAccountTypeProperty type;
   @JsonKey(
     name: 'account_role',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: accountRolePropertyNullableToJson,
     fromJson: accountRolePropertyNullableFromJson,
   )
   final enums.AccountRoleProperty? accountRole;
-  @JsonKey(name: 'object_group_id', includeIfNull: false)
+  @JsonKey(name: 'object_group_id', includeIfNull: true)
   final String? objectGroupId;
-  @JsonKey(name: 'object_group_order', includeIfNull: false)
+  @JsonKey(name: 'object_group_order', includeIfNull: true)
   final int? objectGroupOrder;
-  @JsonKey(name: 'object_group_title', includeIfNull: false)
+  @JsonKey(name: 'object_group_title', includeIfNull: true)
   final String? objectGroupTitle;
-  @JsonKey(name: 'object_has_currency_setting', includeIfNull: false)
+  @JsonKey(name: 'object_has_currency_setting', includeIfNull: true)
   final bool? objectHasCurrencySetting;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'current_balance', includeIfNull: false)
+  @JsonKey(name: 'current_balance', includeIfNull: true)
   final String? currentBalance;
-  @JsonKey(name: 'pc_current_balance', includeIfNull: false)
+  @JsonKey(name: 'pc_current_balance', includeIfNull: true)
   final String? pcCurrentBalance;
-  @JsonKey(name: 'balance_difference', includeIfNull: false)
+  @JsonKey(name: 'balance_difference', includeIfNull: true)
   final String? balanceDifference;
-  @JsonKey(name: 'pc_balance_difference', includeIfNull: false)
+  @JsonKey(name: 'pc_balance_difference', includeIfNull: true)
   final String? pcBalanceDifference;
-  @JsonKey(name: 'opening_balance', includeIfNull: false)
+  @JsonKey(name: 'opening_balance', includeIfNull: true)
   final String? openingBalance;
-  @JsonKey(name: 'pc_opening_balance', includeIfNull: false)
+  @JsonKey(name: 'pc_opening_balance', includeIfNull: true)
   final String? pcOpeningBalance;
-  @JsonKey(name: 'virtual_balance', includeIfNull: false)
+  @JsonKey(name: 'virtual_balance', includeIfNull: true)
   final String? virtualBalance;
-  @JsonKey(name: 'pc_virtual_balance', includeIfNull: false)
+  @JsonKey(name: 'pc_virtual_balance', includeIfNull: true)
   final String? pcVirtualBalance;
-  @JsonKey(name: 'debt_amount', includeIfNull: false)
+  @JsonKey(name: 'debt_amount', includeIfNull: true)
   final String? debtAmount;
-  @JsonKey(name: 'pc_debt_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_debt_amount', includeIfNull: true)
   final String? pcDebtAmount;
-  @JsonKey(name: 'current_balance_date', includeIfNull: false)
+  @JsonKey(name: 'current_balance_date', includeIfNull: true)
   final DateTime? currentBalanceDate;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'monthly_payment_date', includeIfNull: false)
+  @JsonKey(name: 'monthly_payment_date', includeIfNull: true)
   final DateTime? monthlyPaymentDate;
   @JsonKey(
     name: 'credit_card_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: creditCardTypePropertyNullableToJson,
     fromJson: creditCardTypePropertyNullableFromJson,
   )
   final enums.CreditCardTypeProperty? creditCardType;
-  @JsonKey(name: 'account_number', includeIfNull: false)
+  @JsonKey(name: 'account_number', includeIfNull: true)
   final String? accountNumber;
-  @JsonKey(name: 'iban', includeIfNull: false)
+  @JsonKey(name: 'iban', includeIfNull: true)
   final String? iban;
-  @JsonKey(name: 'bic', includeIfNull: false)
+  @JsonKey(name: 'bic', includeIfNull: true)
   final String? bic;
-  @JsonKey(name: 'opening_balance_date', includeIfNull: false)
+  @JsonKey(name: 'opening_balance_date', includeIfNull: true)
   final DateTime? openingBalanceDate;
   @JsonKey(
     name: 'liability_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: liabilityTypePropertyNullableToJson,
     fromJson: liabilityTypePropertyNullableFromJson,
   )
   final enums.LiabilityTypeProperty? liabilityType;
   @JsonKey(
     name: 'liability_direction',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: liabilityDirectionPropertyNullableToJson,
     fromJson: liabilityDirectionPropertyNullableFromJson,
   )
   final enums.LiabilityDirectionProperty? liabilityDirection;
-  @JsonKey(name: 'interest', includeIfNull: false)
+  @JsonKey(name: 'interest', includeIfNull: true)
   final String? interest;
   @JsonKey(
     name: 'interest_period',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: interestPeriodPropertyNullableToJson,
     fromJson: interestPeriodPropertyNullableFromJson,
   )
   final enums.InterestPeriodProperty? interestPeriod;
-  @JsonKey(name: 'include_net_worth', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'include_net_worth', includeIfNull: true, defaultValue: true)
   final bool? includeNetWorth;
-  @JsonKey(name: 'longitude', includeIfNull: false)
+  @JsonKey(name: 'longitude', includeIfNull: true)
   final double? longitude;
-  @JsonKey(name: 'latitude', includeIfNull: false)
+  @JsonKey(name: 'latitude', includeIfNull: true)
   final double? latitude;
-  @JsonKey(name: 'zoom_level', includeIfNull: false)
+  @JsonKey(name: 'zoom_level', includeIfNull: true)
   final int? zoomLevel;
-  @JsonKey(name: 'last_activity', includeIfNull: false)
+  @JsonKey(name: 'last_activity', includeIfNull: true)
   final DateTime? lastActivity;
   static const fromJsonFactory = _$AccountPropertiesFromJson;
 
@@ -4631,11 +4620,11 @@ class AccountRead {
   static const toJsonFactory = _$AccountReadToJson;
   Map<String, dynamic> toJson() => _$AccountReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final AccountProperties attributes;
   static const fromJsonFactory = _$AccountReadFromJson;
 
@@ -4679,7 +4668,7 @@ class AccountSingle {
   static const toJsonFactory = _$AccountSingleToJson;
   Map<String, dynamic> toJson() => _$AccountSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final AccountRead data;
   static const fromJsonFactory = _$AccountSingleFromJson;
 
@@ -4732,83 +4721,83 @@ class AccountStore {
   static const toJsonFactory = _$AccountStoreToJson;
   Map<String, dynamic> toJson() => _$AccountStoreToJson(this);
 
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: shortAccountTypePropertyToJson,
     fromJson: shortAccountTypePropertyFromJson,
   )
   final enums.ShortAccountTypeProperty type;
-  @JsonKey(name: 'iban', includeIfNull: false)
+  @JsonKey(name: 'iban', includeIfNull: true)
   final String? iban;
-  @JsonKey(name: 'bic', includeIfNull: false)
+  @JsonKey(name: 'bic', includeIfNull: true)
   final String? bic;
-  @JsonKey(name: 'account_number', includeIfNull: false)
+  @JsonKey(name: 'account_number', includeIfNull: true)
   final String? accountNumber;
-  @JsonKey(name: 'opening_balance', includeIfNull: false)
+  @JsonKey(name: 'opening_balance', includeIfNull: true)
   final String? openingBalance;
-  @JsonKey(name: 'opening_balance_date', includeIfNull: false)
+  @JsonKey(name: 'opening_balance_date', includeIfNull: true)
   final DateTime? openingBalanceDate;
-  @JsonKey(name: 'virtual_balance', includeIfNull: false)
+  @JsonKey(name: 'virtual_balance', includeIfNull: true)
   final String? virtualBalance;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'active', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'active', includeIfNull: true, defaultValue: true)
   final bool? active;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'include_net_worth', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'include_net_worth', includeIfNull: true, defaultValue: true)
   final bool? includeNetWorth;
   @JsonKey(
     name: 'account_role',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: accountRolePropertyNullableToJson,
     fromJson: accountRolePropertyNullableFromJson,
   )
   final enums.AccountRoleProperty? accountRole;
   @JsonKey(
     name: 'credit_card_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: creditCardTypePropertyNullableToJson,
     fromJson: creditCardTypePropertyNullableFromJson,
   )
   final enums.CreditCardTypeProperty? creditCardType;
-  @JsonKey(name: 'monthly_payment_date', includeIfNull: false)
+  @JsonKey(name: 'monthly_payment_date', includeIfNull: true)
   final DateTime? monthlyPaymentDate;
   @JsonKey(
     name: 'liability_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: liabilityTypePropertyNullableToJson,
     fromJson: liabilityTypePropertyNullableFromJson,
   )
   final enums.LiabilityTypeProperty? liabilityType;
   @JsonKey(
     name: 'liability_direction',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: liabilityDirectionPropertyNullableToJson,
     fromJson: liabilityDirectionPropertyNullableFromJson,
   )
   final enums.LiabilityDirectionProperty? liabilityDirection;
-  @JsonKey(name: 'interest', includeIfNull: false)
+  @JsonKey(name: 'interest', includeIfNull: true)
   final String? interest;
   @JsonKey(
     name: 'interest_period',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: interestPeriodPropertyNullableToJson,
     fromJson: interestPeriodPropertyNullableFromJson,
   )
   final enums.InterestPeriodProperty? interestPeriod;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'latitude', includeIfNull: false)
+  @JsonKey(name: 'latitude', includeIfNull: true)
   final double? latitude;
-  @JsonKey(name: 'longitude', includeIfNull: false)
+  @JsonKey(name: 'longitude', includeIfNull: true)
   final double? longitude;
-  @JsonKey(name: 'zoom_level', includeIfNull: false)
+  @JsonKey(name: 'zoom_level', includeIfNull: true)
   final int? zoomLevel;
   static const fromJsonFactory = _$AccountStoreFromJson;
 
@@ -4981,69 +4970,69 @@ class AccountUpdate {
   static const toJsonFactory = _$AccountUpdateToJson;
   Map<String, dynamic> toJson() => _$AccountUpdateToJson(this);
 
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'iban', includeIfNull: false)
+  @JsonKey(name: 'iban', includeIfNull: true)
   final String? iban;
-  @JsonKey(name: 'bic', includeIfNull: false)
+  @JsonKey(name: 'bic', includeIfNull: true)
   final String? bic;
-  @JsonKey(name: 'account_number', includeIfNull: false)
+  @JsonKey(name: 'account_number', includeIfNull: true)
   final String? accountNumber;
-  @JsonKey(name: 'opening_balance', includeIfNull: false)
+  @JsonKey(name: 'opening_balance', includeIfNull: true)
   final String? openingBalance;
-  @JsonKey(name: 'opening_balance_date', includeIfNull: false)
+  @JsonKey(name: 'opening_balance_date', includeIfNull: true)
   final DateTime? openingBalanceDate;
-  @JsonKey(name: 'virtual_balance', includeIfNull: false)
+  @JsonKey(name: 'virtual_balance', includeIfNull: true)
   final String? virtualBalance;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'active', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'active', includeIfNull: true, defaultValue: true)
   final bool? active;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'include_net_worth', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'include_net_worth', includeIfNull: true, defaultValue: true)
   final bool? includeNetWorth;
   @JsonKey(
     name: 'account_role',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: accountRolePropertyNullableToJson,
     fromJson: accountRolePropertyNullableFromJson,
   )
   final enums.AccountRoleProperty? accountRole;
   @JsonKey(
     name: 'credit_card_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: creditCardTypePropertyNullableToJson,
     fromJson: creditCardTypePropertyNullableFromJson,
   )
   final enums.CreditCardTypeProperty? creditCardType;
-  @JsonKey(name: 'monthly_payment_date', includeIfNull: false)
+  @JsonKey(name: 'monthly_payment_date', includeIfNull: true)
   final DateTime? monthlyPaymentDate;
   @JsonKey(
     name: 'liability_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: liabilityTypePropertyNullableToJson,
     fromJson: liabilityTypePropertyNullableFromJson,
   )
   final enums.LiabilityTypeProperty? liabilityType;
-  @JsonKey(name: 'interest', includeIfNull: false)
+  @JsonKey(name: 'interest', includeIfNull: true)
   final String? interest;
   @JsonKey(
     name: 'interest_period',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: interestPeriodPropertyNullableToJson,
     fromJson: interestPeriodPropertyNullableFromJson,
   )
   final enums.InterestPeriodProperty? interestPeriod;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'latitude', includeIfNull: false)
+  @JsonKey(name: 'latitude', includeIfNull: true)
   final double? latitude;
-  @JsonKey(name: 'longitude', includeIfNull: false)
+  @JsonKey(name: 'longitude', includeIfNull: true)
   final double? longitude;
-  @JsonKey(name: 'zoom_level', includeIfNull: false)
+  @JsonKey(name: 'zoom_level', includeIfNull: true)
   final int? zoomLevel;
   static const fromJsonFactory = _$AccountUpdateFromJson;
 
@@ -5189,15 +5178,15 @@ class ArrayEntryWithCurrencyAndSum {
   static const toJsonFactory = _$ArrayEntryWithCurrencyAndSumToJson;
   Map<String, dynamic> toJson() => _$ArrayEntryWithCurrencyAndSumToJson(this);
 
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'sum', includeIfNull: false)
+  @JsonKey(name: 'sum', includeIfNull: true)
   final String? sum;
   static const fromJsonFactory = _$ArrayEntryWithCurrencyAndSumFromJson;
 
@@ -5270,34 +5259,34 @@ class AttachmentProperties {
   static const toJsonFactory = _$AttachmentPropertiesToJson;
   Map<String, dynamic> toJson() => _$AttachmentPropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
   @JsonKey(
     name: 'attachable_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: attachableTypeNullableToJson,
     fromJson: attachableTypeNullableFromJson,
   )
   final enums.AttachableType? attachableType;
-  @JsonKey(name: 'attachable_id', includeIfNull: false)
+  @JsonKey(name: 'attachable_id', includeIfNull: true)
   final String? attachableId;
-  @JsonKey(name: 'hash', includeIfNull: false)
+  @JsonKey(name: 'hash', includeIfNull: true)
   final String? hash;
-  @JsonKey(name: 'filename', includeIfNull: false)
+  @JsonKey(name: 'filename', includeIfNull: true)
   final String? filename;
-  @JsonKey(name: 'download_url', includeIfNull: false)
+  @JsonKey(name: 'download_url', includeIfNull: true)
   final String? downloadUrl;
-  @JsonKey(name: 'upload_url', includeIfNull: false)
+  @JsonKey(name: 'upload_url', includeIfNull: true)
   final String? uploadUrl;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String? title;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'mime', includeIfNull: false)
+  @JsonKey(name: 'mime', includeIfNull: true)
   final String? mime;
-  @JsonKey(name: 'size', includeIfNull: false)
+  @JsonKey(name: 'size', includeIfNull: true)
   final int? size;
   static const fromJsonFactory = _$AttachmentPropertiesFromJson;
 
@@ -5386,13 +5375,13 @@ class AttachmentRead {
   static const toJsonFactory = _$AttachmentReadToJson;
   Map<String, dynamic> toJson() => _$AttachmentReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final AttachmentProperties attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$AttachmentReadFromJson;
 
@@ -5440,7 +5429,7 @@ class AttachmentSingle {
   static const toJsonFactory = _$AttachmentSingleToJson;
   Map<String, dynamic> toJson() => _$AttachmentSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final AttachmentRead data;
   static const fromJsonFactory = _$AttachmentSingleFromJson;
 
@@ -5474,20 +5463,20 @@ class AttachmentStore {
   static const toJsonFactory = _$AttachmentStoreToJson;
   Map<String, dynamic> toJson() => _$AttachmentStoreToJson(this);
 
-  @JsonKey(name: 'filename', includeIfNull: false)
+  @JsonKey(name: 'filename', includeIfNull: true)
   final String filename;
   @JsonKey(
     name: 'attachable_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: attachableTypeToJson,
     fromJson: attachableTypeFromJson,
   )
   final enums.AttachableType attachableType;
-  @JsonKey(name: 'attachable_id', includeIfNull: false)
+  @JsonKey(name: 'attachable_id', includeIfNull: true)
   final String attachableId;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String? title;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   static const fromJsonFactory = _$AttachmentStoreFromJson;
 
@@ -5543,11 +5532,11 @@ class AttachmentUpdate {
   static const toJsonFactory = _$AttachmentUpdateToJson;
   Map<String, dynamic> toJson() => _$AttachmentUpdateToJson(this);
 
-  @JsonKey(name: 'filename', includeIfNull: false)
+  @JsonKey(name: 'filename', includeIfNull: true)
   final String? filename;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String? title;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   static const fromJsonFactory = _$AttachmentUpdateFromJson;
 
@@ -5609,61 +5598,61 @@ class AvailableBudgetProperties {
   static const toJsonFactory = _$AvailableBudgetPropertiesToJson;
   Map<String, dynamic> toJson() => _$AvailableBudgetPropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'object_has_currency_setting', includeIfNull: false)
+  @JsonKey(name: 'object_has_currency_setting', includeIfNull: true)
   final bool? objectHasCurrencySetting;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String? amount;
-  @JsonKey(name: 'pc_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_amount', includeIfNull: true)
   final String? pcAmount;
-  @JsonKey(name: 'start', includeIfNull: false)
+  @JsonKey(name: 'start', includeIfNull: true)
   final DateTime? start;
-  @JsonKey(name: 'end', includeIfNull: false)
+  @JsonKey(name: 'end', includeIfNull: true)
   final DateTime? end;
   @JsonKey(
     name: 'spent_in_budgets',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? spentInBudgets;
   @JsonKey(
     name: 'pc_spent_in_budgets',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? pcSpentInBudgets;
   @JsonKey(
     name: 'spent_outside_budgets',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? spentOutsideBudgets;
   @JsonKey(
     name: 'pc_spent_outside_budgets',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? pcSpentOutsideBudgets;
@@ -5818,11 +5807,11 @@ class AvailableBudgetRead {
   static const toJsonFactory = _$AvailableBudgetReadToJson;
   Map<String, dynamic> toJson() => _$AvailableBudgetReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final AvailableBudgetProperties attributes;
   static const fromJsonFactory = _$AvailableBudgetReadFromJson;
 
@@ -5866,7 +5855,7 @@ class AvailableBudgetSingle {
   static const toJsonFactory = _$AvailableBudgetSingleToJson;
   Map<String, dynamic> toJson() => _$AvailableBudgetSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final AvailableBudgetRead data;
   static const fromJsonFactory = _$AvailableBudgetSingleFromJson;
 
@@ -5930,80 +5919,80 @@ class BillProperties {
   static const toJsonFactory = _$BillPropertiesToJson;
   Map<String, dynamic> toJson() => _$BillPropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String? name;
-  @JsonKey(name: 'object_has_currency_setting', includeIfNull: false)
+  @JsonKey(name: 'object_has_currency_setting', includeIfNull: true)
   final bool? objectHasCurrencySetting;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'amount_min', includeIfNull: false)
+  @JsonKey(name: 'amount_min', includeIfNull: true)
   final String? amountMin;
-  @JsonKey(name: 'pc_amount_min', includeIfNull: false)
+  @JsonKey(name: 'pc_amount_min', includeIfNull: true)
   final String? pcAmountMin;
-  @JsonKey(name: 'amount_max', includeIfNull: false)
+  @JsonKey(name: 'amount_max', includeIfNull: true)
   final String? amountMax;
-  @JsonKey(name: 'pc_amount_max', includeIfNull: false)
+  @JsonKey(name: 'pc_amount_max', includeIfNull: true)
   final String? pcAmountMax;
-  @JsonKey(name: 'amount_avg', includeIfNull: false)
+  @JsonKey(name: 'amount_avg', includeIfNull: true)
   final String? amountAvg;
-  @JsonKey(name: 'pc_amount_avg', includeIfNull: false)
+  @JsonKey(name: 'pc_amount_avg', includeIfNull: true)
   final String? pcAmountAvg;
-  @JsonKey(name: 'date', includeIfNull: false)
+  @JsonKey(name: 'date', includeIfNull: true)
   final DateTime? date;
-  @JsonKey(name: 'end_date', includeIfNull: false)
+  @JsonKey(name: 'end_date', includeIfNull: true)
   final DateTime? endDate;
-  @JsonKey(name: 'extension_date', includeIfNull: false)
+  @JsonKey(name: 'extension_date', includeIfNull: true)
   final DateTime? extensionDate;
   @JsonKey(
     name: 'repeat_freq',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: billRepeatFrequencyNullableToJson,
     fromJson: billRepeatFrequencyNullableFromJson,
   )
   final enums.BillRepeatFrequency? repeatFreq;
-  @JsonKey(name: 'skip', includeIfNull: false)
+  @JsonKey(name: 'skip', includeIfNull: true)
   final int? skip;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'object_group_id', includeIfNull: false)
+  @JsonKey(name: 'object_group_id', includeIfNull: true)
   final String? objectGroupId;
-  @JsonKey(name: 'object_group_order', includeIfNull: false)
+  @JsonKey(name: 'object_group_order', includeIfNull: true)
   final int? objectGroupOrder;
-  @JsonKey(name: 'object_group_title', includeIfNull: false)
+  @JsonKey(name: 'object_group_title', includeIfNull: true)
   final String? objectGroupTitle;
-  @JsonKey(name: 'paid_dates', includeIfNull: false)
+  @JsonKey(name: 'paid_dates', includeIfNull: true)
   final List<BillProperties$PaidDates$Item>? paidDates;
-  @JsonKey(name: 'pay_dates', includeIfNull: false, defaultValue: <DateTime>[])
+  @JsonKey(name: 'pay_dates', includeIfNull: true, defaultValue: <DateTime>[])
   final List<DateTime>? payDates;
-  @JsonKey(name: 'next_expected_match', includeIfNull: false)
+  @JsonKey(name: 'next_expected_match', includeIfNull: true)
   final DateTime? nextExpectedMatch;
-  @JsonKey(name: 'next_expected_match_diff', includeIfNull: false)
+  @JsonKey(name: 'next_expected_match_diff', includeIfNull: true)
   final String? nextExpectedMatchDiff;
   static const fromJsonFactory = _$BillPropertiesFromJson;
 
@@ -6216,11 +6205,11 @@ class BillRead {
   static const toJsonFactory = _$BillReadToJson;
   Map<String, dynamic> toJson() => _$BillReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final BillProperties attributes;
   static const fromJsonFactory = _$BillReadFromJson;
 
@@ -6260,7 +6249,7 @@ class BillSingle {
   static const toJsonFactory = _$BillSingleToJson;
   Map<String, dynamic> toJson() => _$BillSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final BillRead data;
   static const fromJsonFactory = _$BillSingleFromJson;
 
@@ -6303,38 +6292,38 @@ class BillStore {
   static const toJsonFactory = _$BillStoreToJson;
   Map<String, dynamic> toJson() => _$BillStoreToJson(this);
 
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'amount_min', includeIfNull: false)
+  @JsonKey(name: 'amount_min', includeIfNull: true)
   final String amountMin;
-  @JsonKey(name: 'amount_max', includeIfNull: false)
+  @JsonKey(name: 'amount_max', includeIfNull: true)
   final String amountMax;
-  @JsonKey(name: 'date', includeIfNull: false)
+  @JsonKey(name: 'date', includeIfNull: true)
   final DateTime date;
-  @JsonKey(name: 'end_date', includeIfNull: false)
+  @JsonKey(name: 'end_date', includeIfNull: true)
   final DateTime? endDate;
-  @JsonKey(name: 'extension_date', includeIfNull: false)
+  @JsonKey(name: 'extension_date', includeIfNull: true)
   final DateTime? extensionDate;
   @JsonKey(
     name: 'repeat_freq',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: billRepeatFrequencyToJson,
     fromJson: billRepeatFrequencyFromJson,
   )
   final enums.BillRepeatFrequency repeatFreq;
-  @JsonKey(name: 'skip', includeIfNull: false)
+  @JsonKey(name: 'skip', includeIfNull: true)
   final int? skip;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'object_group_id', includeIfNull: false)
+  @JsonKey(name: 'object_group_id', includeIfNull: true)
   final String? objectGroupId;
-  @JsonKey(name: 'object_group_title', includeIfNull: false)
+  @JsonKey(name: 'object_group_title', includeIfNull: true)
   final String? objectGroupTitle;
   static const fromJsonFactory = _$BillStoreFromJson;
 
@@ -6445,38 +6434,38 @@ class BillUpdate {
   static const toJsonFactory = _$BillUpdateToJson;
   Map<String, dynamic> toJson() => _$BillUpdateToJson(this);
 
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'amount_min', includeIfNull: false)
+  @JsonKey(name: 'amount_min', includeIfNull: true)
   final String? amountMin;
-  @JsonKey(name: 'amount_max', includeIfNull: false)
+  @JsonKey(name: 'amount_max', includeIfNull: true)
   final String? amountMax;
-  @JsonKey(name: 'date', includeIfNull: false)
+  @JsonKey(name: 'date', includeIfNull: true)
   final DateTime? date;
-  @JsonKey(name: 'end_date', includeIfNull: false)
+  @JsonKey(name: 'end_date', includeIfNull: true)
   final DateTime? endDate;
-  @JsonKey(name: 'extension_date', includeIfNull: false)
+  @JsonKey(name: 'extension_date', includeIfNull: true)
   final DateTime? extensionDate;
   @JsonKey(
     name: 'repeat_freq',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: billRepeatFrequencyNullableToJson,
     fromJson: billRepeatFrequencyNullableFromJson,
   )
   final enums.BillRepeatFrequency? repeatFreq;
-  @JsonKey(name: 'skip', includeIfNull: false)
+  @JsonKey(name: 'skip', includeIfNull: true)
   final int? skip;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'object_group_id', includeIfNull: false)
+  @JsonKey(name: 'object_group_id', includeIfNull: true)
   final String? objectGroupId;
-  @JsonKey(name: 'object_group_title', includeIfNull: false)
+  @JsonKey(name: 'object_group_title', includeIfNull: true)
   final String? objectGroupTitle;
   static const fromJsonFactory = _$BillUpdateFromJson;
 
@@ -6599,73 +6588,73 @@ class BudgetProperties {
   static const toJsonFactory = _$BudgetPropertiesToJson;
   Map<String, dynamic> toJson() => _$BudgetPropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   @JsonKey(
     name: 'auto_budget_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: autoBudgetTypeNullableToJson,
     fromJson: autoBudgetTypeNullableFromJson,
   )
   final enums.AutoBudgetType? autoBudgetType;
   @JsonKey(
     name: 'auto_budget_period',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: autoBudgetPeriodNullableToJson,
     fromJson: autoBudgetPeriodNullableFromJson,
   )
   final enums.AutoBudgetPeriod? autoBudgetPeriod;
-  @JsonKey(name: 'object_group_id', includeIfNull: false)
+  @JsonKey(name: 'object_group_id', includeIfNull: true)
   final String? objectGroupId;
-  @JsonKey(name: 'object_group_order', includeIfNull: false)
+  @JsonKey(name: 'object_group_order', includeIfNull: true)
   final int? objectGroupOrder;
-  @JsonKey(name: 'object_group_title', includeIfNull: false)
+  @JsonKey(name: 'object_group_title', includeIfNull: true)
   final String? objectGroupTitle;
-  @JsonKey(name: 'object_has_currency_setting', includeIfNull: false)
+  @JsonKey(name: 'object_has_currency_setting', includeIfNull: true)
   final bool? objectHasCurrencySetting;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'auto_budget_amount', includeIfNull: false)
+  @JsonKey(name: 'auto_budget_amount', includeIfNull: true)
   final String? autoBudgetAmount;
-  @JsonKey(name: 'pc_auto_budget_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_auto_budget_amount', includeIfNull: true)
   final String? pcAutoBudgetAmount;
   @JsonKey(
     name: 'spent',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? spent;
   @JsonKey(
     name: 'pc_spent',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? pcSpent;
@@ -6845,11 +6834,11 @@ class BudgetRead {
   static const toJsonFactory = _$BudgetReadToJson;
   Map<String, dynamic> toJson() => _$BudgetReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final BudgetProperties attributes;
   static const fromJsonFactory = _$BudgetReadFromJson;
 
@@ -6893,7 +6882,7 @@ class BudgetSingle {
   static const toJsonFactory = _$BudgetSingleToJson;
   Map<String, dynamic> toJson() => _$BudgetSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final BudgetRead data;
   static const fromJsonFactory = _$BudgetSingleFromJson;
 
@@ -6931,30 +6920,30 @@ class BudgetStore {
   static const toJsonFactory = _$BudgetStoreToJson;
   Map<String, dynamic> toJson() => _$BudgetStoreToJson(this);
 
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   @JsonKey(
     name: 'auto_budget_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: autoBudgetTypeNullableToJson,
     fromJson: autoBudgetTypeNullableFromJson,
   )
   final enums.AutoBudgetType? autoBudgetType;
-  @JsonKey(name: 'auto_budget_currency_id', includeIfNull: false)
+  @JsonKey(name: 'auto_budget_currency_id', includeIfNull: true)
   final String? autoBudgetCurrencyId;
-  @JsonKey(name: 'auto_budget_currency_code', includeIfNull: false)
+  @JsonKey(name: 'auto_budget_currency_code', includeIfNull: true)
   final String? autoBudgetCurrencyCode;
-  @JsonKey(name: 'auto_budget_amount', includeIfNull: false)
+  @JsonKey(name: 'auto_budget_amount', includeIfNull: true)
   final String? autoBudgetAmount;
   @JsonKey(
     name: 'auto_budget_period',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: autoBudgetPeriodNullableToJson,
     fromJson: autoBudgetPeriodNullableFromJson,
   )
@@ -7046,30 +7035,30 @@ class BudgetUpdate {
   static const toJsonFactory = _$BudgetUpdateToJson;
   Map<String, dynamic> toJson() => _$BudgetUpdateToJson(this);
 
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   @JsonKey(
     name: 'auto_budget_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: autoBudgetTypeNullableToJson,
     fromJson: autoBudgetTypeNullableFromJson,
   )
   final enums.AutoBudgetType? autoBudgetType;
-  @JsonKey(name: 'auto_budget_currency_id', includeIfNull: false)
+  @JsonKey(name: 'auto_budget_currency_id', includeIfNull: true)
   final String? autoBudgetCurrencyId;
-  @JsonKey(name: 'auto_budget_currency_code', includeIfNull: false)
+  @JsonKey(name: 'auto_budget_currency_code', includeIfNull: true)
   final String? autoBudgetCurrencyCode;
-  @JsonKey(name: 'auto_budget_amount', includeIfNull: false)
+  @JsonKey(name: 'auto_budget_amount', includeIfNull: true)
   final String? autoBudgetAmount;
   @JsonKey(
     name: 'auto_budget_period',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: autoBudgetPeriodNullableToJson,
     fromJson: autoBudgetPeriodNullableFromJson,
   )
@@ -7174,57 +7163,57 @@ class BudgetLimitProperties {
   static const toJsonFactory = _$BudgetLimitPropertiesToJson;
   Map<String, dynamic> toJson() => _$BudgetLimitPropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'start', includeIfNull: false)
+  @JsonKey(name: 'start', includeIfNull: true)
   final DateTime? start;
-  @JsonKey(name: 'end', includeIfNull: false)
+  @JsonKey(name: 'end', includeIfNull: true)
   final DateTime? end;
-  @JsonKey(name: 'budget_id', includeIfNull: false)
+  @JsonKey(name: 'budget_id', includeIfNull: true)
   final String? budgetId;
-  @JsonKey(name: 'object_has_currency_setting', includeIfNull: false)
+  @JsonKey(name: 'object_has_currency_setting', includeIfNull: true)
   final bool? objectHasCurrencySetting;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String? amount;
-  @JsonKey(name: 'pc_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_amount', includeIfNull: true)
   final String? pcAmount;
-  @JsonKey(name: 'period', includeIfNull: false)
+  @JsonKey(name: 'period', includeIfNull: true)
   final String? period;
   @JsonKey(
     name: 'spent',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? spent;
   @JsonKey(
     name: 'pc_spent',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? pcSpent;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   static const fromJsonFactory = _$BudgetLimitPropertiesFromJson;
 
@@ -7372,11 +7361,11 @@ class BudgetLimitRead {
   static const toJsonFactory = _$BudgetLimitReadToJson;
   Map<String, dynamic> toJson() => _$BudgetLimitReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final BudgetLimitProperties attributes;
   static const fromJsonFactory = _$BudgetLimitReadFromJson;
 
@@ -7420,7 +7409,7 @@ class BudgetLimitSingle {
   static const toJsonFactory = _$BudgetLimitSingleToJson;
   Map<String, dynamic> toJson() => _$BudgetLimitSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final BudgetLimitRead data;
   static const fromJsonFactory = _$BudgetLimitSingleFromJson;
 
@@ -7457,21 +7446,21 @@ class BudgetLimitStore {
   static const toJsonFactory = _$BudgetLimitStoreToJson;
   Map<String, dynamic> toJson() => _$BudgetLimitStoreToJson(this);
 
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'budget_id', includeIfNull: false)
+  @JsonKey(name: 'budget_id', includeIfNull: true)
   final String? budgetId;
-  @JsonKey(name: 'start', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'start', includeIfNull: true, toJson: _dateToJson)
   final DateTime start;
-  @JsonKey(name: 'period', includeIfNull: false)
+  @JsonKey(name: 'period', includeIfNull: true)
   final String? period;
-  @JsonKey(name: 'end', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'end', includeIfNull: true, toJson: _dateToJson)
   final DateTime end;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String amount;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   static const fromJsonFactory = _$BudgetLimitStoreFromJson;
 
@@ -7559,47 +7548,47 @@ class BudgetLimitUpdate {
   static const toJsonFactory = _$BudgetLimitUpdateToJson;
   Map<String, dynamic> toJson() => _$BudgetLimitUpdateToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'start', includeIfNull: false)
+  @JsonKey(name: 'start', includeIfNull: true)
   final DateTime? start;
-  @JsonKey(name: 'end', includeIfNull: false)
+  @JsonKey(name: 'end', includeIfNull: true)
   final DateTime? end;
-  @JsonKey(name: 'budget_id', includeIfNull: false)
+  @JsonKey(name: 'budget_id', includeIfNull: true)
   final String? budgetId;
-  @JsonKey(name: 'object_has_currency_setting', includeIfNull: false)
+  @JsonKey(name: 'object_has_currency_setting', includeIfNull: true)
   final bool? objectHasCurrencySetting;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'period', includeIfNull: false)
+  @JsonKey(name: 'period', includeIfNull: true)
   final String? period;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String? amount;
-  @JsonKey(name: 'pc_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_amount', includeIfNull: true)
   final String? pcAmount;
-  @JsonKey(name: 'spent', includeIfNull: false)
+  @JsonKey(name: 'spent', includeIfNull: true)
   final String? spent;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   static const fromJsonFactory = _$BudgetLimitUpdateFromJson;
 
@@ -7756,59 +7745,59 @@ class CategoryProperties {
   static const toJsonFactory = _$CategoryPropertiesToJson;
   Map<String, dynamic> toJson() => _$CategoryPropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'object_has_currency_setting', includeIfNull: false)
+  @JsonKey(name: 'object_has_currency_setting', includeIfNull: true)
   final bool? objectHasCurrencySetting;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
   @JsonKey(
     name: 'spent',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? spent;
   @JsonKey(
     name: 'pc_spent',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? pcSpent;
   @JsonKey(
     name: 'earned',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? earned;
   @JsonKey(
     name: 'pc_earned',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? pcEarned;
   @JsonKey(
     name: 'transferred',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? transferred;
   @JsonKey(
     name: 'pc_transferred',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <ArrayEntryWithCurrencyAndSum>[],
   )
   final List<ArrayEntryWithCurrencyAndSum>? pcTransferred;
@@ -7923,9 +7912,9 @@ class CategoryStore {
   static const toJsonFactory = _$CategoryStoreToJson;
   Map<String, dynamic> toJson() => _$CategoryStoreToJson(this);
 
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   static const fromJsonFactory = _$CategoryStoreFromJson;
 
@@ -7959,9 +7948,9 @@ class CategoryUpdate {
   static const toJsonFactory = _$CategoryUpdateToJson;
   Map<String, dynamic> toJson() => _$CategoryUpdateToJson(this);
 
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   static const fromJsonFactory = _$CategoryUpdateFromJson;
 
@@ -8010,33 +7999,33 @@ class CurrencyExchangeProperties {
   static const toJsonFactory = _$CurrencyExchangePropertiesToJson;
   Map<String, dynamic> toJson() => _$CurrencyExchangePropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'from_currency_id', includeIfNull: false)
+  @JsonKey(name: 'from_currency_id', includeIfNull: true)
   final String? fromCurrencyId;
-  @JsonKey(name: 'from_currency_name', includeIfNull: false)
+  @JsonKey(name: 'from_currency_name', includeIfNull: true)
   final String? fromCurrencyName;
-  @JsonKey(name: 'from_currency_code', includeIfNull: false)
+  @JsonKey(name: 'from_currency_code', includeIfNull: true)
   final String? fromCurrencyCode;
-  @JsonKey(name: 'from_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'from_currency_symbol', includeIfNull: true)
   final String? fromCurrencySymbol;
-  @JsonKey(name: 'from_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'from_currency_decimal_places', includeIfNull: true)
   final int? fromCurrencyDecimalPlaces;
-  @JsonKey(name: 'to_currency_id', includeIfNull: false)
+  @JsonKey(name: 'to_currency_id', includeIfNull: true)
   final String? toCurrencyId;
-  @JsonKey(name: 'to_currency_name', includeIfNull: false)
+  @JsonKey(name: 'to_currency_name', includeIfNull: true)
   final String? toCurrencyName;
-  @JsonKey(name: 'to_currency_code', includeIfNull: false)
+  @JsonKey(name: 'to_currency_code', includeIfNull: true)
   final String? toCurrencyCode;
-  @JsonKey(name: 'to_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'to_currency_symbol', includeIfNull: true)
   final String? toCurrencySymbol;
-  @JsonKey(name: 'to_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'to_currency_decimal_places', includeIfNull: true)
   final int? toCurrencyDecimalPlaces;
-  @JsonKey(name: 'rate', includeIfNull: false)
+  @JsonKey(name: 'rate', includeIfNull: true)
   final String? rate;
-  @JsonKey(name: 'date', includeIfNull: false)
+  @JsonKey(name: 'date', includeIfNull: true)
   final DateTime? date;
   static const fromJsonFactory = _$CurrencyExchangePropertiesFromJson;
 
@@ -8151,13 +8140,13 @@ class CurrencyExchangeRateRead {
   static const toJsonFactory = _$CurrencyExchangeRateReadToJson;
   Map<String, dynamic> toJson() => _$CurrencyExchangeRateReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String? type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String? id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final CurrencyExchangeProperties? attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink? links;
   static const fromJsonFactory = _$CurrencyExchangeRateReadFromJson;
 
@@ -8205,7 +8194,7 @@ class CurrencyExchangeRateSingle {
   static const toJsonFactory = _$CurrencyExchangeRateSingleToJson;
   Map<String, dynamic> toJson() => _$CurrencyExchangeRateSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final CurrencyExchangeRateRead data;
   static const fromJsonFactory = _$CurrencyExchangeRateSingleFromJson;
 
@@ -8241,11 +8230,11 @@ class CurrencyExchangeRateStore {
   static const toJsonFactory = _$CurrencyExchangeRateStoreToJson;
   Map<String, dynamic> toJson() => _$CurrencyExchangeRateStoreToJson(this);
 
-  @JsonKey(name: 'from', includeIfNull: false)
+  @JsonKey(name: 'from', includeIfNull: true)
   final String from;
-  @JsonKey(name: 'to', includeIfNull: false)
+  @JsonKey(name: 'to', includeIfNull: true)
   final String to;
-  @JsonKey(name: 'rate', includeIfNull: false)
+  @JsonKey(name: 'rate', includeIfNull: true)
   final String? rate;
   static const fromJsonFactory = _$CurrencyExchangeRateStoreFromJson;
 
@@ -8289,9 +8278,9 @@ class CurrencyExchangeRateStoreByDate {
   Map<String, dynamic> toJson() =>
       _$CurrencyExchangeRateStoreByDateToJson(this);
 
-  @JsonKey(name: 'from', includeIfNull: false)
+  @JsonKey(name: 'from', includeIfNull: true)
   final String from;
-  @JsonKey(name: 'rates', includeIfNull: false)
+  @JsonKey(name: 'rates', includeIfNull: true)
   final Map<String, dynamic> rates;
   static const fromJsonFactory = _$CurrencyExchangeRateStoreByDateFromJson;
 
@@ -8354,13 +8343,13 @@ class CurrencyExchangeRateUpdate {
   static const toJsonFactory = _$CurrencyExchangeRateUpdateToJson;
   Map<String, dynamic> toJson() => _$CurrencyExchangeRateUpdateToJson(this);
 
-  @JsonKey(name: 'date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'date', includeIfNull: true, toJson: _dateToJson)
   final DateTime date;
-  @JsonKey(name: 'rate', includeIfNull: false)
+  @JsonKey(name: 'rate', includeIfNull: true)
   final String rate;
-  @JsonKey(name: 'from', includeIfNull: false)
+  @JsonKey(name: 'from', includeIfNull: true)
   final String? from;
-  @JsonKey(name: 'to', includeIfNull: false)
+  @JsonKey(name: 'to', includeIfNull: true)
   final String? to;
   static const fromJsonFactory = _$CurrencyExchangeRateUpdateFromJson;
 
@@ -8410,7 +8399,7 @@ class CurrencyExchangeRateUpdateNoDate {
   Map<String, dynamic> toJson() =>
       _$CurrencyExchangeRateUpdateNoDateToJson(this);
 
-  @JsonKey(name: 'rate', includeIfNull: false)
+  @JsonKey(name: 'rate', includeIfNull: true)
   final String rate;
   static const fromJsonFactory = _$CurrencyExchangeRateUpdateNoDateFromJson;
 
@@ -8446,13 +8435,13 @@ class ObjectGroup {
   static const toJsonFactory = _$ObjectGroupToJson;
   Map<String, dynamic> toJson() => _$ObjectGroupToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String title;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int order;
   static const fromJsonFactory = _$ObjectGroupFromJson;
 
@@ -8500,9 +8489,9 @@ class ObjectGroupUpdate {
   static const toJsonFactory = _$ObjectGroupUpdateToJson;
   Map<String, dynamic> toJson() => _$ObjectGroupUpdateToJson(this);
 
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String title;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
   static const fromJsonFactory = _$ObjectGroupUpdateFromJson;
 
@@ -8539,7 +8528,7 @@ class ObjectLink {
   static const toJsonFactory = _$ObjectLinkToJson;
   Map<String, dynamic> toJson() => _$ObjectLinkToJson(this);
 
-  @JsonKey(name: 'self', includeIfNull: false)
+  @JsonKey(name: 'self', includeIfNull: true)
   final String? self;
   static const fromJsonFactory = _$ObjectLinkFromJson;
 
@@ -8567,15 +8556,15 @@ class PageLink {
   static const toJsonFactory = _$PageLinkToJson;
   Map<String, dynamic> toJson() => _$PageLinkToJson(this);
 
-  @JsonKey(name: 'self', includeIfNull: false)
+  @JsonKey(name: 'self', includeIfNull: true)
   final String? self;
-  @JsonKey(name: 'first', includeIfNull: false)
+  @JsonKey(name: 'first', includeIfNull: true)
   final String? first;
-  @JsonKey(name: 'next', includeIfNull: false)
+  @JsonKey(name: 'next', includeIfNull: true)
   final String? next;
-  @JsonKey(name: 'prev', includeIfNull: false)
+  @JsonKey(name: 'prev', includeIfNull: true)
   final String? prev;
-  @JsonKey(name: 'last', includeIfNull: false)
+  @JsonKey(name: 'last', includeIfNull: true)
   final String? last;
   static const fromJsonFactory = _$PageLinkFromJson;
 
@@ -8632,13 +8621,13 @@ class PiggyBankAccountRead {
   static const toJsonFactory = _$PiggyBankAccountReadToJson;
   Map<String, dynamic> toJson() => _$PiggyBankAccountReadToJson(this);
 
-  @JsonKey(name: 'account_id', includeIfNull: false)
+  @JsonKey(name: 'account_id', includeIfNull: true)
   final String? accountId;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String? name;
-  @JsonKey(name: 'current_amount', includeIfNull: false)
+  @JsonKey(name: 'current_amount', includeIfNull: true)
   final String? currentAmount;
-  @JsonKey(name: 'pc_current_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_current_amount', includeIfNull: true)
   final String? pcCurrentAmount;
   static const fromJsonFactory = _$PiggyBankAccountReadFromJson;
 
@@ -8690,11 +8679,11 @@ class PiggyBankAccountStore {
   static const toJsonFactory = _$PiggyBankAccountStoreToJson;
   Map<String, dynamic> toJson() => _$PiggyBankAccountStoreToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String? id;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String? name;
-  @JsonKey(name: 'current_amount', includeIfNull: false)
+  @JsonKey(name: 'current_amount', includeIfNull: true)
   final String? currentAmount;
   static const fromJsonFactory = _$PiggyBankAccountStoreFromJson;
 
@@ -8740,11 +8729,11 @@ class PiggyBankAccountUpdate {
   static const toJsonFactory = _$PiggyBankAccountUpdateToJson;
   Map<String, dynamic> toJson() => _$PiggyBankAccountUpdateToJson(this);
 
-  @JsonKey(name: 'account_id', includeIfNull: false)
+  @JsonKey(name: 'account_id', includeIfNull: true)
   final String? accountId;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String? name;
-  @JsonKey(name: 'current_amount', includeIfNull: false)
+  @JsonKey(name: 'current_amount', includeIfNull: true)
   final String? currentAmount;
   static const fromJsonFactory = _$PiggyBankAccountUpdateFromJson;
 
@@ -8823,73 +8812,73 @@ class PiggyBankProperties {
   static const toJsonFactory = _$PiggyBankPropertiesToJson;
   Map<String, dynamic> toJson() => _$PiggyBankPropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'percentage', includeIfNull: false)
+  @JsonKey(name: 'percentage', includeIfNull: true)
   final double? percentage;
-  @JsonKey(name: 'start_date', includeIfNull: false)
+  @JsonKey(name: 'start_date', includeIfNull: true)
   final DateTime? startDate;
-  @JsonKey(name: 'target_date', includeIfNull: false)
+  @JsonKey(name: 'target_date', includeIfNull: true)
   final DateTime? targetDate;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'object_group_id', includeIfNull: false)
+  @JsonKey(name: 'object_group_id', includeIfNull: true)
   final String? objectGroupId;
-  @JsonKey(name: 'object_group_order', includeIfNull: false)
+  @JsonKey(name: 'object_group_order', includeIfNull: true)
   final int? objectGroupOrder;
-  @JsonKey(name: 'object_group_title', includeIfNull: false)
+  @JsonKey(name: 'object_group_title', includeIfNull: true)
   final String? objectGroupTitle;
   @JsonKey(
     name: 'accounts',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <PiggyBankAccountRead>[],
   )
   final List<PiggyBankAccountRead>? accounts;
-  @JsonKey(name: 'object_has_currency_setting', includeIfNull: false)
+  @JsonKey(name: 'object_has_currency_setting', includeIfNull: true)
   final bool? objectHasCurrencySetting;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'target_amount', includeIfNull: false)
+  @JsonKey(name: 'target_amount', includeIfNull: true)
   final String? targetAmount;
-  @JsonKey(name: 'pc_target_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_target_amount', includeIfNull: true)
   final String? pcTargetAmount;
-  @JsonKey(name: 'current_amount', includeIfNull: false)
+  @JsonKey(name: 'current_amount', includeIfNull: true)
   final String? currentAmount;
-  @JsonKey(name: 'pc_current_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_current_amount', includeIfNull: true)
   final String? pcCurrentAmount;
-  @JsonKey(name: 'left_to_save', includeIfNull: false)
+  @JsonKey(name: 'left_to_save', includeIfNull: true)
   final String? leftToSave;
-  @JsonKey(name: 'pc_left_to_save', includeIfNull: false)
+  @JsonKey(name: 'pc_left_to_save', includeIfNull: true)
   final String? pcLeftToSave;
-  @JsonKey(name: 'save_per_month', includeIfNull: false)
+  @JsonKey(name: 'save_per_month', includeIfNull: true)
   final String? savePerMonth;
-  @JsonKey(name: 'pc_save_per_month', includeIfNull: false)
+  @JsonKey(name: 'pc_save_per_month', includeIfNull: true)
   final String? pcSavePerMonth;
   static const fromJsonFactory = _$PiggyBankPropertiesFromJson;
 
@@ -9105,31 +9094,31 @@ class PiggyBankStore {
   static const toJsonFactory = _$PiggyBankStoreToJson;
   Map<String, dynamic> toJson() => _$PiggyBankStoreToJson(this);
 
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
   @JsonKey(
     name: 'accounts',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <PiggyBankAccountStore>[],
   )
   final List<PiggyBankAccountStore>? accounts;
-  @JsonKey(name: 'target_amount', includeIfNull: false)
+  @JsonKey(name: 'target_amount', includeIfNull: true)
   final String? targetAmount;
-  @JsonKey(name: 'current_amount', includeIfNull: false)
+  @JsonKey(name: 'current_amount', includeIfNull: true)
   final String? currentAmount;
-  @JsonKey(name: 'start_date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'start_date', includeIfNull: true, toJson: _dateToJson)
   final DateTime startDate;
-  @JsonKey(name: 'target_date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'target_date', includeIfNull: true, toJson: _dateToJson)
   final DateTime? targetDate;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'object_group_id', includeIfNull: false)
+  @JsonKey(name: 'object_group_id', includeIfNull: true)
   final String? objectGroupId;
-  @JsonKey(name: 'object_group_title', includeIfNull: false)
+  @JsonKey(name: 'object_group_title', includeIfNull: true)
   final String? objectGroupTitle;
   static const fromJsonFactory = _$PiggyBankStoreFromJson;
 
@@ -9226,33 +9215,33 @@ class PiggyBankUpdate {
   static const toJsonFactory = _$PiggyBankUpdateToJson;
   Map<String, dynamic> toJson() => _$PiggyBankUpdateToJson(this);
 
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String? name;
   @JsonKey(
     name: 'accounts',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <PiggyBankAccountUpdate>[],
   )
   final List<PiggyBankAccountUpdate>? accounts;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'target_amount', includeIfNull: false)
+  @JsonKey(name: 'target_amount', includeIfNull: true)
   final String? targetAmount;
-  @JsonKey(name: 'start_date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'start_date', includeIfNull: true, toJson: _dateToJson)
   final DateTime? startDate;
-  @JsonKey(name: 'target_date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'target_date', includeIfNull: true, toJson: _dateToJson)
   final DateTime? targetDate;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'object_group_id', includeIfNull: false)
+  @JsonKey(name: 'object_group_id', includeIfNull: true)
   final String? objectGroupId;
-  @JsonKey(name: 'object_group_title', includeIfNull: false)
+  @JsonKey(name: 'object_group_title', includeIfNull: true)
   final String? objectGroupTitle;
   static const fromJsonFactory = _$PiggyBankUpdateFromJson;
 
@@ -9358,39 +9347,39 @@ class PiggyBankEventProperties {
   static const toJsonFactory = _$PiggyBankEventPropertiesToJson;
   Map<String, dynamic> toJson() => _$PiggyBankEventPropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String? amount;
-  @JsonKey(name: 'pc_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_amount', includeIfNull: true)
   final String? pcAmount;
-  @JsonKey(name: 'object_has_currency_setting', includeIfNull: false)
+  @JsonKey(name: 'object_has_currency_setting', includeIfNull: true)
   final bool? objectHasCurrencySetting;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'transaction_journal_id', includeIfNull: false)
+  @JsonKey(name: 'transaction_journal_id', includeIfNull: true)
   final String? transactionJournalId;
-  @JsonKey(name: 'transaction_group_id', includeIfNull: false)
+  @JsonKey(name: 'transaction_group_id', includeIfNull: true)
   final String? transactionGroupId;
   static const fromJsonFactory = _$PiggyBankEventPropertiesFromJson;
 
@@ -9523,13 +9512,13 @@ class Preference {
   static const toJsonFactory = _$PreferenceToJson;
   Map<String, dynamic> toJson() => _$PreferenceToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final PolymorphicProperty data;
   static const fromJsonFactory = _$PreferenceFromJson;
 
@@ -9577,7 +9566,7 @@ class PreferenceUpdate {
   static const toJsonFactory = _$PreferenceUpdateToJson;
   Map<String, dynamic> toJson() => _$PreferenceUpdateToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final PolymorphicProperty data;
   static const fromJsonFactory = _$PreferenceUpdateFromJson;
 
@@ -9620,44 +9609,44 @@ class RecurrenceProperties {
   static const toJsonFactory = _$RecurrencePropertiesToJson;
   Map<String, dynamic> toJson() => _$RecurrencePropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: recurrenceTransactionTypeNullableToJson,
     fromJson: recurrenceTransactionTypeNullableFromJson,
   )
   final enums.RecurrenceTransactionType? type;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String? title;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'first_date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'first_date', includeIfNull: true, toJson: _dateToJson)
   final DateTime? firstDate;
-  @JsonKey(name: 'latest_date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'latest_date', includeIfNull: true, toJson: _dateToJson)
   final DateTime? latestDate;
-  @JsonKey(name: 'repeat_until', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'repeat_until', includeIfNull: true, toJson: _dateToJson)
   final DateTime? repeatUntil;
-  @JsonKey(name: 'apply_rules', includeIfNull: false)
+  @JsonKey(name: 'apply_rules', includeIfNull: true)
   final bool? applyRules;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'nr_of_repetitions', includeIfNull: false)
+  @JsonKey(name: 'nr_of_repetitions', includeIfNull: true)
   final int? nrOfRepetitions;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   @JsonKey(
     name: 'repetitions',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <RecurrenceRepetition>[],
   )
   final List<RecurrenceRepetition>? repetitions;
   @JsonKey(
     name: 'transactions',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <RecurrenceTransaction>[],
   )
   final List<RecurrenceTransaction>? transactions;
@@ -9765,36 +9754,36 @@ class RecurrenceStore {
 
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: recurrenceTransactionTypeToJson,
     fromJson: recurrenceTransactionTypeFromJson,
   )
   final enums.RecurrenceTransactionType type;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String title;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'first_date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'first_date', includeIfNull: true, toJson: _dateToJson)
   final DateTime firstDate;
-  @JsonKey(name: 'repeat_until', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'repeat_until', includeIfNull: true, toJson: _dateToJson)
   final DateTime? repeatUntil;
-  @JsonKey(name: 'nr_of_repetitions', includeIfNull: false)
+  @JsonKey(name: 'nr_of_repetitions', includeIfNull: true)
   final int? nrOfRepetitions;
-  @JsonKey(name: 'apply_rules', includeIfNull: false)
+  @JsonKey(name: 'apply_rules', includeIfNull: true)
   final bool? applyRules;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   @JsonKey(
     name: 'repetitions',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <RecurrenceRepetitionStore>[],
   )
   final List<RecurrenceRepetitionStore> repetitions;
   @JsonKey(
     name: 'transactions',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <RecurrenceTransactionStore>[],
   )
   final List<RecurrenceTransactionStore> transactions;
@@ -9887,31 +9876,31 @@ class RecurrenceUpdate {
   static const toJsonFactory = _$RecurrenceUpdateToJson;
   Map<String, dynamic> toJson() => _$RecurrenceUpdateToJson(this);
 
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String? title;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'first_date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'first_date', includeIfNull: true, toJson: _dateToJson)
   final DateTime? firstDate;
-  @JsonKey(name: 'repeat_until', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'repeat_until', includeIfNull: true, toJson: _dateToJson)
   final DateTime? repeatUntil;
-  @JsonKey(name: 'nr_of_repetitions', includeIfNull: false)
+  @JsonKey(name: 'nr_of_repetitions', includeIfNull: true)
   final int? nrOfRepetitions;
-  @JsonKey(name: 'apply_rules', includeIfNull: false)
+  @JsonKey(name: 'apply_rules', includeIfNull: true)
   final bool? applyRules;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   @JsonKey(
     name: 'repetitions',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <RecurrenceRepetitionUpdate>[],
   )
   final List<RecurrenceRepetitionUpdate>? repetitions;
   @JsonKey(
     name: 'transactions',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <RecurrenceTransactionUpdate>[],
   )
   final List<RecurrenceTransactionUpdate>? transactions;
@@ -9999,32 +9988,28 @@ class RecurrenceRepetition {
   static const toJsonFactory = _$RecurrenceRepetitionToJson;
   Map<String, dynamic> toJson() => _$RecurrenceRepetitionToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String? id;
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: recurrenceRepetitionTypeToJson,
     fromJson: recurrenceRepetitionTypeFromJson,
   )
   final enums.RecurrenceRepetitionType type;
-  @JsonKey(name: 'moment', includeIfNull: false)
+  @JsonKey(name: 'moment', includeIfNull: true)
   final String moment;
-  @JsonKey(name: 'skip', includeIfNull: false)
+  @JsonKey(name: 'skip', includeIfNull: true)
   final int? skip;
-  @JsonKey(name: 'weekend', includeIfNull: false)
+  @JsonKey(name: 'weekend', includeIfNull: true)
   final int? weekend;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(
-    name: 'occurrences',
-    includeIfNull: false,
-    defaultValue: <DateTime>[],
-  )
+  @JsonKey(name: 'occurrences', includeIfNull: true, defaultValue: <DateTime>[])
   final List<DateTime>? occurrences;
   static const fromJsonFactory = _$RecurrenceRepetitionFromJson;
 
@@ -10099,16 +10084,16 @@ class RecurrenceRepetitionStore {
 
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: recurrenceRepetitionTypeToJson,
     fromJson: recurrenceRepetitionTypeFromJson,
   )
   final enums.RecurrenceRepetitionType type;
-  @JsonKey(name: 'moment', includeIfNull: false)
+  @JsonKey(name: 'moment', includeIfNull: true)
   final String moment;
-  @JsonKey(name: 'skip', includeIfNull: false)
+  @JsonKey(name: 'skip', includeIfNull: true)
   final int? skip;
-  @JsonKey(name: 'weekend', includeIfNull: false)
+  @JsonKey(name: 'weekend', includeIfNull: true)
   final int? weekend;
   static const fromJsonFactory = _$RecurrenceRepetitionStoreFromJson;
 
@@ -10163,16 +10148,16 @@ class RecurrenceRepetitionUpdate {
 
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: recurrenceRepetitionTypeNullableToJson,
     fromJson: recurrenceRepetitionTypeNullableFromJson,
   )
   final enums.RecurrenceRepetitionType? type;
-  @JsonKey(name: 'moment', includeIfNull: false)
+  @JsonKey(name: 'moment', includeIfNull: true)
   final String? moment;
-  @JsonKey(name: 'skip', includeIfNull: false)
+  @JsonKey(name: 'skip', includeIfNull: true)
   final int? skip;
-  @JsonKey(name: 'weekend', includeIfNull: false)
+  @JsonKey(name: 'weekend', includeIfNull: true)
   final int? weekend;
   static const fromJsonFactory = _$RecurrenceRepetitionUpdateFromJson;
 
@@ -10260,93 +10245,93 @@ class RecurrenceTransaction {
   static const toJsonFactory = _$RecurrenceTransactionToJson;
   Map<String, dynamic> toJson() => _$RecurrenceTransactionToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String? id;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String description;
-  @JsonKey(name: 'object_has_currency_setting', includeIfNull: false)
+  @JsonKey(name: 'object_has_currency_setting', includeIfNull: true)
   final bool? objectHasCurrencySetting;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String amount;
-  @JsonKey(name: 'pc_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_amount', includeIfNull: true)
   final String? pcAmount;
-  @JsonKey(name: 'foreign_amount', includeIfNull: false)
+  @JsonKey(name: 'foreign_amount', includeIfNull: true)
   final String? foreignAmount;
-  @JsonKey(name: 'pc_foreign_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_foreign_amount', includeIfNull: true)
   final String? pcForeignAmount;
-  @JsonKey(name: 'foreign_currency_id', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_id', includeIfNull: true)
   final String? foreignCurrencyId;
-  @JsonKey(name: 'foreign_currency_name', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_name', includeIfNull: true)
   final String? foreignCurrencyName;
-  @JsonKey(name: 'foreign_currency_code', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_code', includeIfNull: true)
   final String? foreignCurrencyCode;
-  @JsonKey(name: 'foreign_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_symbol', includeIfNull: true)
   final String? foreignCurrencySymbol;
-  @JsonKey(name: 'foreign_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_decimal_places', includeIfNull: true)
   final int? foreignCurrencyDecimalPlaces;
-  @JsonKey(name: 'budget_id', includeIfNull: false)
+  @JsonKey(name: 'budget_id', includeIfNull: true)
   final String? budgetId;
-  @JsonKey(name: 'budget_name', includeIfNull: false)
+  @JsonKey(name: 'budget_name', includeIfNull: true)
   final String? budgetName;
-  @JsonKey(name: 'category_id', includeIfNull: false)
+  @JsonKey(name: 'category_id', includeIfNull: true)
   final String? categoryId;
-  @JsonKey(name: 'category_name', includeIfNull: false)
+  @JsonKey(name: 'category_name', includeIfNull: true)
   final String? categoryName;
-  @JsonKey(name: 'source_id', includeIfNull: false)
+  @JsonKey(name: 'source_id', includeIfNull: true)
   final String? sourceId;
-  @JsonKey(name: 'source_name', includeIfNull: false)
+  @JsonKey(name: 'source_name', includeIfNull: true)
   final String? sourceName;
-  @JsonKey(name: 'source_iban', includeIfNull: false)
+  @JsonKey(name: 'source_iban', includeIfNull: true)
   final String? sourceIban;
   @JsonKey(
     name: 'source_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: accountTypePropertyNullableToJson,
     fromJson: accountTypePropertyNullableFromJson,
   )
   final enums.AccountTypeProperty? sourceType;
-  @JsonKey(name: 'destination_id', includeIfNull: false)
+  @JsonKey(name: 'destination_id', includeIfNull: true)
   final String? destinationId;
-  @JsonKey(name: 'destination_name', includeIfNull: false)
+  @JsonKey(name: 'destination_name', includeIfNull: true)
   final String? destinationName;
-  @JsonKey(name: 'destination_iban', includeIfNull: false)
+  @JsonKey(name: 'destination_iban', includeIfNull: true)
   final String? destinationIban;
   @JsonKey(
     name: 'destination_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: accountTypePropertyNullableToJson,
     fromJson: accountTypePropertyNullableFromJson,
   )
   final enums.AccountTypeProperty? destinationType;
-  @JsonKey(name: 'tags', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'tags', includeIfNull: true, defaultValue: <String>[])
   final List<String>? tags;
-  @JsonKey(name: 'piggy_bank_id', includeIfNull: false)
+  @JsonKey(name: 'piggy_bank_id', includeIfNull: true)
   final String? piggyBankId;
-  @JsonKey(name: 'piggy_bank_name', includeIfNull: false)
+  @JsonKey(name: 'piggy_bank_name', includeIfNull: true)
   final String? piggyBankName;
-  @JsonKey(name: 'subscription_id', includeIfNull: false)
+  @JsonKey(name: 'subscription_id', includeIfNull: true)
   final String? subscriptionId;
-  @JsonKey(name: 'subscription_name', includeIfNull: false)
+  @JsonKey(name: 'subscription_name', includeIfNull: true)
   final String? subscriptionName;
   static const fromJsonFactory = _$RecurrenceTransactionFromJson;
 
@@ -10605,33 +10590,33 @@ class RecurrenceTransactionStore {
   static const toJsonFactory = _$RecurrenceTransactionStoreToJson;
   Map<String, dynamic> toJson() => _$RecurrenceTransactionStoreToJson(this);
 
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String description;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String amount;
-  @JsonKey(name: 'foreign_amount', includeIfNull: false)
+  @JsonKey(name: 'foreign_amount', includeIfNull: true)
   final String? foreignAmount;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'foreign_currency_id', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_id', includeIfNull: true)
   final String? foreignCurrencyId;
-  @JsonKey(name: 'foreign_currency_code', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_code', includeIfNull: true)
   final String? foreignCurrencyCode;
-  @JsonKey(name: 'budget_id', includeIfNull: false)
+  @JsonKey(name: 'budget_id', includeIfNull: true)
   final String? budgetId;
-  @JsonKey(name: 'category_id', includeIfNull: false)
+  @JsonKey(name: 'category_id', includeIfNull: true)
   final String? categoryId;
-  @JsonKey(name: 'source_id', includeIfNull: false)
+  @JsonKey(name: 'source_id', includeIfNull: true)
   final String sourceId;
-  @JsonKey(name: 'destination_id', includeIfNull: false)
+  @JsonKey(name: 'destination_id', includeIfNull: true)
   final String destinationId;
-  @JsonKey(name: 'tags', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'tags', includeIfNull: true, defaultValue: <String>[])
   final List<String>? tags;
-  @JsonKey(name: 'piggy_bank_id', includeIfNull: false)
+  @JsonKey(name: 'piggy_bank_id', includeIfNull: true)
   final String? piggyBankId;
-  @JsonKey(name: 'bill_id', includeIfNull: false)
+  @JsonKey(name: 'bill_id', includeIfNull: true)
   final String? billId;
   static const fromJsonFactory = _$RecurrenceTransactionStoreFromJson;
 
@@ -10744,33 +10729,33 @@ class RecurrenceTransactionUpdate {
   static const toJsonFactory = _$RecurrenceTransactionUpdateToJson;
   Map<String, dynamic> toJson() => _$RecurrenceTransactionUpdateToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String? amount;
-  @JsonKey(name: 'foreign_amount', includeIfNull: false)
+  @JsonKey(name: 'foreign_amount', includeIfNull: true)
   final String? foreignAmount;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'foreign_currency_id', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_id', includeIfNull: true)
   final String? foreignCurrencyId;
-  @JsonKey(name: 'budget_id', includeIfNull: false)
+  @JsonKey(name: 'budget_id', includeIfNull: true)
   final String? budgetId;
-  @JsonKey(name: 'category_id', includeIfNull: false)
+  @JsonKey(name: 'category_id', includeIfNull: true)
   final String? categoryId;
-  @JsonKey(name: 'source_id', includeIfNull: false)
+  @JsonKey(name: 'source_id', includeIfNull: true)
   final String? sourceId;
-  @JsonKey(name: 'destination_id', includeIfNull: false)
+  @JsonKey(name: 'destination_id', includeIfNull: true)
   final String? destinationId;
-  @JsonKey(name: 'tags', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'tags', includeIfNull: true, defaultValue: <String>[])
   final List<String>? tags;
-  @JsonKey(name: 'piggy_bank_id', includeIfNull: false)
+  @JsonKey(name: 'piggy_bank_id', includeIfNull: true)
   final String? piggyBankId;
-  @JsonKey(name: 'bill_id', includeIfNull: false)
+  @JsonKey(name: 'bill_id', includeIfNull: true)
   final String? billId;
   static const fromJsonFactory = _$RecurrenceTransactionUpdateFromJson;
 
@@ -10879,40 +10864,36 @@ class Rule {
   static const toJsonFactory = _$RuleToJson;
   Map<String, dynamic> toJson() => _$RuleToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String title;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'rule_group_id', includeIfNull: false)
+  @JsonKey(name: 'rule_group_id', includeIfNull: true)
   final String ruleGroupId;
-  @JsonKey(name: 'rule_group_title', includeIfNull: false)
+  @JsonKey(name: 'rule_group_title', includeIfNull: true)
   final String? ruleGroupTitle;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
   @JsonKey(
     name: 'trigger',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: ruleTriggerTypeToJson,
     fromJson: ruleTriggerTypeFromJson,
   )
   final enums.RuleTriggerType trigger;
-  @JsonKey(name: 'active', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'active', includeIfNull: true, defaultValue: true)
   final bool? active;
-  @JsonKey(name: 'strict', includeIfNull: false)
+  @JsonKey(name: 'strict', includeIfNull: true)
   final bool? strict;
-  @JsonKey(name: 'stop_processing', includeIfNull: false, defaultValue: false)
+  @JsonKey(name: 'stop_processing', includeIfNull: true, defaultValue: false)
   final bool? stopProcessing;
-  @JsonKey(
-    name: 'triggers',
-    includeIfNull: false,
-    defaultValue: <RuleTrigger>[],
-  )
+  @JsonKey(name: 'triggers', includeIfNull: true, defaultValue: <RuleTrigger>[])
   final List<RuleTrigger> triggers;
-  @JsonKey(name: 'actions', includeIfNull: false, defaultValue: <RuleAction>[])
+  @JsonKey(name: 'actions', includeIfNull: true, defaultValue: <RuleAction>[])
   final List<RuleAction> actions;
   static const fromJsonFactory = _$RuleFromJson;
 
@@ -11012,38 +10993,38 @@ class RuleStore {
   static const toJsonFactory = _$RuleStoreToJson;
   Map<String, dynamic> toJson() => _$RuleStoreToJson(this);
 
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String title;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'rule_group_id', includeIfNull: false)
+  @JsonKey(name: 'rule_group_id', includeIfNull: true)
   final String ruleGroupId;
-  @JsonKey(name: 'rule_group_title', includeIfNull: false)
+  @JsonKey(name: 'rule_group_title', includeIfNull: true)
   final String? ruleGroupTitle;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
   @JsonKey(
     name: 'trigger',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: ruleTriggerTypeToJson,
     fromJson: ruleTriggerTypeFromJson,
   )
   final enums.RuleTriggerType trigger;
-  @JsonKey(name: 'active', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'active', includeIfNull: true, defaultValue: true)
   final bool? active;
-  @JsonKey(name: 'strict', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'strict', includeIfNull: true, defaultValue: true)
   final bool? strict;
-  @JsonKey(name: 'stop_processing', includeIfNull: false)
+  @JsonKey(name: 'stop_processing', includeIfNull: true)
   final bool? stopProcessing;
   @JsonKey(
     name: 'triggers',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <RuleTriggerStore>[],
   )
   final List<RuleTriggerStore> triggers;
   @JsonKey(
     name: 'actions',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <RuleActionStore>[],
   )
   final List<RuleActionStore> actions;
@@ -11136,36 +11117,36 @@ class RuleUpdate {
   static const toJsonFactory = _$RuleUpdateToJson;
   Map<String, dynamic> toJson() => _$RuleUpdateToJson(this);
 
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String? title;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'rule_group_id', includeIfNull: false)
+  @JsonKey(name: 'rule_group_id', includeIfNull: true)
   final String? ruleGroupId;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
   @JsonKey(
     name: 'trigger',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: ruleTriggerTypeNullableToJson,
     fromJson: ruleTriggerTypeNullableFromJson,
   )
   final enums.RuleTriggerType? trigger;
-  @JsonKey(name: 'active', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'active', includeIfNull: true, defaultValue: true)
   final bool? active;
-  @JsonKey(name: 'strict', includeIfNull: false)
+  @JsonKey(name: 'strict', includeIfNull: true)
   final bool? strict;
-  @JsonKey(name: 'stop_processing', includeIfNull: false, defaultValue: false)
+  @JsonKey(name: 'stop_processing', includeIfNull: true, defaultValue: false)
   final bool? stopProcessing;
   @JsonKey(
     name: 'triggers',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <RuleTriggerUpdate>[],
   )
   final List<RuleTriggerUpdate>? triggers;
   @JsonKey(
     name: 'actions',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <RuleActionUpdate>[],
   )
   final List<RuleActionUpdate>? actions;
@@ -11238,7 +11219,7 @@ class RuleAction {
     this.createdAt,
     this.updatedAt,
     required this.type,
-    this.$value,
+    this.value,
     this.order,
     this.active,
     this.stopProcessing,
@@ -11250,26 +11231,26 @@ class RuleAction {
   static const toJsonFactory = _$RuleActionToJson;
   Map<String, dynamic> toJson() => _$RuleActionToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String? id;
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: ruleActionKeywordToJson,
     fromJson: ruleActionKeywordFromJson,
   )
   final enums.RuleActionKeyword type;
-  @JsonKey(name: 'value', includeIfNull: false)
-  final String? $value;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'value', includeIfNull: true)
+  final String? value;
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'active', includeIfNull: true, defaultValue: true)
   final bool? active;
-  @JsonKey(name: 'stop_processing', includeIfNull: false, defaultValue: false)
+  @JsonKey(name: 'stop_processing', includeIfNull: true, defaultValue: false)
   final bool? stopProcessing;
   static const fromJsonFactory = _$RuleActionFromJson;
 
@@ -11283,7 +11264,7 @@ extension $RuleActionExtension on RuleAction {
     DateTime? createdAt,
     DateTime? updatedAt,
     enums.RuleActionKeyword? type,
-    String? $value,
+    String? value,
     int? order,
     bool? active,
     bool? stopProcessing,
@@ -11293,7 +11274,7 @@ extension $RuleActionExtension on RuleAction {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       type: type ?? this.type,
-      $value: $value ?? this.$value,
+      value: value ?? this.value,
       order: order ?? this.order,
       active: active ?? this.active,
       stopProcessing: stopProcessing ?? this.stopProcessing,
@@ -11305,7 +11286,7 @@ extension $RuleActionExtension on RuleAction {
     Wrapped<DateTime?>? createdAt,
     Wrapped<DateTime?>? updatedAt,
     Wrapped<enums.RuleActionKeyword>? type,
-    Wrapped<String?>? $value,
+    Wrapped<String?>? value,
     Wrapped<int?>? order,
     Wrapped<bool?>? active,
     Wrapped<bool?>? stopProcessing,
@@ -11315,7 +11296,7 @@ extension $RuleActionExtension on RuleAction {
       createdAt: (createdAt != null ? createdAt.value : this.createdAt),
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
       type: (type != null ? type.value : this.type),
-      $value: ($value != null ? $value.value : this.$value),
+      value: (value != null ? value.value : this.value),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
       stopProcessing: (stopProcessing != null
@@ -11329,7 +11310,7 @@ extension $RuleActionExtension on RuleAction {
 class RuleActionStore {
   const RuleActionStore({
     required this.type,
-    this.$value,
+    this.value,
     this.order,
     this.active,
     this.stopProcessing,
@@ -11343,18 +11324,18 @@ class RuleActionStore {
 
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: ruleActionKeywordToJson,
     fromJson: ruleActionKeywordFromJson,
   )
   final enums.RuleActionKeyword type;
-  @JsonKey(name: 'value', includeIfNull: false)
-  final String? $value;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'value', includeIfNull: true)
+  final String? value;
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'active', includeIfNull: true, defaultValue: true)
   final bool? active;
-  @JsonKey(name: 'stop_processing', includeIfNull: false, defaultValue: false)
+  @JsonKey(name: 'stop_processing', includeIfNull: true, defaultValue: false)
   final bool? stopProcessing;
   static const fromJsonFactory = _$RuleActionStoreFromJson;
 
@@ -11365,14 +11346,14 @@ class RuleActionStore {
 extension $RuleActionStoreExtension on RuleActionStore {
   RuleActionStore copyWith({
     enums.RuleActionKeyword? type,
-    String? $value,
+    String? value,
     int? order,
     bool? active,
     bool? stopProcessing,
   }) {
     return RuleActionStore(
       type: type ?? this.type,
-      $value: $value ?? this.$value,
+      value: value ?? this.value,
       order: order ?? this.order,
       active: active ?? this.active,
       stopProcessing: stopProcessing ?? this.stopProcessing,
@@ -11381,14 +11362,14 @@ extension $RuleActionStoreExtension on RuleActionStore {
 
   RuleActionStore copyWithWrapped({
     Wrapped<enums.RuleActionKeyword>? type,
-    Wrapped<String?>? $value,
+    Wrapped<String?>? value,
     Wrapped<int?>? order,
     Wrapped<bool?>? active,
     Wrapped<bool?>? stopProcessing,
   }) {
     return RuleActionStore(
       type: (type != null ? type.value : this.type),
-      $value: ($value != null ? $value.value : this.$value),
+      value: (value != null ? value.value : this.value),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
       stopProcessing: (stopProcessing != null
@@ -11402,7 +11383,7 @@ extension $RuleActionStoreExtension on RuleActionStore {
 class RuleActionUpdate {
   const RuleActionUpdate({
     this.type,
-    this.$value,
+    this.value,
     this.order,
     this.active,
     this.stopProcessing,
@@ -11416,18 +11397,18 @@ class RuleActionUpdate {
 
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: ruleActionKeywordNullableToJson,
     fromJson: ruleActionKeywordNullableFromJson,
   )
   final enums.RuleActionKeyword? type;
-  @JsonKey(name: 'value', includeIfNull: false)
-  final String? $value;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'value', includeIfNull: true)
+  final String? value;
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'stop_processing', includeIfNull: false)
+  @JsonKey(name: 'stop_processing', includeIfNull: true)
   final bool? stopProcessing;
   static const fromJsonFactory = _$RuleActionUpdateFromJson;
 
@@ -11438,14 +11419,14 @@ class RuleActionUpdate {
 extension $RuleActionUpdateExtension on RuleActionUpdate {
   RuleActionUpdate copyWith({
     enums.RuleActionKeyword? type,
-    String? $value,
+    String? value,
     int? order,
     bool? active,
     bool? stopProcessing,
   }) {
     return RuleActionUpdate(
       type: type ?? this.type,
-      $value: $value ?? this.$value,
+      value: value ?? this.value,
       order: order ?? this.order,
       active: active ?? this.active,
       stopProcessing: stopProcessing ?? this.stopProcessing,
@@ -11454,14 +11435,14 @@ extension $RuleActionUpdateExtension on RuleActionUpdate {
 
   RuleActionUpdate copyWithWrapped({
     Wrapped<enums.RuleActionKeyword?>? type,
-    Wrapped<String?>? $value,
+    Wrapped<String?>? value,
     Wrapped<int?>? order,
     Wrapped<bool?>? active,
     Wrapped<bool?>? stopProcessing,
   }) {
     return RuleActionUpdate(
       type: (type != null ? type.value : this.type),
-      $value: ($value != null ? $value.value : this.$value),
+      value: (value != null ? value.value : this.value),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
       stopProcessing: (stopProcessing != null
@@ -11488,17 +11469,17 @@ class RuleGroup {
   static const toJsonFactory = _$RuleGroupToJson;
   Map<String, dynamic> toJson() => _$RuleGroupToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String title;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
   static const fromJsonFactory = _$RuleGroupFromJson;
 
@@ -11559,13 +11540,13 @@ class RuleGroupStore {
   static const toJsonFactory = _$RuleGroupStoreToJson;
   Map<String, dynamic> toJson() => _$RuleGroupStoreToJson(this);
 
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String title;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
   static const fromJsonFactory = _$RuleGroupStoreFromJson;
 
@@ -11618,13 +11599,13 @@ class RuleGroupUpdate {
   static const toJsonFactory = _$RuleGroupUpdateToJson;
   Map<String, dynamic> toJson() => _$RuleGroupUpdateToJson(this);
 
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String? title;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
   static const fromJsonFactory = _$RuleGroupUpdateFromJson;
 
@@ -11669,7 +11650,7 @@ class RuleTrigger {
     this.createdAt,
     this.updatedAt,
     required this.type,
-    required this.$value,
+    required this.value,
     this.prohibited,
     this.order,
     this.active,
@@ -11682,28 +11663,28 @@ class RuleTrigger {
   static const toJsonFactory = _$RuleTriggerToJson;
   Map<String, dynamic> toJson() => _$RuleTriggerToJson(this);
 
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String? id;
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: ruleTriggerKeywordToJson,
     fromJson: ruleTriggerKeywordFromJson,
   )
   final enums.RuleTriggerKeyword type;
-  @JsonKey(name: 'value', includeIfNull: false)
-  final String $value;
-  @JsonKey(name: 'prohibited', includeIfNull: false, defaultValue: false)
+  @JsonKey(name: 'value', includeIfNull: true)
+  final String value;
+  @JsonKey(name: 'prohibited', includeIfNull: true, defaultValue: false)
   final bool? prohibited;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'active', includeIfNull: true, defaultValue: true)
   final bool? active;
-  @JsonKey(name: 'stop_processing', includeIfNull: false, defaultValue: false)
+  @JsonKey(name: 'stop_processing', includeIfNull: true, defaultValue: false)
   final bool? stopProcessing;
   static const fromJsonFactory = _$RuleTriggerFromJson;
 
@@ -11717,7 +11698,7 @@ extension $RuleTriggerExtension on RuleTrigger {
     DateTime? createdAt,
     DateTime? updatedAt,
     enums.RuleTriggerKeyword? type,
-    String? $value,
+    String? value,
     bool? prohibited,
     int? order,
     bool? active,
@@ -11728,7 +11709,7 @@ extension $RuleTriggerExtension on RuleTrigger {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       type: type ?? this.type,
-      $value: $value ?? this.$value,
+      value: value ?? this.value,
       prohibited: prohibited ?? this.prohibited,
       order: order ?? this.order,
       active: active ?? this.active,
@@ -11741,7 +11722,7 @@ extension $RuleTriggerExtension on RuleTrigger {
     Wrapped<DateTime?>? createdAt,
     Wrapped<DateTime?>? updatedAt,
     Wrapped<enums.RuleTriggerKeyword>? type,
-    Wrapped<String>? $value,
+    Wrapped<String>? value,
     Wrapped<bool?>? prohibited,
     Wrapped<int?>? order,
     Wrapped<bool?>? active,
@@ -11752,7 +11733,7 @@ extension $RuleTriggerExtension on RuleTrigger {
       createdAt: (createdAt != null ? createdAt.value : this.createdAt),
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
       type: (type != null ? type.value : this.type),
-      $value: ($value != null ? $value.value : this.$value),
+      value: (value != null ? value.value : this.value),
       prohibited: (prohibited != null ? prohibited.value : this.prohibited),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
@@ -11767,7 +11748,7 @@ extension $RuleTriggerExtension on RuleTrigger {
 class RuleTriggerStore {
   const RuleTriggerStore({
     required this.type,
-    required this.$value,
+    required this.value,
     this.order,
     this.active,
     this.prohibited,
@@ -11782,20 +11763,20 @@ class RuleTriggerStore {
 
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: ruleTriggerKeywordToJson,
     fromJson: ruleTriggerKeywordFromJson,
   )
   final enums.RuleTriggerKeyword type;
-  @JsonKey(name: 'value', includeIfNull: false)
-  final String $value;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'value', includeIfNull: true)
+  final String value;
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'active', includeIfNull: true, defaultValue: true)
   final bool? active;
-  @JsonKey(name: 'prohibited', includeIfNull: false, defaultValue: false)
+  @JsonKey(name: 'prohibited', includeIfNull: true, defaultValue: false)
   final bool? prohibited;
-  @JsonKey(name: 'stop_processing', includeIfNull: false, defaultValue: false)
+  @JsonKey(name: 'stop_processing', includeIfNull: true, defaultValue: false)
   final bool? stopProcessing;
   static const fromJsonFactory = _$RuleTriggerStoreFromJson;
 
@@ -11806,7 +11787,7 @@ class RuleTriggerStore {
 extension $RuleTriggerStoreExtension on RuleTriggerStore {
   RuleTriggerStore copyWith({
     enums.RuleTriggerKeyword? type,
-    String? $value,
+    String? value,
     int? order,
     bool? active,
     bool? prohibited,
@@ -11814,7 +11795,7 @@ extension $RuleTriggerStoreExtension on RuleTriggerStore {
   }) {
     return RuleTriggerStore(
       type: type ?? this.type,
-      $value: $value ?? this.$value,
+      value: value ?? this.value,
       order: order ?? this.order,
       active: active ?? this.active,
       prohibited: prohibited ?? this.prohibited,
@@ -11824,7 +11805,7 @@ extension $RuleTriggerStoreExtension on RuleTriggerStore {
 
   RuleTriggerStore copyWithWrapped({
     Wrapped<enums.RuleTriggerKeyword>? type,
-    Wrapped<String>? $value,
+    Wrapped<String>? value,
     Wrapped<int?>? order,
     Wrapped<bool?>? active,
     Wrapped<bool?>? prohibited,
@@ -11832,7 +11813,7 @@ extension $RuleTriggerStoreExtension on RuleTriggerStore {
   }) {
     return RuleTriggerStore(
       type: (type != null ? type.value : this.type),
-      $value: ($value != null ? $value.value : this.$value),
+      value: (value != null ? value.value : this.value),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
       prohibited: (prohibited != null ? prohibited.value : this.prohibited),
@@ -11847,7 +11828,7 @@ extension $RuleTriggerStoreExtension on RuleTriggerStore {
 class RuleTriggerUpdate {
   const RuleTriggerUpdate({
     this.type,
-    this.$value,
+    this.value,
     this.order,
     this.active,
     this.stopProcessing,
@@ -11861,18 +11842,18 @@ class RuleTriggerUpdate {
 
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: ruleTriggerKeywordNullableToJson,
     fromJson: ruleTriggerKeywordNullableFromJson,
   )
   final enums.RuleTriggerKeyword? type;
-  @JsonKey(name: 'value', includeIfNull: false)
-  final String? $value;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'value', includeIfNull: true)
+  final String? value;
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'stop_processing', includeIfNull: false)
+  @JsonKey(name: 'stop_processing', includeIfNull: true)
   final bool? stopProcessing;
   static const fromJsonFactory = _$RuleTriggerUpdateFromJson;
 
@@ -11883,14 +11864,14 @@ class RuleTriggerUpdate {
 extension $RuleTriggerUpdateExtension on RuleTriggerUpdate {
   RuleTriggerUpdate copyWith({
     enums.RuleTriggerKeyword? type,
-    String? $value,
+    String? value,
     int? order,
     bool? active,
     bool? stopProcessing,
   }) {
     return RuleTriggerUpdate(
       type: type ?? this.type,
-      $value: $value ?? this.$value,
+      value: value ?? this.value,
       order: order ?? this.order,
       active: active ?? this.active,
       stopProcessing: stopProcessing ?? this.stopProcessing,
@@ -11899,14 +11880,14 @@ extension $RuleTriggerUpdateExtension on RuleTriggerUpdate {
 
   RuleTriggerUpdate copyWithWrapped({
     Wrapped<enums.RuleTriggerKeyword?>? type,
-    Wrapped<String?>? $value,
+    Wrapped<String?>? value,
     Wrapped<int?>? order,
     Wrapped<bool?>? active,
     Wrapped<bool?>? stopProcessing,
   }) {
     return RuleTriggerUpdate(
       type: (type != null ? type.value : this.type),
-      $value: ($value != null ? $value.value : this.$value),
+      value: (value != null ? value.value : this.value),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
       stopProcessing: (stopProcessing != null
@@ -11935,21 +11916,21 @@ class TagModel {
   static const toJsonFactory = _$TagModelToJson;
   Map<String, dynamic> toJson() => _$TagModelToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'tag', includeIfNull: false)
+  @JsonKey(name: 'tag', includeIfNull: true)
   final String tag;
-  @JsonKey(name: 'date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'date', includeIfNull: true, toJson: _dateToJson)
   final DateTime? date;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'latitude', includeIfNull: false)
+  @JsonKey(name: 'latitude', includeIfNull: true)
   final double? latitude;
-  @JsonKey(name: 'longitude', includeIfNull: false)
+  @JsonKey(name: 'longitude', includeIfNull: true)
   final double? longitude;
-  @JsonKey(name: 'zoom_level', includeIfNull: false)
+  @JsonKey(name: 'zoom_level', includeIfNull: true)
   final int? zoomLevel;
   static const fromJsonFactory = _$TagModelFromJson;
 
@@ -12020,17 +12001,17 @@ class TagModelStore {
   static const toJsonFactory = _$TagModelStoreToJson;
   Map<String, dynamic> toJson() => _$TagModelStoreToJson(this);
 
-  @JsonKey(name: 'tag', includeIfNull: false)
+  @JsonKey(name: 'tag', includeIfNull: true)
   final String tag;
-  @JsonKey(name: 'date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'date', includeIfNull: true, toJson: _dateToJson)
   final DateTime? date;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'latitude', includeIfNull: false)
+  @JsonKey(name: 'latitude', includeIfNull: true)
   final double? latitude;
-  @JsonKey(name: 'longitude', includeIfNull: false)
+  @JsonKey(name: 'longitude', includeIfNull: true)
   final double? longitude;
-  @JsonKey(name: 'zoom_level', includeIfNull: false)
+  @JsonKey(name: 'zoom_level', includeIfNull: true)
   final int? zoomLevel;
   static const fromJsonFactory = _$TagModelStoreFromJson;
 
@@ -12093,17 +12074,17 @@ class TagModelUpdate {
   static const toJsonFactory = _$TagModelUpdateToJson;
   Map<String, dynamic> toJson() => _$TagModelUpdateToJson(this);
 
-  @JsonKey(name: 'tag', includeIfNull: false)
+  @JsonKey(name: 'tag', includeIfNull: true)
   final String? tag;
-  @JsonKey(name: 'date', includeIfNull: false, toJson: _dateToJson)
+  @JsonKey(name: 'date', includeIfNull: true, toJson: _dateToJson)
   final DateTime? date;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'latitude', includeIfNull: false)
+  @JsonKey(name: 'latitude', includeIfNull: true)
   final double? latitude;
-  @JsonKey(name: 'longitude', includeIfNull: false)
+  @JsonKey(name: 'longitude', includeIfNull: true)
   final double? longitude;
-  @JsonKey(name: 'zoom_level', includeIfNull: false)
+  @JsonKey(name: 'zoom_level', includeIfNull: true)
   final int? zoomLevel;
   static const fromJsonFactory = _$TagModelUpdateFromJson;
 
@@ -12168,21 +12149,21 @@ class CurrencyProperties {
   static const toJsonFactory = _$CurrencyPropertiesToJson;
   Map<String, dynamic> toJson() => _$CurrencyPropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'enabled', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'enabled', includeIfNull: true, defaultValue: true)
   final bool? enabled;
-  @JsonKey(name: 'primary', includeIfNull: false)
+  @JsonKey(name: 'primary', includeIfNull: true)
   final bool? primary;
-  @JsonKey(name: 'code', includeIfNull: false)
+  @JsonKey(name: 'code', includeIfNull: true)
   final String code;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'symbol', includeIfNull: false)
+  @JsonKey(name: 'symbol', includeIfNull: true)
   final String symbol;
-  @JsonKey(name: 'decimal_places', includeIfNull: false)
+  @JsonKey(name: 'decimal_places', includeIfNull: true)
   final int? decimalPlaces;
   static const fromJsonFactory = _$CurrencyPropertiesFromJson;
 
@@ -12255,17 +12236,17 @@ class CurrencyStore {
   static const toJsonFactory = _$CurrencyStoreToJson;
   Map<String, dynamic> toJson() => _$CurrencyStoreToJson(this);
 
-  @JsonKey(name: 'enabled', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'enabled', includeIfNull: true, defaultValue: true)
   final bool? enabled;
-  @JsonKey(name: 'primary', includeIfNull: false)
+  @JsonKey(name: 'primary', includeIfNull: true)
   final bool? primary;
-  @JsonKey(name: 'code', includeIfNull: false)
+  @JsonKey(name: 'code', includeIfNull: true)
   final String code;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'symbol', includeIfNull: false)
+  @JsonKey(name: 'symbol', includeIfNull: true)
   final String symbol;
-  @JsonKey(name: 'decimal_places', includeIfNull: false)
+  @JsonKey(name: 'decimal_places', includeIfNull: true)
   final int? decimalPlaces;
   static const fromJsonFactory = _$CurrencyStoreFromJson;
 
@@ -12330,17 +12311,17 @@ class CurrencyUpdate {
   static const toJsonFactory = _$CurrencyUpdateToJson;
   Map<String, dynamic> toJson() => _$CurrencyUpdateToJson(this);
 
-  @JsonKey(name: 'enabled', includeIfNull: false)
+  @JsonKey(name: 'enabled', includeIfNull: true)
   final bool? enabled;
-  @JsonKey(name: 'primary', includeIfNull: false)
+  @JsonKey(name: 'primary', includeIfNull: true)
   final bool? primary;
-  @JsonKey(name: 'code', includeIfNull: false)
+  @JsonKey(name: 'code', includeIfNull: true)
   final String? code;
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String? name;
-  @JsonKey(name: 'symbol', includeIfNull: false)
+  @JsonKey(name: 'symbol', includeIfNull: true)
   final String? symbol;
-  @JsonKey(name: 'decimal_places', includeIfNull: false)
+  @JsonKey(name: 'decimal_places', includeIfNull: true)
   final int? decimalPlaces;
   static const fromJsonFactory = _$CurrencyUpdateFromJson;
 
@@ -12404,17 +12385,17 @@ class Transaction {
   static const toJsonFactory = _$TransactionToJson;
   Map<String, dynamic> toJson() => _$TransactionToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'user', includeIfNull: false)
+  @JsonKey(name: 'user', includeIfNull: true)
   final String? user;
-  @JsonKey(name: 'group_title', includeIfNull: false)
+  @JsonKey(name: 'group_title', includeIfNull: true)
   final String? groupTitle;
   @JsonKey(
     name: 'transactions',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <TransactionSplit>[],
   )
   final List<TransactionSplit> transactions;
@@ -12476,17 +12457,17 @@ class TransactionStore {
   static const toJsonFactory = _$TransactionStoreToJson;
   Map<String, dynamic> toJson() => _$TransactionStoreToJson(this);
 
-  @JsonKey(name: 'error_if_duplicate_hash', includeIfNull: false)
+  @JsonKey(name: 'error_if_duplicate_hash', includeIfNull: true)
   final bool? errorIfDuplicateHash;
-  @JsonKey(name: 'apply_rules', includeIfNull: false)
+  @JsonKey(name: 'apply_rules', includeIfNull: true)
   final bool? applyRules;
-  @JsonKey(name: 'fire_webhooks', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'fire_webhooks', includeIfNull: true, defaultValue: true)
   final bool? fireWebhooks;
-  @JsonKey(name: 'group_title', includeIfNull: false)
+  @JsonKey(name: 'group_title', includeIfNull: true)
   final String? groupTitle;
   @JsonKey(
     name: 'transactions',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <TransactionSplitStore>[],
   )
   final List<TransactionSplitStore> transactions;
@@ -12551,15 +12532,15 @@ class TransactionUpdate {
   static const toJsonFactory = _$TransactionUpdateToJson;
   Map<String, dynamic> toJson() => _$TransactionUpdateToJson(this);
 
-  @JsonKey(name: 'apply_rules', includeIfNull: false)
+  @JsonKey(name: 'apply_rules', includeIfNull: true)
   final bool? applyRules;
-  @JsonKey(name: 'fire_webhooks', includeIfNull: false, defaultValue: true)
+  @JsonKey(name: 'fire_webhooks', includeIfNull: true, defaultValue: true)
   final bool? fireWebhooks;
-  @JsonKey(name: 'group_title', includeIfNull: false)
+  @JsonKey(name: 'group_title', includeIfNull: true)
   final String? groupTitle;
   @JsonKey(
     name: 'transactions',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <TransactionSplitUpdate>[],
   )
   final List<TransactionSplitUpdate>? transactions;
@@ -12621,19 +12602,19 @@ class TransactionLink {
   static const toJsonFactory = _$TransactionLinkToJson;
   Map<String, dynamic> toJson() => _$TransactionLinkToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'link_type_id', includeIfNull: false)
+  @JsonKey(name: 'link_type_id', includeIfNull: true)
   final String? linkTypeId;
-  @JsonKey(name: 'link_type_name', includeIfNull: false)
+  @JsonKey(name: 'link_type_name', includeIfNull: true)
   final String? linkTypeName;
-  @JsonKey(name: 'inward_id', includeIfNull: false)
+  @JsonKey(name: 'inward_id', includeIfNull: true)
   final String inwardId;
-  @JsonKey(name: 'outward_id', includeIfNull: false)
+  @JsonKey(name: 'outward_id', includeIfNull: true)
   final String outwardId;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   static const fromJsonFactory = _$TransactionLinkFromJson;
 
@@ -12701,15 +12682,15 @@ class TransactionLinkStore {
   static const toJsonFactory = _$TransactionLinkStoreToJson;
   Map<String, dynamic> toJson() => _$TransactionLinkStoreToJson(this);
 
-  @JsonKey(name: 'link_type_id', includeIfNull: false)
+  @JsonKey(name: 'link_type_id', includeIfNull: true)
   final String? linkTypeId;
-  @JsonKey(name: 'link_type_name', includeIfNull: false)
+  @JsonKey(name: 'link_type_name', includeIfNull: true)
   final String? linkTypeName;
-  @JsonKey(name: 'inward_id', includeIfNull: false)
+  @JsonKey(name: 'inward_id', includeIfNull: true)
   final String inwardId;
-  @JsonKey(name: 'outward_id', includeIfNull: false)
+  @JsonKey(name: 'outward_id', includeIfNull: true)
   final String outwardId;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   static const fromJsonFactory = _$TransactionLinkStoreFromJson;
 
@@ -12769,15 +12750,15 @@ class TransactionLinkUpdate {
   static const toJsonFactory = _$TransactionLinkUpdateToJson;
   Map<String, dynamic> toJson() => _$TransactionLinkUpdateToJson(this);
 
-  @JsonKey(name: 'link_type_id', includeIfNull: false)
+  @JsonKey(name: 'link_type_id', includeIfNull: true)
   final String? linkTypeId;
-  @JsonKey(name: 'link_type_name', includeIfNull: false)
+  @JsonKey(name: 'link_type_name', includeIfNull: true)
   final String? linkTypeName;
-  @JsonKey(name: 'inward_id', includeIfNull: false)
+  @JsonKey(name: 'inward_id', includeIfNull: true)
   final String? inwardId;
-  @JsonKey(name: 'outward_id', includeIfNull: false)
+  @JsonKey(name: 'outward_id', includeIfNull: true)
   final String? outwardId;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
   static const fromJsonFactory = _$TransactionLinkUpdateFromJson;
 
@@ -12836,13 +12817,13 @@ class LinkType {
   static const toJsonFactory = _$LinkTypeToJson;
   Map<String, dynamic> toJson() => _$LinkTypeToJson(this);
 
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String name;
-  @JsonKey(name: 'inward', includeIfNull: false)
+  @JsonKey(name: 'inward', includeIfNull: true)
   final String inward;
-  @JsonKey(name: 'outward', includeIfNull: false)
+  @JsonKey(name: 'outward', includeIfNull: true)
   final String outward;
-  @JsonKey(name: 'editable', includeIfNull: false)
+  @JsonKey(name: 'editable', includeIfNull: true)
   final bool? editable;
   static const fromJsonFactory = _$LinkTypeFromJson;
 
@@ -12890,11 +12871,11 @@ class LinkTypeUpdate {
   static const toJsonFactory = _$LinkTypeUpdateToJson;
   Map<String, dynamic> toJson() => _$LinkTypeUpdateToJson(this);
 
-  @JsonKey(name: 'name', includeIfNull: false)
+  @JsonKey(name: 'name', includeIfNull: true)
   final String? name;
-  @JsonKey(name: 'inward', includeIfNull: false)
+  @JsonKey(name: 'inward', includeIfNull: true)
   final String? inward;
-  @JsonKey(name: 'outward', includeIfNull: false)
+  @JsonKey(name: 'outward', includeIfNull: true)
   final String? outward;
   static const fromJsonFactory = _$LinkTypeUpdateFromJson;
 
@@ -13008,166 +12989,166 @@ class TransactionSplit {
   static const toJsonFactory = _$TransactionSplitToJson;
   Map<String, dynamic> toJson() => _$TransactionSplitToJson(this);
 
-  @JsonKey(name: 'user', includeIfNull: false)
+  @JsonKey(name: 'user', includeIfNull: true)
   final String? user;
-  @JsonKey(name: 'transaction_journal_id', includeIfNull: false)
+  @JsonKey(name: 'transaction_journal_id', includeIfNull: true)
   final String? transactionJournalId;
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: transactionTypePropertyToJson,
     fromJson: transactionTypePropertyFromJson,
   )
   final enums.TransactionTypeProperty type;
-  @JsonKey(name: 'date', includeIfNull: false)
+  @JsonKey(name: 'date', includeIfNull: true)
   final DateTime date;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'object_has_currency_setting', includeIfNull: false)
+  @JsonKey(name: 'object_has_currency_setting', includeIfNull: true)
   final bool? objectHasCurrencySetting;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'foreign_currency_id', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_id', includeIfNull: true)
   final String? foreignCurrencyId;
-  @JsonKey(name: 'foreign_currency_code', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_code', includeIfNull: true)
   final String? foreignCurrencyCode;
-  @JsonKey(name: 'foreign_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_symbol', includeIfNull: true)
   final String? foreignCurrencySymbol;
-  @JsonKey(name: 'foreign_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_decimal_places', includeIfNull: true)
   final int? foreignCurrencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String amount;
-  @JsonKey(name: 'pc_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_amount', includeIfNull: true)
   final String? pcAmount;
-  @JsonKey(name: 'foreign_amount', includeIfNull: false)
+  @JsonKey(name: 'foreign_amount', includeIfNull: true)
   final String? foreignAmount;
-  @JsonKey(name: 'pc_foreign_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_foreign_amount', includeIfNull: true)
   final String? pcForeignAmount;
-  @JsonKey(name: 'source_balance_after', includeIfNull: false)
+  @JsonKey(name: 'source_balance_after', includeIfNull: true)
   final String? sourceBalanceAfter;
-  @JsonKey(name: 'pc_source_balance_after', includeIfNull: false)
+  @JsonKey(name: 'pc_source_balance_after', includeIfNull: true)
   final String? pcSourceBalanceAfter;
-  @JsonKey(name: 'destination_balance_after', includeIfNull: false)
+  @JsonKey(name: 'destination_balance_after', includeIfNull: true)
   final String? destinationBalanceAfter;
-  @JsonKey(name: 'pc_destination_balance_after', includeIfNull: false)
+  @JsonKey(name: 'pc_destination_balance_after', includeIfNull: true)
   final String? pcDestinationBalanceAfter;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String description;
-  @JsonKey(name: 'source_id', includeIfNull: false)
+  @JsonKey(name: 'source_id', includeIfNull: true)
   final String? sourceId;
-  @JsonKey(name: 'source_name', includeIfNull: false)
+  @JsonKey(name: 'source_name', includeIfNull: true)
   final String? sourceName;
-  @JsonKey(name: 'source_iban', includeIfNull: false)
+  @JsonKey(name: 'source_iban', includeIfNull: true)
   final String? sourceIban;
   @JsonKey(
     name: 'source_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: accountTypePropertyNullableToJson,
     fromJson: accountTypePropertyNullableFromJson,
   )
   final enums.AccountTypeProperty? sourceType;
-  @JsonKey(name: 'destination_id', includeIfNull: false)
+  @JsonKey(name: 'destination_id', includeIfNull: true)
   final String? destinationId;
-  @JsonKey(name: 'destination_name', includeIfNull: false)
+  @JsonKey(name: 'destination_name', includeIfNull: true)
   final String? destinationName;
-  @JsonKey(name: 'destination_iban', includeIfNull: false)
+  @JsonKey(name: 'destination_iban', includeIfNull: true)
   final String? destinationIban;
   @JsonKey(
     name: 'destination_type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: accountTypePropertyNullableToJson,
     fromJson: accountTypePropertyNullableFromJson,
   )
   final enums.AccountTypeProperty? destinationType;
-  @JsonKey(name: 'budget_id', includeIfNull: false)
+  @JsonKey(name: 'budget_id', includeIfNull: true)
   final String? budgetId;
-  @JsonKey(name: 'budget_name', includeIfNull: false)
+  @JsonKey(name: 'budget_name', includeIfNull: true)
   final String? budgetName;
-  @JsonKey(name: 'category_id', includeIfNull: false)
+  @JsonKey(name: 'category_id', includeIfNull: true)
   final String? categoryId;
-  @JsonKey(name: 'category_name', includeIfNull: false)
+  @JsonKey(name: 'category_name', includeIfNull: true)
   final String? categoryName;
-  @JsonKey(name: 'bill_id', includeIfNull: false)
+  @JsonKey(name: 'bill_id', includeIfNull: true)
   final String? billId;
-  @JsonKey(name: 'bill_name', includeIfNull: false)
+  @JsonKey(name: 'bill_name', includeIfNull: true)
   final String? billName;
-  @JsonKey(name: 'subscription_id', includeIfNull: false)
+  @JsonKey(name: 'subscription_id', includeIfNull: true)
   final String? subscriptionId;
-  @JsonKey(name: 'subscription_name', includeIfNull: false)
+  @JsonKey(name: 'subscription_name', includeIfNull: true)
   final String? subscriptionName;
-  @JsonKey(name: 'reconciled', includeIfNull: false)
+  @JsonKey(name: 'reconciled', includeIfNull: true)
   final bool? reconciled;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'tags', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'tags', includeIfNull: true, defaultValue: <String>[])
   final List<String>? tags;
-  @JsonKey(name: 'internal_reference', includeIfNull: false)
+  @JsonKey(name: 'internal_reference', includeIfNull: true)
   final String? internalReference;
-  @JsonKey(name: 'external_id', includeIfNull: false)
+  @JsonKey(name: 'external_id', includeIfNull: true)
   final String? externalId;
-  @JsonKey(name: 'external_url', includeIfNull: false)
+  @JsonKey(name: 'external_url', includeIfNull: true)
   final String? externalUrl;
-  @JsonKey(name: 'original_source', includeIfNull: false)
+  @JsonKey(name: 'original_source', includeIfNull: true)
   final String? originalSource;
-  @JsonKey(name: 'recurrence_id', includeIfNull: false)
+  @JsonKey(name: 'recurrence_id', includeIfNull: true)
   final String? recurrenceId;
-  @JsonKey(name: 'recurrence_total', includeIfNull: false)
+  @JsonKey(name: 'recurrence_total', includeIfNull: true)
   final int? recurrenceTotal;
-  @JsonKey(name: 'recurrence_count', includeIfNull: false)
+  @JsonKey(name: 'recurrence_count', includeIfNull: true)
   final int? recurrenceCount;
-  @JsonKey(name: 'import_hash_v2', includeIfNull: false)
+  @JsonKey(name: 'import_hash_v2', includeIfNull: true)
   final String? importHashV2;
-  @JsonKey(name: 'sepa_cc', includeIfNull: false)
+  @JsonKey(name: 'sepa_cc', includeIfNull: true)
   final String? sepaCc;
-  @JsonKey(name: 'sepa_ct_op', includeIfNull: false)
+  @JsonKey(name: 'sepa_ct_op', includeIfNull: true)
   final String? sepaCtOp;
-  @JsonKey(name: 'sepa_ct_id', includeIfNull: false)
+  @JsonKey(name: 'sepa_ct_id', includeIfNull: true)
   final String? sepaCtId;
-  @JsonKey(name: 'sepa_db', includeIfNull: false)
+  @JsonKey(name: 'sepa_db', includeIfNull: true)
   final String? sepaDb;
-  @JsonKey(name: 'sepa_country', includeIfNull: false)
+  @JsonKey(name: 'sepa_country', includeIfNull: true)
   final String? sepaCountry;
-  @JsonKey(name: 'sepa_ep', includeIfNull: false)
+  @JsonKey(name: 'sepa_ep', includeIfNull: true)
   final String? sepaEp;
-  @JsonKey(name: 'sepa_ci', includeIfNull: false)
+  @JsonKey(name: 'sepa_ci', includeIfNull: true)
   final String? sepaCi;
-  @JsonKey(name: 'sepa_batch_id', includeIfNull: false)
+  @JsonKey(name: 'sepa_batch_id', includeIfNull: true)
   final String? sepaBatchId;
-  @JsonKey(name: 'interest_date', includeIfNull: false)
+  @JsonKey(name: 'interest_date', includeIfNull: true)
   final DateTime? interestDate;
-  @JsonKey(name: 'book_date', includeIfNull: false)
+  @JsonKey(name: 'book_date', includeIfNull: true)
   final DateTime? bookDate;
-  @JsonKey(name: 'process_date', includeIfNull: false)
+  @JsonKey(name: 'process_date', includeIfNull: true)
   final DateTime? processDate;
-  @JsonKey(name: 'due_date', includeIfNull: false)
+  @JsonKey(name: 'due_date', includeIfNull: true)
   final DateTime? dueDate;
-  @JsonKey(name: 'payment_date', includeIfNull: false)
+  @JsonKey(name: 'payment_date', includeIfNull: true)
   final DateTime? paymentDate;
-  @JsonKey(name: 'invoice_date', includeIfNull: false)
+  @JsonKey(name: 'invoice_date', includeIfNull: true)
   final DateTime? invoiceDate;
-  @JsonKey(name: 'latitude', includeIfNull: false)
+  @JsonKey(name: 'latitude', includeIfNull: true)
   final double? latitude;
-  @JsonKey(name: 'longitude', includeIfNull: false)
+  @JsonKey(name: 'longitude', includeIfNull: true)
   final double? longitude;
-  @JsonKey(name: 'zoom_level', includeIfNull: false)
+  @JsonKey(name: 'zoom_level', includeIfNull: true)
   final int? zoomLevel;
-  @JsonKey(name: 'has_attachments', includeIfNull: false)
+  @JsonKey(name: 'has_attachments', includeIfNull: true)
   final bool? hasAttachments;
   static const fromJsonFactory = _$TransactionSplitFromJson;
 
@@ -13614,92 +13595,92 @@ class TransactionSplitStore {
 
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: transactionTypePropertyToJson,
     fromJson: transactionTypePropertyFromJson,
   )
   final enums.TransactionTypeProperty type;
-  @JsonKey(name: 'date', includeIfNull: false)
+  @JsonKey(name: 'date', includeIfNull: true)
   final DateTime date;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String amount;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String description;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'foreign_amount', includeIfNull: false)
+  @JsonKey(name: 'foreign_amount', includeIfNull: true)
   final String? foreignAmount;
-  @JsonKey(name: 'foreign_currency_id', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_id', includeIfNull: true)
   final String? foreignCurrencyId;
-  @JsonKey(name: 'foreign_currency_code', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_code', includeIfNull: true)
   final String? foreignCurrencyCode;
-  @JsonKey(name: 'budget_id', includeIfNull: false)
+  @JsonKey(name: 'budget_id', includeIfNull: true)
   final String? budgetId;
-  @JsonKey(name: 'budget_name', includeIfNull: false)
+  @JsonKey(name: 'budget_name', includeIfNull: true)
   final String? budgetName;
-  @JsonKey(name: 'category_id', includeIfNull: false)
+  @JsonKey(name: 'category_id', includeIfNull: true)
   final String? categoryId;
-  @JsonKey(name: 'category_name', includeIfNull: false)
+  @JsonKey(name: 'category_name', includeIfNull: true)
   final String? categoryName;
-  @JsonKey(name: 'source_id', includeIfNull: false)
+  @JsonKey(name: 'source_id', includeIfNull: true)
   final String? sourceId;
-  @JsonKey(name: 'source_name', includeIfNull: false)
+  @JsonKey(name: 'source_name', includeIfNull: true)
   final String? sourceName;
-  @JsonKey(name: 'destination_id', includeIfNull: false)
+  @JsonKey(name: 'destination_id', includeIfNull: true)
   final String? destinationId;
-  @JsonKey(name: 'destination_name', includeIfNull: false)
+  @JsonKey(name: 'destination_name', includeIfNull: true)
   final String? destinationName;
-  @JsonKey(name: 'reconciled', includeIfNull: false)
+  @JsonKey(name: 'reconciled', includeIfNull: true)
   final bool? reconciled;
-  @JsonKey(name: 'piggy_bank_id', includeIfNull: false)
+  @JsonKey(name: 'piggy_bank_id', includeIfNull: true)
   final int? piggyBankId;
-  @JsonKey(name: 'piggy_bank_name', includeIfNull: false)
+  @JsonKey(name: 'piggy_bank_name', includeIfNull: true)
   final String? piggyBankName;
-  @JsonKey(name: 'bill_id', includeIfNull: false)
+  @JsonKey(name: 'bill_id', includeIfNull: true)
   final String? billId;
-  @JsonKey(name: 'bill_name', includeIfNull: false)
+  @JsonKey(name: 'bill_name', includeIfNull: true)
   final String? billName;
-  @JsonKey(name: 'tags', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'tags', includeIfNull: true, defaultValue: <String>[])
   final List<String>? tags;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'internal_reference', includeIfNull: false)
+  @JsonKey(name: 'internal_reference', includeIfNull: true)
   final String? internalReference;
-  @JsonKey(name: 'external_id', includeIfNull: false)
+  @JsonKey(name: 'external_id', includeIfNull: true)
   final String? externalId;
-  @JsonKey(name: 'external_url', includeIfNull: false)
+  @JsonKey(name: 'external_url', includeIfNull: true)
   final String? externalUrl;
-  @JsonKey(name: 'sepa_cc', includeIfNull: false)
+  @JsonKey(name: 'sepa_cc', includeIfNull: true)
   final String? sepaCc;
-  @JsonKey(name: 'sepa_ct_op', includeIfNull: false)
+  @JsonKey(name: 'sepa_ct_op', includeIfNull: true)
   final String? sepaCtOp;
-  @JsonKey(name: 'sepa_ct_id', includeIfNull: false)
+  @JsonKey(name: 'sepa_ct_id', includeIfNull: true)
   final String? sepaCtId;
-  @JsonKey(name: 'sepa_db', includeIfNull: false)
+  @JsonKey(name: 'sepa_db', includeIfNull: true)
   final String? sepaDb;
-  @JsonKey(name: 'sepa_country', includeIfNull: false)
+  @JsonKey(name: 'sepa_country', includeIfNull: true)
   final String? sepaCountry;
-  @JsonKey(name: 'sepa_ep', includeIfNull: false)
+  @JsonKey(name: 'sepa_ep', includeIfNull: true)
   final String? sepaEp;
-  @JsonKey(name: 'sepa_ci', includeIfNull: false)
+  @JsonKey(name: 'sepa_ci', includeIfNull: true)
   final String? sepaCi;
-  @JsonKey(name: 'sepa_batch_id', includeIfNull: false)
+  @JsonKey(name: 'sepa_batch_id', includeIfNull: true)
   final String? sepaBatchId;
-  @JsonKey(name: 'interest_date', includeIfNull: false)
+  @JsonKey(name: 'interest_date', includeIfNull: true)
   final DateTime? interestDate;
-  @JsonKey(name: 'book_date', includeIfNull: false)
+  @JsonKey(name: 'book_date', includeIfNull: true)
   final DateTime? bookDate;
-  @JsonKey(name: 'process_date', includeIfNull: false)
+  @JsonKey(name: 'process_date', includeIfNull: true)
   final DateTime? processDate;
-  @JsonKey(name: 'due_date', includeIfNull: false)
+  @JsonKey(name: 'due_date', includeIfNull: true)
   final DateTime? dueDate;
-  @JsonKey(name: 'payment_date', includeIfNull: false)
+  @JsonKey(name: 'payment_date', includeIfNull: true)
   final DateTime? paymentDate;
-  @JsonKey(name: 'invoice_date', includeIfNull: false)
+  @JsonKey(name: 'invoice_date', includeIfNull: true)
   final DateTime? invoiceDate;
   static const fromJsonFactory = _$TransactionSplitStoreFromJson;
 
@@ -13968,106 +13949,106 @@ class TransactionSplitUpdate {
   static const toJsonFactory = _$TransactionSplitUpdateToJson;
   Map<String, dynamic> toJson() => _$TransactionSplitUpdateToJson(this);
 
-  @JsonKey(name: 'transaction_journal_id', includeIfNull: false)
+  @JsonKey(name: 'transaction_journal_id', includeIfNull: true)
   final String? transactionJournalId;
   @JsonKey(
     name: 'type',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: transactionTypePropertyNullableToJson,
     fromJson: transactionTypePropertyNullableFromJson,
   )
   final enums.TransactionTypeProperty? type;
-  @JsonKey(name: 'date', includeIfNull: false)
+  @JsonKey(name: 'date', includeIfNull: true)
   final DateTime? date;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String? amount;
-  @JsonKey(name: 'description', includeIfNull: false)
+  @JsonKey(name: 'description', includeIfNull: true)
   final String? description;
-  @JsonKey(name: 'order', includeIfNull: false)
+  @JsonKey(name: 'order', includeIfNull: true)
   final int? order;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'foreign_amount', includeIfNull: false)
+  @JsonKey(name: 'foreign_amount', includeIfNull: true)
   final String? foreignAmount;
-  @JsonKey(name: 'foreign_currency_id', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_id', includeIfNull: true)
   final String? foreignCurrencyId;
-  @JsonKey(name: 'foreign_currency_code', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_code', includeIfNull: true)
   final String? foreignCurrencyCode;
-  @JsonKey(name: 'foreign_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_symbol', includeIfNull: true)
   final String? foreignCurrencySymbol;
-  @JsonKey(name: 'foreign_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'foreign_currency_decimal_places', includeIfNull: true)
   final int? foreignCurrencyDecimalPlaces;
-  @JsonKey(name: 'budget_id', includeIfNull: false)
+  @JsonKey(name: 'budget_id', includeIfNull: true)
   final String? budgetId;
-  @JsonKey(name: 'budget_name', includeIfNull: false)
+  @JsonKey(name: 'budget_name', includeIfNull: true)
   final String? budgetName;
-  @JsonKey(name: 'category_id', includeIfNull: false)
+  @JsonKey(name: 'category_id', includeIfNull: true)
   final String? categoryId;
-  @JsonKey(name: 'category_name', includeIfNull: false)
+  @JsonKey(name: 'category_name', includeIfNull: true)
   final String? categoryName;
-  @JsonKey(name: 'source_id', includeIfNull: false)
+  @JsonKey(name: 'source_id', includeIfNull: true)
   final String? sourceId;
-  @JsonKey(name: 'source_name', includeIfNull: false)
+  @JsonKey(name: 'source_name', includeIfNull: true)
   final String? sourceName;
-  @JsonKey(name: 'source_iban', includeIfNull: false)
+  @JsonKey(name: 'source_iban', includeIfNull: true)
   final String? sourceIban;
-  @JsonKey(name: 'destination_id', includeIfNull: false)
+  @JsonKey(name: 'destination_id', includeIfNull: true)
   final String? destinationId;
-  @JsonKey(name: 'destination_name', includeIfNull: false)
+  @JsonKey(name: 'destination_name', includeIfNull: true)
   final String? destinationName;
-  @JsonKey(name: 'destination_iban', includeIfNull: false)
+  @JsonKey(name: 'destination_iban', includeIfNull: true)
   final String? destinationIban;
-  @JsonKey(name: 'reconciled', includeIfNull: false)
+  @JsonKey(name: 'reconciled', includeIfNull: true)
   final bool? reconciled;
-  @JsonKey(name: 'bill_id', includeIfNull: false)
+  @JsonKey(name: 'bill_id', includeIfNull: true)
   final String? billId;
-  @JsonKey(name: 'bill_name', includeIfNull: false)
+  @JsonKey(name: 'bill_name', includeIfNull: true)
   final String? billName;
-  @JsonKey(name: 'tags', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'tags', includeIfNull: true, defaultValue: <String>[])
   final List<String>? tags;
-  @JsonKey(name: 'notes', includeIfNull: false)
+  @JsonKey(name: 'notes', includeIfNull: true)
   final String? notes;
-  @JsonKey(name: 'internal_reference', includeIfNull: false)
+  @JsonKey(name: 'internal_reference', includeIfNull: true)
   final String? internalReference;
-  @JsonKey(name: 'external_id', includeIfNull: false)
+  @JsonKey(name: 'external_id', includeIfNull: true)
   final String? externalId;
-  @JsonKey(name: 'external_url', includeIfNull: false)
+  @JsonKey(name: 'external_url', includeIfNull: true)
   final String? externalUrl;
-  @JsonKey(name: 'sepa_cc', includeIfNull: false)
+  @JsonKey(name: 'sepa_cc', includeIfNull: true)
   final String? sepaCc;
-  @JsonKey(name: 'sepa_ct_op', includeIfNull: false)
+  @JsonKey(name: 'sepa_ct_op', includeIfNull: true)
   final String? sepaCtOp;
-  @JsonKey(name: 'sepa_ct_id', includeIfNull: false)
+  @JsonKey(name: 'sepa_ct_id', includeIfNull: true)
   final String? sepaCtId;
-  @JsonKey(name: 'sepa_db', includeIfNull: false)
+  @JsonKey(name: 'sepa_db', includeIfNull: true)
   final String? sepaDb;
-  @JsonKey(name: 'sepa_country', includeIfNull: false)
+  @JsonKey(name: 'sepa_country', includeIfNull: true)
   final String? sepaCountry;
-  @JsonKey(name: 'sepa_ep', includeIfNull: false)
+  @JsonKey(name: 'sepa_ep', includeIfNull: true)
   final String? sepaEp;
-  @JsonKey(name: 'sepa_ci', includeIfNull: false)
+  @JsonKey(name: 'sepa_ci', includeIfNull: true)
   final String? sepaCi;
-  @JsonKey(name: 'sepa_batch_id', includeIfNull: false)
+  @JsonKey(name: 'sepa_batch_id', includeIfNull: true)
   final String? sepaBatchId;
-  @JsonKey(name: 'interest_date', includeIfNull: false)
+  @JsonKey(name: 'interest_date', includeIfNull: true)
   final DateTime? interestDate;
-  @JsonKey(name: 'book_date', includeIfNull: false)
+  @JsonKey(name: 'book_date', includeIfNull: true)
   final DateTime? bookDate;
-  @JsonKey(name: 'process_date', includeIfNull: false)
+  @JsonKey(name: 'process_date', includeIfNull: true)
   final DateTime? processDate;
-  @JsonKey(name: 'due_date', includeIfNull: false)
+  @JsonKey(name: 'due_date', includeIfNull: true)
   final DateTime? dueDate;
-  @JsonKey(name: 'payment_date', includeIfNull: false)
+  @JsonKey(name: 'payment_date', includeIfNull: true)
   final DateTime? paymentDate;
-  @JsonKey(name: 'invoice_date', includeIfNull: false)
+  @JsonKey(name: 'invoice_date', includeIfNull: true)
   final DateTime? invoiceDate;
   static const fromJsonFactory = _$TransactionSplitUpdateFromJson;
 
@@ -14332,24 +14313,24 @@ class User {
   static const toJsonFactory = _$UserToJson;
   Map<String, dynamic> toJson() => _$UserToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'email', includeIfNull: false)
+  @JsonKey(name: 'email', includeIfNull: true)
   final String email;
-  @JsonKey(name: 'blocked', includeIfNull: false)
+  @JsonKey(name: 'blocked', includeIfNull: true)
   final bool? blocked;
   @JsonKey(
     name: 'blocked_code',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: userBlockedCodePropertyNullableToJson,
     fromJson: userBlockedCodePropertyNullableFromJson,
   )
   final enums.UserBlockedCodeProperty? blockedCode;
   @JsonKey(
     name: 'role',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: userRolePropertyNullableToJson,
     fromJson: userRolePropertyNullableFromJson,
   )
@@ -14413,13 +14394,13 @@ class UserGroupRead {
   static const toJsonFactory = _$UserGroupReadToJson;
   Map<String, dynamic> toJson() => _$UserGroupReadToJson(this);
 
-  @JsonKey(name: 'type', includeIfNull: false)
+  @JsonKey(name: 'type', includeIfNull: true)
   final String type;
-  @JsonKey(name: 'id', includeIfNull: false)
+  @JsonKey(name: 'id', includeIfNull: true)
   final String id;
-  @JsonKey(name: 'attributes', includeIfNull: false)
+  @JsonKey(name: 'attributes', includeIfNull: true)
   final UserGroupReadAttributes attributes;
-  @JsonKey(name: 'links', includeIfNull: false)
+  @JsonKey(name: 'links', includeIfNull: true)
   final ObjectLink links;
   static const fromJsonFactory = _$UserGroupReadFromJson;
 
@@ -14478,27 +14459,27 @@ class UserGroupReadAttributes {
   static const toJsonFactory = _$UserGroupReadAttributesToJson;
   Map<String, dynamic> toJson() => _$UserGroupReadAttributesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'in_use', includeIfNull: false)
+  @JsonKey(name: 'in_use', includeIfNull: true)
   final bool? inUse;
-  @JsonKey(name: 'can_see_members', includeIfNull: false)
+  @JsonKey(name: 'can_see_members', includeIfNull: true)
   final bool? canSeeMembers;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String? title;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
   @JsonKey(
     name: 'members',
-    includeIfNull: false,
+    includeIfNull: true,
     defaultValue: <UserGroupReadMembers>[],
   )
   final List<UserGroupReadMembers>? members;
@@ -14589,15 +14570,15 @@ class UserGroupReadMembers {
   static const toJsonFactory = _$UserGroupReadMembersToJson;
   Map<String, dynamic> toJson() => _$UserGroupReadMembersToJson(this);
 
-  @JsonKey(name: 'user_id', includeIfNull: false)
+  @JsonKey(name: 'user_id', includeIfNull: true)
   final String? userId;
-  @JsonKey(name: 'user_email', includeIfNull: false)
+  @JsonKey(name: 'user_email', includeIfNull: true)
   final String? userEmail;
-  @JsonKey(name: 'you', includeIfNull: false)
+  @JsonKey(name: 'you', includeIfNull: true)
   final bool? you;
   @JsonKey(
     name: 'roles',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: userGroupReadRoleListToJson,
     fromJson: userGroupReadRoleListFromJson,
   )
@@ -14648,7 +14629,7 @@ class UserGroupSingle {
   static const toJsonFactory = _$UserGroupSingleToJson;
   Map<String, dynamic> toJson() => _$UserGroupSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final UserGroupRead data;
   static const fromJsonFactory = _$UserGroupSingleFromJson;
 
@@ -14680,11 +14661,11 @@ class UserGroupUpdate {
   static const toJsonFactory = _$UserGroupUpdateToJson;
   Map<String, dynamic> toJson() => _$UserGroupUpdateToJson(this);
 
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String title;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
   static const fromJsonFactory = _$UserGroupUpdateFromJson;
 
@@ -14744,23 +14725,23 @@ class WebhookProperties {
   static const toJsonFactory = _$WebhookPropertiesToJson;
   Map<String, dynamic> toJson() => _$WebhookPropertiesToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String title;
-  @JsonKey(name: 'secret', includeIfNull: false)
+  @JsonKey(name: 'secret', includeIfNull: true)
   final String? secret;
-  @JsonKey(name: 'triggers', includeIfNull: false)
+  @JsonKey(name: 'triggers', includeIfNull: true)
   final List<String>? triggers;
-  @JsonKey(name: 'responses', includeIfNull: false)
+  @JsonKey(name: 'responses', includeIfNull: true)
   final List<String>? responses;
-  @JsonKey(name: 'deliveries', includeIfNull: false)
+  @JsonKey(name: 'deliveries', includeIfNull: true)
   final List<String>? deliveries;
-  @JsonKey(name: 'url', includeIfNull: false)
+  @JsonKey(name: 'url', includeIfNull: true)
   final String url;
   static const fromJsonFactory = _$WebhookPropertiesFromJson;
 
@@ -14837,17 +14818,17 @@ class WebhookStore {
   static const toJsonFactory = _$WebhookStoreToJson;
   Map<String, dynamic> toJson() => _$WebhookStoreToJson(this);
 
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String title;
-  @JsonKey(name: 'triggers', includeIfNull: false)
+  @JsonKey(name: 'triggers', includeIfNull: true)
   final List<String>? triggers;
-  @JsonKey(name: 'responses', includeIfNull: false)
+  @JsonKey(name: 'responses', includeIfNull: true)
   final List<String>? responses;
-  @JsonKey(name: 'deliveries', includeIfNull: false)
+  @JsonKey(name: 'deliveries', includeIfNull: true)
   final List<String>? deliveries;
-  @JsonKey(name: 'url', includeIfNull: false)
+  @JsonKey(name: 'url', includeIfNull: true)
   final String url;
   static const fromJsonFactory = _$WebhookStoreFromJson;
 
@@ -14913,19 +14894,19 @@ class WebhookUpdate {
   static const toJsonFactory = _$WebhookUpdateToJson;
   Map<String, dynamic> toJson() => _$WebhookUpdateToJson(this);
 
-  @JsonKey(name: 'active', includeIfNull: false)
+  @JsonKey(name: 'active', includeIfNull: true)
   final bool? active;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String? title;
-  @JsonKey(name: 'secret', includeIfNull: false)
+  @JsonKey(name: 'secret', includeIfNull: true)
   final String? secret;
-  @JsonKey(name: 'triggers', includeIfNull: false)
+  @JsonKey(name: 'triggers', includeIfNull: true)
   final List<String>? triggers;
-  @JsonKey(name: 'responses', includeIfNull: false)
+  @JsonKey(name: 'responses', includeIfNull: true)
   final List<String>? responses;
-  @JsonKey(name: 'deliveries', includeIfNull: false)
+  @JsonKey(name: 'deliveries', includeIfNull: true)
   final List<String>? deliveries;
-  @JsonKey(name: 'url', includeIfNull: false)
+  @JsonKey(name: 'url', includeIfNull: true)
   final String? url;
   static const fromJsonFactory = _$WebhookUpdateFromJson;
 
@@ -14992,17 +14973,17 @@ class WebhookAttempt {
   static const toJsonFactory = _$WebhookAttemptToJson;
   Map<String, dynamic> toJson() => _$WebhookAttemptToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'webhook_message_id', includeIfNull: false)
+  @JsonKey(name: 'webhook_message_id', includeIfNull: true)
   final String? webhookMessageId;
-  @JsonKey(name: 'status_code', includeIfNull: false)
+  @JsonKey(name: 'status_code', includeIfNull: true)
   final int? statusCode;
-  @JsonKey(name: 'logs', includeIfNull: false)
+  @JsonKey(name: 'logs', includeIfNull: true)
   final String? logs;
-  @JsonKey(name: 'response', includeIfNull: false)
+  @JsonKey(name: 'response', includeIfNull: true)
   final String? response;
   static const fromJsonFactory = _$WebhookAttemptFromJson;
 
@@ -15068,19 +15049,19 @@ class WebhookMessage {
   static const toJsonFactory = _$WebhookMessageToJson;
   Map<String, dynamic> toJson() => _$WebhookMessageToJson(this);
 
-  @JsonKey(name: 'created_at', includeIfNull: false)
+  @JsonKey(name: 'created_at', includeIfNull: true)
   final DateTime? createdAt;
-  @JsonKey(name: 'updated_at', includeIfNull: false)
+  @JsonKey(name: 'updated_at', includeIfNull: true)
   final DateTime? updatedAt;
-  @JsonKey(name: 'sent', includeIfNull: false)
+  @JsonKey(name: 'sent', includeIfNull: true)
   final bool? sent;
-  @JsonKey(name: 'errored', includeIfNull: false)
+  @JsonKey(name: 'errored', includeIfNull: true)
   final bool? errored;
-  @JsonKey(name: 'webhook_id', includeIfNull: false)
+  @JsonKey(name: 'webhook_id', includeIfNull: true)
   final String? webhookId;
-  @JsonKey(name: 'uuid', includeIfNull: false)
+  @JsonKey(name: 'uuid', includeIfNull: true)
   final String? uuid;
-  @JsonKey(name: 'message', includeIfNull: false)
+  @JsonKey(name: 'message', includeIfNull: true)
   final String? message;
   static const fromJsonFactory = _$WebhookMessageFromJson;
 
@@ -15184,27 +15165,27 @@ class BasicSummaryEntry {
   static const toJsonFactory = _$BasicSummaryEntryToJson;
   Map<String, dynamic> toJson() => _$BasicSummaryEntryToJson(this);
 
-  @JsonKey(name: 'key', includeIfNull: false)
+  @JsonKey(name: 'key', includeIfNull: true)
   final String? key;
-  @JsonKey(name: 'title', includeIfNull: false)
+  @JsonKey(name: 'title', includeIfNull: true)
   final String? title;
-  @JsonKey(name: 'monetary_value', includeIfNull: false)
+  @JsonKey(name: 'monetary_value', includeIfNull: true)
   final double? monetaryValue;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'no_available_budgets', includeIfNull: false)
+  @JsonKey(name: 'no_available_budgets', includeIfNull: true)
   final bool? noAvailableBudgets;
-  @JsonKey(name: 'value_parsed', includeIfNull: false)
+  @JsonKey(name: 'value_parsed', includeIfNull: true)
   final String? valueParsed;
-  @JsonKey(name: 'local_icon', includeIfNull: false)
+  @JsonKey(name: 'local_icon', includeIfNull: true)
   final String? localIcon;
-  @JsonKey(name: 'sub_title', includeIfNull: false)
+  @JsonKey(name: 'sub_title', includeIfNull: true)
   final String? subTitle;
   static const fromJsonFactory = _$BasicSummaryEntryFromJson;
 
@@ -15285,7 +15266,7 @@ extension $BasicSummaryEntryExtension on BasicSummaryEntry {
 class Configuration {
   const Configuration({
     required this.title,
-    required this.$value,
+    required this.value,
     required this.editable,
   });
 
@@ -15297,14 +15278,14 @@ class Configuration {
 
   @JsonKey(
     name: 'title',
-    includeIfNull: false,
+    includeIfNull: true,
     toJson: configValueFilterToJson,
     fromJson: configValueFilterFromJson,
   )
   final enums.ConfigValueFilter title;
-  @JsonKey(name: 'value', includeIfNull: false)
-  final PolymorphicProperty $value;
-  @JsonKey(name: 'editable', includeIfNull: false)
+  @JsonKey(name: 'value', includeIfNull: true)
+  final PolymorphicProperty value;
+  @JsonKey(name: 'editable', includeIfNull: true)
   final bool editable;
   static const fromJsonFactory = _$ConfigurationFromJson;
 
@@ -15315,24 +15296,24 @@ class Configuration {
 extension $ConfigurationExtension on Configuration {
   Configuration copyWith({
     enums.ConfigValueFilter? title,
-    PolymorphicProperty? $value,
+    PolymorphicProperty? value,
     bool? editable,
   }) {
     return Configuration(
       title: title ?? this.title,
-      $value: $value ?? this.$value,
+      value: value ?? this.value,
       editable: editable ?? this.editable,
     );
   }
 
   Configuration copyWithWrapped({
     Wrapped<enums.ConfigValueFilter>? title,
-    Wrapped<PolymorphicProperty>? $value,
+    Wrapped<PolymorphicProperty>? value,
     Wrapped<bool>? editable,
   }) {
     return Configuration(
       title: (title != null ? title.value : this.title),
-      $value: ($value != null ? $value.value : this.$value),
+      value: (value != null ? value.value : this.value),
       editable: (editable != null ? editable.value : this.editable),
     );
   }
@@ -15340,7 +15321,7 @@ extension $ConfigurationExtension on Configuration {
 
 @JsonSerializable(explicitToJson: true)
 class ConfigurationUpdate {
-  const ConfigurationUpdate({required this.$value});
+  const ConfigurationUpdate({required this.value});
 
   factory ConfigurationUpdate.fromJson(Map<String, dynamic> json) =>
       _$ConfigurationUpdateFromJson(json);
@@ -15348,8 +15329,8 @@ class ConfigurationUpdate {
   static const toJsonFactory = _$ConfigurationUpdateToJson;
   Map<String, dynamic> toJson() => _$ConfigurationUpdateToJson(this);
 
-  @JsonKey(name: 'value', includeIfNull: false)
-  final PolymorphicProperty $value;
+  @JsonKey(name: 'value', includeIfNull: true)
+  final PolymorphicProperty value;
   static const fromJsonFactory = _$ConfigurationUpdateFromJson;
 
   @override
@@ -15357,13 +15338,13 @@ class ConfigurationUpdate {
 }
 
 extension $ConfigurationUpdateExtension on ConfigurationUpdate {
-  ConfigurationUpdate copyWith({PolymorphicProperty? $value}) {
-    return ConfigurationUpdate($value: $value ?? this.$value);
+  ConfigurationUpdate copyWith({PolymorphicProperty? value}) {
+    return ConfigurationUpdate(value: value ?? this.value);
   }
 
-  ConfigurationUpdate copyWithWrapped({Wrapped<PolymorphicProperty>? $value}) {
+  ConfigurationUpdate copyWithWrapped({Wrapped<PolymorphicProperty>? value}) {
     return ConfigurationUpdate(
-      $value: ($value != null ? $value.value : this.$value),
+      value: (value != null ? value.value : this.value),
     );
   }
 }
@@ -15382,11 +15363,11 @@ class CronResult {
   static const toJsonFactory = _$CronResultToJson;
   Map<String, dynamic> toJson() => _$CronResultToJson(this);
 
-  @JsonKey(name: 'recurring_transactions', includeIfNull: false)
+  @JsonKey(name: 'recurring_transactions', includeIfNull: true)
   final CronResultRow? recurringTransactions;
-  @JsonKey(name: 'auto_budgets', includeIfNull: false)
+  @JsonKey(name: 'auto_budgets', includeIfNull: true)
   final CronResultRow? autoBudgets;
-  @JsonKey(name: 'telemetry', includeIfNull: false)
+  @JsonKey(name: 'telemetry', includeIfNull: true)
   final CronResultRow? telemetry;
   static const fromJsonFactory = _$CronResultFromJson;
 
@@ -15438,13 +15419,13 @@ class CronResultRow {
   static const toJsonFactory = _$CronResultRowToJson;
   Map<String, dynamic> toJson() => _$CronResultRowToJson(this);
 
-  @JsonKey(name: 'job_fired', includeIfNull: false)
+  @JsonKey(name: 'job_fired', includeIfNull: true)
   final bool? jobFired;
-  @JsonKey(name: 'job_succeeded', includeIfNull: false)
+  @JsonKey(name: 'job_succeeded', includeIfNull: true)
   final bool? jobSucceeded;
-  @JsonKey(name: 'job_errored', includeIfNull: false)
+  @JsonKey(name: 'job_errored', includeIfNull: true)
   final bool? jobErrored;
-  @JsonKey(name: 'message', includeIfNull: false)
+  @JsonKey(name: 'message', includeIfNull: true)
   final String? message;
   static const fromJsonFactory = _$CronResultRowFromJson;
 
@@ -15494,7 +15475,7 @@ class SystemInfo {
   static const toJsonFactory = _$SystemInfoToJson;
   Map<String, dynamic> toJson() => _$SystemInfoToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final SystemInfo$Data? data;
   static const fromJsonFactory = _$SystemInfoFromJson;
 
@@ -15522,7 +15503,7 @@ class UserSingle {
   static const toJsonFactory = _$UserSingleToJson;
   Map<String, dynamic> toJson() => _$UserSingleToJson(this);
 
-  @JsonKey(name: 'data', includeIfNull: false)
+  @JsonKey(name: 'data', includeIfNull: true)
   final UserRead data;
   static const fromJsonFactory = _$UserSingleFromJson;
 
@@ -15549,7 +15530,7 @@ class Meta {
   static const toJsonFactory = _$MetaToJson;
   Map<String, dynamic> toJson() => _$MetaToJson(this);
 
-  @JsonKey(name: 'pagination', includeIfNull: false)
+  @JsonKey(name: 'pagination', includeIfNull: true)
   final Meta$Pagination? pagination;
   static const fromJsonFactory = _$MetaFromJson;
 
@@ -15579,9 +15560,9 @@ class BadRequestResponse {
   static const toJsonFactory = _$BadRequestResponseToJson;
   Map<String, dynamic> toJson() => _$BadRequestResponseToJson(this);
 
-  @JsonKey(name: 'message', includeIfNull: false)
+  @JsonKey(name: 'message', includeIfNull: true)
   final String? message;
-  @JsonKey(name: 'exception', includeIfNull: false)
+  @JsonKey(name: 'exception', includeIfNull: true)
   final String? exception;
   static const fromJsonFactory = _$BadRequestResponseFromJson;
 
@@ -15618,9 +15599,9 @@ class InternalExceptionResponse {
   static const toJsonFactory = _$InternalExceptionResponseToJson;
   Map<String, dynamic> toJson() => _$InternalExceptionResponseToJson(this);
 
-  @JsonKey(name: 'message', includeIfNull: false)
+  @JsonKey(name: 'message', includeIfNull: true)
   final String? message;
-  @JsonKey(name: 'exception', includeIfNull: false)
+  @JsonKey(name: 'exception', includeIfNull: true)
   final String? exception;
   static const fromJsonFactory = _$InternalExceptionResponseFromJson;
 
@@ -15657,9 +15638,9 @@ class NotFoundResponse {
   static const toJsonFactory = _$NotFoundResponseToJson;
   Map<String, dynamic> toJson() => _$NotFoundResponseToJson(this);
 
-  @JsonKey(name: 'message', includeIfNull: false)
+  @JsonKey(name: 'message', includeIfNull: true)
   final String? message;
-  @JsonKey(name: 'exception', includeIfNull: false)
+  @JsonKey(name: 'exception', includeIfNull: true)
   final String? exception;
   static const fromJsonFactory = _$NotFoundResponseFromJson;
 
@@ -15696,9 +15677,9 @@ class UnauthenticatedResponse {
   static const toJsonFactory = _$UnauthenticatedResponseToJson;
   Map<String, dynamic> toJson() => _$UnauthenticatedResponseToJson(this);
 
-  @JsonKey(name: 'message', includeIfNull: false)
+  @JsonKey(name: 'message', includeIfNull: true)
   final String? message;
-  @JsonKey(name: 'exception', includeIfNull: false)
+  @JsonKey(name: 'exception', includeIfNull: true)
   final String? exception;
   static const fromJsonFactory = _$UnauthenticatedResponseFromJson;
 
@@ -15735,9 +15716,9 @@ class ValidationErrorResponse {
   static const toJsonFactory = _$ValidationErrorResponseToJson;
   Map<String, dynamic> toJson() => _$ValidationErrorResponseToJson(this);
 
-  @JsonKey(name: 'message', includeIfNull: false)
+  @JsonKey(name: 'message', includeIfNull: true)
   final String? message;
-  @JsonKey(name: 'errors', includeIfNull: false)
+  @JsonKey(name: 'errors', includeIfNull: true)
   final ValidationErrorResponse$Errors? errors;
   static const fromJsonFactory = _$ValidationErrorResponseFromJson;
 
@@ -15796,41 +15777,41 @@ class BillProperties$PaidDates$Item {
   static const toJsonFactory = _$BillProperties$PaidDates$ItemToJson;
   Map<String, dynamic> toJson() => _$BillProperties$PaidDates$ItemToJson(this);
 
-  @JsonKey(name: 'transaction_group_id', includeIfNull: false)
+  @JsonKey(name: 'transaction_group_id', includeIfNull: true)
   final String? transactionGroupId;
-  @JsonKey(name: 'transaction_journal_id', includeIfNull: false)
+  @JsonKey(name: 'transaction_journal_id', includeIfNull: true)
   final String? transactionJournalId;
-  @JsonKey(name: 'date', includeIfNull: false)
+  @JsonKey(name: 'date', includeIfNull: true)
   final DateTime? date;
-  @JsonKey(name: 'subscription_id', includeIfNull: false)
+  @JsonKey(name: 'subscription_id', includeIfNull: true)
   final String? subscriptionId;
-  @JsonKey(name: 'currency_id', includeIfNull: false)
+  @JsonKey(name: 'currency_id', includeIfNull: true)
   final String? currencyId;
-  @JsonKey(name: 'currency_name', includeIfNull: false)
+  @JsonKey(name: 'currency_name', includeIfNull: true)
   final String? currencyName;
-  @JsonKey(name: 'currency_code', includeIfNull: false)
+  @JsonKey(name: 'currency_code', includeIfNull: true)
   final String? currencyCode;
-  @JsonKey(name: 'currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'currency_symbol', includeIfNull: true)
   final String? currencySymbol;
-  @JsonKey(name: 'currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'currency_decimal_places', includeIfNull: true)
   final int? currencyDecimalPlaces;
-  @JsonKey(name: 'primary_currency_id', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_id', includeIfNull: true)
   final String? primaryCurrencyId;
-  @JsonKey(name: 'primary_currency_name', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_name', includeIfNull: true)
   final String? primaryCurrencyName;
-  @JsonKey(name: 'primary_currency_code', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_code', includeIfNull: true)
   final String? primaryCurrencyCode;
-  @JsonKey(name: 'primary_currency_symbol', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_symbol', includeIfNull: true)
   final String? primaryCurrencySymbol;
-  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: false)
+  @JsonKey(name: 'primary_currency_decimal_places', includeIfNull: true)
   final int? primaryCurrencyDecimalPlaces;
-  @JsonKey(name: 'amount', includeIfNull: false)
+  @JsonKey(name: 'amount', includeIfNull: true)
   final String? amount;
-  @JsonKey(name: 'pc_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_amount', includeIfNull: true)
   final String? pcAmount;
-  @JsonKey(name: 'foreign_amount', includeIfNull: false)
+  @JsonKey(name: 'foreign_amount', includeIfNull: true)
   final String? foreignAmount;
-  @JsonKey(name: 'pc_foreign_amount', includeIfNull: false)
+  @JsonKey(name: 'pc_foreign_amount', includeIfNull: true)
   final String? pcForeignAmount;
   static const fromJsonFactory = _$BillProperties$PaidDates$ItemFromJson;
 
@@ -15972,15 +15953,15 @@ class SystemInfo$Data {
   static const toJsonFactory = _$SystemInfo$DataToJson;
   Map<String, dynamic> toJson() => _$SystemInfo$DataToJson(this);
 
-  @JsonKey(name: 'version', includeIfNull: false)
+  @JsonKey(name: 'version', includeIfNull: true)
   final String? version;
-  @JsonKey(name: 'api_version', includeIfNull: false)
+  @JsonKey(name: 'api_version', includeIfNull: true)
   final String? apiVersion;
-  @JsonKey(name: 'php_version', includeIfNull: false)
+  @JsonKey(name: 'php_version', includeIfNull: true)
   final String? phpVersion;
-  @JsonKey(name: 'os', includeIfNull: false)
+  @JsonKey(name: 'os', includeIfNull: true)
   final String? os;
-  @JsonKey(name: 'driver', includeIfNull: false)
+  @JsonKey(name: 'driver', includeIfNull: true)
   final String? driver;
   static const fromJsonFactory = _$SystemInfo$DataFromJson;
 
@@ -16038,15 +16019,15 @@ class Meta$Pagination {
   static const toJsonFactory = _$Meta$PaginationToJson;
   Map<String, dynamic> toJson() => _$Meta$PaginationToJson(this);
 
-  @JsonKey(name: 'total', includeIfNull: false)
+  @JsonKey(name: 'total', includeIfNull: true)
   final int? total;
-  @JsonKey(name: 'count', includeIfNull: false)
+  @JsonKey(name: 'count', includeIfNull: true)
   final int? count;
-  @JsonKey(name: 'per_page', includeIfNull: false)
+  @JsonKey(name: 'per_page', includeIfNull: true)
   final int? perPage;
-  @JsonKey(name: 'current_page', includeIfNull: false)
+  @JsonKey(name: 'current_page', includeIfNull: true)
   final int? currentPage;
-  @JsonKey(name: 'total_pages', includeIfNull: false)
+  @JsonKey(name: 'total_pages', includeIfNull: true)
   final int? totalPages;
   static const fromJsonFactory = _$Meta$PaginationFromJson;
 
@@ -16111,29 +16092,29 @@ class ValidationErrorResponse$Errors {
   static const toJsonFactory = _$ValidationErrorResponse$ErrorsToJson;
   Map<String, dynamic> toJson() => _$ValidationErrorResponse$ErrorsToJson(this);
 
-  @JsonKey(name: 'email', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'email', includeIfNull: true, defaultValue: <String>[])
   final List<String>? email;
-  @JsonKey(name: 'force', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'force', includeIfNull: true, defaultValue: <String>[])
   final List<String>? force;
-  @JsonKey(name: 'blocked', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'blocked', includeIfNull: true, defaultValue: <String>[])
   final List<String>? blocked;
-  @JsonKey(name: 'field', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'field', includeIfNull: true, defaultValue: <String>[])
   final List<String>? field;
-  @JsonKey(name: 'role', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'role', includeIfNull: true, defaultValue: <String>[])
   final List<String>? role;
-  @JsonKey(name: 'blocked_code', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'blocked_code', includeIfNull: true, defaultValue: <String>[])
   final List<String>? blockedCode;
-  @JsonKey(name: 'name', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'name', includeIfNull: true, defaultValue: <String>[])
   final List<String>? name;
-  @JsonKey(name: 'type', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'type', includeIfNull: true, defaultValue: <String>[])
   final List<String>? type;
-  @JsonKey(name: 'iban', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'iban', includeIfNull: true, defaultValue: <String>[])
   final List<String>? iban;
-  @JsonKey(name: 'start', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'start', includeIfNull: true, defaultValue: <String>[])
   final List<String>? start;
-  @JsonKey(name: 'end', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'end', includeIfNull: true, defaultValue: <String>[])
   final List<String>? end;
-  @JsonKey(name: 'date', includeIfNull: false, defaultValue: <String>[])
+  @JsonKey(name: 'date', includeIfNull: true, defaultValue: <String>[])
   final List<String>? date;
   static const fromJsonFactory = _$ValidationErrorResponse$ErrorsFromJson;
 

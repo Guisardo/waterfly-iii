@@ -17,8 +17,16 @@ import 'package:provider/provider.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:isar_community/isar.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/attachment_repository.dart';
+import 'package:waterflyiii/data/repositories/budget_repository.dart';
+import 'package:waterflyiii/data/repositories/category_repository.dart';
+import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart' as enums;
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/pages/navigation.dart';
@@ -29,7 +37,6 @@ import 'package:waterflyiii/pages/transaction/delete.dart';
 import 'package:waterflyiii/pages/transaction/piggy.dart';
 import 'package:waterflyiii/pages/transaction/tags.dart';
 import 'package:waterflyiii/settings.dart';
-import 'package:waterflyiii/stock.dart';
 import 'package:waterflyiii/timezonehandler.dart';
 import 'package:waterflyiii/widgets/autocompletetext.dart';
 import 'package:waterflyiii/widgets/input_number.dart';
@@ -399,15 +406,12 @@ class _TransactionPageState extends State<TransactionPage>
           }
 
           // Check account
-          final Response<AccountArray> response = await api.v1AccountsGet(
-            type: AccountTypeFilter.assetAccount,
-          );
-          if (!response.isSuccessful || response.body == null) {
-            log.warning("api account fetch failed");
-            return;
-          }
+          final Isar isar = await AppDatabase.instance;
+          final AccountRepository accountRepo = AccountRepository(isar);
+          final List<AccountRead> accounts =
+              await accountRepo.getByType(AccountTypeFilter.assetAccount);
           final String settingAppId = appSettings.defaultAccountId ?? "0";
-          for (AccountRead acc in response.body!.data) {
+          for (AccountRead acc in accounts) {
             if (acc.id == settingAppId ||
                 widget.notification!.body.containsIgnoreCase(
                   acc.attributes.name,
@@ -455,15 +459,11 @@ class _TransactionPageState extends State<TransactionPage>
         // Created from account screen, set account already
         if (widget.accountId != null && mounted) {
           // Check account
-          final Response<AccountArray> response = await context
-              .read<FireflyService>()
-              .api
-              .v1AccountsGet(type: AccountTypeFilter.assetAccount);
-          if (!response.isSuccessful || response.body == null) {
-            log.warning("api account fetch failed");
-            return;
-          }
-          for (AccountRead acc in response.body!.data) {
+          final Isar isar = await AppDatabase.instance;
+          final AccountRepository accountRepo = AccountRepository(isar);
+          final List<AccountRead> accounts =
+              await accountRepo.getByType(AccountTypeFilter.assetAccount);
+          for (AccountRead acc in accounts) {
             if (acc.id == widget.accountId) {
               _sourceAccountTextController.text = acc.attributes.name;
               _sourceAccountType = AccountTypeProperty.assetAccount;
@@ -845,17 +845,39 @@ class _TransactionPageState extends State<TransactionPage>
 
   Future<void> updateAttachmentCount() async {
     try {
+      if (widget.transaction?.id == null) {
+        return;
+      }
+
+      final Isar isar = await AppDatabase.instance;
+      final AttachmentRepository attachmentRepo = AttachmentRepository(isar);
+      
+      // Try to get from repository first
+      final List<AttachmentRead> cachedAttachments = await attachmentRepo.getByTransactionId(widget.transaction!.id);
+      
+      if (cachedAttachments.isNotEmpty) {
+        _attachments = cachedAttachments;
+        setState(() {
+          _hasAttachments = _attachments?.isNotEmpty ?? false;
+        });
+      }
+
+      // Also fetch from API to ensure we have the latest (and cache it)
       final FireflyIii api = context.read<FireflyService>().api;
       final Response<AttachmentArray> response = await api
-          .v1TransactionsIdAttachmentsGet(id: widget.transaction?.id);
+          .v1TransactionsIdAttachmentsGet(id: widget.transaction!.id);
       apiThrowErrorIfEmpty(response, mounted ? context : null);
 
       _attachments = response.body!.data;
+      
+      // Cache the attachments in repository
+      await attachmentRepo.upsertListFromSync(_attachments!);
+      
       setState(() {
         _hasAttachments = _attachments?.isNotEmpty ?? false;
       });
     } catch (e, stackTrace) {
-      log.severe("Error while fetching autocomplete from API", e, stackTrace);
+      log.severe("Error while fetching attachments", e, stackTrace);
     }
   }
 
@@ -892,9 +914,6 @@ class _TransactionPageState extends State<TransactionPage>
                       final FireflyIii api = context.read<FireflyService>().api;
                       final AuthUser? user =
                           context.read<FireflyService>().user;
-                      final TransStock? stock =
-                          context.read<FireflyService>().transStock;
-
                       // Sanity checks
                       String? error;
 
@@ -904,7 +923,7 @@ class _TransactionPageState extends State<TransactionPage>
                       if (_titleTextController.text.isEmpty) {
                         error = S.of(context).transactionErrorTitle;
                       }
-                      if (user == null || stock == null) {
+                      if (user == null) {
                         error = S.of(context).errorAPIUnavailable;
                       }
                       if (_transactionType ==
@@ -1119,8 +1138,14 @@ class _TransactionPageState extends State<TransactionPage>
                         return;
                       }
 
-                      // Update stock
-                      await stock!.setTransaction(resp.body!.data);
+                      // Store transaction in repository after successful API call
+                      final TransactionRead? transactionData = resp.body?.data;
+                      if (transactionData != null) { // ignore: unnecessary_null_comparison
+                        final Isar isar = await AppDatabase.instance;
+                        final TransactionRepository txRepo = TransactionRepository(isar);
+                        // Use upsertFromSync since transaction is already synced with server
+                        await txRepo.upsertFromSync(resp.body!.data);
+                      }
 
                       // Upload attachments if required
                       if ((_attachments?.isNotEmpty ?? false) &&
@@ -1273,8 +1298,8 @@ class _TransactionPageState extends State<TransactionPage>
     const Widget hDivider = SizedBox(height: 16);
     const Widget vDivider = SizedBox(width: 16);
 
-    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOpSource;
-    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOpDestination;
+    CancelableOperation<List<AutocompleteAccount>>? fetchOpSource;
+    CancelableOperation<List<AutocompleteAccount>>? fetchOpDestination;
 
     // Title
     childs.add(
@@ -1423,29 +1448,30 @@ class _TransactionPageState extends State<TransactionPage>
                     try {
                       unawaited(fetchOpSource?.cancel());
 
-                      final FireflyIii api = context.read<FireflyService>().api;
-                      fetchOpSource = CancelableOperation<
-                        Response<AutocompleteAccountArray>
-                      >.fromFuture(
-                        api.v1AutocompleteAccountsGet(
+                      final Isar isar = await AppDatabase.instance;
+                      final AccountRepository repo = AccountRepository(isar);
+                      
+                      // Get allowed opposing account types (already returns AccountTypeFilter list)
+                      final List<enums.AccountTypeFilter> types =
+                          _destinationAccountType.allowedOpposingTypes(false);
+
+                      fetchOpSource = CancelableOperation<List<AutocompleteAccount>>.fromFuture(
+                        repo.autocomplete(
                           query: textEditingValue.text,
-                          types: _destinationAccountType.allowedOpposingTypes(
-                            false,
-                          ),
+                          types: types,
                         ),
                       );
-                      final Response<AutocompleteAccountArray>? response =
+                      final List<AutocompleteAccount>? results =
                           await fetchOpSource?.valueOrCancellation();
-                      if (response == null) {
+                      if (results == null) {
                         // Cancelled
                         return const Iterable<AutocompleteAccount>.empty();
                       }
-                      apiThrowErrorIfEmpty(response, mounted ? context : null);
 
-                      return response.body!;
+                      return results;
                     } catch (e, stackTrace) {
                       log.severe(
-                        "Error while fetching autocomplete from API",
+                        "Error while fetching autocomplete from repository",
                         e,
                         stackTrace,
                       );
@@ -1524,30 +1550,27 @@ class _TransactionPageState extends State<TransactionPage>
                       try {
                         unawaited(fetchOpDestination?.cancel());
 
-                        final FireflyIii api =
-                            context.read<FireflyService>().api;
-                        fetchOpDestination = CancelableOperation<
-                          Response<AutocompleteAccountArray>
-                        >.fromFuture(
-                          api.v1AutocompleteAccountsGet(
+                        final Isar isar = await AppDatabase.instance;
+                        final AccountRepository repo = AccountRepository(isar);
+                        
+                        // Get allowed opposing account types (already returns AccountTypeFilter list)
+                        final List<enums.AccountTypeFilter> types =
+                            _sourceAccountType.allowedOpposingTypes(true);
+
+                        fetchOpDestination = CancelableOperation<List<AutocompleteAccount>>.fromFuture(
+                          repo.autocomplete(
                             query: textEditingValue.text,
-                            types: _sourceAccountType.allowedOpposingTypes(
-                              true,
-                            ),
+                            types: types,
                           ),
                         );
-                        final Response<AutocompleteAccountArray>? response =
+                        final List<AutocompleteAccount>? results =
                             await fetchOpDestination?.valueOrCancellation();
-                        if (response == null) {
+                        if (results == null) {
                           // Cancelled
                           return const Iterable<AutocompleteAccount>.empty();
                         }
-                        apiThrowErrorIfEmpty(
-                          response,
-                          mounted ? context : null,
-                        );
 
-                        return response.body!;
+                        return results;
                       } catch (e, stackTrace) {
                         log.severe(
                           "Error while fetching autocomplete from API",
@@ -1759,7 +1782,7 @@ class _TransactionPageState extends State<TransactionPage>
   Card _buildSplitWidget(BuildContext context, int i) {
     const Widget hDivider = SizedBox(height: 16);
 
-    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOp;
+    CancelableOperation<List<AutocompleteAccount>>? fetchOp;
 
     return Card(
       key: ValueKey<int>(i),
@@ -1815,35 +1838,27 @@ class _TransactionPageState extends State<TransactionPage>
                                       try {
                                         unawaited(fetchOp?.cancel());
 
-                                        final FireflyIii api =
-                                            context.read<FireflyService>().api;
-                                        fetchOp = CancelableOperation<
-                                          Response<AutocompleteAccountArray>
-                                        >.fromFuture(
-                                          api.v1AutocompleteAccountsGet(
+                                        final Isar isar = await AppDatabase.instance;
+                                        final AccountRepository repo = AccountRepository(isar);
+                                        
+                                        // Get allowed opposing account types (already returns AccountTypeFilter list)
+                                        final List<enums.AccountTypeFilter> types =
+                                            _destinationAccountType.allowedOpposingTypes(false);
+
+                                        fetchOp = CancelableOperation<List<AutocompleteAccount>>.fromFuture(
+                                          repo.autocomplete(
                                             query: textEditingValue.text,
-                                            types: _destinationAccountType
-                                                .allowedOpposingTypes(false),
+                                            types: types,
                                           ),
                                         );
-                                        final Response<
-                                          AutocompleteAccountArray
-                                        >?
-                                        response =
-                                            await fetchOp
-                                                ?.valueOrCancellation();
-                                        if (response == null) {
+                                        final List<AutocompleteAccount>? results =
+                                            await fetchOp?.valueOrCancellation();
+                                        if (results == null) {
                                           // Cancelled
-                                          return const Iterable<
-                                            AutocompleteAccount
-                                          >.empty();
+                                          return const Iterable<AutocompleteAccount>.empty();
                                         }
-                                        apiThrowErrorIfEmpty(
-                                          response,
-                                          mounted ? context : null,
-                                        );
 
-                                        return response.body!;
+                                        return results;
                                       } catch (e, stackTrace) {
                                         log.severe(
                                           "Error while fetching autocomplete from API",
@@ -1893,35 +1908,27 @@ class _TransactionPageState extends State<TransactionPage>
                                       TextEditingValue textEditingValue,
                                     ) async {
                                       try {
-                                        final FireflyIii api =
-                                            context.read<FireflyService>().api;
-                                        fetchOp = CancelableOperation<
-                                          Response<AutocompleteAccountArray>
-                                        >.fromFuture(
-                                          api.v1AutocompleteAccountsGet(
+                                        final Isar isar = await AppDatabase.instance;
+                                        final AccountRepository repo = AccountRepository(isar);
+                                        
+                                        // Get allowed opposing account types (already returns AccountTypeFilter list)
+                                        final List<enums.AccountTypeFilter> types =
+                                            _sourceAccountType.allowedOpposingTypes(true);
+
+                                        fetchOp = CancelableOperation<List<AutocompleteAccount>>.fromFuture(
+                                          repo.autocomplete(
                                             query: textEditingValue.text,
-                                            types: _sourceAccountType
-                                                .allowedOpposingTypes(true),
+                                            types: types,
                                           ),
                                         );
-                                        final Response<
-                                          AutocompleteAccountArray
-                                        >?
-                                        response =
-                                            await fetchOp
-                                                ?.valueOrCancellation();
-                                        if (response == null) {
+                                        final List<AutocompleteAccount>? results =
+                                            await fetchOp?.valueOrCancellation();
+                                        if (results == null) {
                                           // Cancelled
-                                          return const Iterable<
-                                            AutocompleteAccount
-                                          >.empty();
+                                          return const Iterable<AutocompleteAccount>.empty();
                                         }
-                                        apiThrowErrorIfEmpty(
-                                          response,
-                                          mounted ? context : null,
-                                        );
 
-                                        return response.body!;
+                                        return results;
                                       } catch (e, stackTrace) {
                                         log.severe(
                                           "Error while fetching autocomplete from API",
@@ -2403,7 +2410,6 @@ class TransactionDeleteButton extends StatelessWidget {
           _savingInProgress
               ? null
               : () async {
-                final FireflyIii api = context.read<FireflyService>().api;
                 final NavigatorState nav = Navigator.of(context);
                 final bool? ok = await showDialog<bool>(
                   context: context,
@@ -2414,7 +2420,13 @@ class TransactionDeleteButton extends StatelessWidget {
                   return;
                 }
 
-                await api.v1TransactionsIdDelete(id: transactionId);
+                // Delete via repository (queues for sync)
+                final String? id = transactionId;
+                if (id != null) {
+                  final Isar isar = await AppDatabase.instance;
+                  final TransactionRepository txRepo = TransactionRepository(isar);
+                  await txRepo.delete(id);
+                }
                 nav.pop(true);
               },
     );
@@ -2435,7 +2447,7 @@ class TransactionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final Logger log = Logger("Pages.Transaction.Title");
 
-    CancelableOperation<Response<AutocompleteTransactionArray>>? fetchOp;
+    CancelableOperation<List<String>>? fetchOp;
 
     log.finest(() => "build()");
     return Expanded(
@@ -2449,21 +2461,30 @@ class TransactionTitle extends StatelessWidget {
           try {
             unawaited(fetchOp?.cancel());
 
-            final FireflyIii api = context.read<FireflyService>().api;
-            fetchOp = CancelableOperation<
-              Response<AutocompleteTransactionArray>
-            >.fromFuture(
-              api.v1AutocompleteTransactionsGet(query: textEditingValue.text),
+            final Isar isar = await AppDatabase.instance;
+            final TransactionRepository repo = TransactionRepository(isar);
+            
+            // Search transactions and return description/title
+            final List<TransactionRead> transactions = await repo.search(textEditingValue.text);
+            final Set<String> uniqueTitles = <String>{};
+            for (final TransactionRead tx in transactions) {
+              final String? description = tx.attributes.transactions.firstOrNull?.description;
+              if (description != null && description.isNotEmpty) {
+                uniqueTitles.add(description);
+              }
+            }
+            
+            fetchOp = CancelableOperation<List<String>>.fromFuture(
+              Future.value(uniqueTitles.toList()),
             );
-            final Response<AutocompleteTransactionArray>? response =
+            final List<String>? results =
                 await fetchOp?.valueOrCancellation();
-            if (response == null) {
+            if (results == null) {
               // Cancelled
               return const Iterable<String>.empty();
             }
-            apiThrowErrorIfEmpty(response, context.mounted ? context : null);
 
-            return response.body!.map((AutocompleteTransaction e) => e.name);
+            return results;
           } catch (e, stackTrace) {
             log.severe(
               "Error while fetching autocomplete from API",
@@ -2522,7 +2543,7 @@ class TransactionCategory extends StatelessWidget {
   Widget build(BuildContext context) {
     final Logger log = Logger("Pages.Transaction.Category");
 
-    CancelableOperation<Response<AutocompleteCategoryArray>>? fetchOp;
+    CancelableOperation<List<String>>? fetchOp;
 
     log.finest(() => "build()");
     return Row(
@@ -2538,24 +2559,20 @@ class TransactionCategory extends StatelessWidget {
               try {
                 unawaited(fetchOp?.cancel());
 
-                final FireflyIii api = context.read<FireflyService>().api;
-                fetchOp = CancelableOperation<
-                  Response<AutocompleteCategoryArray>
-                >.fromFuture(
-                  api.v1AutocompleteCategoriesGet(query: textEditingValue.text),
+                final Isar isar = await AppDatabase.instance;
+                final CategoryRepository repo = CategoryRepository(isar);
+                
+                fetchOp = CancelableOperation<List<String>>.fromFuture(
+                  repo.autocomplete(textEditingValue.text),
                 );
-                final Response<AutocompleteCategoryArray>? response =
+                final List<String>? results =
                     await fetchOp?.valueOrCancellation();
-                if (response == null) {
+                if (results == null) {
                   // Cancelled
                   return const Iterable<String>.empty();
                 }
-                apiThrowErrorIfEmpty(
-                  response,
-                  context.mounted ? context : null,
-                );
 
-                return response.body!.map((AutocompleteCategory e) => e.name);
+                return results;
               } catch (e, stackTrace) {
                 log.severe(
                   "Error while fetching autocomplete from API",
@@ -2608,21 +2625,22 @@ class _TransactionBudgetState extends State<TransactionBudget> {
         return;
       }
       try {
-        final FireflyIii api = context.read<FireflyService>().api;
-        final Response<AutocompleteBudgetArray> response = await api
-            .v1AutocompleteBudgetsGet(query: widget.textController.text);
-        apiThrowErrorIfEmpty(response, mounted ? context : null);
+        final Isar isar = await AppDatabase.instance;
+        final BudgetRepository repo = BudgetRepository(isar);
+        final List<AutocompleteBudget> budgets = await repo.autocomplete(
+          widget.textController.text,
+        );
 
-        if (response.body!.isEmpty ||
-            (response.body!.length > 1 &&
-                response.body!.first.name != widget.textController.text)) {
+        if (budgets.isEmpty ||
+            (budgets.length > 1 &&
+                budgets.first.name != widget.textController.text)) {
           setState(() {
             _budgetId = null;
           });
         } else {
-          widget.textController.text = response.body!.first.name;
+          widget.textController.text = budgets.first.name;
           setState(() {
-            _budgetId = response.body!.first.id;
+            _budgetId = budgets.first.id;
           });
         }
       } catch (e, stackTrace) {
@@ -2633,7 +2651,7 @@ class _TransactionBudgetState extends State<TransactionBudget> {
 
   @override
   Widget build(BuildContext context) {
-    CancelableOperation<Response<AutocompleteBudgetArray>>? fetchOp;
+    CancelableOperation<List<AutocompleteBudget>>? fetchOp;
 
     log.finest(() => "build()");
     return Row(
@@ -2660,21 +2678,20 @@ class _TransactionBudgetState extends State<TransactionBudget> {
               try {
                 unawaited(fetchOp?.cancel());
 
-                final FireflyIii api = context.read<FireflyService>().api;
-                fetchOp = CancelableOperation<
-                  Response<AutocompleteBudgetArray>
-                >.fromFuture(
-                  api.v1AutocompleteBudgetsGet(query: textEditingValue.text),
+                final Isar isar = await AppDatabase.instance;
+                final BudgetRepository repo = BudgetRepository(isar);
+                
+                fetchOp = CancelableOperation<List<AutocompleteBudget>>.fromFuture(
+                  repo.autocomplete(textEditingValue.text),
                 );
-                final Response<AutocompleteBudgetArray>? response =
+                final List<AutocompleteBudget>? results =
                     await fetchOp?.valueOrCancellation();
-                if (response == null) {
+                if (results == null) {
                   // Cancelled
                   return const Iterable<AutocompleteBudget>.empty();
                 }
-                apiThrowErrorIfEmpty(response, mounted ? context : null);
 
-                return response.body!;
+                return results;
               } catch (e, stackTrace) {
                 log.severe(
                   "Error while fetching autocomplete from API",

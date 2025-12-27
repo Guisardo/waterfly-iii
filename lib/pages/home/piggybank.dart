@@ -1,15 +1,18 @@
-import 'dart:convert';
-
 import 'package:chopper/chopper.dart' show Response;
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/piggy_bank_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/home.dart';
 import 'package:waterflyiii/pages/home/piggybank/chart.dart';
@@ -68,7 +71,6 @@ class _HomePiggybankState extends State<HomePiggybank>
     if (_pagingState.isLoading) return;
 
     try {
-      final FireflyIii api = context.read<FireflyService>().api;
       final CurrencyRead defaultCurrency =
           context.read<FireflyService>().defaultCurrency;
 
@@ -77,18 +79,23 @@ class _HomePiggybankState extends State<HomePiggybank>
         "Getting page $pageKey (${_pagingState.pages?.length} pages loaded)",
       );
 
-      final Response<PiggyBankArray> respPiggies = await api.v1PiggyBanksGet(
-        page: pageKey,
-        limit: _numberOfItemsPerRequest,
-      );
-      apiThrowErrorIfEmpty(respPiggies, mounted ? context : null);
-
-      final List<PiggyBankRead> piggyList = respPiggies.body!.data;
-      piggyList.sortByCompare(
+      // Load all piggy banks from repository and paginate in memory
+      final Isar isar = await AppDatabase.instance;
+      final PiggyBankRepository piggyRepo = PiggyBankRepository(isar);
+      final List<PiggyBankRead> allPiggies = await piggyRepo.getAll();
+      allPiggies.sortByCompare(
         (PiggyBankRead element) => element.attributes.objectGroupOrder,
         (int? a, int? b) => (a ?? 0).compareTo(b ?? 0),
       );
-      final bool isLastPage = piggyList.length < _numberOfItemsPerRequest;
+
+      // Paginate in memory
+      final int startIndex = (pageKey - 1) * _numberOfItemsPerRequest;
+      final int endIndex = (startIndex + _numberOfItemsPerRequest).clamp(0, allPiggies.length);
+      final List<PiggyBankRead> piggyList = allPiggies.sublist(
+        startIndex.clamp(0, allPiggies.length),
+        endIndex,
+      );
+      final bool isLastPage = endIndex >= allPiggies.length;
 
       if (mounted) {
         setState(() {
@@ -128,15 +135,13 @@ class _HomePiggybankState extends State<HomePiggybank>
       }
 
       // 2) Build status data only for the accounts referenced by the piggy banks
+      final AccountRepository accountRepo = AccountRepository(isar);
       final List<AccountStatusData> statusData = <AccountStatusData>[];
       for (final MapEntry<String, double> entry
           in accountIdToPiggyTotal.entries) {
         final String accountId = entry.key;
-        final Response<AccountSingle> respAcc = await api.v1AccountsIdGet(
-          id: accountId,
-        );
-        apiThrowErrorIfEmpty(respAcc, mounted ? context : null);
-        final AccountRead account = respAcc.body!.data;
+        final AccountRead? account = await accountRepo.getById(accountId);
+        if (account == null) continue;
 
         final double accountBalance =
             double.tryParse(account.attributes.currentBalance ?? "") ?? 0;
@@ -780,7 +785,6 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
             ),
             FilledButton(
               onPressed: () async {
-                final FireflyIii api = context.read<FireflyService>().api;
                 final NavigatorState nav = Navigator.of(context);
 
                 // Amount handling
@@ -797,64 +801,84 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
                 if (selectedAccount == null) {
                   nav.pop();
                 }
-                final List<PiggyBankAccountUpdate> accounts =
-                    <PiggyBankAccountUpdate>[];
-                if (!hasMultipleAccounts) {
-                  final double totalAmount = currentAmount + amount;
-                  accounts.add(
-                    PiggyBankAccountUpdate(
-                      accountId:
-                          widget.piggy.attributes.accounts!.first.accountId,
-                      currentAmount: totalAmount.toString(),
-                    ),
-                  );
-                  log.finest(
-                    () =>
-                        "New piggy bank total = $totalAmount out of $currentAmount + $amount",
-                  );
-                } else {
-                  for (PiggyBankAccountRead e
-                      in widget.piggy.attributes.accounts!) {
-                    accounts.add(
-                      PiggyBankAccountUpdate(
-                        accountId: e.accountId,
-                        currentAmount:
-                            selectedAccount == e.accountId
-                                ? ((double.tryParse(e.currentAmount ?? "") ??
-                                            0) +
-                                        amount)
-                                    .toString()
-                                : e.currentAmount,
+
+                try {
+                  final Isar isar = await AppDatabase.instance;
+                  final PiggyBankRepository piggyRepo = PiggyBankRepository(isar);
+                  
+                  // Get current piggy bank from repository
+                  final PiggyBankRead? currentPiggy = await piggyRepo.getById(widget.piggy.id);
+                  if (currentPiggy == null) {
+                    if (context.mounted) {
+                      await showDialog<void>(
+                        context: context,
+                        builder:
+                            (BuildContext context) => AlertDialog(
+                              icon: const Icon(Icons.error),
+                              title: Text(S.of(context).generalError),
+                              clipBehavior: Clip.hardEdge,
+                              actions: <Widget>[
+                                FilledButton(
+                                  child: Text(S.of(context).generalDismiss),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                              ],
+                              content: Text(S.of(context).errorUnknown),
+                            ),
+                      );
+                    }
+                    return;
+                  }
+
+                  // Update account amounts
+                  final List<PiggyBankAccountRead> updatedAccounts = <PiggyBankAccountRead>[];
+                  if (!hasMultipleAccounts) {
+                    final double totalAmount = currentAmount + amount;
+                    final PiggyBankAccountRead firstAccount = currentPiggy.attributes.accounts!.first;
+                    updatedAccounts.add(
+                      PiggyBankAccountRead(
+                        accountId: firstAccount.accountId,
+                        name: firstAccount.name,
+                        currentAmount: totalAmount.toString(),
+                        pcCurrentAmount: firstAccount.pcCurrentAmount,
                       ),
                     );
-                  }
-                }
-
-                final Response<PiggyBankSingle> resp = await api
-                    .v1PiggyBanksIdPut(
-                      id: widget.piggy.id,
-                      body: PiggyBankUpdate(accounts: accounts),
+                    log.finest(
+                      () =>
+                          "New piggy bank total = $totalAmount out of $currentAmount + $amount",
                     );
-                if (!resp.isSuccessful || resp.body == null) {
-                  late String error;
-                  try {
-                    final ValidationErrorResponse valError =
-                        ValidationErrorResponse.fromJson(
-                          json.decode(resp.error.toString()),
-                        );
-                    if (context.mounted) {
-                      error = valError.message ?? S.of(context).errorUnknown;
-                    } else {
-                      error = "[nocontext] Unknown error";
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      error = S.of(context).errorUnknown;
-                    } else {
-                      error = "[nocontext] Unknown error.";
+                  } else {
+                    for (PiggyBankAccountRead e
+                        in currentPiggy.attributes.accounts!) {
+                      updatedAccounts.add(
+                        PiggyBankAccountRead(
+                          accountId: e.accountId,
+                          name: e.name,
+                          currentAmount:
+                              selectedAccount == e.accountId
+                                  ? ((double.tryParse(e.currentAmount ?? "") ??
+                                              0) +
+                                          amount)
+                                      .toString()
+                                  : e.currentAmount,
+                          pcCurrentAmount: e.pcCurrentAmount,
+                        ),
+                      );
                     }
                   }
 
+                  // Create updated piggy bank by copying JSON and updating accounts
+                  final Map<String, dynamic> piggyJson = currentPiggy.toJson();
+                  piggyJson['attributes'] = (piggyJson['attributes'] as Map<String, dynamic>)
+                    ..['accounts'] = updatedAccounts.map((a) => a.toJson()).toList();
+                  final PiggyBankRead updatedPiggy = PiggyBankRead.fromJson(piggyJson);
+
+                  // Update via repository (queues for sync)
+                  await piggyRepo.update(updatedPiggy);
+                  
+                  nav.pop(updatedPiggy);
+                } catch (e, stackTrace) {
+                  log.severe("Error updating piggy bank", e, stackTrace);
                   if (context.mounted) {
                     await showDialog<void>(
                       context: context,
@@ -869,13 +893,11 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
                                 onPressed: () => Navigator.of(context).pop(),
                               ),
                             ],
-                            content: Text(error),
+                            content: Text(S.of(context).errorUnknown),
                           ),
                     );
                   }
-                  return;
                 }
-                nav.pop(resp.body);
               },
               child: Text(MaterialLocalizations.of(context).saveButtonLabel),
             ),

@@ -15,7 +15,9 @@ import 'package:waterflyiii/pages/home/transactions.dart';
 import 'package:waterflyiii/pages/home/transactions/filter.dart';
 import 'package:waterflyiii/pages/navigation.dart';
 import 'package:waterflyiii/settings.dart';
-import 'package:waterflyiii/stock.dart';
+import 'package:isar_community/isar.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/insight_repository.dart';
 
 final Logger log = Logger("Pages.Categories");
 
@@ -31,7 +33,7 @@ class _CategoriesPageState extends State<CategoriesPage>
   final Logger log = Logger("Pages.Categories.Page");
   late DateTime selectedMonth;
   late DateTime now;
-  late CatStock stock;
+  late InsightRepository _insightRepo;
 
   @override
   void initState() {
@@ -42,14 +44,168 @@ class _CategoriesPageState extends State<CategoriesPage>
     );
     selectedMonth = now.copyWith(day: 15);
 
-    stock = CatStock(
-      context.read<FireflyService>().api,
-      context.read<FireflyService>().defaultCurrency,
-    );
+    // Initialize repositories asynchronously
+    AppDatabase.instance.then((Isar isar) {
+      _insightRepo = InsightRepository(isar);
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       refreshAppBarButtons();
     });
+  }
+
+  Future<CategoryArray> _buildCategoryArrayFromRepository(DateTime date) async {
+    final DateTime startDate = date.copyWith(day: 1);
+    final DateTime endDate = date;
+
+    final CurrencyRead defaultCurrency =
+        context.read<FireflyService>().defaultCurrency;
+
+    // Get insights from repository
+    final List<InsightGroupEntry> incomeCats =
+        await _insightRepo.getGrouped('income', 'category', startDate, endDate);
+    final List<InsightTotalEntry> incomeNoCats =
+        await _insightRepo.getNoGroup('income', 'category', startDate, endDate);
+    final List<InsightGroupEntry> expenseCats =
+        await _insightRepo.getGrouped('expense', 'category', startDate, endDate);
+    final List<InsightTotalEntry> expenseNoCats =
+        await _insightRepo.getNoGroup('expense', 'category', startDate, endDate);
+
+    final Map<String, CategoryRead> categories = <String, CategoryRead>{};
+
+    // Process income categories
+    for (final InsightGroupEntry cat in incomeCats) {
+      if ((cat.id?.isEmpty ?? true) || (cat.name?.isEmpty ?? true)) {
+        continue;
+      }
+      if (cat.currencyId != defaultCurrency.id) {
+        continue;
+      }
+      if (!categories.containsKey(cat.id)) {
+        categories[cat.id!] = CategoryRead(
+          id: cat.id!,
+          type: "categories",
+          attributes: CategoryWithSum(
+            name: cat.name!,
+            spent: <ArrayEntryWithCurrencyAndSum>[],
+            earned: <ArrayEntryWithCurrencyAndSum>[],
+          ),
+        );
+      }
+      categories[cat.id!]!.attributes.earned!.add(
+        ArrayEntryWithCurrencyAndSum(
+          currencyId: cat.currencyId,
+          currencyCode: cat.currencyCode,
+          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+          currencySymbol: defaultCurrency.attributes.symbol,
+          sum: cat.difference,
+        ),
+      );
+    }
+
+    // Process expense categories
+    for (final InsightGroupEntry cat in expenseCats) {
+      if ((cat.id?.isEmpty ?? true) || (cat.name?.isEmpty ?? true)) {
+        continue;
+      }
+      if (cat.currencyId != defaultCurrency.id) {
+        continue;
+      }
+      if (!categories.containsKey(cat.id)) {
+        categories[cat.id!] = CategoryRead(
+          id: cat.id!,
+          type: "categories",
+          attributes: CategoryWithSum(
+            name: cat.name!,
+            spent: <ArrayEntryWithCurrencyAndSum>[],
+            earned: <ArrayEntryWithCurrencyAndSum>[],
+          ),
+        );
+      }
+      categories[cat.id!]!.attributes.spent!.add(
+        ArrayEntryWithCurrencyAndSum(
+          currencyId: cat.currencyId,
+          currencyCode: cat.currencyCode,
+          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+          currencySymbol: defaultCurrency.attributes.symbol,
+          sum: cat.difference,
+        ),
+      );
+    }
+
+    // Process no-category income
+    for (final InsightTotalEntry cat in incomeNoCats) {
+      if (cat.currencyId != defaultCurrency.id) {
+        continue;
+      }
+      if (!categories.containsKey("-1")) {
+        categories["-1"] = CategoryRead(
+          id: "-1",
+          type: "no-category",
+          attributes: CategoryWithSum(
+            name: "L10NNONE",
+            spent: <ArrayEntryWithCurrencyAndSum>[],
+            earned: <ArrayEntryWithCurrencyAndSum>[],
+          ),
+        );
+      }
+      categories["-1"]!.attributes.earned!.add(
+        ArrayEntryWithCurrencyAndSum(
+          currencyId: cat.currencyId,
+          currencyCode: cat.currencyCode,
+          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+          currencySymbol: defaultCurrency.attributes.symbol,
+          sum: cat.difference,
+        ),
+      );
+    }
+
+    // Process no-category expense
+    for (final InsightTotalEntry cat in expenseNoCats) {
+      if (cat.currencyId != defaultCurrency.id) {
+        continue;
+      }
+      if (!categories.containsKey("-1")) {
+        categories["-1"] = CategoryRead(
+          id: "-1",
+          type: "no-category",
+          attributes: CategoryWithSum(
+            name: "L10NNONE",
+            spent: <ArrayEntryWithCurrencyAndSum>[],
+            earned: <ArrayEntryWithCurrencyAndSum>[],
+          ),
+        );
+      }
+      categories["-1"]!.attributes.spent!.add(
+        ArrayEntryWithCurrencyAndSum(
+          currencyId: cat.currencyId,
+          currencyCode: cat.currencyCode,
+          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+          currencySymbol: defaultCurrency.attributes.symbol,
+          sum: cat.difference,
+        ),
+      );
+    }
+
+    // Calculate sums
+    categories.forEach((_, CategoryRead c) {
+      final CategoryWithSum cs = c.attributes as CategoryWithSum;
+      cs.sumEarned = c.attributes.earned!.fold<double>(
+        0,
+        (double p, ArrayEntryWithCurrencyAndSum e) =>
+            p += double.parse(e.sum ?? "0"),
+      );
+      cs.sumSpent = c.attributes.spent!.fold<double>(
+        0,
+        (double p, ArrayEntryWithCurrencyAndSum e) =>
+            p += double.parse(e.sum ?? "0"),
+      );
+    });
+
+    return CategoryArray(
+      data: categories.values.toList(growable: false),
+      meta: const Meta(),
+    );
   }
 
   void refreshAppBarButtons() {
@@ -71,8 +227,7 @@ class _CategoriesPageState extends State<CategoriesPage>
             return;
           }
 
-          // Refresh page
-          await stock.reset();
+          // Refresh page - repository will have new data from sync
           setState(() {});
         },
       ),
@@ -123,7 +278,7 @@ class _CategoriesPageState extends State<CategoriesPage>
     }
 
     return FutureBuilder<CategoryArray>(
-      future: stock.get(stockDate),
+      future: _buildCategoryArrayFromRepository(stockDate),
       builder: (BuildContext context, AsyncSnapshot<CategoryArray> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -244,7 +399,6 @@ class _CategoriesPageState extends State<CategoriesPage>
             CategoryLine(
               category: category,
               setState: setState,
-              stock: stock,
               totalSpent: totalSpent,
               totalEarned: totalEarned,
               excluded: categoriesSumExcluded.contains(category.id),
@@ -264,7 +418,7 @@ class _CategoriesPageState extends State<CategoriesPage>
         return RefreshIndicator(
           onRefresh:
               () => Future<void>(() async {
-                await stock.reset();
+                // Repository data refreshed by sync service
                 setState(() {});
               }),
           child: ListView(children: childs),
@@ -360,7 +514,6 @@ class CategoryLine extends StatelessWidget {
     required this.setState,
     required this.totalSpent,
     required this.totalEarned,
-    required this.stock,
     required this.excluded,
     required this.month,
   });
@@ -369,7 +522,6 @@ class CategoryLine extends StatelessWidget {
   final void Function(void Function()) setState;
   final double totalSpent;
   final double totalEarned;
-  final CatStock stock;
   final bool excluded;
   final DateTime month;
 
@@ -453,7 +605,6 @@ class CategoryLine extends StatelessWidget {
                               }
 
                               // Refresh page
-                              await stock.reset();
                               setState(() {});
                             },
                             child: Row(

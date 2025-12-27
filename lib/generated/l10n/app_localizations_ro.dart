@@ -945,4 +945,113 @@ class SRo extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Retragere';
+
+  @override
+  String get syncSettingsTitle => 'Setări de sincronizare';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Sincronizare cu date mobile';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Permite sincronizarea la utilizarea datelor mobile (dezactivat implicit pentru a economisi date)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Acreditări';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Invalid - Vă rugăm să reintroduceți acreditările';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Validat';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Nevalidat';
+
+  @override
+  String get syncSettingsReenterButton => 'Reintroduceți';
+
+  @override
+  String get syncSettingsDownloadSync => 'Sincronizare descărcare';
+
+  @override
+  String get syncSettingsUploadSync => 'Sincronizare încărcare';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Ultima sincronizare: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Status: Întrerupt';
+
+  @override
+  String get syncSettingsStatusActive => 'Status: Activ';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Număr de încercări: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Următoarea încercare: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Eroare: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Reluați acum';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Sincronizare manuală';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Declanșează sincronizarea acum';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Sincronizează acum';
+
+  @override
+  String get syncNotificationSyncing => 'Sincronizare...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Sincronizare cu Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Sincronizare $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Sincronizare finalizată';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Sincronizarea cu Firefly III a fost finalizată cu succes';
+
+  @override
+  String get syncNotificationPaused => 'Sincronizare întreruptă';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Sincronizarea a fost întreruptă din cauza unei erori. Va fi reluată automat.';
+
+  @override
+  String get syncNotificationAuthError => 'Eroare de autentificare';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Vă rugăm să reintroduceți acreditările în setări';
+
+  @override
+  String get syncNotificationChannelName => 'Sincronizare';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Status sincronizare în fundal';
 }

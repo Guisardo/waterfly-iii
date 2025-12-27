@@ -15,6 +15,7 @@ import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/pages/settings/debug.dart';
 import 'package:waterflyiii/pages/settings/notifications.dart';
+import 'package:waterflyiii/pages/settings/sync.dart';
 import 'package:waterflyiii/settings.dart';
 
 final Logger log = Logger("Pages.Settings");
@@ -223,6 +224,22 @@ class SettingsPageState extends State<SettingsPage>
               onClosed: (_) => setState(() {}),
             );
           },
+        ),
+        OpenContainer(
+          openBuilder: (BuildContext context, Function closedContainer) =>
+              const SyncSettingsPage(),
+          openColor: Theme.of(context).cardColor,
+          closedColor: Theme.of(context).cardColor,
+          closedElevation: 0,
+          closedBuilder:
+              (BuildContext context, Function openContainer) => ListTile(
+                title: const Text('Synchronization'),
+                subtitle: const Text('Sync settings and status'),
+                leading: const CircleAvatar(
+                  child: Icon(Icons.sync),
+                ),
+                onTap: () => openContainer(),
+              ),
         ),
         const Divider(),
         ListTile(

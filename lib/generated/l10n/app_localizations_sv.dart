@@ -938,4 +938,113 @@ class SSv extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Uttag';
+
+  @override
+  String get syncSettingsTitle => 'Synkroniseringsinställningar';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Synkronisera med mobildata';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Tillåt synkronisering vid användning av mobildata (inaktiverat som standard för att spara data)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Inloggningsuppgifter';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Ogiltigt - Vänligen ange inloggningsuppgifter igen';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Validerat';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Inte validerat';
+
+  @override
+  String get syncSettingsReenterButton => 'Ange igen';
+
+  @override
+  String get syncSettingsDownloadSync => 'Nedladdningssynkronisering';
+
+  @override
+  String get syncSettingsUploadSync => 'Uppladdningssynkronisering';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Senaste synkronisering: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Status: Pausad';
+
+  @override
+  String get syncSettingsStatusActive => 'Status: Aktiv';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Antal försök: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Nästa försök: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Fel: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Återuppta nu';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Manuell synkronisering';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Utlös synkronisering nu';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Synkronisera nu';
+
+  @override
+  String get syncNotificationSyncing => 'Synkroniserar...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Synkroniserar med Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Synkroniserar $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Synkronisering slutförd';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Synkronisering med Firefly III slutfördes framgångsrikt';
+
+  @override
+  String get syncNotificationPaused => 'Synkronisering pausad';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Synkronisering pausad på grund av ett fel. Kommer automatiskt att försöka igen.';
+
+  @override
+  String get syncNotificationAuthError => 'Autentiseringsfel';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Vänligen ange dina inloggningsuppgifter igen i inställningarna';
+
+  @override
+  String get syncNotificationChannelName => 'Synkronisering';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Status för bakgrundssynkronisering';
 }

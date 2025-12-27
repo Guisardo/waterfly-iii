@@ -19,8 +19,14 @@ import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:version/version.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
+import 'package:isar_community/isar.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
-import 'package:waterflyiii/stock.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
+import 'package:waterflyiii/services/sync/sync_notifications.dart';
+import 'package:waterflyiii/services/sync/sync_service.dart';
+import 'package:waterflyiii/services/sync/upload_service.dart';
 import 'package:waterflyiii/timezonehandler.dart';
 
 final Logger log = Logger("Auth");
@@ -220,8 +226,6 @@ class FireflyService with ChangeNotifier {
   Version? _apiVersion;
   Version? get apiVersion => _apiVersion;
 
-  TransStock? _transStock;
-  TransStock? get transStock => _transStock;
 
   bool get hasApi => (_currentUser?.api != null) ? true : false;
   FireflyIii get api {
@@ -290,6 +294,62 @@ class FireflyService with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _triggerInitialSync() async {
+    // Run sync in background without blocking
+    Future<void>.microtask(() async {
+      try {
+        final Isar isar = await AppDatabase.instance;
+        
+        // Check if this is first-time login (no sync metadata exists)
+        final SyncMetadata? downloadMetadata = await isar.syncMetadatas
+            .filter()
+            .entityTypeEqualTo('download')
+            .findFirst();
+
+        final bool isFirstTime = downloadMetadata == null;
+
+        // Initialize sync services
+        // Note: These need to be accessed via a different mechanism since
+        // we're not in a widget context. For now, we'll create them directly.
+        // In a production app, you might want to use a service locator or
+        // pass them as dependencies.
+        final ConnectivityService connectivityService = ConnectivityService();
+        final SyncNotifications notifications = SyncNotifications();
+        await notifications.initialize();
+
+        final SyncService syncService = SyncService(
+          isar: isar,
+          fireflyService: this,
+          connectivityService: connectivityService,
+          notifications: notifications,
+          settingsProvider: null, // Will be set when available
+        );
+
+        final UploadService uploadService = UploadService(
+          isar: isar,
+          fireflyService: this,
+          connectivityService: connectivityService,
+          notifications: notifications,
+          settingsProvider: null, // Will be set when available
+        );
+
+        if (isFirstTime) {
+          log.config("First-time login: Triggering full sync");
+          await syncService.sync(forceFullSync: true);
+        } else {
+          log.config("Returning user: Triggering incremental sync");
+          await syncService.sync(forceFullSync: false);
+        }
+
+        // Also trigger upload sync for any pending changes
+        await uploadService.uploadPendingChanges();
+      } catch (e, stackTrace) {
+        log.warning("Failed to trigger initial sync", e, stackTrace);
+        // Don't throw - sync failure shouldn't prevent login
+      }
+    });
+  }
+
   Future<bool> signIn(String host, String apiKey) async {
     log.config("FireflyService->signIn($host)");
     host = host.strip().rightStrip('/');
@@ -340,12 +400,14 @@ class FireflyService with ChangeNotifier {
     }
 
     _signedIn = true;
-    _transStock = TransStock(api);
     log.finest(() => "notify FireflyService->signIn");
     notifyListeners();
 
     await storage.write(key: 'api_host', value: host);
     await storage.write(key: 'api_key', value: apiKey);
+
+    // Trigger initial sync in background
+    _triggerInitialSync();
 
     return true;
   }

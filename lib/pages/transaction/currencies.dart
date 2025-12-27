@@ -1,9 +1,11 @@
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
+import 'package:isar_community/isar.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/currency_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 
 class CurrencyDialog extends StatelessWidget {
   const CurrencyDialog({super.key, required this.currentCurrency});
@@ -11,11 +13,9 @@ class CurrencyDialog extends StatelessWidget {
   final CurrencyRead currentCurrency;
 
   Future<List<CurrencyRead>>? _getCurrencies(BuildContext context) async {
-    final FireflyIii api = context.read<FireflyService>().api;
-    final Response<CurrencyArray> response = await api.v1CurrenciesGet();
-    apiThrowErrorIfEmpty(response, context.mounted ? context : null);
-
-    final List<CurrencyRead> currencies = response.body!.data;
+    final Isar isar = await AppDatabase.instance;
+    final CurrencyRepository currencyRepo = CurrencyRepository(isar);
+    final List<CurrencyRead> currencies = await currencyRepo.getAll();
     currencies.sort((CurrencyRead a, CurrencyRead b) {
       if (a.id == context.read<FireflyService>().defaultCurrency.id) {
         return -1;

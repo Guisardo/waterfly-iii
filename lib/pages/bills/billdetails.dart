@@ -1,15 +1,17 @@
 import 'package:animations/animations.dart';
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:intl/intl.dart';
+import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/pages/bills/billchart.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/timezonehandler.dart';
@@ -333,24 +335,27 @@ class _BillDetailsState extends State<BillDetails> {
     if (_pagingState.isLoading) return;
 
     try {
-      final FireflyIii api = context.read<FireflyService>().api;
+      final Isar isar = await AppDatabase.instance;
+      final TransactionRepository txRepo = TransactionRepository(isar);
 
       final int pageKey = (_pagingState.keys?.last ?? 0) + 1;
+      final int limit = 50; // Default page size
       log.finest(
         "Getting page $pageKey (${_pagingState.pages?.length} items loaded so far)",
       );
 
-      final Response<TransactionArray> response = await api
-          .v1BillsIdTransactionsGet(id: widget.bill.id, page: pageKey);
-      apiThrowErrorIfEmpty(response, mounted ? context : null);
+      // Fetch transactions for this bill using repository
+      final List<TransactionRead> transactions = await txRepo.searchWithFilters(
+        billId: widget.bill.id,
+        page: pageKey,
+        limit: limit,
+      );
 
       _billChartKey.currentState!.doneLoading();
-      final List<TransactionRead> transactions = response.body!.data;
       _billChartKey.currentState!.addTransactions(transactions);
 
-      final bool isLastPage =
-          (response.body!.meta.pagination?.currentPage ?? 1) ==
-          (response.body!.meta.pagination?.totalPages ?? 1);
+      // Check if there are more pages (if we got fewer than limit, we're on the last page)
+      final bool isLastPage = transactions.length < limit;
 
       if (mounted) {
         setState(() {
@@ -377,13 +382,14 @@ class _BillDetailsState extends State<BillDetails> {
   }
 
   Future<TransactionRead> _fetchFullTx(String id) async {
-    final FireflyIii api = context.read<FireflyService>().api;
-
-    final Response<TransactionSingle> response = await api.v1TransactionsIdGet(
-      id: id,
-    );
-    apiThrowErrorIfEmpty(response, mounted ? context : null);
-
-    return response.body!.data;
+    final Isar isar = await AppDatabase.instance;
+    final TransactionRepository txRepo = TransactionRepository(isar);
+    
+    final TransactionRead? transaction = await txRepo.getById(id);
+    if (transaction == null) {
+      throw Exception("Transaction not found: $id");
+    }
+    
+    return transaction;
   }
 }

@@ -934,4 +934,112 @@ class SFa extends S {
 
   @override
   String get transactionTypeWithdrawal => 'درخواست برداشت';
+
+  @override
+  String get syncSettingsTitle => 'تنظیمات همگام‌سازی';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'همگام‌سازی با داده‌های موبایل';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'اجازه همگام‌سازی هنگام استفاده از داده‌های موبایل (به طور پیش‌فرض غیرفعال برای صرفه‌جویی در داده)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'اعتبارنامه‌ها';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'نامعتبر - لطفاً اعتبارنامه‌ها را دوباره وارد کنید';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'تأیید شده';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'تأیید نشده';
+
+  @override
+  String get syncSettingsReenterButton => 'دوباره وارد کنید';
+
+  @override
+  String get syncSettingsDownloadSync => 'همگام‌سازی دانلود';
+
+  @override
+  String get syncSettingsUploadSync => 'همگام‌سازی آپلود';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'آخرین همگام‌سازی: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'وضعیت: متوقف شده';
+
+  @override
+  String get syncSettingsStatusActive => 'وضعیت: فعال';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'تعداد تلاش مجدد: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'تلاش مجدد بعدی: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'خطا: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'اکنون ادامه دهید';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'همگام‌سازی دستی';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'اکنون همگام‌سازی را فعال کنید';
+
+  @override
+  String get syncSettingsSyncNowButton => 'اکنون همگام‌سازی کنید';
+
+  @override
+  String get syncNotificationSyncing => 'در حال همگام‌سازی...';
+
+  @override
+  String get syncNotificationSyncingBody => 'همگام‌سازی با Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'همگام‌سازی $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'همگام‌سازی تکمیل شد';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'همگام‌سازی با Firefly III با موفقیت تکمیل شد';
+
+  @override
+  String get syncNotificationPaused => 'همگام‌سازی متوقف شد';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'همگام‌سازی به دلیل خطا متوقف شد. به طور خودکار دوباره تلاش خواهد شد.';
+
+  @override
+  String get syncNotificationAuthError => 'خطای احراز هویت';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'لطفاً اعتبارنامه‌های خود را دوباره در تنظیمات وارد کنید';
+
+  @override
+  String get syncNotificationChannelName => 'همگام‌سازی';
+
+  @override
+  String get syncNotificationChannelDescription => 'وضعیت همگام‌سازی پس‌زمینه';
 }

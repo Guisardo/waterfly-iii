@@ -937,4 +937,114 @@ class STr extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Withdrawal';
+
+  @override
+  String get syncSettingsTitle => 'Senkronizasyon Ayarları';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Mobil veri ile senkronize et';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Mobil veri kullanırken senkronizasyona izin ver (veri tasarrufu için varsayılan olarak devre dışı)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Kimlik Bilgileri';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Geçersiz - Lütfen kimlik bilgilerini yeniden girin';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Doğrulandı';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Doğrulanmadı';
+
+  @override
+  String get syncSettingsReenterButton => 'Yeniden gir';
+
+  @override
+  String get syncSettingsDownloadSync => 'İndirme Senkronizasyonu';
+
+  @override
+  String get syncSettingsUploadSync => 'Yükleme Senkronizasyonu';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Son senkronizasyon: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Durum: Duraklatıldı';
+
+  @override
+  String get syncSettingsStatusActive => 'Durum: Aktif';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Yeniden deneme sayısı: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Sonraki yeniden deneme: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Hata: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Şimdi devam et';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Manuel Senkronizasyon';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Senkronizasyonu şimdi tetikle';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Şimdi senkronize et';
+
+  @override
+  String get syncNotificationSyncing => 'Senkronize ediliyor...';
+
+  @override
+  String get syncNotificationSyncingBody =>
+      'Firefly III ile senkronize ediliyor';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return '$entityType senkronize ediliyor...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Senkronizasyon tamamlandı';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Firefly III ile senkronizasyon başarıyla tamamlandı';
+
+  @override
+  String get syncNotificationPaused => 'Senkronizasyon duraklatıldı';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Bir hata nedeniyle senkronizasyon duraklatıldı. Otomatik olarak yeniden denenecek.';
+
+  @override
+  String get syncNotificationAuthError => 'Kimlik doğrulama hatası';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Lütfen ayarlarda kimlik bilgilerinizi yeniden girin';
+
+  @override
+  String get syncNotificationChannelName => 'Senkronizasyon';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Arka plan senkronizasyon durumu';
 }

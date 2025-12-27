@@ -937,4 +937,113 @@ class SEn extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Withdrawal';
+
+  @override
+  String get syncSettingsTitle => 'Sync Settings';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Sync on mobile data';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Allow synchronization when using mobile data (disabled by default to save data)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Credentials';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Invalid - Please re-enter credentials';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Validated';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Not validated';
+
+  @override
+  String get syncSettingsReenterButton => 'Re-enter';
+
+  @override
+  String get syncSettingsDownloadSync => 'Download Sync';
+
+  @override
+  String get syncSettingsUploadSync => 'Upload Sync';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Last sync: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Status: Paused';
+
+  @override
+  String get syncSettingsStatusActive => 'Status: Active';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Retry count: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Next retry: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Resume Now';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Manual Sync';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Trigger sync now';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Sync Now';
+
+  @override
+  String get syncNotificationSyncing => 'Syncing...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Synchronizing with Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Syncing $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Sync completed';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Synchronization with Firefly III completed successfully';
+
+  @override
+  String get syncNotificationPaused => 'Sync paused';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Synchronization paused due to error. Will retry automatically.';
+
+  @override
+  String get syncNotificationAuthError => 'Authentication error';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Please re-enter your credentials in settings';
+
+  @override
+  String get syncNotificationChannelName => 'Synchronization';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Background synchronization status';
 }

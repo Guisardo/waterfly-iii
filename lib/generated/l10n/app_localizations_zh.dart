@@ -918,6 +918,109 @@ class SZh extends S {
 
   @override
   String get transactionTypeWithdrawal => '取款';
+
+  @override
+  String get syncSettingsTitle => '同步设置';
+
+  @override
+  String get syncSettingsMobileDataTitle => '使用移动数据同步';
+
+  @override
+  String get syncSettingsMobileDataSubtitle => '允许使用移动数据时同步（默认禁用以节省数据）';
+
+  @override
+  String get syncSettingsCredentialsTitle => '凭据';
+
+  @override
+  String get syncSettingsCredentialsInvalid => '无效 - 请重新输入凭据';
+
+  @override
+  String get syncSettingsCredentialsValidated => '已验证';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => '未验证';
+
+  @override
+  String get syncSettingsReenterButton => '重新输入';
+
+  @override
+  String get syncSettingsDownloadSync => '下载同步';
+
+  @override
+  String get syncSettingsUploadSync => '上传同步';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return '最后同步：$date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => '状态：已暂停';
+
+  @override
+  String get syncSettingsStatusActive => '状态：活动';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return '重试次数：$count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return '下次重试：$date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return '错误：$error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => '立即恢复';
+
+  @override
+  String get syncSettingsManualSyncTitle => '手动同步';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => '立即触发同步';
+
+  @override
+  String get syncSettingsSyncNowButton => '立即同步';
+
+  @override
+  String get syncNotificationSyncing => '同步中...';
+
+  @override
+  String get syncNotificationSyncingBody => '正在与 Firefly III 同步';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return '正在同步 $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => '同步完成';
+
+  @override
+  String get syncNotificationCompletedBody => '与 Firefly III 的同步已成功完成';
+
+  @override
+  String get syncNotificationPaused => '同步已暂停';
+
+  @override
+  String get syncNotificationPausedBody => '由于错误，同步已暂停。将自动重试。';
+
+  @override
+  String get syncNotificationAuthError => '身份验证错误';
+
+  @override
+  String get syncNotificationAuthErrorBody => '请在设置中重新输入您的凭据';
+
+  @override
+  String get syncNotificationChannelName => '同步';
+
+  @override
+  String get syncNotificationChannelDescription => '后台同步状态';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1811,4 +1914,107 @@ class SZhTw extends SZh {
 
   @override
   String get transactionTitleAdd => '新增交易';
+
+  @override
+  String get syncSettingsTitle => '同步設定';
+
+  @override
+  String get syncSettingsMobileDataTitle => '使用行動數據同步';
+
+  @override
+  String get syncSettingsMobileDataSubtitle => '允許使用行動數據時同步（預設停用以節省數據）';
+
+  @override
+  String get syncSettingsCredentialsTitle => '憑證';
+
+  @override
+  String get syncSettingsCredentialsInvalid => '無效 - 請重新輸入憑證';
+
+  @override
+  String get syncSettingsCredentialsValidated => '已驗證';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => '未驗證';
+
+  @override
+  String get syncSettingsReenterButton => '重新輸入';
+
+  @override
+  String get syncSettingsDownloadSync => '下載同步';
+
+  @override
+  String get syncSettingsUploadSync => '上傳同步';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return '最後同步：$date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => '狀態：已暫停';
+
+  @override
+  String get syncSettingsStatusActive => '狀態：活動';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return '重試次數：$count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return '下次重試：$date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return '錯誤：$error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => '立即恢復';
+
+  @override
+  String get syncSettingsManualSyncTitle => '手動同步';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => '立即觸發同步';
+
+  @override
+  String get syncSettingsSyncNowButton => '立即同步';
+
+  @override
+  String get syncNotificationSyncing => '同步中...';
+
+  @override
+  String get syncNotificationSyncingBody => '正在與 Firefly III 同步';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return '正在同步 $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => '同步完成';
+
+  @override
+  String get syncNotificationCompletedBody => '與 Firefly III 的同步已成功完成';
+
+  @override
+  String get syncNotificationPaused => '同步已暫停';
+
+  @override
+  String get syncNotificationPausedBody => '由於錯誤，同步已暫停。將自動重試。';
+
+  @override
+  String get syncNotificationAuthError => '身份驗證錯誤';
+
+  @override
+  String get syncNotificationAuthErrorBody => '請在設定中重新輸入您的憑證';
+
+  @override
+  String get syncNotificationChannelName => '同步';
+
+  @override
+  String get syncNotificationChannelDescription => '背景同步狀態';
 }

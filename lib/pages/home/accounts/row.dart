@@ -1,14 +1,15 @@
-import 'dart:convert';
-
 import 'package:animations/animations.dart';
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/home/transactions.dart';
 import 'package:waterflyiii/pages/home/transactions/filter.dart';
@@ -250,45 +251,32 @@ class _AccountTXpageState extends State<AccountTXpage> {
     if (_textController.text.isNotEmpty &&
         _textController.text != widget.account.attributes.name) {
       try {
-        final FireflyIii api = context.read<FireflyService>().api;
-        final Response<AccountSingle> response = await api.v1AccountsIdPut(
-          id: widget.account.id,
-          body: AccountUpdate(name: _textController.text),
-        );
-        if (!response.isSuccessful || response.body == null) {
-          log.severe("Error while submitting new name to API");
-          String error;
-          try {
-            final ValidationErrorResponse valError =
-                ValidationErrorResponse.fromJson(
-                  json.decode(response.error.toString()),
-                );
-            error =
-                valError.message ??
-                // ignore: use_build_context_synchronously
-                (context.mounted
-                    // ignore: use_build_context_synchronously
-                    ? S.of(context).errorUnknown
-                    : "[nocontext] Unknown error.");
-          } catch (_) {
-            // ignore: use_build_context_synchronously
-            error =
-                context.mounted
-                    // ignore: use_build_context_synchronously
-                    ? S.of(context).errorUnknown
-                    : "[nocontext] Unknown error.";
-          }
-
-          msg.showSnackBar(
-            SnackBar(content: Text(error), behavior: SnackBarBehavior.floating),
-          );
-          return;
-        }
-
-        _name = response.body!.data.attributes.name;
+        final Isar isar = await AppDatabase.instance;
+        final AccountRepository accountRepo = AccountRepository(isar);
+        
+        // Create updated account with new name by copying JSON and updating name
+        final Map<String, dynamic> accountJson = widget.account.toJson();
+        accountJson['attributes'] = (accountJson['attributes'] as Map<String, dynamic>)
+          ..['name'] = _textController.text;
+        final AccountRead updatedAccount = AccountRead.fromJson(accountJson);
+        
+        await accountRepo.update(updatedAccount);
+        _name = _textController.text;
         widget.nameUpdateFunc(_name);
       } catch (e, stackTrace) {
-        log.severe("Error while submitting new name to API", e, stackTrace);
+        log.severe("Error while updating account name", e, stackTrace);
+        // ignore: use_build_context_synchronously
+        if (context.mounted) {
+          msg.showSnackBar(
+            SnackBar(
+              content: Text(
+                // ignore: use_build_context_synchronously
+                S.of(context).errorUnknown,
+              ),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     }
 

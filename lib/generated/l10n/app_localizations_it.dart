@@ -943,4 +943,113 @@ class SIt extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Prelievo';
+
+  @override
+  String get syncSettingsTitle => 'Impostazioni di sincronizzazione';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Sincronizza con dati mobili';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Consenti sincronizzazione quando si utilizzano dati mobili (disabilitato per impostazione predefinita per risparmiare dati)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Credenziali';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Non valido - Si prega di reinserire le credenziali';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Validato';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Non validato';
+
+  @override
+  String get syncSettingsReenterButton => 'Reinserisci';
+
+  @override
+  String get syncSettingsDownloadSync => 'Sincronizzazione download';
+
+  @override
+  String get syncSettingsUploadSync => 'Sincronizzazione upload';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Ultima sincronizzazione: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Stato: In pausa';
+
+  @override
+  String get syncSettingsStatusActive => 'Stato: Attivo';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Numero di tentativi: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Prossimo tentativo: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Errore: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Riprendi ora';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Sincronizzazione manuale';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Attiva sincronizzazione ora';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Sincronizza ora';
+
+  @override
+  String get syncNotificationSyncing => 'Sincronizzazione...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Sincronizzazione con Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Sincronizzazione $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Sincronizzazione completata';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Sincronizzazione con Firefly III completata con successo';
+
+  @override
+  String get syncNotificationPaused => 'Sincronizzazione in pausa';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Sincronizzazione in pausa a causa di un errore. Verrà riprovato automaticamente.';
+
+  @override
+  String get syncNotificationAuthError => 'Errore di autenticazione';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Si prega di reinserire le credenziali nelle impostazioni';
+
+  @override
+  String get syncNotificationChannelName => 'Sincronizzazione';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Stato della sincronizzazione in background';
 }

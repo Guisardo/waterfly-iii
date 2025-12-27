@@ -949,4 +949,113 @@ class SRu extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Вывод средств';
+
+  @override
+  String get syncSettingsTitle => 'Настройки синхронизации';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Синхронизация по мобильным данным';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Разрешить синхронизацию при использовании мобильных данных (по умолчанию отключено для экономии данных)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Учетные данные';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Недействительно - Пожалуйста, введите учетные данные заново';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Проверено';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Не проверено';
+
+  @override
+  String get syncSettingsReenterButton => 'Ввести заново';
+
+  @override
+  String get syncSettingsDownloadSync => 'Синхронизация загрузки';
+
+  @override
+  String get syncSettingsUploadSync => 'Синхронизация выгрузки';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Последняя синхронизация: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Статус: Приостановлено';
+
+  @override
+  String get syncSettingsStatusActive => 'Статус: Активно';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Количество попыток: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Следующая попытка: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Ошибка: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Возобновить сейчас';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Ручная синхронизация';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Запустить синхронизацию сейчас';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Синхронизировать сейчас';
+
+  @override
+  String get syncNotificationSyncing => 'Синхронизация...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Синхронизация с Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Синхронизация $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Синхронизация завершена';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Синхронизация с Firefly III успешно завершена';
+
+  @override
+  String get syncNotificationPaused => 'Синхронизация приостановлена';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Синхронизация приостановлена из-за ошибки. Будет автоматически повторена.';
+
+  @override
+  String get syncNotificationAuthError => 'Ошибка аутентификации';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Пожалуйста, введите учетные данные заново в настройках';
+
+  @override
+  String get syncNotificationChannelName => 'Синхронизация';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Статус фоновой синхронизации';
 }

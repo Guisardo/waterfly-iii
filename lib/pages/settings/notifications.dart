@@ -1,15 +1,21 @@
 import 'package:appcheck/appcheck.dart';
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:logging/logging.dart';
 import 'package:notifications_listener_service/notifications_listener_service.dart';
 import 'package:provider/provider.dart';
-import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart'
+    show AccountArray, AccountRead, AccountTypeFilter, Meta;
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart'
+    show AccountProperties, Meta$Pagination;
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart'
+    show ShortAccountTypeProperty;
 import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/settings.dart';
+import 'package:isar_community/isar.dart';
 
 class SettingsNotifications extends StatefulWidget {
   const SettingsNotifications({super.key});
@@ -206,15 +212,23 @@ class NotificationApps extends StatelessWidget {
   const NotificationApps({super.key});
 
   Future<AccountArray> _getAccounts(BuildContext context) async {
-    final FireflyIii api = context.read<FireflyService>().api;
+    final Isar isar = await AppDatabase.instance;
+    final AccountRepository accountRepo = AccountRepository(isar);
+    final List<AccountRead> accounts =
+        await accountRepo.getByType(AccountTypeFilter.assetAccount);
 
-    // Accounts
-    final Response<AccountArray> respAccounts = await api.v1AccountsGet(
-      type: AccountTypeFilter.assetAccount,
+    return AccountArray(
+      data: accounts,
+      meta: Meta(
+        pagination: Meta$Pagination(
+          total: accounts.length,
+          count: accounts.length,
+          perPage: accounts.length,
+          currentPage: 1,
+          totalPages: 1,
+        ),
+      ),
     );
-    apiThrowErrorIfEmpty(respAccounts, context.mounted ? context : null);
-
-    return respAccounts.body!;
   }
 
   @override

@@ -1,10 +1,11 @@
-import 'package:chopper/chopper.dart' show Response;
 import 'package:flutter/material.dart';
+import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
-import 'package:provider/provider.dart';
-import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/bill_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart' as enums;
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/widgets/autocompletetext.dart';
 
 class BillDialog extends StatefulWidget {
@@ -60,7 +61,7 @@ class _BillDialogState extends State<BillDialog> {
                   amountMin: "",
                   amountMax: "",
                   date: DateTime.now(),
-                  repeatFreq: BillRepeatFrequency.swaggerGeneratedUnknown,
+                  repeatFreq: enums.BillRepeatFrequency.swaggerGeneratedUnknown,
                 ),
               ),
             );
@@ -93,22 +94,28 @@ class _BillDialogState extends State<BillDialog> {
                   amountMin: "",
                   amountMax: "",
                   date: DateTime.now(),
-                  repeatFreq: BillRepeatFrequency.swaggerGeneratedUnknown,
+                  repeatFreq: enums.BillRepeatFrequency.swaggerGeneratedUnknown,
                 ),
               );
             });
           },
           optionsBuilder: (TextEditingValue textEditingValue) async {
             try {
-              final FireflyIii api = context.read<FireflyService>().api;
-              final Response<List<AutocompleteBill>> response = await api
-                  .v1AutocompleteBillsGet(query: textEditingValue.text);
-              apiThrowErrorIfEmpty(response, mounted ? context : null);
-
-              return response.body!;
+              final Isar isar = await AppDatabase.instance;
+              final BillRepository billRepo = BillRepository(isar);
+              final List<BillRead> bills = await billRepo.search(textEditingValue.text);
+              
+              // Convert BillRead to AutocompleteBill format
+              return bills.map((bill) {
+                return AutocompleteBill(
+                  id: bill.id,
+                  name: bill.attributes.name ?? "",
+                  active: bill.attributes.active,
+                );
+              }).toList();
             } catch (e, stackTrace) {
               log.severe(
-                "Error while fetching autocomplete from API",
+                "Error while fetching autocomplete from repository",
                 e,
                 stackTrace,
               );
