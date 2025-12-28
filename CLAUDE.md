@@ -228,3 +228,38 @@ Strict linting is enabled with flutter_lints package:
 - New features should respect the "lean" philosophy - avoid unnecessary dependencies
 - Consider offline functionality for all new features
 - Notification listener integration for auto-filling transactions is a key differentiator
+
+## Debugging Mechanism
+
+When debugging issues that require runtime evidence, use the following approach:
+
+### Instrumentation
+- Use `print()` statements to output NDJSON-formatted log entries
+- Each log entry should be a single JSON object on one line (NDJSON format)
+- Log entries should include: `sessionId`, `runId`, `hypothesisId`, `location`, `message`, `data`, `timestamp`
+- Wrap debug logs in collapsible regions: `// #region agent log` and `// #endregion`
+
+### Log Collection
+Since the app runs on a device, logs are printed to stdout/stderr. To collect them:
+1. Run the app with: `flutter run 2>&1 | tee .cursor/debug.log`
+2. Or use adb logcat for Android: `adb logcat | grep -E '^[0-9]' > .cursor/debug.log`
+3. Filter for JSON lines: `adb logcat | grep '{' | jq -c '.' > .cursor/debug.log`
+
+### Log Format Example
+```dart
+print(jsonEncode({
+  "sessionId": "debug-session",
+  "runId": "run1",
+  "hypothesisId": "A",
+  "location": "file.dart:123",
+  "message": "Description of what's being logged",
+  "data": {"key": "value"},
+  "timestamp": DateTime.now().millisecondsSinceEpoch
+}));
+```
+
+### Important Notes
+- **Never use file I/O** (`dart:io` File operations) for logging - the app runs on devices where files aren't accessible
+- **Always use `print()`** - logs will be captured via shell redirection
+- **Clear logs before each run** - use `delete_file` tool to clear `.cursor/debug.log` before reproduction
+- **Keep instrumentation active** during fixes - only remove after successful verification

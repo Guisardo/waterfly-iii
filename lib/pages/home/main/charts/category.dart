@@ -41,6 +41,34 @@ class CategoryChart extends StatelessWidget {
       }
     }
 
+    // Show placeholder if no data
+    if (chartData.isEmpty) {
+      return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          return SizedBox(
+            width: constraints.maxWidth > 0 ? constraints.maxWidth : double.infinity,
+            height: constraints.maxHeight.isFinite && constraints.maxHeight > 0 
+                ? constraints.maxHeight 
+                : 175.0,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  S.of(context).homeTransactionsEmpty,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     return Padding(
       padding: const .only(left: 12),
       child: SfCircularChart(

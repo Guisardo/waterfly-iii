@@ -7,6 +7,7 @@ import 'package:timezone/timezone.dart';
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/extensions.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/timezonehandler.dart';
 import 'package:waterflyiii/widgets/charts.dart';
@@ -20,6 +21,11 @@ class LastDaysChart extends StatelessWidget {
 
   final Map<DateTime, double> expenses;
   final Map<DateTime, double> incomes;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'LastDaysChart(expenses: ${expenses.length}, incomes: ${incomes.length})';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +65,37 @@ class LastDaysChart extends StatelessWidget {
 
       chartData.add(
         LabelAmountChart(DateFormat(DateFormat.ABBR_WEEKDAY).format(e), diff),
+      );
+    }
+
+    // Check if all values are zero
+    final bool allZero = chartData.isEmpty || chartData.every((e) => e.amount == 0);
+
+    // Show placeholder if no data or all zeros
+    if (allZero) {
+      return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          return SizedBox(
+            width: constraints.maxWidth > 0 ? constraints.maxWidth : double.infinity,
+            height: constraints.maxHeight.isFinite && constraints.maxHeight > 0 
+                ? constraints.maxHeight 
+                : 125.0,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  S.of(context).homeTransactionsEmpty,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        },
       );
     }
 
