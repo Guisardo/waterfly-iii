@@ -8,6 +8,7 @@ import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/data/repositories/insight_repository.dart';
 import 'package:waterflyiii/extensions.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/widgets/charts.dart';
 import 'package:isar_community/isar.dart';
@@ -45,6 +46,38 @@ class NetEarningsChart extends StatelessWidget {
     });
     incomeChartData = incomeChartData.reversed.toList();
     expenseChartData = expenseChartData.reversed.toList();
+
+    // Check if all values are zero
+    final bool allZero = incomeChartData.every((e) => e.amount == 0) &&
+        expenseChartData.every((e) => e.amount == 0);
+
+    // Show placeholder if no data or all zeros
+    if ((incomeChartData.isEmpty && expenseChartData.isEmpty) || allZero) {
+      return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          return SizedBox(
+            width: constraints.maxWidth > 0 ? constraints.maxWidth : double.infinity,
+            height: constraints.maxHeight.isFinite && constraints.maxHeight > 0 
+                ? constraints.maxHeight 
+                : 150.0,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  S.of(context).homeTransactionsEmpty,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
 
     return Padding(
       padding: const .only(left: 12),

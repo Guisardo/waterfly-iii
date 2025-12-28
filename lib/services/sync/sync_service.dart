@@ -26,6 +26,8 @@ import 'package:waterflyiii/services/sync/conflict_resolver.dart' show ConflictR
 import 'package:waterflyiii/services/sync/retry_manager.dart';
 import 'package:waterflyiii/services/sync/sync_notifications.dart';
 import 'package:waterflyiii/settings.dart';
+import 'package:waterflyiii/timezonehandler.dart';
+import 'package:waterflyiii/extensions.dart';
 
 final Logger log = Logger("Sync");
 
@@ -186,6 +188,9 @@ class SyncService extends ChangeNotifier {
 
       // Refresh stale insights
       await _refreshStaleInsights();
+      
+      // Prefetch common date range insights for dashboard
+      await _prefetchCommonInsights();
 
       await retryManager.resetRetry('download');
       await notifications.showSyncCompleted();
@@ -850,6 +855,150 @@ class SyncService extends ChangeNotifier {
     }
 
     await insightRepo.refreshStaleInsights();
+  }
+
+  Future<void> _prefetchCommonInsights() async {
+    final InsightRepository insightRepo = InsightRepository(isar);
+    insightRepo.setFireflyService(fireflyService);
+    final FireflyIii api = fireflyService.api;
+    final TimeZoneHandler tzHandler = fireflyService.tzHandler;
+    
+    final DateTime now = tzHandler.sNow().clearTime();
+    
+    try {
+      // Prefetch current month category insights (for CategoryChart)
+      final DateTime monthStart = now.copyWith(day: 1);
+      final DateTime monthEnd = now;
+      
+      // Check if already cached
+      final List<InsightGroupEntry> expenseCategories = await insightRepo.getGrouped(
+        'expense',
+        'category',
+        monthStart,
+        monthEnd,
+      );
+      final List<InsightGroupEntry> incomeCategories = await insightRepo.getGrouped(
+        'income',
+        'category',
+        monthStart,
+        monthEnd,
+      );
+      
+      // Only fetch if not cached
+      if (expenseCategories.isEmpty || incomeCategories.isEmpty) {
+        try {
+          // Fetch expense categories
+          if (expenseCategories.isEmpty) {
+            final Response<InsightGroup> response = await api.v1InsightExpenseCategoryGet(
+              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(monthStart),
+              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(monthEnd),
+            );
+            if (response.isSuccessful && response.body != null) {
+              await insightRepo.cacheInsight(
+                'expense',
+                'category',
+                monthStart,
+                monthEnd,
+                response.body!.map((InsightGroupEntry e) => e.toJson()).toList(),
+              );
+            }
+          }
+          
+          // Fetch income categories
+          if (incomeCategories.isEmpty) {
+            final Response<InsightGroup> response = await api.v1InsightIncomeCategoryGet(
+              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(monthStart),
+              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(monthEnd),
+            );
+            if (response.isSuccessful && response.body != null) {
+              await insightRepo.cacheInsight(
+                'income',
+                'category',
+                monthStart,
+                monthEnd,
+                response.body!.map((InsightGroupEntry e) => e.toJson()).toList(),
+              );
+            }
+          }
+        } catch (e) {
+          log.warning("Failed to prefetch category insights", e);
+        }
+      }
+      
+      // Prefetch last 3 months totals (for NetEarningsChart)
+      final List<DateTime> lastMonths = <DateTime>[];
+      for (int i = 0; i < 3; i++) {
+        lastMonths.add(DateTime(now.year, now.month - i, (i == 0) ? now.day : 1));
+      }
+      
+      for (DateTime monthDate in lastMonths) {
+        late DateTime start;
+        late DateTime end;
+        if (monthDate == lastMonths.first) {
+          start = monthDate.copyWith(day: 1);
+          end = monthDate;
+        } else {
+          start = monthDate;
+          end = monthDate.copyWith(month: monthDate.month + 1, day: 0);
+        }
+        
+        // Check if already cached
+        final List<InsightTotalEntry> expenseTotal = await insightRepo.getTotal(
+          'expense',
+          start,
+          end,
+        );
+        final List<InsightTotalEntry> incomeTotal = await insightRepo.getTotal(
+          'income',
+          start,
+          end,
+        );
+        
+        // Only fetch if not cached
+        if (expenseTotal.isEmpty || incomeTotal.isEmpty) {
+          try {
+            // Fetch expense total
+            if (expenseTotal.isEmpty) {
+              final Response<InsightTotal> response = await api.v1InsightExpenseTotalGet(
+                start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
+                end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
+              );
+              if (response.isSuccessful && response.body != null) {
+                await insightRepo.cacheInsight(
+                  'expense',
+                  'total',
+                  start,
+                  end,
+                  response.body!.map((InsightTotalEntry e) => e.toJson()).toList(),
+                );
+              }
+            }
+            
+            // Fetch income total
+            if (incomeTotal.isEmpty) {
+              final Response<InsightTotal> response = await api.v1InsightIncomeTotalGet(
+                start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
+                end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
+              );
+              if (response.isSuccessful && response.body != null) {
+                await insightRepo.cacheInsight(
+                  'income',
+                  'total',
+                  start,
+                  end,
+                  response.body!.map((InsightTotalEntry e) => e.toJson()).toList(),
+                );
+              }
+            }
+          } catch (e) {
+            log.warning("Failed to prefetch monthly totals for ${start.toString()}", e);
+          }
+        }
+      }
+    } catch (e) {
+      log.warning("Failed to prefetch common insights", e);
+      // Don't fail the entire sync if prefetch fails
+    }
   }
 
   Future<void> _updateSyncMetadata(

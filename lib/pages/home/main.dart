@@ -58,6 +58,20 @@ class _HomeMainState extends State<HomeMain>
   final Map<String, BudgetProperties> budgetInfos =
       <String, BudgetProperties>{};
 
+  Future<bool>? _cachedFetchLastDays;
+  Future<bool>? _cachedFetchOverviewChart;
+  Future<bool>? _cachedFetchLastMonths;
+  Future<bool>? _cachedFetchBalance;
+  Future<bool>? _cachedFetchCategories;
+  Future<bool>? _cachedFetchCategoriesTags;
+
+  // Track data version to force widget rebuilds when data changes
+  final ValueNotifier<int> _lastDaysDataVersion = ValueNotifier<int>(0);
+  final ValueNotifier<int> _overviewDataVersion = ValueNotifier<int>(0);
+  final ValueNotifier<int> _categoriesDataVersion = ValueNotifier<int>(0);
+  final ValueNotifier<int> _lastMonthsDataVersion = ValueNotifier<int>(0);
+  final ValueNotifier<int> _balanceDataVersion = ValueNotifier<int>(0);
+
   @override
   void initState() {
     super.initState();
@@ -87,6 +101,11 @@ class _HomeMainState extends State<HomeMain>
   }
 
   Future<bool> _fetchLastDays() async {
+    _cachedFetchLastDays ??= _fetchLastDaysImpl();
+    return _cachedFetchLastDays!;
+  }
+
+  Future<bool> _fetchLastDaysImpl() async {
     if (lastDaysExpense.isNotEmpty && lastDaysIncome.isNotEmpty) {
       return true;
     }
@@ -127,10 +146,20 @@ class _HomeMainState extends State<HomeMain>
       });
     }
 
+    if (mounted) {
+      setState(() {});
+      _lastDaysDataVersion.value++;
+    }
+
     return true;
   }
 
   Future<bool> _fetchOverviewChart() async {
+    _cachedFetchOverviewChart ??= _fetchOverviewChartImpl();
+    return _cachedFetchOverviewChart!;
+  }
+
+  Future<bool> _fetchOverviewChartImpl() async {
     if (overviewChartData.isNotEmpty) {
       return true;
     }
@@ -153,10 +182,20 @@ class _HomeMainState extends State<HomeMain>
 
     overviewChartData = respChartData.body!;
 
+    if (mounted) {
+      setState(() {});
+      _categoriesDataVersion.value++;
+    }
+
     return true;
   }
 
   Future<bool> _fetchLastMonths() async {
+    _cachedFetchLastMonths ??= _fetchLastMonthsImpl();
+    return _cachedFetchLastMonths!;
+  }
+
+  Future<bool> _fetchLastMonthsImpl() async {
     if (lastMonthsExpense.isNotEmpty && lastMonthsIncome.isNotEmpty) {
       return true;
     }
@@ -214,10 +253,25 @@ class _HomeMainState extends State<HomeMain>
       lastMonthsExpense.remove(lastMonthsExpense.keys.first);
     }
 
+    if (mounted) {
+      setState(() {});
+      _overviewDataVersion.value++;
+    }
+
     return true;
   }
 
   Future<bool> _fetchCategories({bool tags = false}) async {
+    if (tags) {
+      _cachedFetchCategoriesTags ??= _fetchCategoriesImpl(tags: true);
+      return _cachedFetchCategoriesTags!;
+    } else {
+      _cachedFetchCategories ??= _fetchCategoriesImpl(tags: false);
+      return _cachedFetchCategories!;
+    }
+  }
+
+  Future<bool> _fetchCategoriesImpl({bool tags = false}) async {
     if ((tags && tagChartData.isNotEmpty) ||
         (!tags && catChartData.isNotEmpty)) {
       return true;
@@ -275,6 +329,10 @@ class _HomeMainState extends State<HomeMain>
       tags
           ? tagChartData.add(entry.copyWith(differenceFloat: amount))
           : catChartData.add(entry.copyWith(differenceFloat: amount));
+    }
+
+    if (mounted) {
+      setState(() {});
     }
 
     return true;
@@ -347,6 +405,11 @@ class _HomeMainState extends State<HomeMain>
   }
 
   Future<bool> _fetchBalance() async {
+    _cachedFetchBalance ??= _fetchBalanceImpl();
+    return _cachedFetchBalance!;
+  }
+
+  Future<bool> _fetchBalanceImpl() async {
     if (lastMonthsEarned.isNotEmpty) {
       return true;
     }
@@ -474,6 +537,11 @@ class _HomeMainState extends State<HomeMain>
         ..sortBy((MapEntry<DateTime, double> e) => e.key),
     );
 
+    if (mounted) {
+      setState(() {});
+      _balanceDataVersion.value++;
+    }
+
     return true;
   }
 
@@ -490,6 +558,19 @@ class _HomeMainState extends State<HomeMain>
       lastMonthsSpent.clear();
       lastMonthsAssets.clear();
       lastMonthsLiabilities.clear();
+      // Clear cached futures to force refetch
+      _cachedFetchLastDays = null;
+      _cachedFetchOverviewChart = null;
+      _cachedFetchLastMonths = null;
+      _cachedFetchBalance = null;
+      _cachedFetchCategories = null;
+      _cachedFetchCategoriesTags = null;
+      // Reset version counters
+      _lastDaysDataVersion.value = 0;
+      _overviewDataVersion.value = 0;
+      _categoriesDataVersion.value = 0;
+      _lastMonthsDataVersion.value = 0;
+      _balanceDataVersion.value = 0;
     });
   }
 
@@ -527,6 +608,7 @@ class _HomeMainState extends State<HomeMain>
               .dailyavg => ChartCard(
                 title: S.of(context).homeMainChartDailyTitle,
                 future: _fetchLastDays(),
+                dataVersionNotifier: _lastDaysDataVersion,
                 summary: () {
                   double sevenDayTotal = 0;
                   lastDaysExpense.forEach(
@@ -560,17 +642,20 @@ class _HomeMainState extends State<HomeMain>
                 title: S.of(context).homeMainChartCategoriesTitle,
                 future: _fetchCategories(),
                 height: 175,
+                dataVersionNotifier: _categoriesDataVersion,
                 child: () => CategoryChart(data: catChartData),
               ),
               .tags => ChartCard(
                 title: S.of(context).homeMainChartTagsTitle,
                 future: _fetchCategories(tags: true),
+                dataVersionNotifier: _categoriesDataVersion,
                 height: 175,
                 child: () => CategoryChart(data: tagChartData),
               ),
               .accounts => ChartCard(
                 title: S.of(context).homeMainChartAccountsTitle,
                 future: _fetchOverviewChart(),
+                dataVersionNotifier: _overviewDataVersion,
                 summary: () => Table(
                   //border: TableBorder.all(), // :DEBUG:
                   columnWidths: const <int, TableColumnWidth>{
@@ -652,11 +737,15 @@ class _HomeMainState extends State<HomeMain>
                   context: context,
                   builder: (BuildContext context) => const SummaryChartPopup(),
                 ),
-                child: () => SummaryChart(data: overviewChartData),
+                child: () => SummaryChart(
+                  data: overviewChartData,
+                  dataVersion: _overviewDataVersion.value,
+                ),
               ),
               .netearnings => ChartCard(
                 title: S.of(context).homeMainChartNetEarningsTitle,
                 future: _fetchLastMonths(),
+                dataVersionNotifier: _lastMonthsDataVersion,
                 summary: () => Table(
                   // border: TableBorder.all(), // :DEBUG:
                   columnWidths: const <int, TableColumnWidth>{
@@ -784,6 +873,7 @@ class _HomeMainState extends State<HomeMain>
               .networth => ChartCard(
                 title: S.of(context).homeMainChartNetWorthTitle,
                 future: _fetchBalance(),
+                dataVersionNotifier: _balanceDataVersion,
                 summary: () => Table(
                   //border: TableBorder.all(), // :DEBUG:
                   columnWidths: const <int, TableColumnWidth>{
@@ -1366,6 +1456,7 @@ class ChartCard extends StatelessWidget {
     this.height = 150,
     this.summary,
     this.onTap,
+    this.dataVersionNotifier,
   });
 
   final String title;
@@ -1374,11 +1465,11 @@ class ChartCard extends StatelessWidget {
   final Widget Function()? summary;
   final double height;
   final Future<void> Function()? onTap;
+  final ValueNotifier<int>? dataVersionNotifier;
 
   @override
   Widget build(BuildContext context) {
     final Logger log = Logger("Pages.Home.Main.ChartCard");
-    final List<Widget> summaryWidgets = <Widget>[];
 
     return AnimatedHeight(
       child: Padding(
@@ -1386,15 +1477,24 @@ class ChartCard extends StatelessWidget {
         child: Card(
           clipBehavior: .hardEdge,
           child: FutureBuilder<bool>(
+            key: ValueKey<String>(title),
             future: future,
             builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
               if (snapshot.connectionState == .done && snapshot.hasData) {
+                // Use ValueListenableBuilder to rebuild when data version changes
+                final ValueNotifier<int> notifier =
+                    dataVersionNotifier ?? ValueNotifier<int>(0);
+                return ValueListenableBuilder<int>(
+                  valueListenable: notifier,
+                  builder: (BuildContext context, int version, Widget? _) {
+                final List<Widget> summaryWidgets = <Widget>[];
                 if (summary != null) {
                   summaryWidgets.add(const Divider(indent: 16, endIndent: 16));
+                  final Widget summaryWidget = summary!();
                   summaryWidgets.add(
                     Padding(
                       padding: const .fromLTRB(12, 0, 12, 12),
-                      child: summary!(),
+                      child: summaryWidget,
                     ),
                   );
                 }
@@ -1431,15 +1531,32 @@ class ChartCard extends StatelessWidget {
                         ),
                         child: SizedBox(
                           height: height,
-                          child: onTap != null
-                              // AbsorbPointer fixes SfChart invalidating the onTap feedback
-                              ? AbsorbPointer(child: child())
-                              : child(),
+                          child: Builder(
+                            builder: (BuildContext context) {
+                              final Widget childWidget = child();
+                              // Use key to force rebuild when data version changes
+                              final Widget widgetWithKey =
+                                  dataVersionNotifier != null
+                                  ? KeyedSubtree(
+                                      key: ValueKey<int>(
+                                        dataVersionNotifier!.value,
+                                      ),
+                                      child: childWidget,
+                                    )
+                                  : childWidget;
+                              return onTap != null
+                                  // AbsorbPointer fixes SfChart invalidating the onTap feedback
+                                  ? AbsorbPointer(child: widgetWithKey)
+                                  : widgetWithKey;
+                            },
+                          ),
                         ),
                       ),
                       ...summaryWidgets,
                     ],
                   ),
+                );
+                  },
                 );
               } else if (snapshot.hasError) {
                 log.severe(
