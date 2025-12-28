@@ -19,7 +19,6 @@ import 'package:waterflyiii/data/repositories/insight_repository.dart';
 import 'package:waterflyiii/data/repositories/piggy_bank_repository.dart';
 import 'package:waterflyiii/data/repositories/tag_repository.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/sync/conflict_resolver.dart'
@@ -1101,18 +1100,33 @@ class SyncService extends ChangeNotifier {
         await isar.syncMetadatas.put(metadata);
       });
     } else {
-      if (lastDownloadSync != null)
+      if (lastDownloadSync != null) {
         existing.lastDownloadSync = lastDownloadSync;
-      if (lastUploadSync != null) existing.lastUploadSync = lastUploadSync;
-      if (lastFullSync != null) existing.lastFullSync = lastFullSync;
-      if (syncPaused != null) existing.syncPaused = syncPaused;
-      if (retryCount != null) existing.retryCount = retryCount;
-      if (nextRetryAt != null) existing.nextRetryAt = nextRetryAt;
-      if (lastError != null) existing.lastError = lastError;
-      if (credentialsValidated != null)
+      }
+      if (lastUploadSync != null) {
+        existing.lastUploadSync = lastUploadSync;
+      }
+      if (lastFullSync != null) {
+        existing.lastFullSync = lastFullSync;
+      }
+      if (syncPaused != null) {
+        existing.syncPaused = syncPaused;
+      }
+      if (retryCount != null) {
+        existing.retryCount = retryCount;
+      }
+      if (nextRetryAt != null) {
+        existing.nextRetryAt = nextRetryAt;
+      }
+      if (lastError != null) {
+        existing.lastError = lastError;
+      }
+      if (credentialsValidated != null) {
         existing.credentialsValidated = credentialsValidated;
-      if (credentialsInvalid != null)
+      }
+      if (credentialsInvalid != null) {
         existing.credentialsInvalid = credentialsInvalid;
+      }
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(existing);
@@ -1145,6 +1159,7 @@ class SyncService extends ChangeNotifier {
     return error.toString().contains('401') || error.toString().contains('403');
   }
 
+  @override
   void dispose() {
     _progressController?.close();
     super.dispose();

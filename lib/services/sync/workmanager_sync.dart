@@ -104,7 +104,7 @@ void callbackDispatcher() {
 
 class WorkManagerSync {
   static Future<void> initialize() async {
-    await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+    await Workmanager().initialize(callbackDispatcher);
   }
 
   static Future<void> registerPeriodicSync() async {

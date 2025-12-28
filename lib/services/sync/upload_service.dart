@@ -8,7 +8,6 @@ import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
 import 'package:waterflyiii/data/repositories/insight_repository.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/sync/conflict_resolver.dart';
@@ -521,6 +520,7 @@ class UploadService extends ChangeNotifier {
     }
   }
 
+  @override
   void dispose() {
     super.dispose();
   }
