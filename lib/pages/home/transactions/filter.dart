@@ -11,7 +11,8 @@ import 'package:waterflyiii/data/repositories/budget_repository.dart';
 import 'package:waterflyiii/data/repositories/category_repository.dart';
 import 'package:waterflyiii/data/repositories/currency_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart' as enums;
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart'
+    as enums;
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/transaction/tags.dart';
 import 'package:waterflyiii/settings.dart';
@@ -126,13 +127,7 @@ class FilterDialog extends StatelessWidget {
           billRepo.getAll(),
         ).wait;
 
-    return FilterData(
-      accounts,
-      currencies,
-      categories,
-      budgets,
-      bills,
-    );
+    return FilterData(accounts, currencies, categories, budgets, bills);
   }
 
   @override

@@ -31,10 +31,8 @@ class CurrencyRepository {
   }
 
   Future<CurrencyRead?> getById(String id) async {
-    final Currencies? row = await isar.currencies
-        .filter()
-        .currencyIdEqualTo(id)
-        .findFirst();
+    final Currencies? row =
+        await isar.currencies.filter().currencyIdEqualTo(id).findFirst();
     if (row == null) {
       return null;
     }
@@ -69,25 +67,27 @@ class CurrencyRepository {
     final DateTime now = _getNow();
     final DateTime? updatedAt = currency.attributes.updatedAt;
 
-    final Currencies row = Currencies()
-      ..currencyId = currency.id
-      ..data = jsonEncode(currency.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = false;
+    final Currencies row =
+        Currencies()
+          ..currencyId = currency.id
+          ..data = jsonEncode(currency.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.currencies.put(row);
     });
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'currencies'
-      ..entityId = null
-      ..operation = 'CREATE'
-      ..data = jsonEncode(currency.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'currencies'
+          ..entityId = null
+          ..operation = 'CREATE'
+          ..data = jsonEncode(currency.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -97,10 +97,11 @@ class CurrencyRepository {
   Future<void> update(CurrencyRead currency) async {
     final DateTime now = _getNow();
 
-    final Currencies? existing = await isar.currencies
-        .filter()
-        .currencyIdEqualTo(currency.id)
-        .findFirst();
+    final Currencies? existing =
+        await isar.currencies
+            .filter()
+            .currencyIdEqualTo(currency.id)
+            .findFirst();
 
     if (existing != null) {
       existing
@@ -113,14 +114,15 @@ class CurrencyRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'currencies'
-      ..entityId = currency.id
-      ..operation = 'UPDATE'
-      ..data = jsonEncode(currency.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'currencies'
+          ..entityId = currency.id
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(currency.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -130,10 +132,8 @@ class CurrencyRepository {
   Future<void> delete(String id) async {
     final DateTime now = _getNow();
 
-    final Currencies? existing = await isar.currencies
-        .filter()
-        .currencyIdEqualTo(id)
-        .findFirst();
+    final Currencies? existing =
+        await isar.currencies.filter().currencyIdEqualTo(id).findFirst();
 
     if (existing != null) {
       existing.synced = false;
@@ -143,14 +143,15 @@ class CurrencyRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'currencies'
-      ..entityId = id
-      ..operation = 'DELETE'
-      ..data = null
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'currencies'
+          ..entityId = id
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -161,12 +162,13 @@ class CurrencyRepository {
     final DateTime? updatedAt = currency.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Currencies row = Currencies()
-      ..currencyId = currency.id
-      ..data = jsonEncode(currency.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = true;
+    final Currencies row =
+        Currencies()
+          ..currencyId = currency.id
+          ..data = jsonEncode(currency.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = true;
 
     await isar.writeTxn(() async {
       await isar.currencies.put(row);

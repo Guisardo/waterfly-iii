@@ -91,7 +91,10 @@ class _HomePiggybankState extends State<HomePiggybank>
 
       // Paginate in memory
       final int startIndex = (pageKey - 1) * _numberOfItemsPerRequest;
-      final int endIndex = (startIndex + _numberOfItemsPerRequest).clamp(0, allPiggies.length);
+      final int endIndex = (startIndex + _numberOfItemsPerRequest).clamp(
+        0,
+        allPiggies.length,
+      );
       final List<PiggyBankRead> piggyList = allPiggies.sublist(
         startIndex.clamp(0, allPiggies.length),
         endIndex,
@@ -801,7 +804,9 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
                   final PiggyBankRepository piggyRepo = PiggyBankRepository(isar);
 
                   // Get current piggy bank from repository
-                  final PiggyBankRead? currentPiggy = await piggyRepo.getById(widget.piggy.id);
+                  final PiggyBankRead? currentPiggy = await piggyRepo.getById(
+                    widget.piggy.id,
+                  );
                   if (currentPiggy == null) {
                     if (context.mounted) {
                       await showDialog<void>(
@@ -825,10 +830,12 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
                   }
 
                   // Update account amounts
-                  final List<PiggyBankAccountRead> updatedAccounts = <PiggyBankAccountRead>[];
+                  final List<PiggyBankAccountRead> updatedAccounts =
+                      <PiggyBankAccountRead>[];
                   if (!hasMultipleAccounts) {
                     final double totalAmount = currentAmount + amount;
-                    final PiggyBankAccountRead firstAccount = currentPiggy.attributes.accounts!.first;
+                    final PiggyBankAccountRead firstAccount =
+                        currentPiggy.attributes.accounts!.first;
                     updatedAccounts.add(
                       PiggyBankAccountRead(
                         accountId: firstAccount.accountId,
@@ -863,9 +870,15 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
 
                   // Create updated piggy bank by copying JSON and updating accounts
                   final Map<String, dynamic> piggyJson = currentPiggy.toJson();
-                  piggyJson['attributes'] = (piggyJson['attributes'] as Map<String, dynamic>)
-                    ..['accounts'] = updatedAccounts.map((PiggyBankAccountRead a) => a.toJson()).toList();
-                  final PiggyBankRead updatedPiggy = PiggyBankRead.fromJson(piggyJson);
+                  piggyJson['attributes'] =
+                      (piggyJson['attributes'] as Map<String, dynamic>)
+                        ..['accounts'] =
+                            updatedAccounts
+                                .map((PiggyBankAccountRead a) => a.toJson())
+                                .toList();
+                  final PiggyBankRead updatedPiggy = PiggyBankRead.fromJson(
+                    piggyJson,
+                  );
 
                   // Update via repository (queues for sync)
                   await piggyRepo.update(updatedPiggy);

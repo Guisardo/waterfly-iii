@@ -350,7 +350,62 @@ class NavPageState extends State<NavPage> with TickerProviderStateMixin {
                         Expanded(child: currentPage.pageHandler),
                       ],
                     ),
-                  ),
+                    ...navDestinations.map((NavDestination destination) {
+                      return NavigationDrawerDestination(
+                        label: Text(destination.label),
+                        icon: destination.icon,
+                        selectedIcon: destination.selectedIcon,
+                      );
+                    }),
+                    const Divider(indent: 28, endIndent: 28),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 16,
+                      ),
+                      child: GestureDetector(
+                        onTap: () async {
+                          final FireflyService ff =
+                              context.read<FireflyService>();
+                          final bool? ok = await showDialog<bool>(
+                            context: context,
+                            builder:
+                                (BuildContext context) =>
+                                    const LogoutConfirmDialog(),
+                          );
+                          if (!(ok ?? false)) {
+                            return;
+                          }
+
+                          await ff.signOut();
+                        },
+                        child: Text(
+                          S.of(context).formButtonLogout,
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                body: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 100),
+                  switchInCurve: animCurveStandard,
+                  transitionBuilder: (
+                    Widget child,
+                    Animation<double> animation,
+                  ) {
+                    return FadeTransition(
+                      opacity: Tween<double>(
+                        begin: 0,
+                        end: 1,
+                      ).animate(animation),
+                      child: child,
+                    );
+                  },
+                  child: currentPage.pageHandler,
+                ),
+                floatingActionButton: context.select(
+                  (NavPageElements n) => n.fab,
                 ),
               ],
             ),

@@ -412,48 +412,56 @@ class FireflyService with ChangeNotifier {
             .entityTypeEqualTo('download')
             .findFirst();
 
-        final bool isFirstTime = downloadMetadata == null;
+          // Check if this is first-time login (no sync metadata exists)
+          final SyncMetadata? downloadMetadata =
+              await isar.syncMetadatas
+                  .filter()
+                  .entityTypeEqualTo('download')
+                  .findFirst();
 
-        // Initialize sync services
-        // Note: These need to be accessed via a different mechanism since
-        // we're not in a widget context. For now, we'll create them directly.
-        // In a production app, you might want to use a service locator or
-        // pass them as dependencies.
-        final ConnectivityService connectivityService = ConnectivityService();
-        final SyncNotifications notifications = SyncNotifications();
-        await notifications.initialize();
+          final bool isFirstTime = downloadMetadata == null;
 
-        final SyncService syncService = SyncService(
-          isar: isar,
-          fireflyService: this,
-          connectivityService: connectivityService,
-          notifications: notifications,
-          settingsProvider: null, // Will be set when available
-        );
+          // Initialize sync services
+          // Note: These need to be accessed via a different mechanism since
+          // we're not in a widget context. For now, we'll create them directly.
+          // In a production app, you might want to use a service locator or
+          // pass them as dependencies.
+          final ConnectivityService connectivityService = ConnectivityService();
+          final SyncNotifications notifications = SyncNotifications();
+          await notifications.initialize();
 
-        final UploadService uploadService = UploadService(
-          isar: isar,
-          fireflyService: this,
-          connectivityService: connectivityService,
-          notifications: notifications,
-          settingsProvider: null, // Will be set when available
-        );
+          final SyncService syncService = SyncService(
+            isar: isar,
+            fireflyService: this,
+            connectivityService: connectivityService,
+            notifications: notifications,
+            settingsProvider: null, // Will be set when available
+          );
 
-        if (isFirstTime) {
-          log.config("First-time login: Triggering full sync");
-          await syncService.sync(forceFullSync: true);
-        } else {
-          log.config("Returning user: Triggering incremental sync");
-          await syncService.sync(forceFullSync: false);
+          final UploadService uploadService = UploadService(
+            isar: isar,
+            fireflyService: this,
+            connectivityService: connectivityService,
+            notifications: notifications,
+            settingsProvider: null, // Will be set when available
+          );
+
+          if (isFirstTime) {
+            log.config("First-time login: Triggering full sync");
+            await syncService.sync(forceFullSync: true);
+          } else {
+            log.config("Returning user: Triggering incremental sync");
+            await syncService.sync(forceFullSync: false);
+          }
+
+          // Also trigger upload sync for any pending changes
+          await uploadService.uploadPendingChanges();
+        } catch (e, stackTrace) {
+          log.warning("Failed to trigger initial sync", e, stackTrace);
+          // Don't throw - sync failure shouldn't prevent login
         }
-
-        // Also trigger upload sync for any pending changes
-        await uploadService.uploadPendingChanges();
-      } catch (e, stackTrace) {
-        log.warning("Failed to trigger initial sync", e, stackTrace);
-        // Don't throw - sync failure shouldn't prevent login
-      }
-    }));
+      }),
+    );
   }
 
   Future<bool> signIn(

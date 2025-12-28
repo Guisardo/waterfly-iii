@@ -44,7 +44,9 @@ void main() {
           currencyId: '1',
           currencyCode: 'USD',
         ),
-        links: ObjectLink(self: 'https://example.com/api/v1/piggy_banks/test-1'),
+        links: ObjectLink(
+          self: 'https://example.com/api/v1/piggy_banks/test-1',
+        ),
       );
 
       await repository.create(piggyBank);
@@ -66,7 +68,9 @@ void main() {
           currencyId: '1',
           currencyCode: 'USD',
         ),
-        links: ObjectLink(self: 'https://example.com/api/v1/piggy_banks/test-2'),
+        links: ObjectLink(
+          self: 'https://example.com/api/v1/piggy_banks/test-2',
+        ),
       );
 
       final PiggyBankRead piggyBank2 = PiggyBankRead(
@@ -79,7 +83,9 @@ void main() {
           currencyId: '1',
           currencyCode: 'USD',
         ),
-        links: ObjectLink(self: 'https://example.com/api/v1/piggy_banks/test-3'),
+        links: ObjectLink(
+          self: 'https://example.com/api/v1/piggy_banks/test-3',
+        ),
       );
 
       await repository.create(piggyBank1);
@@ -101,7 +107,9 @@ void main() {
           currencyId: '1',
           currencyCode: 'USD',
         ),
-        links: ObjectLink(self: 'https://example.com/api/v1/piggy_banks/test-4'),
+        links: ObjectLink(
+          self: 'https://example.com/api/v1/piggy_banks/test-4',
+        ),
       );
 
       await repository.upsertFromSync(piggyBank);
@@ -111,4 +119,3 @@ void main() {
     });
   });
 }
-

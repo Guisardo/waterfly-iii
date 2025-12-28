@@ -28,7 +28,8 @@ import 'package:waterflyiii/data/repositories/category_repository.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart' as enums;
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart'
+    as enums;
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/pages/navigation.dart';
@@ -46,32 +47,34 @@ import 'package:waterflyiii/widgets/materialiconbutton.dart';
 
 AccountTypeProperty _mapShortAccountTypeToAccountType(dynamic shortTypeInput) {
   enums.ShortAccountTypeProperty? shortType;
-  
+
   if (shortTypeInput is enums.ShortAccountTypeProperty) {
     shortType = shortTypeInput;
   } else if (shortTypeInput is String) {
     // Parse ShortAccountTypeProperty from string like "ShortAccountTypeProperty.asset"
-    final String enumName = shortTypeInput.contains('.') 
-        ? shortTypeInput.split('.').last 
-        : shortTypeInput;
-    
+    final String enumName =
+        shortTypeInput.contains('.')
+            ? shortTypeInput.split('.').last
+            : shortTypeInput;
+
     // Try to find by enum name first
     shortType = enums.ShortAccountTypeProperty.values.firstWhereOrNull(
       (enums.ShortAccountTypeProperty e) => e.name == enumName,
     );
-    
+
     // If not found, try by value
     if (shortType == null) {
       shortType = enums.ShortAccountTypeProperty.values.firstWhereOrNull(
-        (enums.ShortAccountTypeProperty e) => e.value == enumName || e.value == shortTypeInput,
+        (enums.ShortAccountTypeProperty e) =>
+            e.value == enumName || e.value == shortTypeInput,
       );
     }
   }
-  
+
   if (shortType == null) {
     return AccountTypeProperty.swaggerGeneratedUnknown;
   }
-  
+
   // Map based on the value property
   switch (shortType.value) {
     case 'asset':
@@ -460,8 +463,9 @@ class _TransactionPageState extends State<TransactionPage>
           // Check account
           final Isar isar = await AppDatabase.instance;
           final AccountRepository accountRepo = AccountRepository(isar);
-          final List<AccountRead> accounts =
-              await accountRepo.getByType(AccountTypeFilter.assetAccount);
+          final List<AccountRead> accounts = await accountRepo.getByType(
+            AccountTypeFilter.assetAccount,
+          );
           final String settingAppId = appSettings.defaultAccountId ?? "0";
           for (AccountRead acc in accounts) {
             if (acc.id == settingAppId ||
@@ -513,8 +517,9 @@ class _TransactionPageState extends State<TransactionPage>
           // Check account
           final Isar isar = await AppDatabase.instance;
           final AccountRepository accountRepo = AccountRepository(isar);
-          final List<AccountRead> accounts =
-              await accountRepo.getByType(AccountTypeFilter.assetAccount);
+          final List<AccountRead> accounts = await accountRepo.getByType(
+            AccountTypeFilter.assetAccount,
+          );
           for (AccountRead acc in accounts) {
             if (acc.id == widget.accountId) {
               _sourceAccountTextController.text = acc.attributes.name;
@@ -909,10 +914,11 @@ class _TransactionPageState extends State<TransactionPage>
 
       final Isar isar = await AppDatabase.instance;
       final AttachmentRepository attachmentRepo = AttachmentRepository(isar);
-      
+
       // Try to get from repository first
-      final List<AttachmentRead> cachedAttachments = await attachmentRepo.getByTransactionId(widget.transaction!.id);
-      
+      final List<AttachmentRead> cachedAttachments = await attachmentRepo
+          .getByTransactionId(widget.transaction!.id);
+
       if (cachedAttachments.isNotEmpty) {
         _attachments = cachedAttachments;
         setState(() {
@@ -921,16 +927,16 @@ class _TransactionPageState extends State<TransactionPage>
       }
 
       // Also fetch from API to ensure we have the latest (and cache it)
-      
+
       final Response<AttachmentArray> response = await api
           .v1TransactionsIdAttachmentsGet(id: widget.transaction!.id);
       apiThrowErrorIfEmpty(response, mounted ? capturedContext : null);
 
       _attachments = response.body!.data;
-      
+
       // Cache the attachments in repository
       await attachmentRepo.upsertListFromSync(_attachments!);
-      
+
       setState(() {
         _hasAttachments = _attachments?.isNotEmpty ?? false;
       });
@@ -970,69 +976,76 @@ class _TransactionPageState extends State<TransactionPage>
                         context,
                       );
                       final NavigatorState nav = Navigator.of(context);
-                      final FireflyService fireflyService = context.read<FireflyService>();
+                      final FireflyService fireflyService =
+                          context.read<FireflyService>();
                       final FireflyIii api = fireflyService.api;
                       final AuthUser? user = fireflyService.user;
                       final S localizations = S.of(context);
-                      
+
                       // Try to resolve account names from text input if account types are unknown
                       if (_transactionType ==
-                          TransactionTypeProperty.swaggerGeneratedUnknown ||
+                              TransactionTypeProperty.swaggerGeneratedUnknown ||
                           _ownAccountId == null) {
                         try {
                           final Isar isar = await AppDatabase.instance;
                           final AccountRepository accountRepo =
                               AccountRepository(isar);
-                          
+
                           // Try to resolve source account
                           if (_sourceAccountTextController.text.isNotEmpty &&
                               _sourceAccountType ==
                                   AccountTypeProperty.swaggerGeneratedUnknown) {
                             final List<AccountRead> sourceAccounts =
                                 await accountRepo.search(
-                              _sourceAccountTextController.text,
-                            );
+                                  _sourceAccountTextController.text,
+                                );
                             if (sourceAccounts.isNotEmpty) {
                               final AccountRead account = sourceAccounts.first;
-                              _sourceAccountType = _mapShortAccountTypeToAccountType(
-                                account.attributes.type,
-                              );
+                              _sourceAccountType =
+                                  _mapShortAccountTypeToAccountType(
+                                    account.attributes.type,
+                                  );
                               if (_sourceAccountType ==
                                       AccountTypeProperty.assetAccount ||
-                                  _sourceAccountType == AccountTypeProperty.debt) {
+                                  _sourceAccountType ==
+                                      AccountTypeProperty.debt) {
                                 _ownAccountId = account.id;
                               }
                             }
                           }
-                          
+
                           // Try to resolve destination account
-                          if (_destinationAccountTextController.text.isNotEmpty &&
+                          if (_destinationAccountTextController
+                                  .text
+                                  .isNotEmpty &&
                               _destinationAccountType ==
                                   AccountTypeProperty.swaggerGeneratedUnknown) {
                             final List<AccountRead> destAccounts =
                                 await accountRepo.search(
-                              _destinationAccountTextController.text,
-                            );
+                                  _destinationAccountTextController.text,
+                                );
                             if (destAccounts.isNotEmpty) {
                               final AccountRead account = destAccounts.first;
-                              _destinationAccountType = _mapShortAccountTypeToAccountType(
-                                account.attributes.type,
-                              );
+                              _destinationAccountType =
+                                  _mapShortAccountTypeToAccountType(
+                                    account.attributes.type,
+                                  );
                               if (_destinationAccountType ==
                                       AccountTypeProperty.assetAccount ||
-                                  _destinationAccountType == AccountTypeProperty.debt) {
+                                  _destinationAccountType ==
+                                      AccountTypeProperty.debt) {
                                 _ownAccountId = account.id;
                               }
                             }
                           }
-                          
+
                           // Re-check transaction type after resolving accounts
                           checkTXType();
                         } catch (e) {
                           log.warning("Error resolving accounts", e);
                         }
                       }
-                      
+
                       // Sanity checks
                       String? error;
 
@@ -1069,7 +1082,7 @@ class _TransactionPageState extends State<TransactionPage>
                       setState(() {
                         _savingInProgress = true;
                       });
-                      
+
                       // Always queue new transactions for sync (local-first architecture)
                       if (_newTX) {
                         try {
@@ -1129,7 +1142,8 @@ class _TransactionPageState extends State<TransactionPage>
                             );
                           }
                           final TransactionStore newTx = TransactionStore(
-                            groupTitle: _split ? _titleTextController.text : null,
+                            groupTitle:
+                                _split ? _titleTextController.text : null,
                             transactions: txS,
                             applyRules: true,
                             fireWebhooks: true,
@@ -1137,29 +1151,33 @@ class _TransactionPageState extends State<TransactionPage>
                           );
 
                           // Capture localization strings before async gap
-                          final String savedOfflineMsg = localizations.transactionSavedOffline;
-                          
+                          final String savedOfflineMsg =
+                              localizations.transactionSavedOffline;
+
                           // Create pending change for offline sync
                           final Isar isar = await AppDatabase.instance;
-                          final PendingChanges pendingChange = PendingChanges()
-                            ..entityType = 'transactions'
-                            ..entityId = null
-                            ..operation = 'CREATE'
-                            ..data = jsonEncode(newTx.toJson())
-                            ..createdAt = DateTime.now().toUtc()
-                            ..retryCount = 0
-                            ..synced = false;
-                          
+                          final PendingChanges pendingChange =
+                              PendingChanges()
+                                ..entityType = 'transactions'
+                                ..entityId = null
+                                ..operation = 'CREATE'
+                                ..data = jsonEncode(newTx.toJson())
+                                ..createdAt = DateTime.now().toUtc()
+                                ..retryCount = 0
+                                ..synced = false;
+
                           // Create a temporary local transaction row so it appears in the list immediately
                           // The sync service will update it with the real ID when it processes the PendingChange
-                          final String tempTransactionId = 'pending-${DateTime.now().millisecondsSinceEpoch}';
-                          final Transactions tempTransactionRow = Transactions()
-                            ..transactionId = tempTransactionId
-                            ..data = jsonEncode(newTx.toJson())
-                            ..updatedAt = null
-                            ..localUpdatedAt = DateTime.now().toUtc()
-                            ..synced = false;
-                          
+                          final String tempTransactionId =
+                              'pending-${DateTime.now().millisecondsSinceEpoch}';
+                          final Transactions tempTransactionRow =
+                              Transactions()
+                                ..transactionId = tempTransactionId
+                                ..data = jsonEncode(newTx.toJson())
+                                ..updatedAt = null
+                                ..localUpdatedAt = DateTime.now().toUtc()
+                                ..synced = false;
+
                           await isar.writeTxn(() async {
                             await isar.pendingChanges.put(pendingChange);
                             await isar.transactions.put(tempTransactionRow);
@@ -1175,7 +1193,11 @@ class _TransactionPageState extends State<TransactionPage>
                             nav.pop();
                           }
                         } catch (e, stackTrace) {
-                          log.severe("Error saving transaction offline", e, stackTrace);
+                          log.severe(
+                            "Error saving transaction offline",
+                            e,
+                            stackTrace,
+                          );
                           if (mounted) {
                             final String errorMsg = localizations.errorUnknown;
                             msg.showSnackBar(
@@ -1194,7 +1216,7 @@ class _TransactionPageState extends State<TransactionPage>
                         }
                         return;
                       }
-                      
+
                       // Update existing transaction (new transactions are handled above via queuing)
                       if (!_newTX) {
                         late Response<TransactionSingle> resp;
@@ -1289,162 +1311,167 @@ class _TransactionPageState extends State<TransactionPage>
 
                         // Check if update was successful
                         if (!resp.isSuccessful || resp.body == null) {
-                        try {
-                          final ValidationErrorResponse valError =
-                              ValidationErrorResponse.fromJson(
-                                json.decode(resp.error.toString()),
-                              );
-                          error =
-                              valError.message ??
-                              // ignore: use_build_context_synchronously
-                              (context.mounted
-                                  // ignore: use_build_context_synchronously
-                                  ? S.of(context).errorUnknown
-                                  : "[nocontext] Unknown error.");
-                        } catch (_) {
-                          // ignore: use_build_context_synchronously
-                          error =
-                              context.mounted
-                                  // ignore: use_build_context_synchronously
-                                  ? S.of(context).errorUnknown
-                                  : "[nocontext] Unknown error.";
+                          try {
+                            final ValidationErrorResponse valError =
+                                ValidationErrorResponse.fromJson(
+                                  json.decode(resp.error.toString()),
+                                );
+                            error =
+                                valError.message ??
+                                // ignore: use_build_context_synchronously
+                                (context.mounted
+                                    // ignore: use_build_context_synchronously
+                                    ? S.of(context).errorUnknown
+                                    : "[nocontext] Unknown error.");
+                          } catch (_) {
+                            // ignore: use_build_context_synchronously
+                            error =
+                                context.mounted
+                                    // ignore: use_build_context_synchronously
+                                    ? S.of(context).errorUnknown
+                                    : "[nocontext] Unknown error.";
+                          }
+
+                          msg.showSnackBar(
+                            SnackBar(
+                              content: Text(error),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          setState(() {
+                            _savingInProgress = false;
+                          });
+                          return;
                         }
 
-                        msg.showSnackBar(
-                          SnackBar(
-                            content: Text(error),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                        setState(() {
-                          _savingInProgress = false;
-                        });
-                        return;
-                      }
+                        // Store transaction in repository after successful API call
+                        final TransactionRead? transactionData =
+                            resp.body?.data;
+                        if (transactionData != null) {
+                          // ignore: unnecessary_null_comparison
+                          final Isar isar = await AppDatabase.instance;
+                          final TransactionRepository txRepo =
+                              TransactionRepository(isar);
+                          // Use upsertFromSync since transaction is already synced with server
+                          await txRepo.upsertFromSync(resp.body!.data);
+                        }
 
-                      // Store transaction in repository after successful API call
-                      final TransactionRead? transactionData = resp.body?.data;
-                      if (transactionData != null) { // ignore: unnecessary_null_comparison
-                        final Isar isar = await AppDatabase.instance;
-                        final TransactionRepository txRepo = TransactionRepository(isar);
-                        // Use upsertFromSync since transaction is already synced with server
-                        await txRepo.upsertFromSync(resp.body!.data);
-                      }
+                        // Upload attachments if required
+                        if ((_attachments?.isNotEmpty ?? false) &&
+                            _transactionJournalIDs.firstWhereOrNull(
+                                  (String? e) => e != null,
+                                ) ==
+                                null) {
+                          log.fine(
+                            () =>
+                                "uploading ${_attachments!.length} attachments",
+                          );
+                          final TransactionSplit? tx = resp
+                              .body
+                              ?.data
+                              .attributes
+                              .transactions
+                              .firstWhereOrNull(
+                                (TransactionSplit e) =>
+                                    e.transactionJournalId != null,
+                              );
+                          if (tx != null) {
+                            final String txId = tx.transactionJournalId!;
+                            log.finest(() => "uploading to txId $txId");
+                            for (AttachmentRead attachment in _attachments!) {
+                              log.finest(
+                                () =>
+                                    "uploading attachment ${attachment.id}: ${attachment.attributes.filename}",
+                              );
+                              final Response<AttachmentSingle> respAttachment =
+                                  await api.v1AttachmentsPost(
+                                    body: AttachmentStore(
+                                      filename: attachment.attributes.filename!,
+                                      attachableType:
+                                          AttachableType.transactionjournal,
+                                      attachableId: txId,
+                                    ),
+                                  );
+                              if (!respAttachment.isSuccessful ||
+                                  respAttachment.body == null) {
+                                log.warning(() => "error uploading attachment");
+                                continue;
+                              }
+                              final AttachmentRead newAttachment =
+                                  respAttachment.body!.data;
+                              log.finest(
+                                () => "attachment id is ${newAttachment.id}",
+                              );
 
-                      // Upload attachments if required
-                      if ((_attachments?.isNotEmpty ?? false) &&
-                          _transactionJournalIDs.firstWhereOrNull(
-                                (String? e) => e != null,
-                              ) ==
-                              null) {
-                        log.fine(
-                          () => "uploading ${_attachments!.length} attachments",
-                        );
-                        final TransactionSplit? tx = resp
-                            .body
-                            ?.data
-                            .attributes
-                            .transactions
-                            .firstWhereOrNull(
-                              (TransactionSplit e) =>
-                                  e.transactionJournalId != null,
-                            );
-                        if (tx != null) {
-                          final String txId = tx.transactionJournalId!;
-                          log.finest(() => "uploading to txId $txId");
-                          for (AttachmentRead attachment in _attachments!) {
-                            log.finest(
-                              () =>
-                                  "uploading attachment ${attachment.id}: ${attachment.attributes.filename}",
-                            );
-                            final Response<AttachmentSingle> respAttachment =
-                                await api.v1AttachmentsPost(
-                                  body: AttachmentStore(
-                                    filename: attachment.attributes.filename!,
-                                    attachableType:
-                                        AttachableType.transactionjournal,
-                                    attachableId: txId,
-                                  ),
-                                );
-                            if (!respAttachment.isSuccessful ||
-                                respAttachment.body == null) {
-                              log.warning(() => "error uploading attachment");
-                              continue;
+                              final File file = File(
+                                attachment.attributes.uploadUrl!,
+                              );
+
+                              final http.StreamedRequest request =
+                                  http.StreamedRequest(
+                                    HttpMethod.Post,
+                                    Uri.parse(
+                                      newAttachment.attributes.uploadUrl!,
+                                    ),
+                                  );
+                              request.headers.addAll(user!.headers());
+                              request.headers[HttpHeaders.contentTypeHeader] =
+                                  ContentType.binary.mimeType;
+                              request.contentLength = await file.length();
+                              log.fine(
+                                () =>
+                                    "AttachmentUpload: Starting Upload ${newAttachment.id}",
+                              );
+
+                              file.openRead().listen(
+                                (List<int> data) {
+                                  log.finest(() => "sent ${data.length} bytes");
+                                  request.sink.add(data);
+                                },
+                                onDone: () {
+                                  request.sink.close();
+                                },
+                              );
+
+                              await httpClient.send(request);
+
+                              log.fine(() => "done uploading attachment");
                             }
-                            final AttachmentRead newAttachment =
-                                respAttachment.body!.data;
-                            log.finest(
-                              () => "attachment id is ${newAttachment.id}",
-                            );
-
-                            final File file = File(
-                              attachment.attributes.uploadUrl!,
-                            );
-
-                            final http.StreamedRequest request =
-                                http.StreamedRequest(
-                                  HttpMethod.Post,
-                                  Uri.parse(
-                                    newAttachment.attributes.uploadUrl!,
-                                  ),
-                                );
-                            request.headers.addAll(user!.headers());
-                            request.headers[HttpHeaders.contentTypeHeader] =
-                                ContentType.binary.mimeType;
-                            request.contentLength = await file.length();
-                            log.fine(
-                              () =>
-                                  "AttachmentUpload: Starting Upload ${newAttachment.id}",
-                            );
-
-                            file.openRead().listen(
-                              (List<int> data) {
-                                log.finest(() => "sent ${data.length} bytes");
-                                request.sink.add(data);
-                              },
-                              onDone: () {
-                                request.sink.close();
-                              },
-                            );
-
-                            await httpClient.send(request);
-
-                            log.fine(() => "done uploading attachment");
                           }
                         }
-                      }
 
                         // Done saving
                         setState(() => _savingInProgress = false);
 
                         if (nav.canPop()) {
-                        // Popping true means that the TX list will be refreshed.
-                        // This should only happen if:
-                        // 1. it is a new transaction
-                        // 2. the date has been changed (changing the order of the TX list)
-                        nav.pop(
-                          widget.transaction == null ||
-                              _date !=
-                                  _tzHandler.sTime(
-                                    widget
-                                        .transaction!
-                                        .attributes
-                                        .transactions
-                                        .first
-                                        .date,
-                                  ),
-                        );
-                      } else {
-                        // Launched from notification
-                        // https://stackoverflow.com/questions/45109557/flutter-how-to-programmatically-exit-the-app
-                        await SystemChannels.platform.invokeMethod(
-                          'SystemNavigator.pop',
-                        );
-                        await nav.pushReplacement(
-                          MaterialPageRoute<bool>(
-                            builder: (BuildContext context) => const NavPage(),
-                          ),
-                        );
+                          // Popping true means that the TX list will be refreshed.
+                          // This should only happen if:
+                          // 1. it is a new transaction
+                          // 2. the date has been changed (changing the order of the TX list)
+                          nav.pop(
+                            widget.transaction == null ||
+                                _date !=
+                                    _tzHandler.sTime(
+                                      widget
+                                          .transaction!
+                                          .attributes
+                                          .transactions
+                                          .first
+                                          .date,
+                                    ),
+                          );
+                        } else {
+                          // Launched from notification
+                          // https://stackoverflow.com/questions/45109557/flutter-how-to-programmatically-exit-the-app
+                          await SystemChannels.platform.invokeMethod(
+                            'SystemNavigator.pop',
+                          );
+                          await nav.pushReplacement(
+                            MaterialPageRoute<bool>(
+                              builder:
+                                  (BuildContext context) => const NavPage(),
+                            ),
+                          );
                         }
                       }
                     },
@@ -1611,7 +1638,9 @@ class _TransactionPageState extends State<TransactionPage>
                         in _sourceAccountTextControllers) {
                       e.text = option.name;
                     }
-                    _sourceAccountType = _mapShortAccountTypeToAccountType(option.type);
+                    _sourceAccountType = _mapShortAccountTypeToAccountType(
+                      option.type,
+                    );
                     log.finer(
                       () =>
                           "selected source account ${option.name}, type ${_sourceAccountType.toString()} (${option.type})",
@@ -1632,13 +1661,16 @@ class _TransactionPageState extends State<TransactionPage>
 
                       final Isar isar = await AppDatabase.instance;
                       final AccountRepository repo = AccountRepository(isar);
-                      
-                      // Source account should only show asset accounts
-                      final List<enums.AccountTypeFilter> types = <enums.AccountTypeFilter>[
-                        enums.AccountTypeFilter.assetAccount,
-                      ];
 
-                      fetchOpSource = CancelableOperation<List<AutocompleteAccount>>.fromFuture(
+                      // Source account should only show asset accounts
+                      final List<enums.AccountTypeFilter> types =
+                          <enums.AccountTypeFilter>[
+                            enums.AccountTypeFilter.assetAccount,
+                          ];
+
+                      fetchOpSource = CancelableOperation<
+                        List<AutocompleteAccount>
+                      >.fromFuture(
                         repo.autocomplete(
                           query: textEditingValue.text,
                           types: types,
@@ -1710,7 +1742,8 @@ class _TransactionPageState extends State<TransactionPage>
                           in _destinationAccountTextControllers) {
                         e.text = option.name;
                       }
-                      _destinationAccountType = _mapShortAccountTypeToAccountType(option.type);
+                      _destinationAccountType =
+                          _mapShortAccountTypeToAccountType(option.type);
                       if (_destinationAccountType ==
                               AccountTypeProperty.assetAccount ||
                           _destinationAccountType == AccountTypeProperty.debt) {
@@ -1729,12 +1762,14 @@ class _TransactionPageState extends State<TransactionPage>
 
                         final Isar isar = await AppDatabase.instance;
                         final AccountRepository repo = AccountRepository(isar);
-                        
+
                         // Get allowed opposing account types (already returns AccountTypeFilter list)
                         final List<enums.AccountTypeFilter> types =
                             _sourceAccountType.allowedOpposingTypes(true);
 
-                        fetchOpDestination = CancelableOperation<List<AutocompleteAccount>>.fromFuture(
+                        fetchOpDestination = CancelableOperation<
+                          List<AutocompleteAccount>
+                        >.fromFuture(
                           repo.autocomplete(
                             query: textEditingValue.text,
                             types: types,
@@ -2015,25 +2050,34 @@ class _TransactionPageState extends State<TransactionPage>
                                       try {
                                         unawaited(fetchOp?.cancel());
 
-                                        final Isar isar = await AppDatabase.instance;
-                                        final AccountRepository repo = AccountRepository(isar);
-                                        
+                                        final Isar isar =
+                                            await AppDatabase.instance;
+                                        final AccountRepository repo =
+                                            AccountRepository(isar);
+
                                         // Source account should only show asset accounts
-                                        final List<enums.AccountTypeFilter> types = <enums.AccountTypeFilter>[
+                                        final List<enums.AccountTypeFilter>
+                                        types = <enums.AccountTypeFilter>[
                                           enums.AccountTypeFilter.assetAccount,
                                         ];
 
-                                        fetchOp = CancelableOperation<List<AutocompleteAccount>>.fromFuture(
+                                        fetchOp = CancelableOperation<
+                                          List<AutocompleteAccount>
+                                        >.fromFuture(
                                           repo.autocomplete(
                                             query: textEditingValue.text,
                                             types: types,
                                           ),
                                         );
-                                        final List<AutocompleteAccount>? results =
-                                            await fetchOp?.valueOrCancellation();
+                                        final List<AutocompleteAccount>?
+                                        results =
+                                            await fetchOp
+                                                ?.valueOrCancellation();
                                         if (results == null) {
                                           // Cancelled
-                                          return const Iterable<AutocompleteAccount>.empty();
+                                          return const Iterable<
+                                            AutocompleteAccount
+                                          >.empty();
                                         }
 
                                         return results;
@@ -2086,24 +2130,33 @@ class _TransactionPageState extends State<TransactionPage>
                                       TextEditingValue textEditingValue,
                                     ) async {
                                       try {
-                                        final Isar isar = await AppDatabase.instance;
-                                        final AccountRepository repo = AccountRepository(isar);
-                                        
-                                        // Get allowed opposing account types (already returns AccountTypeFilter list)
-                                        final List<enums.AccountTypeFilter> types =
-                                            _sourceAccountType.allowedOpposingTypes(true);
+                                        final Isar isar =
+                                            await AppDatabase.instance;
+                                        final AccountRepository repo =
+                                            AccountRepository(isar);
 
-                                        fetchOp = CancelableOperation<List<AutocompleteAccount>>.fromFuture(
+                                        // Get allowed opposing account types (already returns AccountTypeFilter list)
+                                        final List<enums.AccountTypeFilter>
+                                        types = _sourceAccountType
+                                            .allowedOpposingTypes(true);
+
+                                        fetchOp = CancelableOperation<
+                                          List<AutocompleteAccount>
+                                        >.fromFuture(
                                           repo.autocomplete(
                                             query: textEditingValue.text,
                                             types: types,
                                           ),
                                         );
-                                        final List<AutocompleteAccount>? results =
-                                            await fetchOp?.valueOrCancellation();
+                                        final List<AutocompleteAccount>?
+                                        results =
+                                            await fetchOp
+                                                ?.valueOrCancellation();
                                         if (results == null) {
                                           // Cancelled
-                                          return const Iterable<AutocompleteAccount>.empty();
+                                          return const Iterable<
+                                            AutocompleteAccount
+                                          >.empty();
                                         }
 
                                         return results;
@@ -2602,7 +2655,9 @@ class TransactionDeleteButton extends StatelessWidget {
                 final String? id = transactionId;
                 if (id != null) {
                   final Isar isar = await AppDatabase.instance;
-                  final TransactionRepository txRepo = TransactionRepository(isar);
+                  final TransactionRepository txRepo = TransactionRepository(
+                    isar,
+                  );
                   await txRepo.delete(id);
                 }
                 nav.pop(true);
@@ -2641,22 +2696,24 @@ class TransactionTitle extends StatelessWidget {
 
             final Isar isar = await AppDatabase.instance;
             final TransactionRepository repo = TransactionRepository(isar);
-            
+
             // Search transactions and return description/title
-            final List<TransactionRead> transactions = await repo.search(textEditingValue.text);
+            final List<TransactionRead> transactions = await repo.search(
+              textEditingValue.text,
+            );
             final Set<String> uniqueTitles = <String>{};
             for (final TransactionRead tx in transactions) {
-              final String? description = tx.attributes.transactions.firstOrNull?.description;
+              final String? description =
+                  tx.attributes.transactions.firstOrNull?.description;
               if (description != null && description.isNotEmpty) {
                 uniqueTitles.add(description);
               }
             }
-            
+
             fetchOp = CancelableOperation<List<String>>.fromFuture(
               Future<List<String>>.value(uniqueTitles.toList()),
             );
-            final List<String>? results =
-                await fetchOp?.valueOrCancellation();
+            final List<String>? results = await fetchOp?.valueOrCancellation();
             if (results == null) {
               // Cancelled
               return const Iterable<String>.empty();
@@ -2739,7 +2796,7 @@ class TransactionCategory extends StatelessWidget {
 
                 final Isar isar = await AppDatabase.instance;
                 final CategoryRepository repo = CategoryRepository(isar);
-                
+
                 fetchOp = CancelableOperation<List<String>>.fromFuture(
                   repo.autocomplete(textEditingValue.text),
                 );
@@ -2858,10 +2915,11 @@ class _TransactionBudgetState extends State<TransactionBudget> {
 
                 final Isar isar = await AppDatabase.instance;
                 final BudgetRepository repo = BudgetRepository(isar);
-                
-                fetchOp = CancelableOperation<List<AutocompleteBudget>>.fromFuture(
-                  repo.autocomplete(textEditingValue.text),
-                );
+
+                fetchOp =
+                    CancelableOperation<List<AutocompleteBudget>>.fromFuture(
+                      repo.autocomplete(textEditingValue.text),
+                    );
                 final List<AutocompleteBudget>? results =
                     await fetchOp?.valueOrCancellation();
                 if (results == null) {

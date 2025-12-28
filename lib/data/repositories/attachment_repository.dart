@@ -32,10 +32,8 @@ class AttachmentRepository {
   }
 
   Future<AttachmentRead?> getById(String id) async {
-    final Attachments? row = await isar.attachments
-        .filter()
-        .attachmentIdEqualTo(id)
-        .findFirst();
+    final Attachments? row =
+        await isar.attachments.filter().attachmentIdEqualTo(id).findFirst();
     if (row == null) {
       return null;
     }
@@ -49,11 +47,11 @@ class AttachmentRepository {
     // Get the transaction to find its journal IDs
     final TransactionRepository txRepo = TransactionRepository(isar);
     final TransactionRead? transaction = await txRepo.getById(transactionId);
-    
+
     if (transaction == null) {
       return <AttachmentRead>[];
     }
-    
+
     // Extract all transaction journal IDs from the transaction splits
     final Set<String> journalIds = <String>{};
     for (final TransactionSplit split in transaction.attributes.transactions) {
@@ -61,11 +59,11 @@ class AttachmentRepository {
         journalIds.add(split.transactionJournalId!);
       }
     }
-    
+
     if (journalIds.isEmpty) {
       return <AttachmentRead>[];
     }
-    
+
     // Match attachments where attachableId matches any journal ID
     final List<AttachmentRead> all = await getAll();
     return all.where((AttachmentRead attachment) {
@@ -78,10 +76,11 @@ class AttachmentRepository {
     final DateTime? updatedAt = attachment.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Attachments? existing = await isar.attachments
-        .filter()
-        .attachmentIdEqualTo(attachment.id)
-        .findFirst();
+    final Attachments? existing =
+        await isar.attachments
+            .filter()
+            .attachmentIdEqualTo(attachment.id)
+            .findFirst();
 
     if (existing != null) {
       existing
@@ -94,12 +93,13 @@ class AttachmentRepository {
         await isar.attachments.put(existing);
       });
     } else {
-      final Attachments row = Attachments()
-        ..attachmentId = attachment.id
-        ..data = jsonEncode(attachment.toJson())
-        ..updatedAt = updatedAt
-        ..localUpdatedAt = now
-        ..synced = true;
+      final Attachments row =
+          Attachments()
+            ..attachmentId = attachment.id
+            ..data = jsonEncode(attachment.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
 
       await isar.writeTxn(() async {
         await isar.attachments.put(row);
@@ -116,10 +116,8 @@ class AttachmentRepository {
   Future<void> delete(String id) async {
     final DateTime now = _getNow();
 
-    final Attachments? existing = await isar.attachments
-        .filter()
-        .attachmentIdEqualTo(id)
-        .findFirst();
+    final Attachments? existing =
+        await isar.attachments.filter().attachmentIdEqualTo(id).findFirst();
 
     if (existing != null) {
       await isar.writeTxn(() async {
@@ -127,18 +125,18 @@ class AttachmentRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'attachments'
-      ..entityId = id
-      ..operation = 'DELETE'
-      ..data = null
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'attachments'
+          ..entityId = id
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
     });
   }
 }
-

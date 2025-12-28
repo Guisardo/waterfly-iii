@@ -56,10 +56,9 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
       if (mounted) {
         setState(() {
           includeInSum =
-              !context
-                  .read<SettingsProvider>()
-                  .categoriesSumExcluded
-                  .contains(widget.category!.id);
+              !context.read<SettingsProvider>().categoriesSumExcluded.contains(
+                widget.category!.id,
+              );
           notesController.text = category.attributes.notes ?? "";
           loaded = true;
         });
@@ -123,7 +122,9 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
 
               try {
                 final Isar isar = await AppDatabase.instance;
-                final CategoryRepository categoryRepo = CategoryRepository(isar);
+                final CategoryRepository categoryRepo = CategoryRepository(
+                  isar,
+                );
                 await categoryRepo.delete(widget.category!.id);
               } catch (e, stackTrace) {
                 log.severe("Error deleting category", e, stackTrace);
@@ -154,7 +155,8 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
           onPressed: () async {
             // Capture context values before async gaps
             final ScaffoldMessengerState msg = ScaffoldMessenger.of(context);
-            final FireflyService fireflyService = context.read<FireflyService>();
+            final FireflyService fireflyService =
+                context.read<FireflyService>();
             final FireflyIii api = fireflyService.api;
             final S localizations = S.of(context);
 

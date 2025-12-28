@@ -53,7 +53,7 @@ class _CategoriesPageState extends State<CategoriesPage>
     // Capture context values before async gaps
     final FireflyService fireflyService = context.read<FireflyService>();
     final CurrencyRead defaultCurrency = fireflyService.defaultCurrency;
-    
+
     // Ensure repository is initialized
     if (_insightRepo == null) {
       final Isar isar = await AppDatabase.instance;
@@ -65,150 +65,166 @@ class _CategoriesPageState extends State<CategoriesPage>
       _insightRepo!.setFireflyService(fireflyService);
     }
     final InsightRepository repo = _insightRepo!;
-    
+
     final DateTime startDate = date.copyWith(day: 1);
     final DateTime endDate = date;
 
     try {
-      final List<InsightGroupEntry> incomeCats =
-          await repo.getGrouped('income', 'category', startDate, endDate);
-      final List<InsightTotalEntry> incomeNoCats =
-          await repo.getNoGroup('income', 'category', startDate, endDate);
-      final List<InsightGroupEntry> expenseCats =
-          await repo.getGrouped('expense', 'category', startDate, endDate);
-      final List<InsightTotalEntry> expenseNoCats =
-          await repo.getNoGroup('expense', 'category', startDate, endDate);
+      final List<InsightGroupEntry> incomeCats = await repo.getGrouped(
+        'income',
+        'category',
+        startDate,
+        endDate,
+      );
+      final List<InsightTotalEntry> incomeNoCats = await repo.getNoGroup(
+        'income',
+        'category',
+        startDate,
+        endDate,
+      );
+      final List<InsightGroupEntry> expenseCats = await repo.getGrouped(
+        'expense',
+        'category',
+        startDate,
+        endDate,
+      );
+      final List<InsightTotalEntry> expenseNoCats = await repo.getNoGroup(
+        'expense',
+        'category',
+        startDate,
+        endDate,
+      );
 
       final Map<String, CategoryRead> categories = <String, CategoryRead>{};
 
-    // Process income categories
-    for (final InsightGroupEntry cat in incomeCats) {
-      if ((cat.id?.isEmpty ?? true) || (cat.name?.isEmpty ?? true)) {
-        continue;
-      }
-      if (cat.currencyId != defaultCurrency.id) {
-        continue;
-      }
-      if (!categories.containsKey(cat.id)) {
-        categories[cat.id!] = CategoryRead(
-          id: cat.id!,
-          type: "categories",
-          attributes: CategoryWithSum(
-            name: cat.name!,
-            spent: <ArrayEntryWithCurrencyAndSum>[],
-            earned: <ArrayEntryWithCurrencyAndSum>[],
+      // Process income categories
+      for (final InsightGroupEntry cat in incomeCats) {
+        if ((cat.id?.isEmpty ?? true) || (cat.name?.isEmpty ?? true)) {
+          continue;
+        }
+        if (cat.currencyId != defaultCurrency.id) {
+          continue;
+        }
+        if (!categories.containsKey(cat.id)) {
+          categories[cat.id!] = CategoryRead(
+            id: cat.id!,
+            type: "categories",
+            attributes: CategoryWithSum(
+              name: cat.name!,
+              spent: <ArrayEntryWithCurrencyAndSum>[],
+              earned: <ArrayEntryWithCurrencyAndSum>[],
+            ),
+          );
+        }
+        categories[cat.id!]!.attributes.earned!.add(
+          ArrayEntryWithCurrencyAndSum(
+            currencyId: cat.currencyId,
+            currencyCode: cat.currencyCode,
+            currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+            currencySymbol: defaultCurrency.attributes.symbol,
+            sum: cat.difference,
           ),
         );
       }
-      categories[cat.id!]!.attributes.earned!.add(
-        ArrayEntryWithCurrencyAndSum(
-          currencyId: cat.currencyId,
-          currencyCode: cat.currencyCode,
-          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
-          currencySymbol: defaultCurrency.attributes.symbol,
-          sum: cat.difference,
-        ),
-      );
-    }
 
-    // Process expense categories
-    for (final InsightGroupEntry cat in expenseCats) {
-      if ((cat.id?.isEmpty ?? true) || (cat.name?.isEmpty ?? true)) {
-        continue;
-      }
-      if (cat.currencyId != defaultCurrency.id) {
-        continue;
-      }
-      if (!categories.containsKey(cat.id)) {
-        categories[cat.id!] = CategoryRead(
-          id: cat.id!,
-          type: "categories",
-          attributes: CategoryWithSum(
-            name: cat.name!,
-            spent: <ArrayEntryWithCurrencyAndSum>[],
-            earned: <ArrayEntryWithCurrencyAndSum>[],
+      // Process expense categories
+      for (final InsightGroupEntry cat in expenseCats) {
+        if ((cat.id?.isEmpty ?? true) || (cat.name?.isEmpty ?? true)) {
+          continue;
+        }
+        if (cat.currencyId != defaultCurrency.id) {
+          continue;
+        }
+        if (!categories.containsKey(cat.id)) {
+          categories[cat.id!] = CategoryRead(
+            id: cat.id!,
+            type: "categories",
+            attributes: CategoryWithSum(
+              name: cat.name!,
+              spent: <ArrayEntryWithCurrencyAndSum>[],
+              earned: <ArrayEntryWithCurrencyAndSum>[],
+            ),
+          );
+        }
+        categories[cat.id!]!.attributes.spent!.add(
+          ArrayEntryWithCurrencyAndSum(
+            currencyId: cat.currencyId,
+            currencyCode: cat.currencyCode,
+            currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+            currencySymbol: defaultCurrency.attributes.symbol,
+            sum: cat.difference,
           ),
         );
       }
-      categories[cat.id!]!.attributes.spent!.add(
-        ArrayEntryWithCurrencyAndSum(
-          currencyId: cat.currencyId,
-          currencyCode: cat.currencyCode,
-          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
-          currencySymbol: defaultCurrency.attributes.symbol,
-          sum: cat.difference,
-        ),
-      );
-    }
 
-    // Process no-category income
-    for (final InsightTotalEntry cat in incomeNoCats) {
-      if (cat.currencyId != defaultCurrency.id) {
-        continue;
-      }
-      if (!categories.containsKey("-1")) {
-        categories["-1"] = CategoryRead(
-          id: "-1",
-          type: "no-category",
-          attributes: CategoryWithSum(
-            name: "L10NNONE",
-            spent: <ArrayEntryWithCurrencyAndSum>[],
-            earned: <ArrayEntryWithCurrencyAndSum>[],
+      // Process no-category income
+      for (final InsightTotalEntry cat in incomeNoCats) {
+        if (cat.currencyId != defaultCurrency.id) {
+          continue;
+        }
+        if (!categories.containsKey("-1")) {
+          categories["-1"] = CategoryRead(
+            id: "-1",
+            type: "no-category",
+            attributes: CategoryWithSum(
+              name: "L10NNONE",
+              spent: <ArrayEntryWithCurrencyAndSum>[],
+              earned: <ArrayEntryWithCurrencyAndSum>[],
+            ),
+          );
+        }
+        categories["-1"]!.attributes.earned!.add(
+          ArrayEntryWithCurrencyAndSum(
+            currencyId: cat.currencyId,
+            currencyCode: cat.currencyCode,
+            currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+            currencySymbol: defaultCurrency.attributes.symbol,
+            sum: cat.difference,
           ),
         );
       }
-      categories["-1"]!.attributes.earned!.add(
-        ArrayEntryWithCurrencyAndSum(
-          currencyId: cat.currencyId,
-          currencyCode: cat.currencyCode,
-          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
-          currencySymbol: defaultCurrency.attributes.symbol,
-          sum: cat.difference,
-        ),
-      );
-    }
 
-    // Process no-category expense
-    for (final InsightTotalEntry cat in expenseNoCats) {
-      if (cat.currencyId != defaultCurrency.id) {
-        continue;
-      }
-      if (!categories.containsKey("-1")) {
-        categories["-1"] = CategoryRead(
-          id: "-1",
-          type: "no-category",
-          attributes: CategoryWithSum(
-            name: "L10NNONE",
-            spent: <ArrayEntryWithCurrencyAndSum>[],
-            earned: <ArrayEntryWithCurrencyAndSum>[],
+      // Process no-category expense
+      for (final InsightTotalEntry cat in expenseNoCats) {
+        if (cat.currencyId != defaultCurrency.id) {
+          continue;
+        }
+        if (!categories.containsKey("-1")) {
+          categories["-1"] = CategoryRead(
+            id: "-1",
+            type: "no-category",
+            attributes: CategoryWithSum(
+              name: "L10NNONE",
+              spent: <ArrayEntryWithCurrencyAndSum>[],
+              earned: <ArrayEntryWithCurrencyAndSum>[],
+            ),
+          );
+        }
+        categories["-1"]!.attributes.spent!.add(
+          ArrayEntryWithCurrencyAndSum(
+            currencyId: cat.currencyId,
+            currencyCode: cat.currencyCode,
+            currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
+            currencySymbol: defaultCurrency.attributes.symbol,
+            sum: cat.difference,
           ),
         );
       }
-      categories["-1"]!.attributes.spent!.add(
-        ArrayEntryWithCurrencyAndSum(
-          currencyId: cat.currencyId,
-          currencyCode: cat.currencyCode,
-          currencyDecimalPlaces: defaultCurrency.attributes.decimalPlaces,
-          currencySymbol: defaultCurrency.attributes.symbol,
-          sum: cat.difference,
-        ),
-      );
-    }
 
-    // Calculate sums
-    categories.forEach((_, CategoryRead c) {
-      final CategoryWithSum cs = c.attributes as CategoryWithSum;
-      cs.sumEarned = c.attributes.earned!.fold<double>(
-        0,
-        (double p, ArrayEntryWithCurrencyAndSum e) =>
-            p += double.parse(e.sum ?? "0"),
-      );
-      cs.sumSpent = c.attributes.spent!.fold<double>(
-        0,
-        (double p, ArrayEntryWithCurrencyAndSum e) =>
-            p += double.parse(e.sum ?? "0"),
-      );
-    });
+      // Calculate sums
+      categories.forEach((_, CategoryRead c) {
+        final CategoryWithSum cs = c.attributes as CategoryWithSum;
+        cs.sumEarned = c.attributes.earned!.fold<double>(
+          0,
+          (double p, ArrayEntryWithCurrencyAndSum e) =>
+              p += double.parse(e.sum ?? "0"),
+        );
+        cs.sumSpent = c.attributes.spent!.fold<double>(
+          0,
+          (double p, ArrayEntryWithCurrencyAndSum e) =>
+              p += double.parse(e.sum ?? "0"),
+        );
+      });
 
       return CategoryArray(
         data: categories.values.toList(growable: false),

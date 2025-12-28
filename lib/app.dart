@@ -248,7 +248,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
             final ConnectivityService connectivityService =
                 context.watch<ConnectivityService>();
             final bool isOnline = connectivityService.isOnline;
-            
+
             // Trigger sync when device comes online (was offline, now online)
             if (_wasOffline && isOnline && !_startup) {
               final FireflyService fireflyService =
@@ -261,7 +261,10 @@ class _WaterflyAppState extends State<WaterflyApp> {
                   try {
                     await syncStatusProvider.syncAll();
                   } catch (e) {
-                    log.warning("Failed to trigger sync on connectivity change", e);
+                    log.warning(
+                      "Failed to trigger sync on connectivity change",
+                      e,
+                    );
                   }
                 });
               }
@@ -301,35 +304,36 @@ class _WaterflyAppState extends State<WaterflyApp> {
                 } else {
                   log.finest(() => "signing in");
                   // Capture context values before async gap
-                  final FireflyService fireflyService = context.read<FireflyService>();
+                  final FireflyService fireflyService =
+                      context.read<FireflyService>();
                   final SyncStatusProvider syncStatusProvider =
                       context.read<SyncStatusProvider>();
                   final SettingsProvider settingsProvider =
                       context.read<SettingsProvider>();
-                  
-                  fireflyService.signInFromStorage().then(
-                    (bool signedIn) async {
-                      if (signedIn) {
-                        // Initialize WorkManager for background sync
-                        await WorkManagerSync.initialize();
-                        await WorkManagerSync.registerPeriodicSync();
-                        
-                        // Initialize sync status provider
-                        if (!mounted) return;
-                        await syncStatusProvider.initialize(
-                          fireflyService: fireflyService,
-                          connectivityService: connectivityService,
-                          settingsProvider: settingsProvider,
-                        );
-                      }
+
+                  fireflyService.signInFromStorage().then((
+                    bool signedIn,
+                  ) async {
+                    if (signedIn) {
+                      // Initialize WorkManager for background sync
+                      await WorkManagerSync.initialize();
+                      await WorkManagerSync.registerPeriodicSync();
+
+                      // Initialize sync status provider
                       if (!mounted) return;
-                      setState(() {
-                        log.finest(() => "set _startup = false");
-                        _authed = true;
-                        _startup = false;
-                      });
-                    },
-                  );
+                      await syncStatusProvider.initialize(
+                        fireflyService: fireflyService,
+                        connectivityService: connectivityService,
+                        settingsProvider: settingsProvider,
+                      );
+                    }
+                    if (!mounted) return;
+                    setState(() {
+                      log.finest(() => "set _startup = false");
+                      _authed = true;
+                      _startup = false;
+                    });
+                  });
                 }
               }
             } else {

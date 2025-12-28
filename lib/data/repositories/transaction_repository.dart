@@ -20,56 +20,77 @@ class TransactionRepository {
   ) {
     try {
       // Convert TransactionSplitStore to TransactionSplit
-      final List<TransactionSplit> transactionSplits = store.transactions.map((TransactionSplitStore splitStore) {
-        return TransactionSplit(
-          transactionJournalId: null, // Pending transactions don't have journal IDs yet
-          type: splitStore.type,
-          date: splitStore.date,
-          order: splitStore.order,
-          amount: splitStore.amount,
-          description: splitStore.description,
-          sourceId: null, // Will be resolved by sync service
-          sourceName: splitStore.sourceName,
-          sourceIban: null,
-          sourceType: null,
-          destinationId: null, // Will be resolved by sync service
-          destinationName: splitStore.destinationName,
-          destinationIban: null,
-          destinationType: null,
-          billId: splitStore.billId != null && splitStore.billId != "0" ? splitStore.billId : null,
-          billName: null,
-          categoryId: null,
-          categoryName: (splitStore.categoryName?.isNotEmpty ?? false) ? splitStore.categoryName : null,
-          budgetId: null,
-          budgetName: (splitStore.budgetName?.isNotEmpty ?? false) ? splitStore.budgetName : null,
-          tags: (splitStore.tags?.isNotEmpty ?? false) ? splitStore.tags : null,
-          notes: (splitStore.notes?.isNotEmpty ?? false) ? splitStore.notes : null,
-          internalReference: splitStore.internalReference,
-          externalUrl: splitStore.externalUrl,
-          originalSource: null,
-          reconciled: splitStore.reconciled ?? false,
-          hasAttachments: false,
-          foreignAmount: splitStore.foreignAmount != null && splitStore.foreignAmount != "0" ? splitStore.foreignAmount : null,
-          foreignCurrencyId: splitStore.foreignCurrencyId,
-          foreignCurrencyCode: splitStore.foreignCurrencyCode,
-          foreignCurrencySymbol: null,
-          foreignCurrencyDecimalPlaces: null,
-          sepaCc: splitStore.sepaCc,
-          sepaCtOp: splitStore.sepaCtOp,
-          sepaCtId: splitStore.sepaCtId,
-          sepaDb: splitStore.sepaDb,
-          sepaCountry: splitStore.sepaCountry,
-          sepaEp: splitStore.sepaEp,
-          sepaCi: splitStore.sepaCi,
-          sepaBatchId: splitStore.sepaBatchId,
-          interestDate: splitStore.interestDate,
-          bookDate: splitStore.bookDate,
-          processDate: splitStore.processDate,
-          dueDate: splitStore.dueDate,
-          paymentDate: splitStore.paymentDate,
-          invoiceDate: splitStore.invoiceDate,
-        );
-      }).toList();
+      final List<TransactionSplit> transactionSplits =
+          store.transactions.map((TransactionSplitStore splitStore) {
+            return TransactionSplit(
+              transactionJournalId:
+                  null, // Pending transactions don't have journal IDs yet
+              type: splitStore.type,
+              date: splitStore.date,
+              order: splitStore.order,
+              amount: splitStore.amount,
+              description: splitStore.description,
+              sourceId: null, // Will be resolved by sync service
+              sourceName: splitStore.sourceName,
+              sourceIban: null,
+              sourceType: null,
+              destinationId: null, // Will be resolved by sync service
+              destinationName: splitStore.destinationName,
+              destinationIban: null,
+              destinationType: null,
+              billId:
+                  splitStore.billId != null && splitStore.billId != "0"
+                      ? splitStore.billId
+                      : null,
+              billName: null,
+              categoryId: null,
+              categoryName:
+                  (splitStore.categoryName?.isNotEmpty ?? false)
+                      ? splitStore.categoryName
+                      : null,
+              budgetId: null,
+              budgetName:
+                  (splitStore.budgetName?.isNotEmpty ?? false)
+                      ? splitStore.budgetName
+                      : null,
+              tags:
+                  (splitStore.tags?.isNotEmpty ?? false)
+                      ? splitStore.tags
+                      : null,
+              notes:
+                  (splitStore.notes?.isNotEmpty ?? false)
+                      ? splitStore.notes
+                      : null,
+              internalReference: splitStore.internalReference,
+              externalUrl: splitStore.externalUrl,
+              originalSource: null,
+              reconciled: splitStore.reconciled ?? false,
+              hasAttachments: false,
+              foreignAmount:
+                  splitStore.foreignAmount != null &&
+                          splitStore.foreignAmount != "0"
+                      ? splitStore.foreignAmount
+                      : null,
+              foreignCurrencyId: splitStore.foreignCurrencyId,
+              foreignCurrencyCode: splitStore.foreignCurrencyCode,
+              foreignCurrencySymbol: null,
+              foreignCurrencyDecimalPlaces: null,
+              sepaCc: splitStore.sepaCc,
+              sepaCtOp: splitStore.sepaCtOp,
+              sepaCtId: splitStore.sepaCtId,
+              sepaDb: splitStore.sepaDb,
+              sepaCountry: splitStore.sepaCountry,
+              sepaEp: splitStore.sepaEp,
+              sepaCi: splitStore.sepaCi,
+              sepaBatchId: splitStore.sepaBatchId,
+              interestDate: splitStore.interestDate,
+              bookDate: splitStore.bookDate,
+              processDate: splitStore.processDate,
+              dueDate: splitStore.dueDate,
+              paymentDate: splitStore.paymentDate,
+              invoiceDate: splitStore.invoiceDate,
+            );
+          }).toList();
 
       // Create Transaction attributes
       final Transaction transactionAttributes = Transaction(
@@ -81,9 +102,7 @@ class TransactionRepository {
       );
 
       // Create ObjectLink (minimal, just for structure)
-      const ObjectLink links = ObjectLink(
-        self: null,
-      );
+      const ObjectLink links = ObjectLink(self: null);
 
       // Create TransactionRead
       return TransactionRead(
@@ -112,14 +131,18 @@ class TransactionRepository {
     final List<TransactionRead> result = <TransactionRead>[];
     for (final Transactions row in rows) {
       try {
-        final Map<String, dynamic> jsonData = jsonDecode(row.data) as Map<String, dynamic>;
-        
+        final Map<String, dynamic> jsonData =
+            jsonDecode(row.data) as Map<String, dynamic>;
+
         // Check if it's a pending transaction (TransactionStore format)
         if (row.transactionId.startsWith('pending-')) {
           // Try to convert TransactionStore to TransactionRead
           try {
             final TransactionStore store = TransactionStore.fromJson(jsonData);
-            final TransactionRead? converted = _convertStoreToRead(store, row.transactionId);
+            final TransactionRead? converted = _convertStoreToRead(
+              store,
+              row.transactionId,
+            );
             if (converted != null) {
               result.add(converted);
             }
@@ -130,9 +153,9 @@ class TransactionRepository {
         } else {
           // It's a regular TransactionRead format
           // Verify it's a TransactionRead format (has 'type', 'id', 'attributes', 'links')
-          if (jsonData.containsKey('type') && 
-              jsonData.containsKey('id') && 
-              jsonData.containsKey('attributes') && 
+          if (jsonData.containsKey('type') &&
+              jsonData.containsKey('id') &&
+              jsonData.containsKey('attributes') &&
               jsonData.containsKey('links')) {
             result.add(TransactionRead.fromJson(jsonData));
           }
@@ -146,17 +169,16 @@ class TransactionRepository {
   }
 
   Future<TransactionRead?> getById(String id) async {
-    final Transactions? row = await isar.transactions
-        .filter()
-        .transactionIdEqualTo(id)
-        .findFirst();
+    final Transactions? row =
+        await isar.transactions.filter().transactionIdEqualTo(id).findFirst();
     if (row == null) {
       return null;
     }
     // Handle pending transactions (they have TransactionStore format, not TransactionRead)
     if (row.transactionId.startsWith('pending-')) {
       try {
-        final Map<String, dynamic> jsonData = jsonDecode(row.data) as Map<String, dynamic>;
+        final Map<String, dynamic> jsonData =
+            jsonDecode(row.data) as Map<String, dynamic>;
         final TransactionStore store = TransactionStore.fromJson(jsonData);
         return _convertStoreToRead(store, row.transactionId);
       } catch (e) {
@@ -164,11 +186,12 @@ class TransactionRepository {
       }
     }
     try {
-      final Map<String, dynamic> jsonData = jsonDecode(row.data) as Map<String, dynamic>;
+      final Map<String, dynamic> jsonData =
+          jsonDecode(row.data) as Map<String, dynamic>;
       // Verify it's a TransactionRead format
-      if (jsonData.containsKey('type') && 
-          jsonData.containsKey('id') && 
-          jsonData.containsKey('attributes') && 
+      if (jsonData.containsKey('type') &&
+          jsonData.containsKey('id') &&
+          jsonData.containsKey('attributes') &&
           jsonData.containsKey('links')) {
         return TransactionRead.fromJson(jsonData);
       }
@@ -184,7 +207,8 @@ class TransactionRepository {
     final String queryLower = query.toLowerCase();
     return all.where((TransactionRead transaction) {
       // Search in transaction descriptions directly (most common case)
-      for (final TransactionSplit split in transaction.attributes.transactions) {
+      for (final TransactionSplit split
+          in transaction.attributes.transactions) {
         if (split.description.toLowerCase().contains(queryLower)) {
           return true;
         }
@@ -202,14 +226,16 @@ class TransactionRepository {
     int? limit,
   }) async {
     final List<TransactionRead> all = await getAll();
-    final List<TransactionRead> filtered = all.where((TransactionRead transaction) {
-      final DateTime? date = transaction.attributes.transactions.firstOrNull?.date;
-      if (date == null) {
-        return false;
-      }
-      return date.isAfter(start.subtract(const Duration(days: 1))) &&
-          date.isBefore(end.add(const Duration(days: 1)));
-    }).toList();
+    final List<TransactionRead> filtered =
+        all.where((TransactionRead transaction) {
+          final DateTime? date =
+              transaction.attributes.transactions.firstOrNull?.date;
+          if (date == null) {
+            return false;
+          }
+          return date.isAfter(start.subtract(const Duration(days: 1))) &&
+              date.isBefore(end.add(const Duration(days: 1)));
+        }).toList();
 
     // Sort by date descending (newest first)
     filtered.sort((TransactionRead a, TransactionRead b) {
@@ -245,36 +271,41 @@ class TransactionRepository {
     int? limit,
   }) async {
     final List<TransactionRead> all = await getAll();
-    final List<TransactionRead> filtered = all.where((TransactionRead transaction) {
-      // Check if transaction involves this account
-      bool involvesAccount = false;
-      for (final TransactionSplit split in transaction.attributes.transactions) {
-        if (split.sourceId == accountId || split.destinationId == accountId) {
-          involvesAccount = true;
-          break;
-        }
-      }
+    final List<TransactionRead> filtered =
+        all.where((TransactionRead transaction) {
+          // Check if transaction involves this account
+          bool involvesAccount = false;
+          for (final TransactionSplit split
+              in transaction.attributes.transactions) {
+            if (split.sourceId == accountId ||
+                split.destinationId == accountId) {
+              involvesAccount = true;
+              break;
+            }
+          }
 
-      if (!involvesAccount) {
-        return false;
-      }
+          if (!involvesAccount) {
+            return false;
+          }
 
-      // Apply date filter if provided
-      if (start != null || end != null) {
-        final DateTime? date = transaction.attributes.transactions.firstOrNull?.date;
-        if (date == null) {
-          return false;
-        }
-        if (start != null && date.isBefore(start.subtract(const Duration(days: 1)))) {
-          return false;
-        }
-        if (end != null && date.isAfter(end.add(const Duration(days: 1)))) {
-          return false;
-        }
-      }
+          // Apply date filter if provided
+          if (start != null || end != null) {
+            final DateTime? date =
+                transaction.attributes.transactions.firstOrNull?.date;
+            if (date == null) {
+              return false;
+            }
+            if (start != null &&
+                date.isBefore(start.subtract(const Duration(days: 1)))) {
+              return false;
+            }
+            if (end != null && date.isAfter(end.add(const Duration(days: 1)))) {
+              return false;
+            }
+          }
 
-      return true;
-    }).toList();
+          return true;
+        }).toList();
 
     // Sort by date descending
     filtered.sort((TransactionRead a, TransactionRead b) {
@@ -319,179 +350,196 @@ class TransactionRepository {
     int? limit,
   }) async {
     final List<TransactionRead> all = await getAll();
-    final List<TransactionRead> filtered = all.where((TransactionRead transaction) {
-      // Text search
-      if (text != null && text.isNotEmpty) {
-        final String json = jsonEncode(transaction.toJson()).toLowerCase();
-        if (!json.contains(text.toLowerCase())) {
-          return false;
-        }
-      }
-
-      // Account filter
-      if (accountId != null) {
-        bool hasAccount = false;
-        for (final TransactionSplit split in transaction.attributes.transactions) {
-          if (split.sourceId == accountId || split.destinationId == accountId) {
-            hasAccount = true;
-            break;
-          }
-        }
-        if (!hasAccount) {
-          return false;
-        }
-      }
-
-      // Currency filter
-      if (currencyCode != null) {
-        bool hasCurrency = false;
-        for (final TransactionSplit split in transaction.attributes.transactions) {
-          if (split.currencyCode == currencyCode) {
-            hasCurrency = true;
-            break;
-          }
-        }
-        if (!hasCurrency) {
-          return false;
-        }
-      }
-
-      // Category filter
-      if (categoryId != null) {
-        if (categoryId == "-1") {
-          // No category
-          if (transaction.attributes.transactions.firstOrNull?.categoryId != null) {
-            return false;
-          }
-        } else {
-          bool hasCategory = false;
-          for (final TransactionSplit split in transaction.attributes.transactions) {
-            if (split.categoryId == categoryId) {
-              hasCategory = true;
-              break;
+    final List<TransactionRead> filtered =
+        all.where((TransactionRead transaction) {
+          // Text search
+          if (text != null && text.isNotEmpty) {
+            final String json = jsonEncode(transaction.toJson()).toLowerCase();
+            if (!json.contains(text.toLowerCase())) {
+              return false;
             }
           }
-          if (!hasCategory) {
-            return false;
-          }
-        }
-      } else if (categoryName != null) {
-        bool hasCategory = false;
-        for (final TransactionSplit split in transaction.attributes.transactions) {
-          if (split.categoryName == categoryName) {
-            hasCategory = true;
-            break;
-          }
-        }
-        if (!hasCategory) {
-          return false;
-        }
-      }
 
-      // Budget filter
-      if (budgetId != null) {
-        if (budgetId == "-1") {
-          // No budget
-          if (transaction.attributes.transactions.firstOrNull?.budgetId != null) {
-            return false;
-          }
-        } else {
-          bool hasBudget = false;
-          for (final TransactionSplit split in transaction.attributes.transactions) {
-            if (split.budgetId == budgetId) {
-              hasBudget = true;
-              break;
+          // Account filter
+          if (accountId != null) {
+            bool hasAccount = false;
+            for (final TransactionSplit split
+                in transaction.attributes.transactions) {
+              if (split.sourceId == accountId ||
+                  split.destinationId == accountId) {
+                hasAccount = true;
+                break;
+              }
+            }
+            if (!hasAccount) {
+              return false;
             }
           }
-          if (!hasBudget) {
-            return false;
-          }
-        }
-      } else if (budgetName != null) {
-        bool hasBudget = false;
-        for (final TransactionSplit split in transaction.attributes.transactions) {
-          if (split.budgetName == budgetName) {
-            hasBudget = true;
-            break;
-          }
-        }
-        if (!hasBudget) {
-          return false;
-        }
-      }
 
-      // Bill filter
-      if (billId != null) {
-        if (billId == "-1") {
-          // No bill
-          if (transaction.attributes.transactions.firstOrNull?.billId != null) {
-            return false;
-          }
-        } else {
-          bool hasBill = false;
-          for (final TransactionSplit split in transaction.attributes.transactions) {
-            if (split.billId == billId) {
-              hasBill = true;
-              break;
+          // Currency filter
+          if (currencyCode != null) {
+            bool hasCurrency = false;
+            for (final TransactionSplit split
+                in transaction.attributes.transactions) {
+              if (split.currencyCode == currencyCode) {
+                hasCurrency = true;
+                break;
+              }
+            }
+            if (!hasCurrency) {
+              return false;
             }
           }
-          if (!hasBill) {
-            return false;
-          }
-        }
-      } else if (billName != null) {
-        bool hasBill = false;
-        for (final TransactionSplit split in transaction.attributes.transactions) {
-          if (split.billName == billName) {
-            hasBill = true;
-            break;
-          }
-        }
-        if (!hasBill) {
-          return false;
-        }
-      }
 
-      // Tags filter
-      if (tags != null && tags.isNotEmpty) {
-        // Collect all tags from all transaction splits
-        final List<String> transactionTags = <String>[];
-        for (final TransactionSplit split in transaction.attributes.transactions) {
-          if (split.tags != null) {
-            transactionTags.addAll(split.tags!);
+          // Category filter
+          if (categoryId != null) {
+            if (categoryId == "-1") {
+              // No category
+              if (transaction.attributes.transactions.firstOrNull?.categoryId !=
+                  null) {
+                return false;
+              }
+            } else {
+              bool hasCategory = false;
+              for (final TransactionSplit split
+                  in transaction.attributes.transactions) {
+                if (split.categoryId == categoryId) {
+                  hasCategory = true;
+                  break;
+                }
+              }
+              if (!hasCategory) {
+                return false;
+              }
+            }
+          } else if (categoryName != null) {
+            bool hasCategory = false;
+            for (final TransactionSplit split
+                in transaction.attributes.transactions) {
+              if (split.categoryName == categoryName) {
+                hasCategory = true;
+                break;
+              }
+            }
+            if (!hasCategory) {
+              return false;
+            }
           }
-        }
-        if (transactionTags.isEmpty) {
-          return false;
-        }
-        bool hasAllTags = true;
-        for (final String tag in tags) {
-          if (!transactionTags.contains(tag)) {
-            hasAllTags = false;
-            break;
+
+          // Budget filter
+          if (budgetId != null) {
+            if (budgetId == "-1") {
+              // No budget
+              if (transaction.attributes.transactions.firstOrNull?.budgetId !=
+                  null) {
+                return false;
+              }
+            } else {
+              bool hasBudget = false;
+              for (final TransactionSplit split
+                  in transaction.attributes.transactions) {
+                if (split.budgetId == budgetId) {
+                  hasBudget = true;
+                  break;
+                }
+              }
+              if (!hasBudget) {
+                return false;
+              }
+            }
+          } else if (budgetName != null) {
+            bool hasBudget = false;
+            for (final TransactionSplit split
+                in transaction.attributes.transactions) {
+              if (split.budgetName == budgetName) {
+                hasBudget = true;
+                break;
+              }
+            }
+            if (!hasBudget) {
+              return false;
+            }
           }
-        }
-        if (!hasAllTags) {
-          return false;
-        }
-      }
 
-      // Date filter
-      if (startDate != null || endDate != null) {
-        final DateTime? date = transaction.attributes.transactions.firstOrNull?.date;
-        if (date == null) {
-          return false;
-        }
-        if (startDate != null && date.isBefore(startDate.subtract(const Duration(days: 1)))) {
-          return false;
-        }
-        if (endDate != null && date.isAfter(endDate.add(const Duration(days: 1)))) {
-          return false;
-        }
-      }
+          // Bill filter
+          if (billId != null) {
+            if (billId == "-1") {
+              // No bill
+              if (transaction.attributes.transactions.firstOrNull?.billId !=
+                  null) {
+                return false;
+              }
+            } else {
+              bool hasBill = false;
+              for (final TransactionSplit split
+                  in transaction.attributes.transactions) {
+                if (split.billId == billId) {
+                  hasBill = true;
+                  break;
+                }
+              }
+              if (!hasBill) {
+                return false;
+              }
+            }
+          } else if (billName != null) {
+            bool hasBill = false;
+            for (final TransactionSplit split
+                in transaction.attributes.transactions) {
+              if (split.billName == billName) {
+                hasBill = true;
+                break;
+              }
+            }
+            if (!hasBill) {
+              return false;
+            }
+          }
 
-      return true;
-    }).toList();
+          // Tags filter
+          if (tags != null && tags.isNotEmpty) {
+            // Collect all tags from all transaction splits
+            final List<String> transactionTags = <String>[];
+            for (final TransactionSplit split
+                in transaction.attributes.transactions) {
+              if (split.tags != null) {
+                transactionTags.addAll(split.tags!);
+              }
+            }
+            if (transactionTags.isEmpty) {
+              return false;
+            }
+            bool hasAllTags = true;
+            for (final String tag in tags) {
+              if (!transactionTags.contains(tag)) {
+                hasAllTags = false;
+                break;
+              }
+            }
+            if (!hasAllTags) {
+              return false;
+            }
+          }
+
+          // Date filter
+          if (startDate != null || endDate != null) {
+            final DateTime? date =
+                transaction.attributes.transactions.firstOrNull?.date;
+            if (date == null) {
+              return false;
+            }
+            if (startDate != null &&
+                date.isBefore(startDate.subtract(const Duration(days: 1)))) {
+              return false;
+            }
+            if (endDate != null &&
+                date.isAfter(endDate.add(const Duration(days: 1)))) {
+              return false;
+            }
+          }
+
+          return true;
+        }).toList();
 
     // Sort by date descending
     filtered.sort((TransactionRead a, TransactionRead b) {
@@ -523,25 +571,27 @@ class TransactionRepository {
     final DateTime now = _getNow();
     final DateTime? updatedAt = transaction.attributes.updatedAt;
 
-    final Transactions row = Transactions()
-      ..transactionId = transaction.id
-      ..data = jsonEncode(transaction.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = false;
+    final Transactions row =
+        Transactions()
+          ..transactionId = transaction.id
+          ..data = jsonEncode(transaction.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.transactions.put(row);
     });
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'transactions'
-      ..entityId = null
-      ..operation = 'CREATE'
-      ..data = jsonEncode(transaction.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = null
+          ..operation = 'CREATE'
+          ..data = jsonEncode(transaction.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -551,10 +601,11 @@ class TransactionRepository {
   Future<void> update(TransactionRead transaction) async {
     final DateTime now = _getNow();
 
-    final Transactions? existing = await isar.transactions
-        .filter()
-        .transactionIdEqualTo(transaction.id)
-        .findFirst();
+    final Transactions? existing =
+        await isar.transactions
+            .filter()
+            .transactionIdEqualTo(transaction.id)
+            .findFirst();
 
     if (existing != null) {
       existing
@@ -567,14 +618,15 @@ class TransactionRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'transactions'
-      ..entityId = transaction.id
-      ..operation = 'UPDATE'
-      ..data = jsonEncode(transaction.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = transaction.id
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(transaction.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -584,10 +636,8 @@ class TransactionRepository {
   Future<void> delete(String id) async {
     final DateTime now = _getNow();
 
-    final Transactions? existing = await isar.transactions
-        .filter()
-        .transactionIdEqualTo(id)
-        .findFirst();
+    final Transactions? existing =
+        await isar.transactions.filter().transactionIdEqualTo(id).findFirst();
 
     if (existing != null) {
       await isar.writeTxn(() async {
@@ -595,14 +645,15 @@ class TransactionRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'transactions'
-      ..entityId = id
-      ..operation = 'DELETE'
-      ..data = null
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = id
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -614,12 +665,13 @@ class TransactionRepository {
     final DateTime? updatedAt = transaction.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Transactions row = Transactions()
-      ..transactionId = transaction.id
-      ..data = jsonEncode(transaction.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = true;
+    final Transactions row =
+        Transactions()
+          ..transactionId = transaction.id
+          ..data = jsonEncode(transaction.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = true;
 
     await isar.writeTxn(() async {
       await isar.transactions.put(row);

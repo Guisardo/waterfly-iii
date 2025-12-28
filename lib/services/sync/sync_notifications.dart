@@ -31,20 +31,20 @@ final Logger log = Logger("SyncNotifications");
 class SyncNotifications {
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
-  
+
   SettingsProvider? _settingsProvider;
-  
+
   void setSettingsProvider(SettingsProvider? provider) {
     _settingsProvider = provider;
   }
-  
+
   // Get localized string based on current locale
   String _getLocalizedString(String Function(S) getter) {
     final Locale? locale = _settingsProvider?.locale;
     if (locale == null) {
       return getter(SEn('en'));
     }
-    
+
     // Map locale to appropriate S class
     final String langCode = locale.languageCode.toLowerCase();
     switch (langCode) {
@@ -108,8 +108,9 @@ class SyncNotifications {
   Future<void> initialize() async {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initSettings =
-        InitializationSettings(android: androidSettings);
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+    );
 
     await _notifications.initialize(
       initSettings,
@@ -118,32 +119,38 @@ class SyncNotifications {
   }
 
   Future<void> showSyncStarted() async {
-    final String channelName = _getLocalizedString((S l) => l.syncNotificationChannelName);
-    final String channelDesc = _getLocalizedString((S l) => l.syncNotificationChannelDescription);
-    
-    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'sync',
-      channelName,
-      channelDescription: channelDesc,
-      importance: Importance.low,
-      priority: Priority.low,
-      ongoing: true,
-      showProgress: true,
-      maxProgress: 100,
-      indeterminate: true,
+    final String channelName = _getLocalizedString(
+      (S l) => l.syncNotificationChannelName,
+    );
+    final String channelDesc = _getLocalizedString(
+      (S l) => l.syncNotificationChannelDescription,
     );
 
-    final NotificationDetails details = NotificationDetails(android: androidDetails);
+    final AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'sync',
+          channelName,
+          channelDescription: channelDesc,
+          importance: Importance.low,
+          priority: Priority.low,
+          ongoing: true,
+          showProgress: true,
+          maxProgress: 100,
+          indeterminate: true,
+        );
 
-    final String title = _getLocalizedString((S l) => l.syncNotificationSyncing);
-    final String body = _getLocalizedString((S l) => l.syncNotificationSyncingBody);
-    
-    await _notifications.show(
-      syncNotificationId,
-      title,
-      body,
-      details,
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails,
     );
+
+    final String title = _getLocalizedString(
+      (S l) => l.syncNotificationSyncing,
+    );
+    final String body = _getLocalizedString(
+      (S l) => l.syncNotificationSyncingBody,
+    );
+
+    await _notifications.show(syncNotificationId, title, body, details);
   }
 
   Future<void> showSyncProgress({
@@ -152,25 +159,34 @@ class SyncNotifications {
     required int total,
     String? message,
   }) async {
-    final String channelName = _getLocalizedString((S l) => l.syncNotificationChannelName);
-    final String channelDesc = _getLocalizedString((S l) => l.syncNotificationChannelDescription);
-    
-    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'sync',
-      channelName,
-      channelDescription: channelDesc,
-      importance: Importance.low,
-      priority: Priority.low,
-      ongoing: true,
-      showProgress: true,
-      maxProgress: total,
-      progress: current,
+    final String channelName = _getLocalizedString(
+      (S l) => l.syncNotificationChannelName,
+    );
+    final String channelDesc = _getLocalizedString(
+      (S l) => l.syncNotificationChannelDescription,
     );
 
-    final NotificationDetails details = NotificationDetails(android: androidDetails);
+    final AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'sync',
+          channelName,
+          channelDescription: channelDesc,
+          importance: Importance.low,
+          priority: Priority.low,
+          ongoing: true,
+          showProgress: true,
+          maxProgress: total,
+          progress: current,
+        );
 
-    final String title = _getLocalizedString((S l) => l.syncNotificationSyncingEntity(entityType));
-    
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+    );
+
+    final String title = _getLocalizedString(
+      (S l) => l.syncNotificationSyncingEntity(entityType),
+    );
+
     await _notifications.show(
       syncNotificationId,
       title,
@@ -182,76 +198,97 @@ class SyncNotifications {
   Future<void> showSyncCompleted() async {
     await _notifications.cancel(syncNotificationId);
 
-    final String channelName = _getLocalizedString((S l) => l.syncNotificationChannelName);
-    final String channelDesc = _getLocalizedString((S l) => l.syncNotificationChannelDescription);
-    
-    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'sync',
-      channelName,
-      channelDescription: channelDesc,
-      importance: Importance.low,
-      priority: Priority.low,
+    final String channelName = _getLocalizedString(
+      (S l) => l.syncNotificationChannelName,
+    );
+    final String channelDesc = _getLocalizedString(
+      (S l) => l.syncNotificationChannelDescription,
     );
 
-    final NotificationDetails details = NotificationDetails(android: androidDetails);
+    final AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'sync',
+          channelName,
+          channelDescription: channelDesc,
+          importance: Importance.low,
+          priority: Priority.low,
+        );
 
-    final String title = _getLocalizedString((S l) => l.syncNotificationCompleted);
-    final String body = _getLocalizedString((S l) => l.syncNotificationCompletedBody);
-    
-    await _notifications.show(
-      syncNotificationId,
-      title,
-      body,
-      details,
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails,
     );
+
+    final String title = _getLocalizedString(
+      (S l) => l.syncNotificationCompleted,
+    );
+    final String body = _getLocalizedString(
+      (S l) => l.syncNotificationCompletedBody,
+    );
+
+    await _notifications.show(syncNotificationId, title, body, details);
   }
 
   Future<void> showSyncPaused(String error) async {
     await _notifications.cancel(syncNotificationId);
 
-    final String channelName = _getLocalizedString((S l) => l.syncNotificationChannelName);
-    final String channelDesc = _getLocalizedString((S l) => l.syncNotificationChannelDescription);
-    
-    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'sync',
-      channelName,
-      channelDescription: channelDesc,
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
+    final String channelName = _getLocalizedString(
+      (S l) => l.syncNotificationChannelName,
+    );
+    final String channelDesc = _getLocalizedString(
+      (S l) => l.syncNotificationChannelDescription,
     );
 
-    final NotificationDetails details = NotificationDetails(android: androidDetails);
+    final AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'sync',
+          channelName,
+          channelDescription: channelDesc,
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        );
+
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+    );
 
     final String title = _getLocalizedString((S l) => l.syncNotificationPaused);
-    final String body = _getLocalizedString((S l) => l.syncNotificationPausedBody);
-    
-    await _notifications.show(
-      syncPausedNotificationId,
-      title,
-      body,
-      details,
+    final String body = _getLocalizedString(
+      (S l) => l.syncNotificationPausedBody,
     );
+
+    await _notifications.show(syncPausedNotificationId, title, body, details);
   }
 
   Future<void> showCredentialError() async {
     await _notifications.cancel(syncNotificationId);
 
-    final String channelName = _getLocalizedString((S l) => l.syncNotificationChannelName);
-    final String channelDesc = _getLocalizedString((S l) => l.syncNotificationChannelDescription);
-    
-    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'sync',
-      channelName,
-      channelDescription: channelDesc,
-      importance: Importance.high,
-      priority: Priority.high,
+    final String channelName = _getLocalizedString(
+      (S l) => l.syncNotificationChannelName,
+    );
+    final String channelDesc = _getLocalizedString(
+      (S l) => l.syncNotificationChannelDescription,
     );
 
-    final NotificationDetails details = NotificationDetails(android: androidDetails);
+    final AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'sync',
+          channelName,
+          channelDescription: channelDesc,
+          importance: Importance.high,
+          priority: Priority.high,
+        );
 
-    final String title = _getLocalizedString((S l) => l.syncNotificationAuthError);
-    final String body = _getLocalizedString((S l) => l.syncNotificationAuthErrorBody);
-    
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+    );
+
+    final String title = _getLocalizedString(
+      (S l) => l.syncNotificationAuthError,
+    );
+    final String body = _getLocalizedString(
+      (S l) => l.syncNotificationAuthErrorBody,
+    );
+
     await _notifications.show(
       credentialErrorNotificationId,
       title,
@@ -264,4 +301,3 @@ class SyncNotifications {
     await _notifications.cancelAll();
   }
 }
-

@@ -181,10 +181,8 @@ class _AutoCompleteTextState<T extends Object>
                         ),
                       ),
                     ),
-                  ),
-                ),
-            optionsBuilder: widget.optionsBuilder,
-          ),
+                optionsBuilder: widget.optionsBuilder,
+              ),
     );
   }
 }

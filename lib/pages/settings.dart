@@ -259,8 +259,9 @@ class SettingsPageState extends State<SettingsPage>
           ),
         if (Platform.isAndroid) const Divider(),
         OpenContainer(
-          openBuilder: (BuildContext context, Function closedContainer) =>
-              const SyncSettingsPage(),
+          openBuilder:
+              (BuildContext context, Function closedContainer) =>
+                  const SyncSettingsPage(),
           openColor: Theme.of(context).cardColor,
           closedColor: Theme.of(context).cardColor,
           closedElevation: 0,
@@ -268,9 +269,7 @@ class SettingsPageState extends State<SettingsPage>
               (BuildContext context, Function openContainer) => ListTile(
                 title: const Text('Synchronization'),
                 subtitle: const Text('Sync settings and status'),
-                leading: const CircleAvatar(
-                  child: Icon(Icons.sync),
-                ),
+                leading: const CircleAvatar(child: Icon(Icons.sync)),
                 onTap: () => openContainer(),
               ),
         ),

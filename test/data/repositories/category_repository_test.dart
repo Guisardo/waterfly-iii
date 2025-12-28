@@ -37,9 +37,7 @@ void main() {
       final CategoryRead category = CategoryRead(
         type: 'categories',
         id: 'test-1',
-        attributes: CategoryProperties(
-          name: 'Test Category',
-        ),
+        attributes: CategoryProperties(name: 'Test Category'),
       );
 
       await repository.create(category);
@@ -54,17 +52,13 @@ void main() {
       final CategoryRead category1 = CategoryRead(
         type: 'categories',
         id: 'test-2',
-        attributes: CategoryProperties(
-          name: 'Food',
-        ),
+        attributes: CategoryProperties(name: 'Food'),
       );
 
       final CategoryRead category2 = CategoryRead(
         type: 'categories',
         id: 'test-3',
-        attributes: CategoryProperties(
-          name: 'Transport',
-        ),
+        attributes: CategoryProperties(name: 'Transport'),
       );
 
       await repository.create(category1);
@@ -79,17 +73,13 @@ void main() {
       final CategoryRead category1 = CategoryRead(
         type: 'categories',
         id: 'test-4',
-        attributes: CategoryProperties(
-          name: 'Food & Dining',
-        ),
+        attributes: CategoryProperties(name: 'Food & Dining'),
       );
 
       final CategoryRead category2 = CategoryRead(
         type: 'categories',
         id: 'test-5',
-        attributes: CategoryProperties(
-          name: 'Transportation',
-        ),
+        attributes: CategoryProperties(name: 'Transportation'),
       );
 
       await repository.create(category1);
@@ -100,4 +90,3 @@ void main() {
     });
   });
 }
-

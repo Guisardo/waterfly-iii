@@ -29,33 +29,33 @@ T unsafeCast<T>(dynamic value) {
 // Mock Query for buildQuery
 class _MockQuery<T> implements Query<T> {
   final List<T> _data;
-  
+
   _MockQuery(this._data);
-  
+
   @override
   Future<List<T>> findAll() async => _data;
-  
+
   @override
   List<T> findAllSync() => _data;
-  
+
   @override
   Future<T?> findFirst() async => _data.isNotEmpty ? _data.first : null;
-  
+
   @override
   T? findFirstSync() => _data.isNotEmpty ? _data.first : null;
-  
+
   @override
   Future<int> count() async => _data.length;
-  
+
   @override
   int countSync() => _data.length;
-  
+
   @override
   Future<bool> isEmpty() async => _data.isEmpty;
-  
+
   @override
   bool isEmptySync() => _data.isEmpty;
-  
+
   @override
   dynamic noSuchMethod(Invocation invocation) {
     throw UnimplementedError('_MockQuery: ${invocation.memberName}');
@@ -78,43 +78,55 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
   final Map<String, Function(T, dynamic)> _fieldComparators;
   final IsarCollection<T>? _collection;
 
-  MockQueryBuilder(this._data, this._fieldComparators, [IsarCollection<T>? collection])
-      : _collection = collection,
-        super(
-          QueryBuilderInternal<T>(
-            collection: collection ?? _MockCollection<T>(),
-            whereClauses: const [],
-            whereDistinct: false,
-            whereSort: Sort.asc,
-            filter: const FilterGroup.and([]),
-            filterGroupType: FilterGroupType.and,
-            filterNot: false,
-            distinctByProperties: const [],
-            sortByProperties: const [],
-            offset: null,
-            limit: null,
-            propertyName: null,
-          ),
-        ) {}
+  MockQueryBuilder(
+    this._data,
+    this._fieldComparators, [
+    IsarCollection<T>? collection,
+  ]) : _collection = collection,
+       super(
+         QueryBuilderInternal<T>(
+           collection: collection ?? _MockCollection<T>(),
+           whereClauses: const [],
+           whereDistinct: false,
+           whereSort: Sort.asc,
+           filter: const FilterGroup.and([]),
+           filterGroupType: FilterGroupType.and,
+           filterNot: false,
+           distinctByProperties: const [],
+           sortByProperties: const [],
+           offset: null,
+           limit: null,
+           propertyName: null,
+         ),
+       ) {}
 
   QueryBuilder<T, T, QWhere> where() {
     // Use collection's data if available, otherwise use our _data
-    final List<T> dataToUse = _collection is MockIsarCollection<T>
-        ? _collection.data
-        : _data;
-    return MockQueryBuilder<T, QWhere>(dataToUse, _fieldComparators, _collection);
+    final List<T> dataToUse =
+        _collection is MockIsarCollection<T> ? _collection.data : _data;
+    return MockQueryBuilder<T, QWhere>(
+      dataToUse,
+      _fieldComparators,
+      _collection,
+    );
   }
 
   QueryBuilder<T, T, QFilterCondition> filter() {
     // Use collection's data if available, otherwise use our _data
-    final List<T> dataToUse = _collection is MockIsarCollection<T>
-        ? _collection.data
-        : _data;
-    return MockQueryBuilder<T, QFilterCondition>(dataToUse, _fieldComparators, _collection);
+    final List<T> dataToUse =
+        _collection is MockIsarCollection<T> ? _collection.data : _data;
+    return MockQueryBuilder<T, QFilterCondition>(
+      dataToUse,
+      _fieldComparators,
+      _collection,
+    );
   }
 
   // Field equality methods - dynamically handle any field
-  QueryBuilder<T, T, QFilterCondition> _applyFilter(String field, dynamic value) {
+  QueryBuilder<T, T, QFilterCondition> _applyFilter(
+    String field,
+    dynamic value,
+  ) {
     return MockQueryBuilder<T, QFilterCondition>(
       _data.where((item) {
         final comparator = _fieldComparators[field];
@@ -161,7 +173,8 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
     // Always use the collection's current data if available (it's a live reference)
     // _data is a reference to the collection's data list, but collection.data is always current
     if (_collection != null && _collection is MockIsarCollection) {
-      final MockIsarCollection<T> mockCollection = _collection as MockIsarCollection<T>;
+      final MockIsarCollection<T> mockCollection =
+          _collection as MockIsarCollection<T>;
       final List<T> collectionData = mockCollection.data;
       // Return _MockQuery with collection.data directly - this is the live reference
       return _MockQuery<T>(collectionData);
@@ -202,7 +215,7 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
     }
     return dataToUse.isNotEmpty ? dataToUse.first : null;
   }
-  
+
   List<T> findAllSync() {
     // Use EXACT same pattern as findFirstSync() which works
     // The only difference: return the whole list instead of first element
@@ -221,7 +234,7 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
     // Return the whole list (findFirstSync() returns dataToUse.isNotEmpty ? dataToUse.first : null)
     return dataToUse;
   }
-  
+
   T? findFirstSync() {
     List<T> dataToUse = _data;
     if (_collection != null) {
@@ -269,7 +282,8 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   String get name => T.toString();
 
   @override
-  CollectionSchema<T> get schema => throw UnimplementedError('Mock: schema not needed for tests');
+  CollectionSchema<T> get schema =>
+      throw UnimplementedError('Mock: schema not needed for tests');
 
   @override
   Future<Id> put(T object) async {
@@ -478,10 +492,14 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   int countSync() => data.length;
 
   @override
-  Future<int> getSize({bool includeIndexes = false, bool includeLinks = false}) async => data.length;
+  Future<int> getSize({
+    bool includeIndexes = false,
+    bool includeLinks = false,
+  }) async => data.length;
 
   @override
-  int getSizeSync({bool includeIndexes = false, bool includeLinks = false}) => data.length;
+  int getSizeSync({bool includeIndexes = false, bool includeLinks = false}) =>
+      data.length;
 
   // Stub implementations for unused methods
   @override
@@ -556,7 +574,11 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   }
 
   @override
-  List<Id> putAllByIndexSync(String indexName, List<T> objects, {bool saveLinks = true}) {
+  List<Id> putAllByIndexSync(
+    String indexName,
+    List<T> objects, {
+    bool saveLinks = true,
+  }) {
     return putAllSync(objects, saveLinks: saveLinks);
   }
 
@@ -636,55 +658,55 @@ class MockIsar implements Isar {
   final MockIsarCollection<SyncConflicts> syncConflicts;
 
   MockIsar()
-      : transactions = MockIsarCollection<Transactions>({
-          'transactionId': (t, v) => t.transactionId == v,
-        }, _TempIsar()),
-        accounts = MockIsarCollection<Accounts>({
-          'accountId': (t, v) => t.accountId == v,
-        }, _TempIsar()),
-        categories = MockIsarCollection<Categories>({
-          'categoryId': (t, v) => t.categoryId == v,
-        }, _TempIsar()),
-        tags = MockIsarCollection<Tags>({
-          'tagId': (t, v) => t.tagId == v,
-        }, _TempIsar()),
-        bills = MockIsarCollection<Bills>({
-          'billId': (t, v) => t.billId == v,
-        }, _TempIsar()),
-        budgets = MockIsarCollection<Budgets>({
-          'budgetId': (t, v) => t.budgetId == v,
-        }, _TempIsar()),
-        budgetLimits = MockIsarCollection<BudgetLimits>({
-          'budgetLimitId': (t, v) => t.budgetLimitId == v,
-        }, _TempIsar()),
-        currencies = MockIsarCollection<Currencies>({
-          'currencyId': (t, v) => t.currencyId == v,
-        }, _TempIsar()),
-        piggyBanks = MockIsarCollection<PiggyBanks>({
-          'piggyBankId': (t, v) => t.piggyBankId == v,
-        }, _TempIsar()),
-        attachments = MockIsarCollection<Attachments>({
-          'attachmentId': (t, v) => t.attachmentId == v,
-        }, _TempIsar()),
-        insights = MockIsarCollection<Insights>({
-          'insightType': (t, v) => t.insightType == v,
-          'insightSubtype': (t, v) => t.insightSubtype == v,
-          'startDate': (t, v) => t.startDate == v,
-          'endDate': (t, v) => t.endDate == v,
-          'stale': (t, v) => t.stale == v,
-        }, _TempIsar()),
-        syncMetadatas = MockIsarCollection<SyncMetadata>({
-          'entityType': (t, v) => t.entityType == v,
-        }, _TempIsar()),
-        pendingChanges = MockIsarCollection<PendingChanges>({
-          'entityType': (t, v) => t.entityType == v,
-          'entityId': (t, v) => t.entityId == v,
-          'operation': (t, v) => t.operation == v,
-        }, _TempIsar()),
-        syncConflicts = MockIsarCollection<SyncConflicts>({
-          'entityType': (t, v) => t.entityType == v,
-          'entityId': (t, v) => t.entityId == v,
-        }, _TempIsar());
+    : transactions = MockIsarCollection<Transactions>({
+        'transactionId': (t, v) => t.transactionId == v,
+      }, _TempIsar()),
+      accounts = MockIsarCollection<Accounts>({
+        'accountId': (t, v) => t.accountId == v,
+      }, _TempIsar()),
+      categories = MockIsarCollection<Categories>({
+        'categoryId': (t, v) => t.categoryId == v,
+      }, _TempIsar()),
+      tags = MockIsarCollection<Tags>({
+        'tagId': (t, v) => t.tagId == v,
+      }, _TempIsar()),
+      bills = MockIsarCollection<Bills>({
+        'billId': (t, v) => t.billId == v,
+      }, _TempIsar()),
+      budgets = MockIsarCollection<Budgets>({
+        'budgetId': (t, v) => t.budgetId == v,
+      }, _TempIsar()),
+      budgetLimits = MockIsarCollection<BudgetLimits>({
+        'budgetLimitId': (t, v) => t.budgetLimitId == v,
+      }, _TempIsar()),
+      currencies = MockIsarCollection<Currencies>({
+        'currencyId': (t, v) => t.currencyId == v,
+      }, _TempIsar()),
+      piggyBanks = MockIsarCollection<PiggyBanks>({
+        'piggyBankId': (t, v) => t.piggyBankId == v,
+      }, _TempIsar()),
+      attachments = MockIsarCollection<Attachments>({
+        'attachmentId': (t, v) => t.attachmentId == v,
+      }, _TempIsar()),
+      insights = MockIsarCollection<Insights>({
+        'insightType': (t, v) => t.insightType == v,
+        'insightSubtype': (t, v) => t.insightSubtype == v,
+        'startDate': (t, v) => t.startDate == v,
+        'endDate': (t, v) => t.endDate == v,
+        'stale': (t, v) => t.stale == v,
+      }, _TempIsar()),
+      syncMetadatas = MockIsarCollection<SyncMetadata>({
+        'entityType': (t, v) => t.entityType == v,
+      }, _TempIsar()),
+      pendingChanges = MockIsarCollection<PendingChanges>({
+        'entityType': (t, v) => t.entityType == v,
+        'entityId': (t, v) => t.entityId == v,
+        'operation': (t, v) => t.operation == v,
+      }, _TempIsar()),
+      syncConflicts = MockIsarCollection<SyncConflicts>({
+        'entityType': (t, v) => t.entityType == v,
+        'entityId': (t, v) => t.entityId == v,
+      }, _TempIsar());
 
   // Implement all required Isar interface methods
   @override
@@ -764,11 +786,16 @@ class MockIsar implements Isar {
 
   @override
   IsarCollection<dynamic>? getCollectionByNameInternal(String name) {
-    throw UnimplementedError('Mock: getCollectionByNameInternal not needed for tests');
+    throw UnimplementedError(
+      'Mock: getCollectionByNameInternal not needed for tests',
+    );
   }
 
   @override
-  Future<int> getSize({bool includeIndexes = false, bool includeLinks = false}) async {
+  Future<int> getSize({
+    bool includeIndexes = false,
+    bool includeLinks = false,
+  }) async {
     return 0;
   }
 
@@ -807,7 +834,10 @@ class MockIsar implements Isar {
   }
 
   @override
-  Future<T> writeTxn<T>(Future<T> Function() callback, {bool silent = false}) async {
+  Future<T> writeTxn<T>(
+    Future<T> Function() callback, {
+    bool silent = false,
+  }) async {
     return await callback();
   }
 
@@ -820,4 +850,3 @@ class MockIsar implements Isar {
     return await callback();
   }
 }
-

@@ -2,7 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart' as enums;
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart'
+    as enums;
 import '../../helpers/test_database.dart';
 
 void main() {
@@ -96,4 +97,3 @@ void main() {
     });
   });
 }
-
