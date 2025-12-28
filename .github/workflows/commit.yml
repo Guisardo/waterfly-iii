@@ -29,6 +29,11 @@ jobs:
         with:
           java-version: 17.x
 
+      # Generate code (Isar database, API clients, etc.)
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+        shell: bash
+
       # Check for any formatting issues in the code.
       - name: Check for any formatting issues
         run: dart format --set-exit-if-changed .
