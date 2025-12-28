@@ -1307,43 +1307,39 @@ extension $AutocompleteAccountExtension on AutocompleteAccount {
     return AutocompleteAccount(
       id: (id != null ? id.value : this.id),
       name: (name != null ? name.value : this.name),
-      nameWithBalance:
-          (nameWithBalance != null
-              ? nameWithBalance.value
-              : this.nameWithBalance),
+      nameWithBalance: (nameWithBalance != null
+          ? nameWithBalance.value
+          : this.nameWithBalance),
       active: (active != null ? active.value : this.active),
       type: (type != null ? type.value : this.type),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      accountCurrencyId:
-          (accountCurrencyId != null
-              ? accountCurrencyId.value
-              : this.accountCurrencyId),
-      accountCurrencyName:
-          (accountCurrencyName != null
-              ? accountCurrencyName.value
-              : this.accountCurrencyName),
-      accountCurrencyCode:
-          (accountCurrencyCode != null
-              ? accountCurrencyCode.value
-              : this.accountCurrencyCode),
-      accountCurrencySymbol:
-          (accountCurrencySymbol != null
-              ? accountCurrencySymbol.value
-              : this.accountCurrencySymbol),
-      accountCurrencyDecimalPlaces:
-          (accountCurrencyDecimalPlaces != null
-              ? accountCurrencyDecimalPlaces.value
-              : this.accountCurrencyDecimalPlaces),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      accountCurrencyId: (accountCurrencyId != null
+          ? accountCurrencyId.value
+          : this.accountCurrencyId),
+      accountCurrencyName: (accountCurrencyName != null
+          ? accountCurrencyName.value
+          : this.accountCurrencyName),
+      accountCurrencyCode: (accountCurrencyCode != null
+          ? accountCurrencyCode.value
+          : this.accountCurrencyCode),
+      accountCurrencySymbol: (accountCurrencySymbol != null
+          ? accountCurrencySymbol.value
+          : this.accountCurrencySymbol),
+      accountCurrencyDecimalPlaces: (accountCurrencyDecimalPlaces != null
+          ? accountCurrencyDecimalPlaces.value
+          : this.accountCurrencyDecimalPlaces),
     );
   }
 }
@@ -1533,8 +1529,9 @@ extension $AutocompleteCurrencyExtension on AutocompleteCurrency {
       name: (name != null ? name.value : this.name),
       code: (code != null ? code.value : this.code),
       symbol: (symbol != null ? symbol.value : this.symbol),
-      decimalPlaces:
-          (decimalPlaces != null ? decimalPlaces.value : this.decimalPlaces),
+      decimalPlaces: (decimalPlaces != null
+          ? decimalPlaces.value
+          : this.decimalPlaces),
     );
   }
 }
@@ -1600,8 +1597,9 @@ extension $AutocompleteCurrencyCodeExtension on AutocompleteCurrencyCode {
       name: (name != null ? name.value : this.name),
       code: (code != null ? code.value : this.code),
       symbol: (symbol != null ? symbol.value : this.symbol),
-      decimalPlaces:
-          (decimalPlaces != null ? decimalPlaces.value : this.decimalPlaces),
+      decimalPlaces: (decimalPlaces != null
+          ? decimalPlaces.value
+          : this.decimalPlaces),
     );
   }
 }
@@ -1739,22 +1737,24 @@ extension $AutocompletePiggyExtension on AutocompletePiggy {
       id: (id != null ? id.value : this.id),
       name: (name != null ? name.value : this.name),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      objectGroupId:
-          (objectGroupId != null ? objectGroupId.value : this.objectGroupId),
-      objectGroupTitle:
-          (objectGroupTitle != null
-              ? objectGroupTitle.value
-              : this.objectGroupTitle),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      objectGroupId: (objectGroupId != null
+          ? objectGroupId.value
+          : this.objectGroupId),
+      objectGroupTitle: (objectGroupTitle != null
+          ? objectGroupTitle.value
+          : this.objectGroupTitle),
     );
   }
 }
@@ -1843,25 +1843,25 @@ extension $AutocompletePiggyBalanceExtension on AutocompletePiggyBalance {
     return AutocompletePiggyBalance(
       id: (id != null ? id.value : this.id),
       name: (name != null ? name.value : this.name),
-      nameWithBalance:
-          (nameWithBalance != null
-              ? nameWithBalance.value
-              : this.nameWithBalance),
+      nameWithBalance: (nameWithBalance != null
+          ? nameWithBalance.value
+          : this.nameWithBalance),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      objectGroupId:
-          (objectGroupId != null ? objectGroupId.value : this.objectGroupId),
-      objectGroupTitle:
-          (objectGroupTitle != null
-              ? objectGroupTitle.value
-              : this.objectGroupTitle),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      objectGroupId: (objectGroupId != null
+          ? objectGroupId.value
+          : this.objectGroupId),
+      objectGroupTitle: (objectGroupTitle != null
+          ? objectGroupTitle.value
+          : this.objectGroupTitle),
     );
   }
 }
@@ -2143,10 +2143,9 @@ extension $AutocompleteTransactionExtension on AutocompleteTransaction {
   }) {
     return AutocompleteTransaction(
       id: (id != null ? id.value : this.id),
-      transactionGroupId:
-          (transactionGroupId != null
-              ? transactionGroupId.value
-              : this.transactionGroupId),
+      transactionGroupId: (transactionGroupId != null
+          ? transactionGroupId.value
+          : this.transactionGroupId),
       name: (name != null ? name.value : this.name),
       description: (description != null ? description.value : this.description),
     );
@@ -2205,10 +2204,9 @@ extension $AutocompleteTransactionIDExtension on AutocompleteTransactionID {
   }) {
     return AutocompleteTransactionID(
       id: (id != null ? id.value : this.id),
-      transactionGroupId:
-          (transactionGroupId != null
-              ? transactionGroupId.value
-              : this.transactionGroupId),
+      transactionGroupId: (transactionGroupId != null
+          ? transactionGroupId.value
+          : this.transactionGroupId),
       name: (name != null ? name.value : this.name),
       description: (description != null ? description.value : this.description),
     );
@@ -2446,36 +2444,33 @@ extension $ChartDataSetExtension on ChartDataSet {
     return ChartDataSet(
       label: (label != null ? label.value : this.label),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
       date: (date != null ? date.value : this.date),
       startDate: (startDate != null ? startDate.value : this.startDate),
       endDate: (endDate != null ? endDate.value : this.endDate),
@@ -2558,13 +2553,13 @@ extension $InsightGroupEntryExtension on InsightGroupEntry {
       id: (id != null ? id.value : this.id),
       name: (name != null ? name.value : this.name),
       difference: (difference != null ? difference.value : this.difference),
-      differenceFloat:
-          (differenceFloat != null
-              ? differenceFloat.value
-              : this.differenceFloat),
+      differenceFloat: (differenceFloat != null
+          ? differenceFloat.value
+          : this.differenceFloat),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
     );
   }
 }
@@ -2623,13 +2618,13 @@ extension $InsightTotalEntryExtension on InsightTotalEntry {
   }) {
     return InsightTotalEntry(
       difference: (difference != null ? difference.value : this.difference),
-      differenceFloat:
-          (differenceFloat != null
-              ? differenceFloat.value
-              : this.differenceFloat),
+      differenceFloat: (differenceFloat != null
+          ? differenceFloat.value
+          : this.differenceFloat),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
     );
   }
 }
@@ -2726,17 +2721,17 @@ extension $InsightTransferEntryExtension on InsightTransferEntry {
       id: (id != null ? id.value : this.id),
       name: (name != null ? name.value : this.name),
       difference: (difference != null ? difference.value : this.difference),
-      differenceFloat:
-          (differenceFloat != null
-              ? differenceFloat.value
-              : this.differenceFloat),
+      differenceFloat: (differenceFloat != null
+          ? differenceFloat.value
+          : this.differenceFloat),
       $in: ($in != null ? $in.value : this.$in),
       inFloat: (inFloat != null ? inFloat.value : this.inFloat),
       out: (out != null ? out.value : this.out),
       outFloat: (outFloat != null ? outFloat.value : this.outFloat),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
     );
   }
 }
@@ -4502,117 +4497,111 @@ extension $AccountPropertiesExtension on AccountProperties {
       name: (name != null ? name.value : this.name),
       type: (type != null ? type.value : this.type),
       accountRole: (accountRole != null ? accountRole.value : this.accountRole),
-      objectGroupId:
-          (objectGroupId != null ? objectGroupId.value : this.objectGroupId),
-      objectGroupOrder:
-          (objectGroupOrder != null
-              ? objectGroupOrder.value
-              : this.objectGroupOrder),
-      objectGroupTitle:
-          (objectGroupTitle != null
-              ? objectGroupTitle.value
-              : this.objectGroupTitle),
-      objectHasCurrencySetting:
-          (objectHasCurrencySetting != null
-              ? objectHasCurrencySetting.value
-              : this.objectHasCurrencySetting),
+      objectGroupId: (objectGroupId != null
+          ? objectGroupId.value
+          : this.objectGroupId),
+      objectGroupOrder: (objectGroupOrder != null
+          ? objectGroupOrder.value
+          : this.objectGroupOrder),
+      objectGroupTitle: (objectGroupTitle != null
+          ? objectGroupTitle.value
+          : this.objectGroupTitle),
+      objectHasCurrencySetting: (objectHasCurrencySetting != null
+          ? objectHasCurrencySetting.value
+          : this.objectHasCurrencySetting),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
-      currentBalance:
-          (currentBalance != null ? currentBalance.value : this.currentBalance),
-      pcCurrentBalance:
-          (pcCurrentBalance != null
-              ? pcCurrentBalance.value
-              : this.pcCurrentBalance),
-      balanceDifference:
-          (balanceDifference != null
-              ? balanceDifference.value
-              : this.balanceDifference),
-      pcBalanceDifference:
-          (pcBalanceDifference != null
-              ? pcBalanceDifference.value
-              : this.pcBalanceDifference),
-      openingBalance:
-          (openingBalance != null ? openingBalance.value : this.openingBalance),
-      pcOpeningBalance:
-          (pcOpeningBalance != null
-              ? pcOpeningBalance.value
-              : this.pcOpeningBalance),
-      virtualBalance:
-          (virtualBalance != null ? virtualBalance.value : this.virtualBalance),
-      pcVirtualBalance:
-          (pcVirtualBalance != null
-              ? pcVirtualBalance.value
-              : this.pcVirtualBalance),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
+      currentBalance: (currentBalance != null
+          ? currentBalance.value
+          : this.currentBalance),
+      pcCurrentBalance: (pcCurrentBalance != null
+          ? pcCurrentBalance.value
+          : this.pcCurrentBalance),
+      balanceDifference: (balanceDifference != null
+          ? balanceDifference.value
+          : this.balanceDifference),
+      pcBalanceDifference: (pcBalanceDifference != null
+          ? pcBalanceDifference.value
+          : this.pcBalanceDifference),
+      openingBalance: (openingBalance != null
+          ? openingBalance.value
+          : this.openingBalance),
+      pcOpeningBalance: (pcOpeningBalance != null
+          ? pcOpeningBalance.value
+          : this.pcOpeningBalance),
+      virtualBalance: (virtualBalance != null
+          ? virtualBalance.value
+          : this.virtualBalance),
+      pcVirtualBalance: (pcVirtualBalance != null
+          ? pcVirtualBalance.value
+          : this.pcVirtualBalance),
       debtAmount: (debtAmount != null ? debtAmount.value : this.debtAmount),
-      pcDebtAmount:
-          (pcDebtAmount != null ? pcDebtAmount.value : this.pcDebtAmount),
-      currentBalanceDate:
-          (currentBalanceDate != null
-              ? currentBalanceDate.value
-              : this.currentBalanceDate),
+      pcDebtAmount: (pcDebtAmount != null
+          ? pcDebtAmount.value
+          : this.pcDebtAmount),
+      currentBalanceDate: (currentBalanceDate != null
+          ? currentBalanceDate.value
+          : this.currentBalanceDate),
       notes: (notes != null ? notes.value : this.notes),
-      monthlyPaymentDate:
-          (monthlyPaymentDate != null
-              ? monthlyPaymentDate.value
-              : this.monthlyPaymentDate),
-      creditCardType:
-          (creditCardType != null ? creditCardType.value : this.creditCardType),
-      accountNumber:
-          (accountNumber != null ? accountNumber.value : this.accountNumber),
+      monthlyPaymentDate: (monthlyPaymentDate != null
+          ? monthlyPaymentDate.value
+          : this.monthlyPaymentDate),
+      creditCardType: (creditCardType != null
+          ? creditCardType.value
+          : this.creditCardType),
+      accountNumber: (accountNumber != null
+          ? accountNumber.value
+          : this.accountNumber),
       iban: (iban != null ? iban.value : this.iban),
       bic: (bic != null ? bic.value : this.bic),
-      openingBalanceDate:
-          (openingBalanceDate != null
-              ? openingBalanceDate.value
-              : this.openingBalanceDate),
-      liabilityType:
-          (liabilityType != null ? liabilityType.value : this.liabilityType),
-      liabilityDirection:
-          (liabilityDirection != null
-              ? liabilityDirection.value
-              : this.liabilityDirection),
+      openingBalanceDate: (openingBalanceDate != null
+          ? openingBalanceDate.value
+          : this.openingBalanceDate),
+      liabilityType: (liabilityType != null
+          ? liabilityType.value
+          : this.liabilityType),
+      liabilityDirection: (liabilityDirection != null
+          ? liabilityDirection.value
+          : this.liabilityDirection),
       interest: (interest != null ? interest.value : this.interest),
-      interestPeriod:
-          (interestPeriod != null ? interestPeriod.value : this.interestPeriod),
-      includeNetWorth:
-          (includeNetWorth != null
-              ? includeNetWorth.value
-              : this.includeNetWorth),
+      interestPeriod: (interestPeriod != null
+          ? interestPeriod.value
+          : this.interestPeriod),
+      includeNetWorth: (includeNetWorth != null
+          ? includeNetWorth.value
+          : this.includeNetWorth),
       longitude: (longitude != null ? longitude.value : this.longitude),
       latitude: (latitude != null ? latitude.value : this.latitude),
       zoomLevel: (zoomLevel != null ? zoomLevel.value : this.zoomLevel),
-      lastActivity:
-          (lastActivity != null ? lastActivity.value : this.lastActivity),
+      lastActivity: (lastActivity != null
+          ? lastActivity.value
+          : this.lastActivity),
     );
   }
 }
@@ -4902,41 +4891,44 @@ extension $AccountStoreExtension on AccountStore {
       type: (type != null ? type.value : this.type),
       iban: (iban != null ? iban.value : this.iban),
       bic: (bic != null ? bic.value : this.bic),
-      accountNumber:
-          (accountNumber != null ? accountNumber.value : this.accountNumber),
-      openingBalance:
-          (openingBalance != null ? openingBalance.value : this.openingBalance),
-      openingBalanceDate:
-          (openingBalanceDate != null
-              ? openingBalanceDate.value
-              : this.openingBalanceDate),
-      virtualBalance:
-          (virtualBalance != null ? virtualBalance.value : this.virtualBalance),
+      accountNumber: (accountNumber != null
+          ? accountNumber.value
+          : this.accountNumber),
+      openingBalance: (openingBalance != null
+          ? openingBalance.value
+          : this.openingBalance),
+      openingBalanceDate: (openingBalanceDate != null
+          ? openingBalanceDate.value
+          : this.openingBalanceDate),
+      virtualBalance: (virtualBalance != null
+          ? virtualBalance.value
+          : this.virtualBalance),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
       active: (active != null ? active.value : this.active),
       order: (order != null ? order.value : this.order),
-      includeNetWorth:
-          (includeNetWorth != null
-              ? includeNetWorth.value
-              : this.includeNetWorth),
+      includeNetWorth: (includeNetWorth != null
+          ? includeNetWorth.value
+          : this.includeNetWorth),
       accountRole: (accountRole != null ? accountRole.value : this.accountRole),
-      creditCardType:
-          (creditCardType != null ? creditCardType.value : this.creditCardType),
-      monthlyPaymentDate:
-          (monthlyPaymentDate != null
-              ? monthlyPaymentDate.value
-              : this.monthlyPaymentDate),
-      liabilityType:
-          (liabilityType != null ? liabilityType.value : this.liabilityType),
-      liabilityDirection:
-          (liabilityDirection != null
-              ? liabilityDirection.value
-              : this.liabilityDirection),
+      creditCardType: (creditCardType != null
+          ? creditCardType.value
+          : this.creditCardType),
+      monthlyPaymentDate: (monthlyPaymentDate != null
+          ? monthlyPaymentDate.value
+          : this.monthlyPaymentDate),
+      liabilityType: (liabilityType != null
+          ? liabilityType.value
+          : this.liabilityType),
+      liabilityDirection: (liabilityDirection != null
+          ? liabilityDirection.value
+          : this.liabilityDirection),
       interest: (interest != null ? interest.value : this.interest),
-      interestPeriod:
-          (interestPeriod != null ? interestPeriod.value : this.interestPeriod),
+      interestPeriod: (interestPeriod != null
+          ? interestPeriod.value
+          : this.interestPeriod),
       notes: (notes != null ? notes.value : this.notes),
       latitude: (latitude != null ? latitude.value : this.latitude),
       longitude: (longitude != null ? longitude.value : this.longitude),
@@ -5127,37 +5119,41 @@ extension $AccountUpdateExtension on AccountUpdate {
       name: (name != null ? name.value : this.name),
       iban: (iban != null ? iban.value : this.iban),
       bic: (bic != null ? bic.value : this.bic),
-      accountNumber:
-          (accountNumber != null ? accountNumber.value : this.accountNumber),
-      openingBalance:
-          (openingBalance != null ? openingBalance.value : this.openingBalance),
-      openingBalanceDate:
-          (openingBalanceDate != null
-              ? openingBalanceDate.value
-              : this.openingBalanceDate),
-      virtualBalance:
-          (virtualBalance != null ? virtualBalance.value : this.virtualBalance),
+      accountNumber: (accountNumber != null
+          ? accountNumber.value
+          : this.accountNumber),
+      openingBalance: (openingBalance != null
+          ? openingBalance.value
+          : this.openingBalance),
+      openingBalanceDate: (openingBalanceDate != null
+          ? openingBalanceDate.value
+          : this.openingBalanceDate),
+      virtualBalance: (virtualBalance != null
+          ? virtualBalance.value
+          : this.virtualBalance),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
       active: (active != null ? active.value : this.active),
       order: (order != null ? order.value : this.order),
-      includeNetWorth:
-          (includeNetWorth != null
-              ? includeNetWorth.value
-              : this.includeNetWorth),
+      includeNetWorth: (includeNetWorth != null
+          ? includeNetWorth.value
+          : this.includeNetWorth),
       accountRole: (accountRole != null ? accountRole.value : this.accountRole),
-      creditCardType:
-          (creditCardType != null ? creditCardType.value : this.creditCardType),
-      monthlyPaymentDate:
-          (monthlyPaymentDate != null
-              ? monthlyPaymentDate.value
-              : this.monthlyPaymentDate),
-      liabilityType:
-          (liabilityType != null ? liabilityType.value : this.liabilityType),
+      creditCardType: (creditCardType != null
+          ? creditCardType.value
+          : this.creditCardType),
+      monthlyPaymentDate: (monthlyPaymentDate != null
+          ? monthlyPaymentDate.value
+          : this.monthlyPaymentDate),
+      liabilityType: (liabilityType != null
+          ? liabilityType.value
+          : this.liabilityType),
       interest: (interest != null ? interest.value : this.interest),
-      interestPeriod:
-          (interestPeriod != null ? interestPeriod.value : this.interestPeriod),
+      interestPeriod: (interestPeriod != null
+          ? interestPeriod.value
+          : this.interestPeriod),
       notes: (notes != null ? notes.value : this.notes),
       latitude: (latitude != null ? latitude.value : this.latitude),
       longitude: (longitude != null ? longitude.value : this.longitude),
@@ -5226,14 +5222,15 @@ extension $ArrayEntryWithCurrencyAndSumExtension
   }) {
     return ArrayEntryWithCurrencyAndSum(
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
       sum: (sum != null ? sum.value : this.sum),
     );
   }
@@ -5345,10 +5342,12 @@ extension $AttachmentPropertiesExtension on AttachmentProperties {
     return AttachmentProperties(
       createdAt: (createdAt != null ? createdAt.value : this.createdAt),
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
-      attachableType:
-          (attachableType != null ? attachableType.value : this.attachableType),
-      attachableId:
-          (attachableId != null ? attachableId.value : this.attachableId),
+      attachableType: (attachableType != null
+          ? attachableType.value
+          : this.attachableType),
+      attachableId: (attachableId != null
+          ? attachableId.value
+          : this.attachableId),
       hash: (hash != null ? hash.value : this.hash),
       filename: (filename != null ? filename.value : this.filename),
       downloadUrl: (downloadUrl != null ? downloadUrl.value : this.downloadUrl),
@@ -5511,10 +5510,12 @@ extension $AttachmentStoreExtension on AttachmentStore {
   }) {
     return AttachmentStore(
       filename: (filename != null ? filename.value : this.filename),
-      attachableType:
-          (attachableType != null ? attachableType.value : this.attachableType),
-      attachableId:
-          (attachableId != null ? attachableId.value : this.attachableId),
+      attachableType: (attachableType != null
+          ? attachableType.value
+          : this.attachableType),
+      attachableId: (attachableId != null
+          ? attachableId.value
+          : this.attachableId),
       title: (title != null ? title.value : this.title),
       notes: (notes != null ? notes.value : this.notes),
     );
@@ -5741,59 +5742,53 @@ extension $AvailableBudgetPropertiesExtension on AvailableBudgetProperties {
     return AvailableBudgetProperties(
       createdAt: (createdAt != null ? createdAt.value : this.createdAt),
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
-      objectHasCurrencySetting:
-          (objectHasCurrencySetting != null
-              ? objectHasCurrencySetting.value
-              : this.objectHasCurrencySetting),
+      objectHasCurrencySetting: (objectHasCurrencySetting != null
+          ? objectHasCurrencySetting.value
+          : this.objectHasCurrencySetting),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
       amount: (amount != null ? amount.value : this.amount),
       pcAmount: (pcAmount != null ? pcAmount.value : this.pcAmount),
       start: (start != null ? start.value : this.start),
       end: (end != null ? end.value : this.end),
-      spentInBudgets:
-          (spentInBudgets != null ? spentInBudgets.value : this.spentInBudgets),
-      pcSpentInBudgets:
-          (pcSpentInBudgets != null
-              ? pcSpentInBudgets.value
-              : this.pcSpentInBudgets),
-      spentOutsideBudgets:
-          (spentOutsideBudgets != null
-              ? spentOutsideBudgets.value
-              : this.spentOutsideBudgets),
-      pcSpentOutsideBudgets:
-          (pcSpentOutsideBudgets != null
-              ? pcSpentOutsideBudgets.value
-              : this.pcSpentOutsideBudgets),
+      spentInBudgets: (spentInBudgets != null
+          ? spentInBudgets.value
+          : this.spentInBudgets),
+      pcSpentInBudgets: (pcSpentInBudgets != null
+          ? pcSpentInBudgets.value
+          : this.pcSpentInBudgets),
+      spentOutsideBudgets: (spentOutsideBudgets != null
+          ? spentOutsideBudgets.value
+          : this.spentOutsideBudgets),
+      pcSpentOutsideBudgets: (pcSpentOutsideBudgets != null
+          ? pcSpentOutsideBudgets.value
+          : this.pcSpentOutsideBudgets),
     );
   }
 }
@@ -6128,41 +6123,37 @@ extension $BillPropertiesExtension on BillProperties {
       createdAt: (createdAt != null ? createdAt.value : this.createdAt),
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
       name: (name != null ? name.value : this.name),
-      objectHasCurrencySetting:
-          (objectHasCurrencySetting != null
-              ? objectHasCurrencySetting.value
-              : this.objectHasCurrencySetting),
+      objectHasCurrencySetting: (objectHasCurrencySetting != null
+          ? objectHasCurrencySetting.value
+          : this.objectHasCurrencySetting),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
       amountMin: (amountMin != null ? amountMin.value : this.amountMin),
       pcAmountMin: (pcAmountMin != null ? pcAmountMin.value : this.pcAmountMin),
       amountMax: (amountMax != null ? amountMax.value : this.amountMax),
@@ -6171,33 +6162,31 @@ extension $BillPropertiesExtension on BillProperties {
       pcAmountAvg: (pcAmountAvg != null ? pcAmountAvg.value : this.pcAmountAvg),
       date: (date != null ? date.value : this.date),
       endDate: (endDate != null ? endDate.value : this.endDate),
-      extensionDate:
-          (extensionDate != null ? extensionDate.value : this.extensionDate),
+      extensionDate: (extensionDate != null
+          ? extensionDate.value
+          : this.extensionDate),
       repeatFreq: (repeatFreq != null ? repeatFreq.value : this.repeatFreq),
       skip: (skip != null ? skip.value : this.skip),
       active: (active != null ? active.value : this.active),
       order: (order != null ? order.value : this.order),
       notes: (notes != null ? notes.value : this.notes),
-      objectGroupId:
-          (objectGroupId != null ? objectGroupId.value : this.objectGroupId),
-      objectGroupOrder:
-          (objectGroupOrder != null
-              ? objectGroupOrder.value
-              : this.objectGroupOrder),
-      objectGroupTitle:
-          (objectGroupTitle != null
-              ? objectGroupTitle.value
-              : this.objectGroupTitle),
+      objectGroupId: (objectGroupId != null
+          ? objectGroupId.value
+          : this.objectGroupId),
+      objectGroupOrder: (objectGroupOrder != null
+          ? objectGroupOrder.value
+          : this.objectGroupOrder),
+      objectGroupTitle: (objectGroupTitle != null
+          ? objectGroupTitle.value
+          : this.objectGroupTitle),
       paidDates: (paidDates != null ? paidDates.value : this.paidDates),
       payDates: (payDates != null ? payDates.value : this.payDates),
-      nextExpectedMatch:
-          (nextExpectedMatch != null
-              ? nextExpectedMatch.value
-              : this.nextExpectedMatch),
-      nextExpectedMatchDiff:
-          (nextExpectedMatchDiff != null
-              ? nextExpectedMatchDiff.value
-              : this.nextExpectedMatchDiff),
+      nextExpectedMatch: (nextExpectedMatch != null
+          ? nextExpectedMatch.value
+          : this.nextExpectedMatch),
+      nextExpectedMatchDiff: (nextExpectedMatchDiff != null
+          ? nextExpectedMatchDiff.value
+          : this.nextExpectedMatchDiff),
     );
   }
 }
@@ -6395,25 +6384,27 @@ extension $BillStoreExtension on BillStore {
   }) {
     return BillStore(
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
       name: (name != null ? name.value : this.name),
       amountMin: (amountMin != null ? amountMin.value : this.amountMin),
       amountMax: (amountMax != null ? amountMax.value : this.amountMax),
       date: (date != null ? date.value : this.date),
       endDate: (endDate != null ? endDate.value : this.endDate),
-      extensionDate:
-          (extensionDate != null ? extensionDate.value : this.extensionDate),
+      extensionDate: (extensionDate != null
+          ? extensionDate.value
+          : this.extensionDate),
       repeatFreq: (repeatFreq != null ? repeatFreq.value : this.repeatFreq),
       skip: (skip != null ? skip.value : this.skip),
       active: (active != null ? active.value : this.active),
       notes: (notes != null ? notes.value : this.notes),
-      objectGroupId:
-          (objectGroupId != null ? objectGroupId.value : this.objectGroupId),
-      objectGroupTitle:
-          (objectGroupTitle != null
-              ? objectGroupTitle.value
-              : this.objectGroupTitle),
+      objectGroupId: (objectGroupId != null
+          ? objectGroupId.value
+          : this.objectGroupId),
+      objectGroupTitle: (objectGroupTitle != null
+          ? objectGroupTitle.value
+          : this.objectGroupTitle),
     );
   }
 }
@@ -6535,25 +6526,27 @@ extension $BillUpdateExtension on BillUpdate {
   }) {
     return BillUpdate(
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
       name: (name != null ? name.value : this.name),
       amountMin: (amountMin != null ? amountMin.value : this.amountMin),
       amountMax: (amountMax != null ? amountMax.value : this.amountMax),
       date: (date != null ? date.value : this.date),
       endDate: (endDate != null ? endDate.value : this.endDate),
-      extensionDate:
-          (extensionDate != null ? extensionDate.value : this.extensionDate),
+      extensionDate: (extensionDate != null
+          ? extensionDate.value
+          : this.extensionDate),
       repeatFreq: (repeatFreq != null ? repeatFreq.value : this.repeatFreq),
       skip: (skip != null ? skip.value : this.skip),
       active: (active != null ? active.value : this.active),
       notes: (notes != null ? notes.value : this.notes),
-      objectGroupId:
-          (objectGroupId != null ? objectGroupId.value : this.objectGroupId),
-      objectGroupTitle:
-          (objectGroupTitle != null
-              ? objectGroupTitle.value
-              : this.objectGroupTitle),
+      objectGroupId: (objectGroupId != null
+          ? objectGroupId.value
+          : this.objectGroupId),
+      objectGroupTitle: (objectGroupTitle != null
+          ? objectGroupTitle.value
+          : this.objectGroupTitle),
     );
   }
 }
@@ -6769,65 +6762,58 @@ extension $BudgetPropertiesExtension on BudgetProperties {
       name: (name != null ? name.value : this.name),
       order: (order != null ? order.value : this.order),
       notes: (notes != null ? notes.value : this.notes),
-      autoBudgetType:
-          (autoBudgetType != null ? autoBudgetType.value : this.autoBudgetType),
-      autoBudgetPeriod:
-          (autoBudgetPeriod != null
-              ? autoBudgetPeriod.value
-              : this.autoBudgetPeriod),
-      objectGroupId:
-          (objectGroupId != null ? objectGroupId.value : this.objectGroupId),
-      objectGroupOrder:
-          (objectGroupOrder != null
-              ? objectGroupOrder.value
-              : this.objectGroupOrder),
-      objectGroupTitle:
-          (objectGroupTitle != null
-              ? objectGroupTitle.value
-              : this.objectGroupTitle),
-      objectHasCurrencySetting:
-          (objectHasCurrencySetting != null
-              ? objectHasCurrencySetting.value
-              : this.objectHasCurrencySetting),
+      autoBudgetType: (autoBudgetType != null
+          ? autoBudgetType.value
+          : this.autoBudgetType),
+      autoBudgetPeriod: (autoBudgetPeriod != null
+          ? autoBudgetPeriod.value
+          : this.autoBudgetPeriod),
+      objectGroupId: (objectGroupId != null
+          ? objectGroupId.value
+          : this.objectGroupId),
+      objectGroupOrder: (objectGroupOrder != null
+          ? objectGroupOrder.value
+          : this.objectGroupOrder),
+      objectGroupTitle: (objectGroupTitle != null
+          ? objectGroupTitle.value
+          : this.objectGroupTitle),
+      objectHasCurrencySetting: (objectHasCurrencySetting != null
+          ? objectHasCurrencySetting.value
+          : this.objectHasCurrencySetting),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
-      autoBudgetAmount:
-          (autoBudgetAmount != null
-              ? autoBudgetAmount.value
-              : this.autoBudgetAmount),
-      pcAutoBudgetAmount:
-          (pcAutoBudgetAmount != null
-              ? pcAutoBudgetAmount.value
-              : this.pcAutoBudgetAmount),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
+      autoBudgetAmount: (autoBudgetAmount != null
+          ? autoBudgetAmount.value
+          : this.autoBudgetAmount),
+      pcAutoBudgetAmount: (pcAutoBudgetAmount != null
+          ? pcAutoBudgetAmount.value
+          : this.pcAutoBudgetAmount),
       spent: (spent != null ? spent.value : this.spent),
       pcSpent: (pcSpent != null ? pcSpent.value : this.pcSpent),
     );
@@ -7016,9 +7002,6 @@ extension $BudgetStoreExtension on BudgetStore {
       active: (active != null ? active.value : this.active),
       order: (order != null ? order.value : this.order),
       notes: (notes != null ? notes.value : this.notes),
-      fireWebhooks: (fireWebhooks != null
-          ? fireWebhooks.value
-          : this.fireWebhooks),
       autoBudgetType: (autoBudgetType != null
           ? autoBudgetType.value
           : this.autoBudgetType),
@@ -7140,9 +7123,6 @@ extension $BudgetUpdateExtension on BudgetUpdate {
       active: (active != null ? active.value : this.active),
       order: (order != null ? order.value : this.order),
       notes: (notes != null ? notes.value : this.notes),
-      fireWebhooks: (fireWebhooks != null
-          ? fireWebhooks.value
-          : this.fireWebhooks),
       autoBudgetType: (autoBudgetType != null
           ? autoBudgetType.value
           : this.autoBudgetType),
@@ -7338,41 +7318,37 @@ extension $BudgetLimitPropertiesExtension on BudgetLimitProperties {
       start: (start != null ? start.value : this.start),
       end: (end != null ? end.value : this.end),
       budgetId: (budgetId != null ? budgetId.value : this.budgetId),
-      objectHasCurrencySetting:
-          (objectHasCurrencySetting != null
-              ? objectHasCurrencySetting.value
-              : this.objectHasCurrencySetting),
+      objectHasCurrencySetting: (objectHasCurrencySetting != null
+          ? objectHasCurrencySetting.value
+          : this.objectHasCurrencySetting),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
       amount: (amount != null ? amount.value : this.amount),
       pcAmount: (pcAmount != null ? pcAmount.value : this.pcAmount),
       period: (period != null ? period.value : this.period),
@@ -7545,8 +7521,9 @@ extension $BudgetLimitStoreExtension on BudgetLimitStore {
   }) {
     return BudgetLimitStore(
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
       budgetId: (budgetId != null ? budgetId.value : this.budgetId),
       start: (start != null ? start.value : this.start),
       period: (period != null ? period.value : this.period),
@@ -7728,41 +7705,37 @@ extension $BudgetLimitUpdateExtension on BudgetLimitUpdate {
       start: (start != null ? start.value : this.start),
       end: (end != null ? end.value : this.end),
       budgetId: (budgetId != null ? budgetId.value : this.budgetId),
-      objectHasCurrencySetting:
-          (objectHasCurrencySetting != null
-              ? objectHasCurrencySetting.value
-              : this.objectHasCurrencySetting),
+      objectHasCurrencySetting: (objectHasCurrencySetting != null
+          ? objectHasCurrencySetting.value
+          : this.objectHasCurrencySetting),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
       period: (period != null ? period.value : this.period),
       amount: (amount != null ? amount.value : this.amount),
       pcAmount: (pcAmount != null ? pcAmount.value : this.pcAmount),
@@ -7929,37 +7902,32 @@ extension $CategoryPropertiesExtension on CategoryProperties {
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
       name: (name != null ? name.value : this.name),
       notes: (notes != null ? notes.value : this.notes),
-      objectHasCurrencySetting:
-          (objectHasCurrencySetting != null
-              ? objectHasCurrencySetting.value
-              : this.objectHasCurrencySetting),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
+      objectHasCurrencySetting: (objectHasCurrencySetting != null
+          ? objectHasCurrencySetting.value
+          : this.objectHasCurrencySetting),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
       spent: (spent != null ? spent.value : this.spent),
       pcSpent: (pcSpent != null ? pcSpent.value : this.pcSpent),
       earned: (earned != null ? earned.value : this.earned),
       pcEarned: (pcEarned != null ? pcEarned.value : this.pcEarned),
       transferred: (transferred != null ? transferred.value : this.transferred),
-      pcTransferred:
-          (pcTransferred != null ? pcTransferred.value : this.pcTransferred),
+      pcTransferred: (pcTransferred != null
+          ? pcTransferred.value
+          : this.pcTransferred),
     );
   }
 }
@@ -8151,38 +8119,36 @@ extension $CurrencyExchangePropertiesExtension on CurrencyExchangeProperties {
     return CurrencyExchangeProperties(
       createdAt: (createdAt != null ? createdAt.value : this.createdAt),
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
-      fromCurrencyId:
-          (fromCurrencyId != null ? fromCurrencyId.value : this.fromCurrencyId),
-      fromCurrencyName:
-          (fromCurrencyName != null
-              ? fromCurrencyName.value
-              : this.fromCurrencyName),
-      fromCurrencyCode:
-          (fromCurrencyCode != null
-              ? fromCurrencyCode.value
-              : this.fromCurrencyCode),
-      fromCurrencySymbol:
-          (fromCurrencySymbol != null
-              ? fromCurrencySymbol.value
-              : this.fromCurrencySymbol),
-      fromCurrencyDecimalPlaces:
-          (fromCurrencyDecimalPlaces != null
-              ? fromCurrencyDecimalPlaces.value
-              : this.fromCurrencyDecimalPlaces),
-      toCurrencyId:
-          (toCurrencyId != null ? toCurrencyId.value : this.toCurrencyId),
-      toCurrencyName:
-          (toCurrencyName != null ? toCurrencyName.value : this.toCurrencyName),
-      toCurrencyCode:
-          (toCurrencyCode != null ? toCurrencyCode.value : this.toCurrencyCode),
-      toCurrencySymbol:
-          (toCurrencySymbol != null
-              ? toCurrencySymbol.value
-              : this.toCurrencySymbol),
-      toCurrencyDecimalPlaces:
-          (toCurrencyDecimalPlaces != null
-              ? toCurrencyDecimalPlaces.value
-              : this.toCurrencyDecimalPlaces),
+      fromCurrencyId: (fromCurrencyId != null
+          ? fromCurrencyId.value
+          : this.fromCurrencyId),
+      fromCurrencyName: (fromCurrencyName != null
+          ? fromCurrencyName.value
+          : this.fromCurrencyName),
+      fromCurrencyCode: (fromCurrencyCode != null
+          ? fromCurrencyCode.value
+          : this.fromCurrencyCode),
+      fromCurrencySymbol: (fromCurrencySymbol != null
+          ? fromCurrencySymbol.value
+          : this.fromCurrencySymbol),
+      fromCurrencyDecimalPlaces: (fromCurrencyDecimalPlaces != null
+          ? fromCurrencyDecimalPlaces.value
+          : this.fromCurrencyDecimalPlaces),
+      toCurrencyId: (toCurrencyId != null
+          ? toCurrencyId.value
+          : this.toCurrencyId),
+      toCurrencyName: (toCurrencyName != null
+          ? toCurrencyName.value
+          : this.toCurrencyName),
+      toCurrencyCode: (toCurrencyCode != null
+          ? toCurrencyCode.value
+          : this.toCurrencyCode),
+      toCurrencySymbol: (toCurrencySymbol != null
+          ? toCurrencySymbol.value
+          : this.toCurrencySymbol),
+      toCurrencyDecimalPlaces: (toCurrencyDecimalPlaces != null
+          ? toCurrencyDecimalPlaces.value
+          : this.toCurrencyDecimalPlaces),
       rate: (rate != null ? rate.value : this.rate),
       date: (date != null ? date.value : this.date),
     );
@@ -8734,12 +8700,12 @@ extension $PiggyBankAccountReadExtension on PiggyBankAccountRead {
     return PiggyBankAccountRead(
       accountId: (accountId != null ? accountId.value : this.accountId),
       name: (name != null ? name.value : this.name),
-      currentAmount:
-          (currentAmount != null ? currentAmount.value : this.currentAmount),
-      pcCurrentAmount:
-          (pcCurrentAmount != null
-              ? pcCurrentAmount.value
-              : this.pcCurrentAmount),
+      currentAmount: (currentAmount != null
+          ? currentAmount.value
+          : this.currentAmount),
+      pcCurrentAmount: (pcCurrentAmount != null
+          ? pcCurrentAmount.value
+          : this.pcCurrentAmount),
     );
   }
 }
@@ -8787,8 +8753,9 @@ extension $PiggyBankAccountStoreExtension on PiggyBankAccountStore {
     return PiggyBankAccountStore(
       id: (id != null ? id.value : this.id),
       name: (name != null ? name.value : this.name),
-      currentAmount:
-          (currentAmount != null ? currentAmount.value : this.currentAmount),
+      currentAmount: (currentAmount != null
+          ? currentAmount.value
+          : this.currentAmount),
     );
   }
 }
@@ -8836,8 +8803,9 @@ extension $PiggyBankAccountUpdateExtension on PiggyBankAccountUpdate {
     return PiggyBankAccountUpdate(
       accountId: (accountId != null ? accountId.value : this.accountId),
       name: (name != null ? name.value : this.name),
-      currentAmount:
-          (currentAmount != null ? currentAmount.value : this.currentAmount),
+      currentAmount: (currentAmount != null
+          ? currentAmount.value
+          : this.currentAmount),
     );
   }
 }
@@ -9078,69 +9046,69 @@ extension $PiggyBankPropertiesExtension on PiggyBankProperties {
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
       notes: (notes != null ? notes.value : this.notes),
-      objectGroupId:
-          (objectGroupId != null ? objectGroupId.value : this.objectGroupId),
-      objectGroupOrder:
-          (objectGroupOrder != null
-              ? objectGroupOrder.value
-              : this.objectGroupOrder),
-      objectGroupTitle:
-          (objectGroupTitle != null
-              ? objectGroupTitle.value
-              : this.objectGroupTitle),
+      objectGroupId: (objectGroupId != null
+          ? objectGroupId.value
+          : this.objectGroupId),
+      objectGroupOrder: (objectGroupOrder != null
+          ? objectGroupOrder.value
+          : this.objectGroupOrder),
+      objectGroupTitle: (objectGroupTitle != null
+          ? objectGroupTitle.value
+          : this.objectGroupTitle),
       accounts: (accounts != null ? accounts.value : this.accounts),
-      objectHasCurrencySetting:
-          (objectHasCurrencySetting != null
-              ? objectHasCurrencySetting.value
-              : this.objectHasCurrencySetting),
+      objectHasCurrencySetting: (objectHasCurrencySetting != null
+          ? objectHasCurrencySetting.value
+          : this.objectHasCurrencySetting),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
-      targetAmount:
-          (targetAmount != null ? targetAmount.value : this.targetAmount),
-      pcTargetAmount:
-          (pcTargetAmount != null ? pcTargetAmount.value : this.pcTargetAmount),
-      currentAmount:
-          (currentAmount != null ? currentAmount.value : this.currentAmount),
-      pcCurrentAmount:
-          (pcCurrentAmount != null
-              ? pcCurrentAmount.value
-              : this.pcCurrentAmount),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
+      targetAmount: (targetAmount != null
+          ? targetAmount.value
+          : this.targetAmount),
+      pcTargetAmount: (pcTargetAmount != null
+          ? pcTargetAmount.value
+          : this.pcTargetAmount),
+      currentAmount: (currentAmount != null
+          ? currentAmount.value
+          : this.currentAmount),
+      pcCurrentAmount: (pcCurrentAmount != null
+          ? pcCurrentAmount.value
+          : this.pcCurrentAmount),
       leftToSave: (leftToSave != null ? leftToSave.value : this.leftToSave),
-      pcLeftToSave:
-          (pcLeftToSave != null ? pcLeftToSave.value : this.pcLeftToSave),
-      savePerMonth:
-          (savePerMonth != null ? savePerMonth.value : this.savePerMonth),
-      pcSavePerMonth:
-          (pcSavePerMonth != null ? pcSavePerMonth.value : this.pcSavePerMonth),
+      pcLeftToSave: (pcLeftToSave != null
+          ? pcLeftToSave.value
+          : this.pcLeftToSave),
+      savePerMonth: (savePerMonth != null
+          ? savePerMonth.value
+          : this.savePerMonth),
+      pcSavePerMonth: (pcSavePerMonth != null
+          ? pcSavePerMonth.value
+          : this.pcSavePerMonth),
     );
   }
 }
@@ -9244,21 +9212,23 @@ extension $PiggyBankStoreExtension on PiggyBankStore {
     return PiggyBankStore(
       name: (name != null ? name.value : this.name),
       accounts: (accounts != null ? accounts.value : this.accounts),
-      targetAmount:
-          (targetAmount != null ? targetAmount.value : this.targetAmount),
-      currentAmount:
-          (currentAmount != null ? currentAmount.value : this.currentAmount),
+      targetAmount: (targetAmount != null
+          ? targetAmount.value
+          : this.targetAmount),
+      currentAmount: (currentAmount != null
+          ? currentAmount.value
+          : this.currentAmount),
       startDate: (startDate != null ? startDate.value : this.startDate),
       targetDate: (targetDate != null ? targetDate.value : this.targetDate),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
       notes: (notes != null ? notes.value : this.notes),
-      objectGroupId:
-          (objectGroupId != null ? objectGroupId.value : this.objectGroupId),
-      objectGroupTitle:
-          (objectGroupTitle != null
-              ? objectGroupTitle.value
-              : this.objectGroupTitle),
+      objectGroupId: (objectGroupId != null
+          ? objectGroupId.value
+          : this.objectGroupId),
+      objectGroupTitle: (objectGroupTitle != null
+          ? objectGroupTitle.value
+          : this.objectGroupTitle),
     );
   }
 }
@@ -9369,21 +9339,23 @@ extension $PiggyBankUpdateExtension on PiggyBankUpdate {
       name: (name != null ? name.value : this.name),
       accounts: (accounts != null ? accounts.value : this.accounts),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      targetAmount:
-          (targetAmount != null ? targetAmount.value : this.targetAmount),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      targetAmount: (targetAmount != null
+          ? targetAmount.value
+          : this.targetAmount),
       startDate: (startDate != null ? startDate.value : this.startDate),
       targetDate: (targetDate != null ? targetDate.value : this.targetDate),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
       notes: (notes != null ? notes.value : this.notes),
-      objectGroupId:
-          (objectGroupId != null ? objectGroupId.value : this.objectGroupId),
-      objectGroupTitle:
-          (objectGroupTitle != null
-              ? objectGroupTitle.value
-              : this.objectGroupTitle),
+      objectGroupId: (objectGroupId != null
+          ? objectGroupId.value
+          : this.objectGroupId),
+      objectGroupTitle: (objectGroupTitle != null
+          ? objectGroupTitle.value
+          : this.objectGroupTitle),
     );
   }
 }
@@ -9525,49 +9497,43 @@ extension $PiggyBankEventPropertiesExtension on PiggyBankEventProperties {
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
       amount: (amount != null ? amount.value : this.amount),
       pcAmount: (pcAmount != null ? pcAmount.value : this.pcAmount),
-      objectHasCurrencySetting:
-          (objectHasCurrencySetting != null
-              ? objectHasCurrencySetting.value
-              : this.objectHasCurrencySetting),
+      objectHasCurrencySetting: (objectHasCurrencySetting != null
+          ? objectHasCurrencySetting.value
+          : this.objectHasCurrencySetting),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
-      transactionJournalId:
-          (transactionJournalId != null
-              ? transactionJournalId.value
-              : this.transactionJournalId),
-      transactionGroupId:
-          (transactionGroupId != null
-              ? transactionGroupId.value
-              : this.transactionGroupId),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
+      transactionJournalId: (transactionJournalId != null
+          ? transactionJournalId.value
+          : this.transactionJournalId),
+      transactionGroupId: (transactionGroupId != null
+          ? transactionGroupId.value
+          : this.transactionGroupId),
     );
   }
 }
@@ -9793,14 +9759,14 @@ extension $RecurrencePropertiesExtension on RecurrenceProperties {
       repeatUntil: (repeatUntil != null ? repeatUntil.value : this.repeatUntil),
       applyRules: (applyRules != null ? applyRules.value : this.applyRules),
       active: (active != null ? active.value : this.active),
-      nrOfRepetitions:
-          (nrOfRepetitions != null
-              ? nrOfRepetitions.value
-              : this.nrOfRepetitions),
+      nrOfRepetitions: (nrOfRepetitions != null
+          ? nrOfRepetitions.value
+          : this.nrOfRepetitions),
       notes: (notes != null ? notes.value : this.notes),
       repetitions: (repetitions != null ? repetitions.value : this.repetitions),
-      transactions:
-          (transactions != null ? transactions.value : this.transactions),
+      transactions: (transactions != null
+          ? transactions.value
+          : this.transactions),
     );
   }
 }
@@ -9916,16 +9882,16 @@ extension $RecurrenceStoreExtension on RecurrenceStore {
       description: (description != null ? description.value : this.description),
       firstDate: (firstDate != null ? firstDate.value : this.firstDate),
       repeatUntil: (repeatUntil != null ? repeatUntil.value : this.repeatUntil),
-      nrOfRepetitions:
-          (nrOfRepetitions != null
-              ? nrOfRepetitions.value
-              : this.nrOfRepetitions),
+      nrOfRepetitions: (nrOfRepetitions != null
+          ? nrOfRepetitions.value
+          : this.nrOfRepetitions),
       applyRules: (applyRules != null ? applyRules.value : this.applyRules),
       active: (active != null ? active.value : this.active),
       notes: (notes != null ? notes.value : this.notes),
       repetitions: (repetitions != null ? repetitions.value : this.repetitions),
-      transactions:
-          (transactions != null ? transactions.value : this.transactions),
+      transactions: (transactions != null
+          ? transactions.value
+          : this.transactions),
     );
   }
 }
@@ -10029,16 +9995,16 @@ extension $RecurrenceUpdateExtension on RecurrenceUpdate {
       description: (description != null ? description.value : this.description),
       firstDate: (firstDate != null ? firstDate.value : this.firstDate),
       repeatUntil: (repeatUntil != null ? repeatUntil.value : this.repeatUntil),
-      nrOfRepetitions:
-          (nrOfRepetitions != null
-              ? nrOfRepetitions.value
-              : this.nrOfRepetitions),
+      nrOfRepetitions: (nrOfRepetitions != null
+          ? nrOfRepetitions.value
+          : this.nrOfRepetitions),
       applyRules: (applyRules != null ? applyRules.value : this.applyRules),
       active: (active != null ? active.value : this.active),
       notes: (notes != null ? notes.value : this.notes),
       repetitions: (repetitions != null ? repetitions.value : this.repetitions),
-      transactions:
-          (transactions != null ? transactions.value : this.transactions),
+      transactions: (transactions != null
+          ? transactions.value
+          : this.transactions),
     );
   }
 }
@@ -10549,102 +10515,93 @@ extension $RecurrenceTransactionExtension on RecurrenceTransaction {
     return RecurrenceTransaction(
       id: (id != null ? id.value : this.id),
       description: (description != null ? description.value : this.description),
-      objectHasCurrencySetting:
-          (objectHasCurrencySetting != null
-              ? objectHasCurrencySetting.value
-              : this.objectHasCurrencySetting),
+      objectHasCurrencySetting: (objectHasCurrencySetting != null
+          ? objectHasCurrencySetting.value
+          : this.objectHasCurrencySetting),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
       amount: (amount != null ? amount.value : this.amount),
       pcAmount: (pcAmount != null ? pcAmount.value : this.pcAmount),
-      foreignAmount:
-          (foreignAmount != null ? foreignAmount.value : this.foreignAmount),
-      pcForeignAmount:
-          (pcForeignAmount != null
-              ? pcForeignAmount.value
-              : this.pcForeignAmount),
-      foreignCurrencyId:
-          (foreignCurrencyId != null
-              ? foreignCurrencyId.value
-              : this.foreignCurrencyId),
-      foreignCurrencyName:
-          (foreignCurrencyName != null
-              ? foreignCurrencyName.value
-              : this.foreignCurrencyName),
-      foreignCurrencyCode:
-          (foreignCurrencyCode != null
-              ? foreignCurrencyCode.value
-              : this.foreignCurrencyCode),
-      foreignCurrencySymbol:
-          (foreignCurrencySymbol != null
-              ? foreignCurrencySymbol.value
-              : this.foreignCurrencySymbol),
-      foreignCurrencyDecimalPlaces:
-          (foreignCurrencyDecimalPlaces != null
-              ? foreignCurrencyDecimalPlaces.value
-              : this.foreignCurrencyDecimalPlaces),
+      foreignAmount: (foreignAmount != null
+          ? foreignAmount.value
+          : this.foreignAmount),
+      pcForeignAmount: (pcForeignAmount != null
+          ? pcForeignAmount.value
+          : this.pcForeignAmount),
+      foreignCurrencyId: (foreignCurrencyId != null
+          ? foreignCurrencyId.value
+          : this.foreignCurrencyId),
+      foreignCurrencyName: (foreignCurrencyName != null
+          ? foreignCurrencyName.value
+          : this.foreignCurrencyName),
+      foreignCurrencyCode: (foreignCurrencyCode != null
+          ? foreignCurrencyCode.value
+          : this.foreignCurrencyCode),
+      foreignCurrencySymbol: (foreignCurrencySymbol != null
+          ? foreignCurrencySymbol.value
+          : this.foreignCurrencySymbol),
+      foreignCurrencyDecimalPlaces: (foreignCurrencyDecimalPlaces != null
+          ? foreignCurrencyDecimalPlaces.value
+          : this.foreignCurrencyDecimalPlaces),
       budgetId: (budgetId != null ? budgetId.value : this.budgetId),
       budgetName: (budgetName != null ? budgetName.value : this.budgetName),
       categoryId: (categoryId != null ? categoryId.value : this.categoryId),
-      categoryName:
-          (categoryName != null ? categoryName.value : this.categoryName),
+      categoryName: (categoryName != null
+          ? categoryName.value
+          : this.categoryName),
       sourceId: (sourceId != null ? sourceId.value : this.sourceId),
       sourceName: (sourceName != null ? sourceName.value : this.sourceName),
       sourceIban: (sourceIban != null ? sourceIban.value : this.sourceIban),
       sourceType: (sourceType != null ? sourceType.value : this.sourceType),
-      destinationId:
-          (destinationId != null ? destinationId.value : this.destinationId),
-      destinationName:
-          (destinationName != null
-              ? destinationName.value
-              : this.destinationName),
-      destinationIban:
-          (destinationIban != null
-              ? destinationIban.value
-              : this.destinationIban),
-      destinationType:
-          (destinationType != null
-              ? destinationType.value
-              : this.destinationType),
+      destinationId: (destinationId != null
+          ? destinationId.value
+          : this.destinationId),
+      destinationName: (destinationName != null
+          ? destinationName.value
+          : this.destinationName),
+      destinationIban: (destinationIban != null
+          ? destinationIban.value
+          : this.destinationIban),
+      destinationType: (destinationType != null
+          ? destinationType.value
+          : this.destinationType),
       tags: (tags != null ? tags.value : this.tags),
       piggyBankId: (piggyBankId != null ? piggyBankId.value : this.piggyBankId),
-      piggyBankName:
-          (piggyBankName != null ? piggyBankName.value : this.piggyBankName),
-      subscriptionId:
-          (subscriptionId != null ? subscriptionId.value : this.subscriptionId),
-      subscriptionName:
-          (subscriptionName != null
-              ? subscriptionName.value
-              : this.subscriptionName),
+      piggyBankName: (piggyBankName != null
+          ? piggyBankName.value
+          : this.piggyBankName),
+      subscriptionId: (subscriptionId != null
+          ? subscriptionId.value
+          : this.subscriptionId),
+      subscriptionName: (subscriptionName != null
+          ? subscriptionName.value
+          : this.subscriptionName),
     );
   }
 }
@@ -10762,24 +10719,25 @@ extension $RecurrenceTransactionStoreExtension on RecurrenceTransactionStore {
     return RecurrenceTransactionStore(
       description: (description != null ? description.value : this.description),
       amount: (amount != null ? amount.value : this.amount),
-      foreignAmount:
-          (foreignAmount != null ? foreignAmount.value : this.foreignAmount),
+      foreignAmount: (foreignAmount != null
+          ? foreignAmount.value
+          : this.foreignAmount),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      foreignCurrencyId:
-          (foreignCurrencyId != null
-              ? foreignCurrencyId.value
-              : this.foreignCurrencyId),
-      foreignCurrencyCode:
-          (foreignCurrencyCode != null
-              ? foreignCurrencyCode.value
-              : this.foreignCurrencyCode),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      foreignCurrencyId: (foreignCurrencyId != null
+          ? foreignCurrencyId.value
+          : this.foreignCurrencyId),
+      foreignCurrencyCode: (foreignCurrencyCode != null
+          ? foreignCurrencyCode.value
+          : this.foreignCurrencyCode),
       budgetId: (budgetId != null ? budgetId.value : this.budgetId),
       categoryId: (categoryId != null ? categoryId.value : this.categoryId),
       sourceId: (sourceId != null ? sourceId.value : this.sourceId),
-      destinationId:
-          (destinationId != null ? destinationId.value : this.destinationId),
+      destinationId: (destinationId != null
+          ? destinationId.value
+          : this.destinationId),
       tags: (tags != null ? tags.value : this.tags),
       piggyBankId: (piggyBankId != null ? piggyBankId.value : this.piggyBankId),
       billId: (billId != null ? billId.value : this.billId),
@@ -10901,20 +10859,22 @@ extension $RecurrenceTransactionUpdateExtension on RecurrenceTransactionUpdate {
       id: (id != null ? id.value : this.id),
       description: (description != null ? description.value : this.description),
       amount: (amount != null ? amount.value : this.amount),
-      foreignAmount:
-          (foreignAmount != null ? foreignAmount.value : this.foreignAmount),
+      foreignAmount: (foreignAmount != null
+          ? foreignAmount.value
+          : this.foreignAmount),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      foreignCurrencyId:
-          (foreignCurrencyId != null
-              ? foreignCurrencyId.value
-              : this.foreignCurrencyId),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      foreignCurrencyId: (foreignCurrencyId != null
+          ? foreignCurrencyId.value
+          : this.foreignCurrencyId),
       budgetId: (budgetId != null ? budgetId.value : this.budgetId),
       categoryId: (categoryId != null ? categoryId.value : this.categoryId),
       sourceId: (sourceId != null ? sourceId.value : this.sourceId),
-      destinationId:
-          (destinationId != null ? destinationId.value : this.destinationId),
+      destinationId: (destinationId != null
+          ? destinationId.value
+          : this.destinationId),
       tags: (tags != null ? tags.value : this.tags),
       piggyBankId: (piggyBankId != null ? piggyBankId.value : this.piggyBankId),
       billId: (billId != null ? billId.value : this.billId),
@@ -11036,14 +10996,16 @@ extension $RuleExtension on Rule {
       title: (title != null ? title.value : this.title),
       description: (description != null ? description.value : this.description),
       ruleGroupId: (ruleGroupId != null ? ruleGroupId.value : this.ruleGroupId),
-      ruleGroupTitle:
-          (ruleGroupTitle != null ? ruleGroupTitle.value : this.ruleGroupTitle),
+      ruleGroupTitle: (ruleGroupTitle != null
+          ? ruleGroupTitle.value
+          : this.ruleGroupTitle),
       order: (order != null ? order.value : this.order),
       trigger: (trigger != null ? trigger.value : this.trigger),
       active: (active != null ? active.value : this.active),
       strict: (strict != null ? strict.value : this.strict),
-      stopProcessing:
-          (stopProcessing != null ? stopProcessing.value : this.stopProcessing),
+      stopProcessing: (stopProcessing != null
+          ? stopProcessing.value
+          : this.stopProcessing),
       triggers: (triggers != null ? triggers.value : this.triggers),
       actions: (actions != null ? actions.value : this.actions),
     );
@@ -11159,14 +11121,16 @@ extension $RuleStoreExtension on RuleStore {
       title: (title != null ? title.value : this.title),
       description: (description != null ? description.value : this.description),
       ruleGroupId: (ruleGroupId != null ? ruleGroupId.value : this.ruleGroupId),
-      ruleGroupTitle:
-          (ruleGroupTitle != null ? ruleGroupTitle.value : this.ruleGroupTitle),
+      ruleGroupTitle: (ruleGroupTitle != null
+          ? ruleGroupTitle.value
+          : this.ruleGroupTitle),
       order: (order != null ? order.value : this.order),
       trigger: (trigger != null ? trigger.value : this.trigger),
       active: (active != null ? active.value : this.active),
       strict: (strict != null ? strict.value : this.strict),
-      stopProcessing:
-          (stopProcessing != null ? stopProcessing.value : this.stopProcessing),
+      stopProcessing: (stopProcessing != null
+          ? stopProcessing.value
+          : this.stopProcessing),
       triggers: (triggers != null ? triggers.value : this.triggers),
       actions: (actions != null ? actions.value : this.actions),
     );
@@ -11280,8 +11244,9 @@ extension $RuleUpdateExtension on RuleUpdate {
       trigger: (trigger != null ? trigger.value : this.trigger),
       active: (active != null ? active.value : this.active),
       strict: (strict != null ? strict.value : this.strict),
-      stopProcessing:
-          (stopProcessing != null ? stopProcessing.value : this.stopProcessing),
+      stopProcessing: (stopProcessing != null
+          ? stopProcessing.value
+          : this.stopProcessing),
       triggers: (triggers != null ? triggers.value : this.triggers),
       actions: (actions != null ? actions.value : this.actions),
     );
@@ -11375,8 +11340,9 @@ extension $RuleActionExtension on RuleAction {
       value: (value != null ? value.value : this.value),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
-      stopProcessing:
-          (stopProcessing != null ? stopProcessing.value : this.stopProcessing),
+      stopProcessing: (stopProcessing != null
+          ? stopProcessing.value
+          : this.stopProcessing),
     );
   }
 }
@@ -11447,8 +11413,9 @@ extension $RuleActionStoreExtension on RuleActionStore {
       value: (value != null ? value.value : this.value),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
-      stopProcessing:
-          (stopProcessing != null ? stopProcessing.value : this.stopProcessing),
+      stopProcessing: (stopProcessing != null
+          ? stopProcessing.value
+          : this.stopProcessing),
     );
   }
 }
@@ -11519,8 +11486,9 @@ extension $RuleActionUpdateExtension on RuleActionUpdate {
       value: (value != null ? value.value : this.value),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
-      stopProcessing:
-          (stopProcessing != null ? stopProcessing.value : this.stopProcessing),
+      stopProcessing: (stopProcessing != null
+          ? stopProcessing.value
+          : this.stopProcessing),
     );
   }
 }
@@ -11810,8 +11778,9 @@ extension $RuleTriggerExtension on RuleTrigger {
       prohibited: (prohibited != null ? prohibited.value : this.prohibited),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
-      stopProcessing:
-          (stopProcessing != null ? stopProcessing.value : this.stopProcessing),
+      stopProcessing: (stopProcessing != null
+          ? stopProcessing.value
+          : this.stopProcessing),
     );
   }
 }
@@ -11889,8 +11858,9 @@ extension $RuleTriggerStoreExtension on RuleTriggerStore {
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
       prohibited: (prohibited != null ? prohibited.value : this.prohibited),
-      stopProcessing:
-          (stopProcessing != null ? stopProcessing.value : this.stopProcessing),
+      stopProcessing: (stopProcessing != null
+          ? stopProcessing.value
+          : this.stopProcessing),
     );
   }
 }
@@ -11961,8 +11931,9 @@ extension $RuleTriggerUpdateExtension on RuleTriggerUpdate {
       value: (value != null ? value.value : this.value),
       order: (order != null ? order.value : this.order),
       active: (active != null ? active.value : this.active),
-      stopProcessing:
-          (stopProcessing != null ? stopProcessing.value : this.stopProcessing),
+      stopProcessing: (stopProcessing != null
+          ? stopProcessing.value
+          : this.stopProcessing),
     );
   }
 }
@@ -12282,8 +12253,9 @@ extension $CurrencyPropertiesExtension on CurrencyProperties {
       code: (code != null ? code.value : this.code),
       name: (name != null ? name.value : this.name),
       symbol: (symbol != null ? symbol.value : this.symbol),
-      decimalPlaces:
-          (decimalPlaces != null ? decimalPlaces.value : this.decimalPlaces),
+      decimalPlaces: (decimalPlaces != null
+          ? decimalPlaces.value
+          : this.decimalPlaces),
     );
   }
 }
@@ -12356,8 +12328,9 @@ extension $CurrencyStoreExtension on CurrencyStore {
       code: (code != null ? code.value : this.code),
       name: (name != null ? name.value : this.name),
       symbol: (symbol != null ? symbol.value : this.symbol),
-      decimalPlaces:
-          (decimalPlaces != null ? decimalPlaces.value : this.decimalPlaces),
+      decimalPlaces: (decimalPlaces != null
+          ? decimalPlaces.value
+          : this.decimalPlaces),
     );
   }
 }
@@ -12430,8 +12403,9 @@ extension $CurrencyUpdateExtension on CurrencyUpdate {
       code: (code != null ? code.value : this.code),
       name: (name != null ? name.value : this.name),
       symbol: (symbol != null ? symbol.value : this.symbol),
-      decimalPlaces:
-          (decimalPlaces != null ? decimalPlaces.value : this.decimalPlaces),
+      decimalPlaces: (decimalPlaces != null
+          ? decimalPlaces.value
+          : this.decimalPlaces),
     );
   }
 }
@@ -12501,8 +12475,9 @@ extension $TransactionExtension on Transaction {
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
       user: (user != null ? user.value : this.user),
       groupTitle: (groupTitle != null ? groupTitle.value : this.groupTitle),
-      transactions:
-          (transactions != null ? transactions.value : this.transactions),
+      transactions: (transactions != null
+          ? transactions.value
+          : this.transactions),
     );
   }
 }
@@ -12568,16 +12543,17 @@ extension $TransactionStoreExtension on TransactionStore {
     Wrapped<List<TransactionSplitStore>>? transactions,
   }) {
     return TransactionStore(
-      errorIfDuplicateHash:
-          (errorIfDuplicateHash != null
-              ? errorIfDuplicateHash.value
-              : this.errorIfDuplicateHash),
+      errorIfDuplicateHash: (errorIfDuplicateHash != null
+          ? errorIfDuplicateHash.value
+          : this.errorIfDuplicateHash),
       applyRules: (applyRules != null ? applyRules.value : this.applyRules),
-      fireWebhooks:
-          (fireWebhooks != null ? fireWebhooks.value : this.fireWebhooks),
+      fireWebhooks: (fireWebhooks != null
+          ? fireWebhooks.value
+          : this.fireWebhooks),
       groupTitle: (groupTitle != null ? groupTitle.value : this.groupTitle),
-      transactions:
-          (transactions != null ? transactions.value : this.transactions),
+      transactions: (transactions != null
+          ? transactions.value
+          : this.transactions),
     );
   }
 }
@@ -12638,11 +12614,13 @@ extension $TransactionUpdateExtension on TransactionUpdate {
   }) {
     return TransactionUpdate(
       applyRules: (applyRules != null ? applyRules.value : this.applyRules),
-      fireWebhooks:
-          (fireWebhooks != null ? fireWebhooks.value : this.fireWebhooks),
+      fireWebhooks: (fireWebhooks != null
+          ? fireWebhooks.value
+          : this.fireWebhooks),
       groupTitle: (groupTitle != null ? groupTitle.value : this.groupTitle),
-      transactions:
-          (transactions != null ? transactions.value : this.transactions),
+      transactions: (transactions != null
+          ? transactions.value
+          : this.transactions),
     );
   }
 }
@@ -12719,8 +12697,9 @@ extension $TransactionLinkExtension on TransactionLink {
       createdAt: (createdAt != null ? createdAt.value : this.createdAt),
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
       linkTypeId: (linkTypeId != null ? linkTypeId.value : this.linkTypeId),
-      linkTypeName:
-          (linkTypeName != null ? linkTypeName.value : this.linkTypeName),
+      linkTypeName: (linkTypeName != null
+          ? linkTypeName.value
+          : this.linkTypeName),
       inwardId: (inwardId != null ? inwardId.value : this.inwardId),
       outwardId: (outwardId != null ? outwardId.value : this.outwardId),
       notes: (notes != null ? notes.value : this.notes),
@@ -12786,8 +12765,9 @@ extension $TransactionLinkStoreExtension on TransactionLinkStore {
   }) {
     return TransactionLinkStore(
       linkTypeId: (linkTypeId != null ? linkTypeId.value : this.linkTypeId),
-      linkTypeName:
-          (linkTypeName != null ? linkTypeName.value : this.linkTypeName),
+      linkTypeName: (linkTypeName != null
+          ? linkTypeName.value
+          : this.linkTypeName),
       inwardId: (inwardId != null ? inwardId.value : this.inwardId),
       outwardId: (outwardId != null ? outwardId.value : this.outwardId),
       notes: (notes != null ? notes.value : this.notes),
@@ -12853,8 +12833,9 @@ extension $TransactionLinkUpdateExtension on TransactionLinkUpdate {
   }) {
     return TransactionLinkUpdate(
       linkTypeId: (linkTypeId != null ? linkTypeId.value : this.linkTypeId),
-      linkTypeName:
-          (linkTypeName != null ? linkTypeName.value : this.linkTypeName),
+      linkTypeName: (linkTypeName != null
+          ? linkTypeName.value
+          : this.linkTypeName),
       inwardId: (inwardId != null ? inwardId.value : this.inwardId),
       outwardId: (outwardId != null ? outwardId.value : this.outwardId),
       notes: (notes != null ? notes.value : this.notes),
@@ -13454,139 +13435,126 @@ extension $TransactionSplitExtension on TransactionSplit {
   }) {
     return TransactionSplit(
       user: (user != null ? user.value : this.user),
-      transactionJournalId:
-          (transactionJournalId != null
-              ? transactionJournalId.value
-              : this.transactionJournalId),
+      transactionJournalId: (transactionJournalId != null
+          ? transactionJournalId.value
+          : this.transactionJournalId),
       type: (type != null ? type.value : this.type),
       date: (date != null ? date.value : this.date),
       order: (order != null ? order.value : this.order),
-      objectHasCurrencySetting:
-          (objectHasCurrencySetting != null
-              ? objectHasCurrencySetting.value
-              : this.objectHasCurrencySetting),
+      objectHasCurrencySetting: (objectHasCurrencySetting != null
+          ? objectHasCurrencySetting.value
+          : this.objectHasCurrencySetting),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      foreignCurrencyId:
-          (foreignCurrencyId != null
-              ? foreignCurrencyId.value
-              : this.foreignCurrencyId),
-      foreignCurrencyCode:
-          (foreignCurrencyCode != null
-              ? foreignCurrencyCode.value
-              : this.foreignCurrencyCode),
-      foreignCurrencySymbol:
-          (foreignCurrencySymbol != null
-              ? foreignCurrencySymbol.value
-              : this.foreignCurrencySymbol),
-      foreignCurrencyDecimalPlaces:
-          (foreignCurrencyDecimalPlaces != null
-              ? foreignCurrencyDecimalPlaces.value
-              : this.foreignCurrencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      foreignCurrencyId: (foreignCurrencyId != null
+          ? foreignCurrencyId.value
+          : this.foreignCurrencyId),
+      foreignCurrencyCode: (foreignCurrencyCode != null
+          ? foreignCurrencyCode.value
+          : this.foreignCurrencyCode),
+      foreignCurrencySymbol: (foreignCurrencySymbol != null
+          ? foreignCurrencySymbol.value
+          : this.foreignCurrencySymbol),
+      foreignCurrencyDecimalPlaces: (foreignCurrencyDecimalPlaces != null
+          ? foreignCurrencyDecimalPlaces.value
+          : this.foreignCurrencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
       amount: (amount != null ? amount.value : this.amount),
       pcAmount: (pcAmount != null ? pcAmount.value : this.pcAmount),
-      foreignAmount:
-          (foreignAmount != null ? foreignAmount.value : this.foreignAmount),
-      pcForeignAmount:
-          (pcForeignAmount != null
-              ? pcForeignAmount.value
-              : this.pcForeignAmount),
-      sourceBalanceAfter:
-          (sourceBalanceAfter != null
-              ? sourceBalanceAfter.value
-              : this.sourceBalanceAfter),
-      pcSourceBalanceAfter:
-          (pcSourceBalanceAfter != null
-              ? pcSourceBalanceAfter.value
-              : this.pcSourceBalanceAfter),
-      destinationBalanceAfter:
-          (destinationBalanceAfter != null
-              ? destinationBalanceAfter.value
-              : this.destinationBalanceAfter),
-      pcDestinationBalanceAfter:
-          (pcDestinationBalanceAfter != null
-              ? pcDestinationBalanceAfter.value
-              : this.pcDestinationBalanceAfter),
+      foreignAmount: (foreignAmount != null
+          ? foreignAmount.value
+          : this.foreignAmount),
+      pcForeignAmount: (pcForeignAmount != null
+          ? pcForeignAmount.value
+          : this.pcForeignAmount),
+      sourceBalanceAfter: (sourceBalanceAfter != null
+          ? sourceBalanceAfter.value
+          : this.sourceBalanceAfter),
+      pcSourceBalanceAfter: (pcSourceBalanceAfter != null
+          ? pcSourceBalanceAfter.value
+          : this.pcSourceBalanceAfter),
+      destinationBalanceAfter: (destinationBalanceAfter != null
+          ? destinationBalanceAfter.value
+          : this.destinationBalanceAfter),
+      pcDestinationBalanceAfter: (pcDestinationBalanceAfter != null
+          ? pcDestinationBalanceAfter.value
+          : this.pcDestinationBalanceAfter),
       description: (description != null ? description.value : this.description),
       sourceId: (sourceId != null ? sourceId.value : this.sourceId),
       sourceName: (sourceName != null ? sourceName.value : this.sourceName),
       sourceIban: (sourceIban != null ? sourceIban.value : this.sourceIban),
       sourceType: (sourceType != null ? sourceType.value : this.sourceType),
-      destinationId:
-          (destinationId != null ? destinationId.value : this.destinationId),
-      destinationName:
-          (destinationName != null
-              ? destinationName.value
-              : this.destinationName),
-      destinationIban:
-          (destinationIban != null
-              ? destinationIban.value
-              : this.destinationIban),
-      destinationType:
-          (destinationType != null
-              ? destinationType.value
-              : this.destinationType),
+      destinationId: (destinationId != null
+          ? destinationId.value
+          : this.destinationId),
+      destinationName: (destinationName != null
+          ? destinationName.value
+          : this.destinationName),
+      destinationIban: (destinationIban != null
+          ? destinationIban.value
+          : this.destinationIban),
+      destinationType: (destinationType != null
+          ? destinationType.value
+          : this.destinationType),
       budgetId: (budgetId != null ? budgetId.value : this.budgetId),
       budgetName: (budgetName != null ? budgetName.value : this.budgetName),
       categoryId: (categoryId != null ? categoryId.value : this.categoryId),
-      categoryName:
-          (categoryName != null ? categoryName.value : this.categoryName),
+      categoryName: (categoryName != null
+          ? categoryName.value
+          : this.categoryName),
       billId: (billId != null ? billId.value : this.billId),
       billName: (billName != null ? billName.value : this.billName),
-      subscriptionId:
-          (subscriptionId != null ? subscriptionId.value : this.subscriptionId),
-      subscriptionName:
-          (subscriptionName != null
-              ? subscriptionName.value
-              : this.subscriptionName),
+      subscriptionId: (subscriptionId != null
+          ? subscriptionId.value
+          : this.subscriptionId),
+      subscriptionName: (subscriptionName != null
+          ? subscriptionName.value
+          : this.subscriptionName),
       reconciled: (reconciled != null ? reconciled.value : this.reconciled),
       notes: (notes != null ? notes.value : this.notes),
       tags: (tags != null ? tags.value : this.tags),
-      internalReference:
-          (internalReference != null
-              ? internalReference.value
-              : this.internalReference),
+      internalReference: (internalReference != null
+          ? internalReference.value
+          : this.internalReference),
       externalId: (externalId != null ? externalId.value : this.externalId),
       externalUrl: (externalUrl != null ? externalUrl.value : this.externalUrl),
-      originalSource:
-          (originalSource != null ? originalSource.value : this.originalSource),
-      recurrenceId:
-          (recurrenceId != null ? recurrenceId.value : this.recurrenceId),
-      recurrenceTotal:
-          (recurrenceTotal != null
-              ? recurrenceTotal.value
-              : this.recurrenceTotal),
-      recurrenceCount:
-          (recurrenceCount != null
-              ? recurrenceCount.value
-              : this.recurrenceCount),
-      importHashV2:
-          (importHashV2 != null ? importHashV2.value : this.importHashV2),
+      originalSource: (originalSource != null
+          ? originalSource.value
+          : this.originalSource),
+      recurrenceId: (recurrenceId != null
+          ? recurrenceId.value
+          : this.recurrenceId),
+      recurrenceTotal: (recurrenceTotal != null
+          ? recurrenceTotal.value
+          : this.recurrenceTotal),
+      recurrenceCount: (recurrenceCount != null
+          ? recurrenceCount.value
+          : this.recurrenceCount),
+      importHashV2: (importHashV2 != null
+          ? importHashV2.value
+          : this.importHashV2),
       sepaCc: (sepaCc != null ? sepaCc.value : this.sepaCc),
       sepaCtOp: (sepaCtOp != null ? sepaCtOp.value : this.sepaCtOp),
       sepaCtId: (sepaCtId != null ? sepaCtId.value : this.sepaCtId),
@@ -13595,8 +13563,9 @@ extension $TransactionSplitExtension on TransactionSplit {
       sepaEp: (sepaEp != null ? sepaEp.value : this.sepaEp),
       sepaCi: (sepaCi != null ? sepaCi.value : this.sepaCi),
       sepaBatchId: (sepaBatchId != null ? sepaBatchId.value : this.sepaBatchId),
-      interestDate:
-          (interestDate != null ? interestDate.value : this.interestDate),
+      interestDate: (interestDate != null
+          ? interestDate.value
+          : this.interestDate),
       bookDate: (bookDate != null ? bookDate.value : this.bookDate),
       processDate: (processDate != null ? processDate.value : this.processDate),
       dueDate: (dueDate != null ? dueDate.value : this.dueDate),
@@ -13605,8 +13574,9 @@ extension $TransactionSplitExtension on TransactionSplit {
       latitude: (latitude != null ? latitude.value : this.latitude),
       longitude: (longitude != null ? longitude.value : this.longitude),
       zoomLevel: (zoomLevel != null ? zoomLevel.value : this.zoomLevel),
-      hasAttachments:
-          (hasAttachments != null ? hasAttachments.value : this.hasAttachments),
+      hasAttachments: (hasAttachments != null
+          ? hasAttachments.value
+          : this.hasAttachments),
     );
   }
 }
@@ -13901,43 +13871,44 @@ extension $TransactionSplitStoreExtension on TransactionSplitStore {
       description: (description != null ? description.value : this.description),
       order: (order != null ? order.value : this.order),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      foreignAmount:
-          (foreignAmount != null ? foreignAmount.value : this.foreignAmount),
-      foreignCurrencyId:
-          (foreignCurrencyId != null
-              ? foreignCurrencyId.value
-              : this.foreignCurrencyId),
-      foreignCurrencyCode:
-          (foreignCurrencyCode != null
-              ? foreignCurrencyCode.value
-              : this.foreignCurrencyCode),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      foreignAmount: (foreignAmount != null
+          ? foreignAmount.value
+          : this.foreignAmount),
+      foreignCurrencyId: (foreignCurrencyId != null
+          ? foreignCurrencyId.value
+          : this.foreignCurrencyId),
+      foreignCurrencyCode: (foreignCurrencyCode != null
+          ? foreignCurrencyCode.value
+          : this.foreignCurrencyCode),
       budgetId: (budgetId != null ? budgetId.value : this.budgetId),
       budgetName: (budgetName != null ? budgetName.value : this.budgetName),
       categoryId: (categoryId != null ? categoryId.value : this.categoryId),
-      categoryName:
-          (categoryName != null ? categoryName.value : this.categoryName),
+      categoryName: (categoryName != null
+          ? categoryName.value
+          : this.categoryName),
       sourceId: (sourceId != null ? sourceId.value : this.sourceId),
       sourceName: (sourceName != null ? sourceName.value : this.sourceName),
-      destinationId:
-          (destinationId != null ? destinationId.value : this.destinationId),
-      destinationName:
-          (destinationName != null
-              ? destinationName.value
-              : this.destinationName),
+      destinationId: (destinationId != null
+          ? destinationId.value
+          : this.destinationId),
+      destinationName: (destinationName != null
+          ? destinationName.value
+          : this.destinationName),
       reconciled: (reconciled != null ? reconciled.value : this.reconciled),
       piggyBankId: (piggyBankId != null ? piggyBankId.value : this.piggyBankId),
-      piggyBankName:
-          (piggyBankName != null ? piggyBankName.value : this.piggyBankName),
+      piggyBankName: (piggyBankName != null
+          ? piggyBankName.value
+          : this.piggyBankName),
       billId: (billId != null ? billId.value : this.billId),
       billName: (billName != null ? billName.value : this.billName),
       tags: (tags != null ? tags.value : this.tags),
       notes: (notes != null ? notes.value : this.notes),
-      internalReference:
-          (internalReference != null
-              ? internalReference.value
-              : this.internalReference),
+      internalReference: (internalReference != null
+          ? internalReference.value
+          : this.internalReference),
       externalId: (externalId != null ? externalId.value : this.externalId),
       externalUrl: (externalUrl != null ? externalUrl.value : this.externalUrl),
       sepaCc: (sepaCc != null ? sepaCc.value : this.sepaCc),
@@ -13948,8 +13919,9 @@ extension $TransactionSplitStoreExtension on TransactionSplitStore {
       sepaEp: (sepaEp != null ? sepaEp.value : this.sepaEp),
       sepaCi: (sepaCi != null ? sepaCi.value : this.sepaCi),
       sepaBatchId: (sepaBatchId != null ? sepaBatchId.value : this.sepaBatchId),
-      interestDate:
-          (interestDate != null ? interestDate.value : this.interestDate),
+      interestDate: (interestDate != null
+          ? interestDate.value
+          : this.interestDate),
       bookDate: (bookDate != null ? bookDate.value : this.bookDate),
       processDate: (processDate != null ? processDate.value : this.processDate),
       dueDate: (dueDate != null ? dueDate.value : this.dueDate),
@@ -14282,71 +14254,68 @@ extension $TransactionSplitUpdateExtension on TransactionSplitUpdate {
     Wrapped<DateTime?>? invoiceDate,
   }) {
     return TransactionSplitUpdate(
-      transactionJournalId:
-          (transactionJournalId != null
-              ? transactionJournalId.value
-              : this.transactionJournalId),
+      transactionJournalId: (transactionJournalId != null
+          ? transactionJournalId.value
+          : this.transactionJournalId),
       type: (type != null ? type.value : this.type),
       date: (date != null ? date.value : this.date),
       amount: (amount != null ? amount.value : this.amount),
       description: (description != null ? description.value : this.description),
       order: (order != null ? order.value : this.order),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      foreignAmount:
-          (foreignAmount != null ? foreignAmount.value : this.foreignAmount),
-      foreignCurrencyId:
-          (foreignCurrencyId != null
-              ? foreignCurrencyId.value
-              : this.foreignCurrencyId),
-      foreignCurrencyCode:
-          (foreignCurrencyCode != null
-              ? foreignCurrencyCode.value
-              : this.foreignCurrencyCode),
-      foreignCurrencySymbol:
-          (foreignCurrencySymbol != null
-              ? foreignCurrencySymbol.value
-              : this.foreignCurrencySymbol),
-      foreignCurrencyDecimalPlaces:
-          (foreignCurrencyDecimalPlaces != null
-              ? foreignCurrencyDecimalPlaces.value
-              : this.foreignCurrencyDecimalPlaces),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      foreignAmount: (foreignAmount != null
+          ? foreignAmount.value
+          : this.foreignAmount),
+      foreignCurrencyId: (foreignCurrencyId != null
+          ? foreignCurrencyId.value
+          : this.foreignCurrencyId),
+      foreignCurrencyCode: (foreignCurrencyCode != null
+          ? foreignCurrencyCode.value
+          : this.foreignCurrencyCode),
+      foreignCurrencySymbol: (foreignCurrencySymbol != null
+          ? foreignCurrencySymbol.value
+          : this.foreignCurrencySymbol),
+      foreignCurrencyDecimalPlaces: (foreignCurrencyDecimalPlaces != null
+          ? foreignCurrencyDecimalPlaces.value
+          : this.foreignCurrencyDecimalPlaces),
       budgetId: (budgetId != null ? budgetId.value : this.budgetId),
       budgetName: (budgetName != null ? budgetName.value : this.budgetName),
       categoryId: (categoryId != null ? categoryId.value : this.categoryId),
-      categoryName:
-          (categoryName != null ? categoryName.value : this.categoryName),
+      categoryName: (categoryName != null
+          ? categoryName.value
+          : this.categoryName),
       sourceId: (sourceId != null ? sourceId.value : this.sourceId),
       sourceName: (sourceName != null ? sourceName.value : this.sourceName),
       sourceIban: (sourceIban != null ? sourceIban.value : this.sourceIban),
-      destinationId:
-          (destinationId != null ? destinationId.value : this.destinationId),
-      destinationName:
-          (destinationName != null
-              ? destinationName.value
-              : this.destinationName),
-      destinationIban:
-          (destinationIban != null
-              ? destinationIban.value
-              : this.destinationIban),
+      destinationId: (destinationId != null
+          ? destinationId.value
+          : this.destinationId),
+      destinationName: (destinationName != null
+          ? destinationName.value
+          : this.destinationName),
+      destinationIban: (destinationIban != null
+          ? destinationIban.value
+          : this.destinationIban),
       reconciled: (reconciled != null ? reconciled.value : this.reconciled),
       billId: (billId != null ? billId.value : this.billId),
       billName: (billName != null ? billName.value : this.billName),
       tags: (tags != null ? tags.value : this.tags),
       notes: (notes != null ? notes.value : this.notes),
-      internalReference:
-          (internalReference != null
-              ? internalReference.value
-              : this.internalReference),
+      internalReference: (internalReference != null
+          ? internalReference.value
+          : this.internalReference),
       externalId: (externalId != null ? externalId.value : this.externalId),
       externalUrl: (externalUrl != null ? externalUrl.value : this.externalUrl),
       sepaCc: (sepaCc != null ? sepaCc.value : this.sepaCc),
@@ -14357,8 +14326,9 @@ extension $TransactionSplitUpdateExtension on TransactionSplitUpdate {
       sepaEp: (sepaEp != null ? sepaEp.value : this.sepaEp),
       sepaCi: (sepaCi != null ? sepaCi.value : this.sepaCi),
       sepaBatchId: (sepaBatchId != null ? sepaBatchId.value : this.sepaBatchId),
-      interestDate:
-          (interestDate != null ? interestDate.value : this.interestDate),
+      interestDate: (interestDate != null
+          ? interestDate.value
+          : this.interestDate),
       bookDate: (bookDate != null ? bookDate.value : this.bookDate),
       processDate: (processDate != null ? processDate.value : this.processDate),
       dueDate: (dueDate != null ? dueDate.value : this.dueDate),
@@ -14605,25 +14575,22 @@ extension $UserGroupReadAttributesExtension on UserGroupReadAttributes {
       createdAt: (createdAt != null ? createdAt.value : this.createdAt),
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
       inUse: (inUse != null ? inUse.value : this.inUse),
-      canSeeMembers:
-          (canSeeMembers != null ? canSeeMembers.value : this.canSeeMembers),
+      canSeeMembers: (canSeeMembers != null
+          ? canSeeMembers.value
+          : this.canSeeMembers),
       title: (title != null ? title.value : this.title),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
       members: (members != null ? members.value : this.members),
     );
   }
@@ -14767,14 +14734,12 @@ extension $UserGroupUpdateExtension on UserGroupUpdate {
   }) {
     return UserGroupUpdate(
       title: (title != null ? title.value : this.title),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
     );
   }
 }
@@ -15097,10 +15062,9 @@ extension $WebhookAttemptExtension on WebhookAttempt {
     return WebhookAttempt(
       createdAt: (createdAt != null ? createdAt.value : this.createdAt),
       updatedAt: (updatedAt != null ? updatedAt.value : this.updatedAt),
-      webhookMessageId:
-          (webhookMessageId != null
-              ? webhookMessageId.value
-              : this.webhookMessageId),
+      webhookMessageId: (webhookMessageId != null
+          ? webhookMessageId.value
+          : this.webhookMessageId),
       statusCode: (statusCode != null ? statusCode.value : this.statusCode),
       logs: (logs != null ? logs.value : this.logs),
       response: (response != null ? response.value : this.response),
@@ -15316,21 +15280,22 @@ extension $BasicSummaryEntryExtension on BasicSummaryEntry {
     return BasicSummaryEntry(
       key: (key != null ? key.value : this.key),
       title: (title != null ? title.value : this.title),
-      monetaryValue:
-          (monetaryValue != null ? monetaryValue.value : this.monetaryValue),
+      monetaryValue: (monetaryValue != null
+          ? monetaryValue.value
+          : this.monetaryValue),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      noAvailableBudgets:
-          (noAvailableBudgets != null
-              ? noAvailableBudgets.value
-              : this.noAvailableBudgets),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      noAvailableBudgets: (noAvailableBudgets != null
+          ? noAvailableBudgets.value
+          : this.noAvailableBudgets),
       valueParsed: (valueParsed != null ? valueParsed.value : this.valueParsed),
       localIcon: (localIcon != null ? localIcon.value : this.localIcon),
       subTitle: (subTitle != null ? subTitle.value : this.subTitle),
@@ -15471,10 +15436,9 @@ extension $CronResultExtension on CronResult {
     Wrapped<CronResultRow?>? telemetry,
   }) {
     return CronResult(
-      recurringTransactions:
-          (recurringTransactions != null
-              ? recurringTransactions.value
-              : this.recurringTransactions),
+      recurringTransactions: (recurringTransactions != null
+          ? recurringTransactions.value
+          : this.recurringTransactions),
       autoBudgets: (autoBudgets != null ? autoBudgets.value : this.autoBudgets),
       telemetry: (telemetry != null ? telemetry.value : this.telemetry),
     );
@@ -15533,8 +15497,9 @@ extension $CronResultRowExtension on CronResultRow {
   }) {
     return CronResultRow(
       jobFired: (jobFired != null ? jobFired.value : this.jobFired),
-      jobSucceeded:
-          (jobSucceeded != null ? jobSucceeded.value : this.jobSucceeded),
+      jobSucceeded: (jobSucceeded != null
+          ? jobSucceeded.value
+          : this.jobSucceeded),
       jobErrored: (jobErrored != null ? jobErrored.value : this.jobErrored),
       message: (message != null ? message.value : this.message),
     );
@@ -15963,56 +15928,52 @@ extension $BillProperties$PaidDates$ItemExtension
     Wrapped<String?>? pcForeignAmount,
   }) {
     return BillProperties$PaidDates$Item(
-      transactionGroupId:
-          (transactionGroupId != null
-              ? transactionGroupId.value
-              : this.transactionGroupId),
-      transactionJournalId:
-          (transactionJournalId != null
-              ? transactionJournalId.value
-              : this.transactionJournalId),
+      transactionGroupId: (transactionGroupId != null
+          ? transactionGroupId.value
+          : this.transactionGroupId),
+      transactionJournalId: (transactionJournalId != null
+          ? transactionJournalId.value
+          : this.transactionJournalId),
       date: (date != null ? date.value : this.date),
-      subscriptionId:
-          (subscriptionId != null ? subscriptionId.value : this.subscriptionId),
+      subscriptionId: (subscriptionId != null
+          ? subscriptionId.value
+          : this.subscriptionId),
       currencyId: (currencyId != null ? currencyId.value : this.currencyId),
-      currencyName:
-          (currencyName != null ? currencyName.value : this.currencyName),
-      currencyCode:
-          (currencyCode != null ? currencyCode.value : this.currencyCode),
-      currencySymbol:
-          (currencySymbol != null ? currencySymbol.value : this.currencySymbol),
-      currencyDecimalPlaces:
-          (currencyDecimalPlaces != null
-              ? currencyDecimalPlaces.value
-              : this.currencyDecimalPlaces),
-      primaryCurrencyId:
-          (primaryCurrencyId != null
-              ? primaryCurrencyId.value
-              : this.primaryCurrencyId),
-      primaryCurrencyName:
-          (primaryCurrencyName != null
-              ? primaryCurrencyName.value
-              : this.primaryCurrencyName),
-      primaryCurrencyCode:
-          (primaryCurrencyCode != null
-              ? primaryCurrencyCode.value
-              : this.primaryCurrencyCode),
-      primaryCurrencySymbol:
-          (primaryCurrencySymbol != null
-              ? primaryCurrencySymbol.value
-              : this.primaryCurrencySymbol),
-      primaryCurrencyDecimalPlaces:
-          (primaryCurrencyDecimalPlaces != null
-              ? primaryCurrencyDecimalPlaces.value
-              : this.primaryCurrencyDecimalPlaces),
+      currencyName: (currencyName != null
+          ? currencyName.value
+          : this.currencyName),
+      currencyCode: (currencyCode != null
+          ? currencyCode.value
+          : this.currencyCode),
+      currencySymbol: (currencySymbol != null
+          ? currencySymbol.value
+          : this.currencySymbol),
+      currencyDecimalPlaces: (currencyDecimalPlaces != null
+          ? currencyDecimalPlaces.value
+          : this.currencyDecimalPlaces),
+      primaryCurrencyId: (primaryCurrencyId != null
+          ? primaryCurrencyId.value
+          : this.primaryCurrencyId),
+      primaryCurrencyName: (primaryCurrencyName != null
+          ? primaryCurrencyName.value
+          : this.primaryCurrencyName),
+      primaryCurrencyCode: (primaryCurrencyCode != null
+          ? primaryCurrencyCode.value
+          : this.primaryCurrencyCode),
+      primaryCurrencySymbol: (primaryCurrencySymbol != null
+          ? primaryCurrencySymbol.value
+          : this.primaryCurrencySymbol),
+      primaryCurrencyDecimalPlaces: (primaryCurrencyDecimalPlaces != null
+          ? primaryCurrencyDecimalPlaces.value
+          : this.primaryCurrencyDecimalPlaces),
       amount: (amount != null ? amount.value : this.amount),
       pcAmount: (pcAmount != null ? pcAmount.value : this.pcAmount),
-      foreignAmount:
-          (foreignAmount != null ? foreignAmount.value : this.foreignAmount),
-      pcForeignAmount:
-          (pcForeignAmount != null
-              ? pcForeignAmount.value
-              : this.pcForeignAmount),
+      foreignAmount: (foreignAmount != null
+          ? foreignAmount.value
+          : this.foreignAmount),
+      pcForeignAmount: (pcForeignAmount != null
+          ? pcForeignAmount.value
+          : this.pcForeignAmount),
     );
   }
 }
