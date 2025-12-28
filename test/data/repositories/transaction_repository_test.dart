@@ -48,13 +48,12 @@ void main() {
             },
           ],
         },
-        'links': {
-          'self': 'https://example.com/api/v1/transactions/test-1',
-        },
+        'links': {'self': 'https://example.com/api/v1/transactions/test-1'},
       };
 
-      final TransactionRead transaction =
-          TransactionRead.fromJson(transactionJson);
+      final TransactionRead transaction = TransactionRead.fromJson(
+        transactionJson,
+      );
 
       await repository.create(transaction);
 
@@ -64,10 +63,11 @@ void main() {
       expect(retrieved!.id, 'test-1');
 
       // Verify pending change was created
-      final List<PendingChanges> pending = await isar.pendingChanges
-          .filter()
-          .entityTypeEqualTo('transactions')
-          .findAll();
+      final List<PendingChanges> pending =
+          await isar.pendingChanges
+              .filter()
+              .entityTypeEqualTo('transactions')
+              .findAll();
       expect(pending.length, 1);
       expect(pending.first.operation, 'CREATE');
     });
@@ -86,13 +86,12 @@ void main() {
             },
           ],
         },
-        'links': {
-          'self': 'https://example.com/api/v1/transactions/test-2',
-        },
+        'links': {'self': 'https://example.com/api/v1/transactions/test-2'},
       };
 
-      final TransactionRead transaction =
-          TransactionRead.fromJson(transactionJson);
+      final TransactionRead transaction = TransactionRead.fromJson(
+        transactionJson,
+      );
       await repository.create(transaction);
 
       final Map<String, dynamic> updatedJson = {
@@ -108,9 +107,7 @@ void main() {
             },
           ],
         },
-        'links': {
-          'self': 'https://example.com/api/v1/transactions/test-2',
-        },
+        'links': {'self': 'https://example.com/api/v1/transactions/test-2'},
       };
 
       final TransactionRead updated = TransactionRead.fromJson(updatedJson);
@@ -118,10 +115,7 @@ void main() {
 
       final TransactionRead? retrieved = await repository.getById('test-2');
       expect(retrieved, isNotNull);
-      expect(
-        retrieved!.attributes.transactions.first.description,
-        'Updated',
-      );
+      expect(retrieved!.attributes.transactions.first.description, 'Updated');
     });
 
     test('delete removes transaction and queues pending change', () async {
@@ -138,13 +132,12 @@ void main() {
             },
           ],
         },
-        'links': {
-          'self': 'https://example.com/api/v1/transactions/test-3',
-        },
+        'links': {'self': 'https://example.com/api/v1/transactions/test-3'},
       };
 
-      final TransactionRead transaction =
-          TransactionRead.fromJson(transactionJson);
+      final TransactionRead transaction = TransactionRead.fromJson(
+        transactionJson,
+      );
       await repository.create(transaction);
       await repository.delete('test-3');
 
@@ -152,11 +145,12 @@ void main() {
       expect(retrieved, isNull);
 
       // Verify delete pending change was created
-      final List<PendingChanges> pending = await isar.pendingChanges
-          .filter()
-          .entityTypeEqualTo('transactions')
-          .operationEqualTo('DELETE')
-          .findAll();
+      final List<PendingChanges> pending =
+          await isar.pendingChanges
+              .filter()
+              .entityTypeEqualTo('transactions')
+              .operationEqualTo('DELETE')
+              .findAll();
       expect(pending.length, greaterThan(0));
     });
 
@@ -174,9 +168,7 @@ void main() {
             },
           ],
         },
-        'links': {
-          'self': 'https://example.com/api/v1/transactions/test-4',
-        },
+        'links': {'self': 'https://example.com/api/v1/transactions/test-4'},
       };
 
       final Map<String, dynamic> transaction2Json = {
@@ -192,9 +184,7 @@ void main() {
             },
           ],
         },
-        'links': {
-          'self': 'https://example.com/api/v1/transactions/test-5',
-        },
+        'links': {'self': 'https://example.com/api/v1/transactions/test-5'},
       };
 
       await repository.create(TransactionRead.fromJson(transaction1Json));
@@ -219,13 +209,12 @@ void main() {
             },
           ],
         },
-        'links': {
-          'self': 'https://example.com/api/v1/transactions/test-6',
-        },
+        'links': {'self': 'https://example.com/api/v1/transactions/test-6'},
       };
 
-      final TransactionRead transaction =
-          TransactionRead.fromJson(transactionJson);
+      final TransactionRead transaction = TransactionRead.fromJson(
+        transactionJson,
+      );
       await repository.upsertFromSync(transaction);
 
       final TransactionRead? retrieved = await repository.getById('test-6');
@@ -246,13 +235,12 @@ void main() {
             },
           ],
         },
-        'links': {
-          'self': 'https://example.com/api/v1/transactions/test-7',
-        },
+        'links': {'self': 'https://example.com/api/v1/transactions/test-7'},
       };
 
-      final TransactionRead transaction =
-          TransactionRead.fromJson(transactionJson);
+      final TransactionRead transaction = TransactionRead.fromJson(
+        transactionJson,
+      );
       await repository.create(transaction);
 
       final Map<String, dynamic> updatedJson = {
@@ -268,9 +256,7 @@ void main() {
             },
           ],
         },
-        'links': {
-          'self': 'https://example.com/api/v1/transactions/test-7',
-        },
+        'links': {'self': 'https://example.com/api/v1/transactions/test-7'},
       };
 
       final TransactionRead updated = TransactionRead.fromJson(updatedJson);

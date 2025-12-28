@@ -37,8 +37,8 @@ class UploadService extends ChangeNotifier {
     required this.connectivityService,
     required this.notifications,
     this.settingsProvider,
-  })  : retryManager = RetryManager(isar),
-        conflictResolver = ConflictResolver(isar) {
+  }) : retryManager = RetryManager(isar),
+       conflictResolver = ConflictResolver(isar) {
     // Set settings provider for notifications localization
     notifications.setSettingsProvider(settingsProvider);
   }
@@ -83,8 +83,13 @@ class UploadService extends ChangeNotifier {
           .filter()
           .syncedEqualTo(false)
           .findAll()
-          .then((List<PendingChanges> list) => list.toList()
-            ..sort((PendingChanges a, PendingChanges b) => a.createdAt.compareTo(b.createdAt)));
+          .then(
+            (List<PendingChanges> list) =>
+                list.toList()..sort(
+                  (PendingChanges a, PendingChanges b) =>
+                      a.createdAt.compareTo(b.createdAt),
+                ),
+          );
 
       if (pending.isEmpty) {
         log.config("No pending changes to upload");
@@ -113,11 +118,7 @@ class UploadService extends ChangeNotifier {
             }
           }
         } catch (e, stackTrace) {
-          log.severe(
-            "Error processing change ${change.id}",
-            e,
-            stackTrace,
-          );
+          log.severe("Error processing change ${change.id}", e, stackTrace);
           failureCount++;
 
           // Handle errors
@@ -140,7 +141,7 @@ class UploadService extends ChangeNotifier {
       }
 
       await retryManager.resetRetry('upload');
-      
+
       // Update lastUploadSync metadata after successful upload
       // Update if we had any successes, or if we had no failures (all succeeded or nothing to do)
       if (successCount > 0) {
@@ -149,10 +150,12 @@ class UploadService extends ChangeNotifier {
           lastUploadSync: DateTime.now().toUtc(),
         );
       }
-      
+
       await notifications.showSyncCompleted();
 
-      log.config("Upload completed: $successCount success, $failureCount failures");
+      log.config(
+        "Upload completed: $successCount success, $failureCount failures",
+      );
 
       _isUploading = false;
       notifyListeners();
@@ -185,13 +188,17 @@ class UploadService extends ChangeNotifier {
           return false;
       }
     } catch (e) {
-      log.warning("Error processing ${change.operation} for ${change.entityType}", e);
+      log.warning(
+        "Error processing ${change.operation} for ${change.entityType}",
+        e,
+      );
       rethrow;
     }
   }
 
   Future<bool> _processCreate(PendingChanges change, FireflyIii api) async {
-    final Map<String, dynamic> data = jsonDecode(change.data!) as Map<String, dynamic>;
+    final Map<String, dynamic> data =
+        jsonDecode(change.data!) as Map<String, dynamic>;
 
     try {
       Response<dynamic>? response;
@@ -235,13 +242,12 @@ class UploadService extends ChangeNotifier {
             return false;
           }
           final BudgetLimitStore store = BudgetLimitStore.fromJson(data);
-          response = await api.v1BudgetsIdLimitsPost(
-            id: budgetId,
-            body: store,
-          );
+          response = await api.v1BudgetsIdLimitsPost(id: budgetId, body: store);
           break;
         default:
-          log.warning("Unsupported entity type for CREATE: ${change.entityType}");
+          log.warning(
+            "Unsupported entity type for CREATE: ${change.entityType}",
+          );
           return false;
       }
 
@@ -249,7 +255,9 @@ class UploadService extends ChangeNotifier {
         await _markChangeAsSynced(change.id);
         return true;
       } else {
-        throw Exception("Failed to create ${change.entityType}: ${response.error}");
+        throw Exception(
+          "Failed to create ${change.entityType}: ${response.error}",
+        );
       }
     } catch (e) {
       if (_isConflictError(e)) {
@@ -274,7 +282,8 @@ class UploadService extends ChangeNotifier {
       return false;
     }
 
-    final Map<String, dynamic> data = jsonDecode(change.data!) as Map<String, dynamic>;
+    final Map<String, dynamic> data =
+        jsonDecode(change.data!) as Map<String, dynamic>;
 
     try {
       Response<dynamic>? response;
@@ -315,10 +324,7 @@ class UploadService extends ChangeNotifier {
           break;
         case 'bills':
           final BillUpdate update = BillUpdate.fromJson(data);
-          response = await api.v1BillsIdPut(
-            id: change.entityId!,
-            body: update,
-          );
+          response = await api.v1BillsIdPut(id: change.entityId!, body: update);
           break;
         case 'budgets':
           final BudgetUpdate update = BudgetUpdate.fromJson(data);
@@ -343,7 +349,9 @@ class UploadService extends ChangeNotifier {
           );
           break;
         default:
-          log.warning("Unsupported entity type for UPDATE: ${change.entityType}");
+          log.warning(
+            "Unsupported entity type for UPDATE: ${change.entityType}",
+          );
           return false;
       }
 
@@ -355,7 +363,9 @@ class UploadService extends ChangeNotifier {
         await _markChangeAsSynced(change.id);
         return true;
       } else {
-        throw Exception("Failed to update ${change.entityType}: ${response.error}");
+        throw Exception(
+          "Failed to update ${change.entityType}: ${response.error}",
+        );
       }
     } catch (e) {
       if (_isConflictError(e)) {
@@ -403,7 +413,9 @@ class UploadService extends ChangeNotifier {
           response = await api.v1BudgetsIdDelete(id: change.entityId!);
           break;
         default:
-          log.warning("Unsupported entity type for DELETE: ${change.entityType}");
+          log.warning(
+            "Unsupported entity type for DELETE: ${change.entityType}",
+          );
           return false;
       }
 
@@ -412,7 +424,9 @@ class UploadService extends ChangeNotifier {
         await _markChangeAsSynced(change.id);
         return true;
       } else {
-        throw Exception("Failed to delete ${change.entityType}: ${response.error}");
+        throw Exception(
+          "Failed to delete ${change.entityType}: ${response.error}",
+        );
       }
     } catch (e) {
       rethrow;
@@ -420,10 +434,8 @@ class UploadService extends ChangeNotifier {
   }
 
   Future<void> _markChangeAsSynced(int changeId) async {
-    final PendingChanges? change = await isar.pendingChanges
-        .filter()
-        .idEqualTo(changeId)
-        .findFirst();
+    final PendingChanges? change =
+        await isar.pendingChanges.filter().idEqualTo(changeId).findFirst();
 
     if (change != null) {
       change
@@ -438,10 +450,8 @@ class UploadService extends ChangeNotifier {
   }
 
   Future<void> _incrementRetryCount(int changeId, String error) async {
-    final PendingChanges? change = await isar.pendingChanges
-        .filter()
-        .idEqualTo(changeId)
-        .findFirst();
+    final PendingChanges? change =
+        await isar.pendingChanges.filter().idEqualTo(changeId).findFirst();
 
     if (change == null) {
       return;
@@ -479,22 +489,25 @@ class UploadService extends ChangeNotifier {
     if (error is Response) {
       return error.statusCode == 409;
     }
-    return error.toString().contains('409') || error.toString().contains('Conflict');
+    return error.toString().contains('409') ||
+        error.toString().contains('Conflict');
   }
 
   Future<void> _updateSyncMetadata(
     String entityType, {
     DateTime? lastUploadSync,
   }) async {
-    final SyncMetadata? existing = await isar.syncMetadatas
-        .filter()
-        .entityTypeEqualTo(entityType)
-        .findFirst();
+    final SyncMetadata? existing =
+        await isar.syncMetadatas
+            .filter()
+            .entityTypeEqualTo(entityType)
+            .findFirst();
 
     if (existing == null) {
-      final SyncMetadata metadata = SyncMetadata()
-        ..entityType = entityType
-        ..lastUploadSync = lastUploadSync;
+      final SyncMetadata metadata =
+          SyncMetadata()
+            ..entityType = entityType
+            ..lastUploadSync = lastUploadSync;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);
@@ -512,4 +525,3 @@ class UploadService extends ChangeNotifier {
     super.dispose();
   }
 }
-

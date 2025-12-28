@@ -1,16 +1,9 @@
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_conflicts.dart';
 
-enum ConflictType {
-  download,
-  upload,
-  concurrent,
-}
+enum ConflictType { download, upload, concurrent }
 
-enum ConflictResolution {
-  serverWins,
-  localCancelled,
-}
+enum ConflictResolution { serverWins, localCancelled }
 
 class ConflictResolver {
   final Isar isar;
@@ -25,14 +18,15 @@ class ConflictResolver {
     DateTime? serverUpdatedAt,
     required ConflictResolution resolution,
   }) async {
-    final SyncConflicts conflict = SyncConflicts()
-      ..entityType = entityType
-      ..entityId = entityId
-      ..conflictType = conflictType.name
-      ..localUpdatedAt = localUpdatedAt
-      ..serverUpdatedAt = serverUpdatedAt
-      ..resolution = resolution.name
-      ..timestamp = DateTime.now().toUtc();
+    final SyncConflicts conflict =
+        SyncConflicts()
+          ..entityType = entityType
+          ..entityId = entityId
+          ..conflictType = conflictType.name
+          ..localUpdatedAt = localUpdatedAt
+          ..serverUpdatedAt = serverUpdatedAt
+          ..resolution = resolution.name
+          ..timestamp = DateTime.now().toUtc();
 
     await isar.writeTxn(() async {
       await isar.syncConflicts.put(conflict);
@@ -65,14 +59,17 @@ class ConflictResolver {
     String? entityType,
     int? limit,
   }) async {
-    final List<SyncConflicts> conflicts = entityType != null
-        ? await isar.syncConflicts
-            .filter()
-            .entityTypeEqualTo(entityType)
-            .findAll()
-        : await isar.syncConflicts.where().findAll();
-    
-    conflicts.sort((SyncConflicts a, SyncConflicts b) => b.timestamp.compareTo(a.timestamp));
+    final List<SyncConflicts> conflicts =
+        entityType != null
+            ? await isar.syncConflicts
+                .filter()
+                .entityTypeEqualTo(entityType)
+                .findAll()
+            : await isar.syncConflicts.where().findAll();
+
+    conflicts.sort(
+      (SyncConflicts a, SyncConflicts b) => b.timestamp.compareTo(a.timestamp),
+    );
 
     if (limit != null && limit < conflicts.length) {
       return conflicts.sublist(0, limit);

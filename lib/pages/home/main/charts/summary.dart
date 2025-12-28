@@ -31,7 +31,8 @@ class _SummaryChartState extends State<SummaryChart> {
   void didUpdateWidget(SummaryChart oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Force rebuild when data or dataVersion changes
-    if (oldWidget.data != widget.data || oldWidget.dataVersion != widget.dataVersion) {
+    if (oldWidget.data != widget.data ||
+        oldWidget.dataVersion != widget.dataVersion) {
       setState(() {});
     }
   }
@@ -45,22 +46,22 @@ class _SummaryChartState extends State<SummaryChart> {
 
     double minValue = double.infinity;
     double maxValue = double.negativeInfinity;
-    
+
     for (ChartDataSet e in data) {
       final List<TimeSeriesChart> chartPoints = e.toChart();
-      
+
       // Calculate min/max for axis range
       for (TimeSeriesChart point in chartPoints) {
         if (point.value < minValue) minValue = point.value;
         if (point.value > maxValue) maxValue = point.value;
       }
-      
+
       // Skip series with all zeros to avoid rendering issues
       final bool hasNonZeroValues = chartPoints.any((p) => p.value != 0.0);
       if (!hasNonZeroValues && chartPoints.length > 0) {
         continue;
       }
-      
+
       chartData.add(
         LineSeries<TimeSeriesChart, DateTime>(
           dataSource: chartPoints,
@@ -78,11 +79,15 @@ class _SummaryChartState extends State<SummaryChart> {
     }
 
     // Create a unique key based on data version and data hash to force complete recreation
-    final int dataHash = data.fold<int>(0, (sum, e) => sum + (e.label?.hashCode ?? 0) + e.toChart().length);
+    final int dataHash = data.fold<int>(
+      0,
+      (sum, e) => sum + (e.label?.hashCode ?? 0) + e.toChart().length,
+    );
     final int? version = dataVersion;
-    final Key chartKey = version != null 
-        ? ValueKey<String>('summary-$version-$dataHash')
-        : ValueKey<int>(dataHash);
+    final Key chartKey =
+        version != null
+            ? ValueKey<String>('summary-$version-$dataHash')
+            : ValueKey<int>(dataHash);
     // Wrap chart in SizedBox with explicit width to ensure proper rendering
     return SizedBox(
       width: double.infinity,

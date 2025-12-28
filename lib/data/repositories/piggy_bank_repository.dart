@@ -31,10 +31,8 @@ class PiggyBankRepository {
   }
 
   Future<PiggyBankRead?> getById(String id) async {
-    final PiggyBanks? row = await isar.piggyBanks
-        .filter()
-        .piggyBankIdEqualTo(id)
-        .findFirst();
+    final PiggyBanks? row =
+        await isar.piggyBanks.filter().piggyBankIdEqualTo(id).findFirst();
     if (row == null) {
       return null;
     }
@@ -66,25 +64,27 @@ class PiggyBankRepository {
     final DateTime now = _getNow();
     final DateTime? updatedAt = piggyBank.attributes.updatedAt;
 
-    final PiggyBanks row = PiggyBanks()
-      ..piggyBankId = piggyBank.id
-      ..data = jsonEncode(piggyBank.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = false;
+    final PiggyBanks row =
+        PiggyBanks()
+          ..piggyBankId = piggyBank.id
+          ..data = jsonEncode(piggyBank.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.piggyBanks.put(row);
     });
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'piggy_banks'
-      ..entityId = null
-      ..operation = 'CREATE'
-      ..data = jsonEncode(piggyBank.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'piggy_banks'
+          ..entityId = null
+          ..operation = 'CREATE'
+          ..data = jsonEncode(piggyBank.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -94,10 +94,11 @@ class PiggyBankRepository {
   Future<void> update(PiggyBankRead piggyBank) async {
     final DateTime now = _getNow();
 
-    final PiggyBanks? existing = await isar.piggyBanks
-        .filter()
-        .piggyBankIdEqualTo(piggyBank.id)
-        .findFirst();
+    final PiggyBanks? existing =
+        await isar.piggyBanks
+            .filter()
+            .piggyBankIdEqualTo(piggyBank.id)
+            .findFirst();
 
     if (existing != null) {
       existing
@@ -110,14 +111,15 @@ class PiggyBankRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'piggy_banks'
-      ..entityId = piggyBank.id
-      ..operation = 'UPDATE'
-      ..data = jsonEncode(piggyBank.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'piggy_banks'
+          ..entityId = piggyBank.id
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(piggyBank.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -127,10 +129,8 @@ class PiggyBankRepository {
   Future<void> delete(String id) async {
     final DateTime now = _getNow();
 
-    final PiggyBanks? existing = await isar.piggyBanks
-        .filter()
-        .piggyBankIdEqualTo(id)
-        .findFirst();
+    final PiggyBanks? existing =
+        await isar.piggyBanks.filter().piggyBankIdEqualTo(id).findFirst();
 
     if (existing != null) {
       existing.synced = false;
@@ -140,14 +140,15 @@ class PiggyBankRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'piggy_banks'
-      ..entityId = id
-      ..operation = 'DELETE'
-      ..data = null
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'piggy_banks'
+          ..entityId = id
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -158,12 +159,13 @@ class PiggyBankRepository {
     final DateTime? updatedAt = piggyBank.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final PiggyBanks row = PiggyBanks()
-      ..piggyBankId = piggyBank.id
-      ..data = jsonEncode(piggyBank.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = true;
+    final PiggyBanks row =
+        PiggyBanks()
+          ..piggyBankId = piggyBank.id
+          ..data = jsonEncode(piggyBank.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = true;
 
     await isar.writeTxn(() async {
       await isar.piggyBanks.put(row);

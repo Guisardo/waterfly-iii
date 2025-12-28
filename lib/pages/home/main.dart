@@ -222,17 +222,25 @@ class _HomeMainState extends State<HomeMain>
         end = e.copyWith(month: e.month + 1, day: 0);
       }
 
-      final List<InsightTotalEntry> expenseTotals =
-          await insightRepo.getTotal('expense', start, end);
-      final List<InsightTotalEntry> incomeTotals =
-          await insightRepo.getTotal('income', start, end);
+      final List<InsightTotalEntry> expenseTotals = await insightRepo.getTotal(
+        'expense',
+        start,
+        end,
+      );
+      final List<InsightTotalEntry> incomeTotals = await insightRepo.getTotal(
+        'income',
+        start,
+        end,
+      );
 
-      lastMonthsExpense[e] = expenseTotals.isNotEmpty
-          ? expenseTotals.first
-          : const InsightTotalEntry(differenceFloat: 0);
-      lastMonthsIncome[e] = incomeTotals.isNotEmpty
-          ? incomeTotals.first
-          : const InsightTotalEntry(differenceFloat: 0);
+      lastMonthsExpense[e] =
+          expenseTotals.isNotEmpty
+              ? expenseTotals.first
+              : const InsightTotalEntry(differenceFloat: 0);
+      lastMonthsIncome[e] =
+          incomeTotals.isNotEmpty
+              ? incomeTotals.first
+              : const InsightTotalEntry(differenceFloat: 0);
     }
 
     // If too big digits are present (>=100000), only show two columns to avoid
@@ -281,7 +289,7 @@ class _HomeMainState extends State<HomeMain>
     final FireflyService fireflyService = context.read<FireflyService>();
     final TimeZoneHandler tzHandler = fireflyService.tzHandler;
     final CurrencyRead defaultCurrency = fireflyService.defaultCurrency;
-    
+
     final Isar isar = await AppDatabase.instance;
     final InsightRepository insightRepo = InsightRepository(isar);
 
@@ -293,8 +301,18 @@ class _HomeMainState extends State<HomeMain>
     late List<InsightGroupEntry> incomeData;
     late List<InsightGroupEntry> expenseData;
     if (!tags) {
-      incomeData = await insightRepo.getGrouped('income', 'category', start, end);
-      expenseData = await insightRepo.getGrouped('expense', 'category', start, end);
+      incomeData = await insightRepo.getGrouped(
+        'income',
+        'category',
+        start,
+        end,
+      );
+      expenseData = await insightRepo.getGrouped(
+        'expense',
+        'category',
+        start,
+        end,
+      );
     } else {
       incomeData = await insightRepo.getGrouped('income', 'tag', start, end);
       expenseData = await insightRepo.getGrouped('expense', 'tag', start, end);
@@ -355,8 +373,8 @@ class _HomeMainState extends State<HomeMain>
     }
 
     // Get budget limits from repository
-    final List<BudgetLimitRead> budgetLimits =
-        await repo.getBudgetLimitsByDateRange(now, now.add(const Duration(days: 32)));
+    final List<BudgetLimitRead> budgetLimits = await repo
+        .getBudgetLimitsByDateRange(now, now.add(const Duration(days: 32)));
 
     budgetLimits.sort((BudgetLimitRead a, BudgetLimitRead b) {
       final BudgetProperties? budgetA = budgetInfos[a.attributes.budgetId];
@@ -436,18 +454,20 @@ class _HomeMainState extends State<HomeMain>
     // Use repositories for accounts
     final Isar isar = await AppDatabase.instance;
     final AccountRepository accountRepo = AccountRepository(isar);
-    final List<AccountRead> assetAccounts =
-        await accountRepo.getByType(AccountTypeFilter.asset);
-    final List<AccountRead> liabilityAccounts =
-        await accountRepo.getByType(AccountTypeFilter.liabilities);
+    final List<AccountRead> assetAccounts = await accountRepo.getByType(
+      AccountTypeFilter.asset,
+    );
+    final List<AccountRead> liabilityAccounts = await accountRepo.getByType(
+      AccountTypeFilter.liabilities,
+    );
 
     // Chart data still needs API call (computed view)
-    final Response<List<ChartDataSet>> respBalanceData =
-        await api.v1ChartAccountOverviewGet(
-      start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
-      end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
-      preselected: V1ChartAccountOverviewGetPreselected.all,
-    );
+    final Response<List<ChartDataSet>> respBalanceData = await api
+        .v1ChartAccountOverviewGet(
+          start: DateFormat('yyyy-MM-dd', 'en_US').format(start),
+          end: DateFormat('yyyy-MM-dd', 'en_US').format(end),
+          preselected: V1ChartAccountOverviewGetPreselected.all,
+        );
     apiThrowErrorIfEmpty(respBalanceData, mounted ? context : null);
 
     final Map<String, bool> includeInNetWorth = <String, bool>{
@@ -1543,19 +1563,44 @@ class ChartCard extends StatelessWidget {
                                       ),
                                       child: childWidget,
                                     )
-                                  : childWidget;
-                              return onTap != null
-                                  // AbsorbPointer fixes SfChart invalidating the onTap feedback
-                                  ? AbsorbPointer(child: widgetWithKey)
-                                  : widgetWithKey;
-                            },
+                                    : const SizedBox.shrink(),
+                              ],
+                            ),
                           ),
-                        ),
+                          Ink(
+                            decoration: BoxDecoration(
+                              color:
+                                  Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
+                            ),
+                            child: SizedBox(
+                              height: height,
+                              child: Builder(
+                                builder: (BuildContext context) {
+                                  final Widget childWidget = child();
+                                  // Use key to force rebuild when data version changes
+                                  final Widget widgetWithKey =
+                                      dataVersionNotifier != null
+                                          ? KeyedSubtree(
+                                            key: ValueKey<int>(
+                                              dataVersionNotifier!.value,
+                                            ),
+                                            child: childWidget,
+                                          )
+                                          : childWidget;
+                                  return onTap != null
+                                      // AbsorbPointer fixes SfChart invalidating the onTap feedback
+                                      ? AbsorbPointer(child: widgetWithKey)
+                                      : widgetWithKey;
+                                },
+                              ),
+                            ),
+                          ),
+                          ...summaryWidgets,
+                        ],
                       ),
-                      ...summaryWidgets,
-                    ],
-                  ),
-                );
+                    );
                   },
                 );
               } else if (snapshot.hasError) {

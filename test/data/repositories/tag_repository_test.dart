@@ -37,9 +37,7 @@ void main() {
       final TagRead tag = TagRead(
         type: 'tags',
         id: '1',
-        attributes: TagModel(
-          tag: 'test-tag',
-        ),
+        attributes: TagModel(tag: 'test-tag'),
         links: ObjectLink(self: 'https://example.com/api/v1/tags/1'),
       );
 
@@ -55,18 +53,14 @@ void main() {
       final TagRead tag1 = TagRead(
         type: 'tags',
         id: '2',
-        attributes: TagModel(
-          tag: 'groceries',
-        ),
+        attributes: TagModel(tag: 'groceries'),
         links: ObjectLink(self: 'https://example.com/api/v1/tags/2'),
       );
 
       final TagRead tag2 = TagRead(
         type: 'tags',
         id: '3',
-        attributes: TagModel(
-          tag: 'restaurant',
-        ),
+        attributes: TagModel(tag: 'restaurant'),
         links: ObjectLink(self: 'https://example.com/api/v1/tags/3'),
       );
 
@@ -82,9 +76,7 @@ void main() {
       final TagRead tag = TagRead(
         type: 'tags',
         id: '4',
-        attributes: TagModel(
-          tag: 'synced-tag',
-        ),
+        attributes: TagModel(tag: 'synced-tag'),
         links: ObjectLink(self: 'https://example.com/api/v1/tags/4'),
       );
 
@@ -95,4 +87,3 @@ void main() {
     });
   });
 }
-

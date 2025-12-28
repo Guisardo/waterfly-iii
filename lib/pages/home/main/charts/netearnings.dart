@@ -48,7 +48,8 @@ class NetEarningsChart extends StatelessWidget {
     expenseChartData = expenseChartData.reversed.toList();
 
     // Check if all values are zero
-    final bool allZero = incomeChartData.every((e) => e.amount == 0) &&
+    final bool allZero =
+        incomeChartData.every((e) => e.amount == 0) &&
         expenseChartData.every((e) => e.amount == 0);
 
     // Show placeholder if no data or all zeros
@@ -56,10 +57,14 @@ class NetEarningsChart extends StatelessWidget {
       return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           return SizedBox(
-            width: constraints.maxWidth > 0 ? constraints.maxWidth : double.infinity,
-            height: constraints.maxHeight.isFinite && constraints.maxHeight > 0 
-                ? constraints.maxHeight 
-                : 150.0,
+            width:
+                constraints.maxWidth > 0
+                    ? constraints.maxWidth
+                    : double.infinity,
+            height:
+                constraints.maxHeight.isFinite && constraints.maxHeight > 0
+                    ? constraints.maxHeight
+                    : 150.0,
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -153,10 +158,18 @@ class _NetEarningsChartPopupState extends State<NetEarningsChartPopup> {
     final Isar isar = await AppDatabase.instance;
     final InsightRepository insightRepo = InsightRepository(isar);
 
-    final List<InsightGroupEntry> incomeData =
-        await insightRepo.getGrouped('income', 'category', start, end);
-    final List<InsightGroupEntry> expenseData =
-        await insightRepo.getGrouped('expense', 'category', start, end);
+    final List<InsightGroupEntry> incomeData = await insightRepo.getGrouped(
+      'income',
+      'category',
+      start,
+      end,
+    );
+    final List<InsightGroupEntry> expenseData = await insightRepo.getGrouped(
+      'expense',
+      'category',
+      start,
+      end,
+    );
 
     for (InsightGroupEntry cat in incomeData) {
       if ((cat.name?.isEmpty ?? true) || cat.differenceFloat == 0) {

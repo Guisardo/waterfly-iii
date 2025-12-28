@@ -69,6 +69,9 @@ android {
         release {
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
+            } else {
+                // Fall back to debug signing for local testing when key.properties is missing
+                signingConfig = signingConfigs.getByName("debug")
             }
 
             isMinifyEnabled = true

@@ -375,12 +375,12 @@ class _BillDetailsState extends State<BillDetails> {
   Future<TransactionRead> _fetchFullTx(String id) async {
     final Isar isar = await AppDatabase.instance;
     final TransactionRepository txRepo = TransactionRepository(isar);
-    
+
     final TransactionRead? transaction = await txRepo.getById(id);
     if (transaction == null) {
       throw Exception("Transaction not found: $id");
     }
-    
+
     return transaction;
   }
 }

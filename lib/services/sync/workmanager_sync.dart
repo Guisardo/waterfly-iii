@@ -5,8 +5,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/services/sync/sync_service.dart';
 import 'package:waterflyiii/services/sync/upload_service.dart';
-import 'package:waterflyiii/services/connectivity/connectivity_service.dart' show ConnectivityService;
-import 'package:workmanager_platform_interface/src/pigeon/workmanager_api.g.dart' as workmanager;
+import 'package:waterflyiii/services/connectivity/connectivity_service.dart'
+    show ConnectivityService;
+import 'package:workmanager_platform_interface/src/pigeon/workmanager_api.g.dart'
+    as workmanager;
 import 'package:waterflyiii/services/sync/sync_notifications.dart';
 import 'package:waterflyiii/auth.dart';
 
@@ -17,7 +19,10 @@ const String uploadTaskName = "waterflyUploadTask";
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
-  Workmanager().executeTask((String task, Map<String, dynamic>? inputData) async {
+  Workmanager().executeTask((
+    String task,
+    Map<String, dynamic>? inputData,
+  ) async {
     log.config("Background task started: $task");
 
     try {
@@ -42,10 +47,13 @@ void callbackDispatcher() {
       try {
         await fireflyService.signIn(apiHost, apiKey);
       } catch (e) {
-        log.warning("Failed to sign in with stored credentials in background task", e);
+        log.warning(
+          "Failed to sign in with stored credentials in background task",
+          e,
+        );
         return Future<bool>.value(false);
       }
-      
+
       if (!fireflyService.signedIn) {
         log.warning("Sign in completed but signedIn is false");
         return Future<bool>.value(false);
@@ -96,10 +104,7 @@ void callbackDispatcher() {
 
 class WorkManagerSync {
   static Future<void> initialize() async {
-    await Workmanager().initialize(
-      callbackDispatcher,
-      isInDebugMode: false,
-    );
+    await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   }
 
   static Future<void> registerPeriodicSync() async {
@@ -159,4 +164,3 @@ class WorkManagerSync {
     await Workmanager().cancelAll();
   }
 }
-

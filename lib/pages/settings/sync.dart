@@ -39,9 +39,7 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
     final SyncStatusProvider syncStatus = context.watch<SyncStatusProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).syncSettingsTitle),
-      ),
+      appBar: AppBar(title: Text(S.of(context).syncSettingsTitle)),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         children: <Widget>[
@@ -63,18 +61,19 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
               syncStatus.authMetadata?.credentialsInvalid ?? false
                   ? S.of(context).syncSettingsCredentialsInvalid
                   : syncStatus.authMetadata?.credentialsValidated ?? false
-                      ? S.of(context).syncSettingsCredentialsValidated
-                      : S.of(context).syncSettingsCredentialsNotValidated,
+                  ? S.of(context).syncSettingsCredentialsValidated
+                  : S.of(context).syncSettingsCredentialsNotValidated,
             ),
-            trailing: syncStatus.authMetadata?.credentialsInvalid ?? false
-                ? ElevatedButton(
-                    onPressed: () {
-                      // Navigate to login or show credential update dialog
-                      Navigator.pushNamed(context, '/login');
-                    },
-                    child: Text(S.of(context).syncSettingsReenterButton),
-                  )
-                : null,
+            trailing:
+                syncStatus.authMetadata?.credentialsInvalid ?? false
+                    ? ElevatedButton(
+                      onPressed: () {
+                        // Navigate to login or show credential update dialog
+                        Navigator.pushNamed(context, '/login');
+                      },
+                      child: Text(S.of(context).syncSettingsReenterButton),
+                    )
+                    : null,
           ),
           const Divider(),
 
@@ -105,18 +104,19 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
           ListTile(
             title: Text(S.of(context).syncSettingsManualSyncTitle),
             subtitle: Text(S.of(context).syncSettingsManualSyncSubtitle),
-            trailing: syncStatus.isSyncing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : ElevatedButton(
-                    onPressed: () async {
-                      await syncStatus.syncAll();
-                    },
-                    child: Text(S.of(context).syncSettingsSyncNowButton),
-                  ),
+            trailing:
+                syncStatus.isSyncing
+                    ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                    : ElevatedButton(
+                      onPressed: () async {
+                        await syncStatus.syncAll();
+                      },
+                      child: Text(S.of(context).syncSettingsSyncNowButton),
+                    ),
           ),
         ],
       ),
@@ -134,7 +134,8 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
     final int retryCount = metadata?.retryCount ?? 0;
     final DateTime? nextRetryAt = metadata?.nextRetryAt;
     final String? lastError = metadata?.lastError;
-    final DateTime? lastSync = metadata?.lastDownloadSync ?? metadata?.lastUploadSync;
+    final DateTime? lastSync =
+        metadata?.lastDownloadSync ?? metadata?.lastUploadSync;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,9 +164,13 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                   ),
                 ),
               if (lastSync != null && !isSyncing)
-                Text(S.of(context).syncSettingsLastSync(
-                  DateFormat.yMd().add_Hms().format(lastSync),
-                )),
+                Text(
+                  S
+                      .of(context)
+                      .syncSettingsLastSync(
+                        DateFormat.yMd().add_Hms().format(lastSync),
+                      ),
+                ),
               if (isPaused && !isSyncing) ...[
                 Text(
                   S.of(context).syncSettingsStatusPaused,
@@ -175,9 +180,11 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                   Text(S.of(context).syncSettingsRetryCount(retryCount)),
                 if (nextRetryAt != null)
                   Text(
-                    S.of(context).syncSettingsNextRetry(
-                      DateFormat.yMd().add_Hms().format(nextRetryAt),
-                    ),
+                    S
+                        .of(context)
+                        .syncSettingsNextRetry(
+                          DateFormat.yMd().add_Hms().format(nextRetryAt),
+                        ),
                   ),
               ],
               // Show errors even when not paused if they exist
@@ -190,16 +197,16 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                 Text(S.of(context).syncSettingsStatusActive),
             ],
           ),
-          trailing: isPaused && !isSyncing
-              ? ElevatedButton(
-                  onPressed: onResume,
-                  child: Text(S.of(context).syncSettingsResumeButton),
-                )
-              : null,
+          trailing:
+              isPaused && !isSyncing
+                  ? ElevatedButton(
+                    onPressed: onResume,
+                    child: Text(S.of(context).syncSettingsResumeButton),
+                  )
+                  : null,
         ),
         const Divider(),
       ],
     );
   }
 }
-

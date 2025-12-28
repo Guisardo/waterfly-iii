@@ -6,12 +6,7 @@ import 'package:logging/logging.dart';
 
 final Logger log = Logger("Connectivity");
 
-enum NetworkType {
-  none,
-  wifi,
-  mobile,
-  other,
-}
+enum NetworkType { none, wifi, mobile, other }
 
 class ConnectivityService extends ChangeNotifier {
   final Connectivity _connectivity = Connectivity();
@@ -77,4 +72,3 @@ class ConnectivityService extends ChangeNotifier {
     super.dispose();
   }
 }
-

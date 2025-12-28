@@ -31,16 +31,12 @@ class CategoryRepository {
   }
 
   Future<CategoryRead?> getById(String id) async {
-    final Categories? row = await isar.categories
-        .filter()
-        .categoryIdEqualTo(id)
-        .findFirst();
+    final Categories? row =
+        await isar.categories.filter().categoryIdEqualTo(id).findFirst();
     if (row == null) {
       return null;
     }
-    return CategoryRead.fromJson(
-      jsonDecode(row.data) as Map<String, dynamic>,
-    );
+    return CategoryRead.fromJson(jsonDecode(row.data) as Map<String, dynamic>);
   }
 
   Future<List<CategoryRead>> search(String query) async {
@@ -59,13 +55,12 @@ class CategoryRepository {
 
   Future<List<String>> autocomplete(String query) async {
     final List<CategoryRead> categories = await search(query);
-    return categories.map((CategoryRead category) => category.attributes.name).toList();
+    return categories
+        .map((CategoryRead category) => category.attributes.name)
+        .toList();
   }
 
-  Future<List<CategoryRead>> getByDateRange(
-    DateTime start,
-    DateTime end,
-  ) {
+  Future<List<CategoryRead>> getByDateRange(DateTime start, DateTime end) {
     // Categories don't have date ranges, return all
     return getAll();
   }
@@ -74,25 +69,27 @@ class CategoryRepository {
     final DateTime now = _getNow();
     final DateTime? updatedAt = category.attributes.updatedAt;
 
-    final Categories row = Categories()
-      ..categoryId = category.id
-      ..data = jsonEncode(category.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = false;
+    final Categories row =
+        Categories()
+          ..categoryId = category.id
+          ..data = jsonEncode(category.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.categories.put(row);
     });
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'categories'
-      ..entityId = null
-      ..operation = 'CREATE'
-      ..data = jsonEncode(category.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'categories'
+          ..entityId = null
+          ..operation = 'CREATE'
+          ..data = jsonEncode(category.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -102,10 +99,11 @@ class CategoryRepository {
   Future<void> update(CategoryRead category) async {
     final DateTime now = _getNow();
 
-    final Categories? existing = await isar.categories
-        .filter()
-        .categoryIdEqualTo(category.id)
-        .findFirst();
+    final Categories? existing =
+        await isar.categories
+            .filter()
+            .categoryIdEqualTo(category.id)
+            .findFirst();
 
     if (existing != null) {
       existing
@@ -118,14 +116,15 @@ class CategoryRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'categories'
-      ..entityId = category.id
-      ..operation = 'UPDATE'
-      ..data = jsonEncode(category.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'categories'
+          ..entityId = category.id
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(category.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -135,10 +134,8 @@ class CategoryRepository {
   Future<void> delete(String id) async {
     final DateTime now = _getNow();
 
-    final Categories? existing = await isar.categories
-        .filter()
-        .categoryIdEqualTo(id)
-        .findFirst();
+    final Categories? existing =
+        await isar.categories.filter().categoryIdEqualTo(id).findFirst();
 
     if (existing != null) {
       existing.synced = false;
@@ -148,14 +145,15 @@ class CategoryRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'categories'
-      ..entityId = id
-      ..operation = 'DELETE'
-      ..data = null
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'categories'
+          ..entityId = id
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -166,12 +164,13 @@ class CategoryRepository {
     final DateTime? updatedAt = category.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Categories row = Categories()
-      ..categoryId = category.id
-      ..data = jsonEncode(category.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = true;
+    final Categories row =
+        Categories()
+          ..categoryId = category.id
+          ..data = jsonEncode(category.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = true;
 
     await isar.writeTxn(() async {
       await isar.categories.put(row);

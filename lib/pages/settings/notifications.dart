@@ -239,8 +239,9 @@ class NotificationApps extends StatelessWidget {
   Future<AccountArray> _getAccounts(BuildContext context) async {
     final Isar isar = await AppDatabase.instance;
     final AccountRepository accountRepo = AccountRepository(isar);
-    final List<AccountRead> accounts =
-        await accountRepo.getByType(AccountTypeFilter.assetAccount);
+    final List<AccountRead> accounts = await accountRepo.getByType(
+      AccountTypeFilter.assetAccount,
+    );
 
     return AccountArray(
       data: accounts,

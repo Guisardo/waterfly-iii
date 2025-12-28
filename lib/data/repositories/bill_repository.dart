@@ -24,23 +24,16 @@ class BillRepository {
     });
 
     return rows.map((Bills row) {
-      return BillRead.fromJson(
-        jsonDecode(row.data) as Map<String, dynamic>,
-      );
+      return BillRead.fromJson(jsonDecode(row.data) as Map<String, dynamic>);
     }).toList();
   }
 
   Future<BillRead?> getById(String id) async {
-    final Bills? row = await isar.bills
-        .filter()
-        .billIdEqualTo(id)
-        .findFirst();
+    final Bills? row = await isar.bills.filter().billIdEqualTo(id).findFirst();
     if (row == null) {
       return null;
     }
-    return BillRead.fromJson(
-      jsonDecode(row.data) as Map<String, dynamic>,
-    );
+    return BillRead.fromJson(jsonDecode(row.data) as Map<String, dynamic>);
   }
 
   Future<List<BillRead>> search(String query) async {
@@ -65,25 +58,27 @@ class BillRepository {
     final DateTime now = _getNow();
     final DateTime? updatedAt = bill.attributes.updatedAt;
 
-    final Bills row = Bills()
-      ..billId = bill.id
-      ..data = jsonEncode(bill.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = false;
+    final Bills row =
+        Bills()
+          ..billId = bill.id
+          ..data = jsonEncode(bill.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.bills.put(row);
     });
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'bills'
-      ..entityId = null
-      ..operation = 'CREATE'
-      ..data = jsonEncode(bill.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'bills'
+          ..entityId = null
+          ..operation = 'CREATE'
+          ..data = jsonEncode(bill.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -93,10 +88,8 @@ class BillRepository {
   Future<void> update(BillRead bill) async {
     final DateTime now = _getNow();
 
-    final Bills? existing = await isar.bills
-        .filter()
-        .billIdEqualTo(bill.id)
-        .findFirst();
+    final Bills? existing =
+        await isar.bills.filter().billIdEqualTo(bill.id).findFirst();
 
     if (existing != null) {
       existing
@@ -109,14 +102,15 @@ class BillRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'bills'
-      ..entityId = bill.id
-      ..operation = 'UPDATE'
-      ..data = jsonEncode(bill.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'bills'
+          ..entityId = bill.id
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(bill.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -126,10 +120,8 @@ class BillRepository {
   Future<void> delete(String id) async {
     final DateTime now = _getNow();
 
-    final Bills? existing = await isar.bills
-        .filter()
-        .billIdEqualTo(id)
-        .findFirst();
+    final Bills? existing =
+        await isar.bills.filter().billIdEqualTo(id).findFirst();
 
     if (existing != null) {
       existing.synced = false;
@@ -139,14 +131,15 @@ class BillRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'bills'
-      ..entityId = id
-      ..operation = 'DELETE'
-      ..data = null
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'bills'
+          ..entityId = id
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -157,12 +150,13 @@ class BillRepository {
     final DateTime? updatedAt = bill.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Bills row = Bills()
-      ..billId = bill.id
-      ..data = jsonEncode(bill.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = true;
+    final Bills row =
+        Bills()
+          ..billId = bill.id
+          ..data = jsonEncode(bill.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = true;
 
     await isar.writeTxn(() async {
       await isar.bills.put(row);

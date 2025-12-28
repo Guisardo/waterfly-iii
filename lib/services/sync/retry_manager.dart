@@ -14,10 +14,11 @@ class RetryManager {
   }
 
   Future<bool> isPaused(String entityType) async {
-    final SyncMetadata? metadata = await isar.syncMetadatas
-        .filter()
-        .entityTypeEqualTo(entityType)
-        .findFirst();
+    final SyncMetadata? metadata =
+        await isar.syncMetadatas
+            .filter()
+            .entityTypeEqualTo(entityType)
+            .findFirst();
 
     if (metadata == null || !metadata.syncPaused) {
       return false;
@@ -44,27 +45,27 @@ class RetryManager {
     return true;
   }
 
-  Future<void> pauseWithBackoff(
-    String entityType,
-    String error,
-  ) async {
-    final SyncMetadata? existing = await isar.syncMetadatas
-        .filter()
-        .entityTypeEqualTo(entityType)
-        .findFirst();
+  Future<void> pauseWithBackoff(String entityType, String error) async {
+    final SyncMetadata? existing =
+        await isar.syncMetadatas
+            .filter()
+            .entityTypeEqualTo(entityType)
+            .findFirst();
 
     final int retryCount = (existing?.retryCount ?? 0) + 1;
     final int backoffSeconds = calculateBackoffSeconds(retryCount);
-    final DateTime nextRetryAt =
-        DateTime.now().toUtc().add(Duration(seconds: backoffSeconds));
+    final DateTime nextRetryAt = DateTime.now().toUtc().add(
+      Duration(seconds: backoffSeconds),
+    );
 
     if (existing == null) {
-      final SyncMetadata metadata = SyncMetadata()
-        ..entityType = entityType
-        ..syncPaused = true
-        ..retryCount = retryCount
-        ..nextRetryAt = nextRetryAt
-        ..lastError = error;
+      final SyncMetadata metadata =
+          SyncMetadata()
+            ..entityType = entityType
+            ..syncPaused = true
+            ..retryCount = retryCount
+            ..nextRetryAt = nextRetryAt
+            ..lastError = error;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);
@@ -83,10 +84,11 @@ class RetryManager {
   }
 
   Future<void> resetRetry(String entityType) async {
-    final SyncMetadata? existing = await isar.syncMetadatas
-        .filter()
-        .entityTypeEqualTo(entityType)
-        .findFirst();
+    final SyncMetadata? existing =
+        await isar.syncMetadatas
+            .filter()
+            .entityTypeEqualTo(entityType)
+            .findFirst();
 
     if (existing != null) {
       existing

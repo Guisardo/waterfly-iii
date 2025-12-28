@@ -22,7 +22,8 @@ import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
-import 'package:waterflyiii/services/sync/conflict_resolver.dart' show ConflictResolver, ConflictType, ConflictResolution;
+import 'package:waterflyiii/services/sync/conflict_resolver.dart'
+    show ConflictResolver, ConflictType, ConflictResolution;
 import 'package:waterflyiii/services/sync/retry_manager.dart';
 import 'package:waterflyiii/services/sync/sync_notifications.dart';
 import 'package:waterflyiii/settings.dart';
@@ -66,8 +67,8 @@ class SyncService extends ChangeNotifier {
     required this.connectivityService,
     required this.notifications,
     this.settingsProvider,
-  })  : retryManager = RetryManager(isar),
-        conflictResolver = ConflictResolver(isar) {
+  }) : retryManager = RetryManager(isar),
+       conflictResolver = ConflictResolver(isar) {
     // Set settings provider for notifications localization
     notifications.setSettingsProvider(settingsProvider);
   }
@@ -100,10 +101,7 @@ class SyncService extends ChangeNotifier {
     }
   }
 
-  Future<void> sync({
-    bool forceFullSync = false,
-    String? entityType,
-  }) async {
+  Future<void> sync({bool forceFullSync = false, String? entityType}) async {
     if (_isSyncing) {
       log.config("Sync already in progress, skipping");
       return;
@@ -164,18 +162,19 @@ class SyncService extends ChangeNotifier {
       await notifications.showSyncStarted();
 
       // Sync entities
-      final List<String> entityTypes = entityType != null
-          ? <String>[entityType]
-          : <String>[
-              'transactions',
-              'accounts',
-              'categories',
-              'tags',
-              'bills',
-              'budgets',
-              'currencies',
-              'piggy_banks',
-            ];
+      final List<String> entityTypes =
+          entityType != null
+              ? <String>[entityType]
+              : <String>[
+                'transactions',
+                'accounts',
+                'categories',
+                'tags',
+                'bills',
+                'budgets',
+                'currencies',
+                'piggy_banks',
+              ];
 
       for (final String type in entityTypes) {
         try {
@@ -188,7 +187,7 @@ class SyncService extends ChangeNotifier {
 
       // Refresh stale insights
       await _refreshStaleInsights();
-      
+
       // Prefetch common date range insights for dashboard
       await _prefetchCommonInsights();
 
@@ -208,10 +207,7 @@ class SyncService extends ChangeNotifier {
         );
         await notifications.showSyncPaused(e.toString());
       } else if (_isAuthError(e)) {
-        await _updateSyncMetadata(
-          'auth',
-          credentialsInvalid: true,
-        );
+        await _updateSyncMetadata('auth', credentialsInvalid: true);
         await notifications.showCredentialError();
       }
 
@@ -239,9 +235,8 @@ class SyncService extends ChangeNotifier {
     );
 
     final SyncMetadata? metadata = await retryManager.getMetadata(entityType);
-    final DateTime? lastSync = forceFullSync
-        ? null
-        : metadata?.lastDownloadSync;
+    final DateTime? lastSync =
+        forceFullSync ? null : metadata?.lastDownloadSync;
 
     switch (entityType) {
       case 'transactions':
@@ -319,8 +314,9 @@ class SyncService extends ChangeNotifier {
 
         final Map<String, dynamic> responseJson =
             jsonDecode(httpResponse.body) as Map<String, dynamic>;
-        final TransactionArray transactionArray =
-            TransactionArray.fromJson(responseJson);
+        final TransactionArray transactionArray = TransactionArray.fromJson(
+          responseJson,
+        );
 
         final List<TransactionRead> transactions = transactionArray.data;
         if (transactions.isEmpty) {
@@ -329,8 +325,7 @@ class SyncService extends ChangeNotifier {
         }
 
         for (final TransactionRead transaction in transactions) {
-          final DateTime? updatedAt =
-              transaction.attributes.updatedAt;
+          final DateTime? updatedAt = transaction.attributes.updatedAt;
 
           // Stop if we've reached already-synced items (incremental sync)
           // Since we're ordering by updated_at DESC, once we hit an item older than lastSync,
@@ -349,7 +344,8 @@ class SyncService extends ChangeNotifier {
             if (localUpdatedAt != null &&
                 updatedAt != null &&
                 localUpdatedAt.isAtSameMomentAs(updatedAt) &&
-                jsonEncode(local.toJson()) != jsonEncode(transaction.toJson())) {
+                jsonEncode(local.toJson()) !=
+                    jsonEncode(transaction.toJson())) {
               // Concurrent modification conflict
               await conflictResolver.logConflict(
                 entityType: 'transactions',
@@ -484,9 +480,7 @@ class SyncService extends ChangeNotifier {
     bool hasMore = true;
 
     while (hasMore) {
-      final Response<TagArray> response = await api.v1TagsGet(
-        page: page,
-      );
+      final Response<TagArray> response = await api.v1TagsGet(page: page);
 
       if (!response.isSuccessful || response.body == null) {
         throw Exception("Failed to fetch tags: ${response.error}");
@@ -527,9 +521,7 @@ class SyncService extends ChangeNotifier {
     bool hasMore = true;
 
     while (hasMore) {
-      final Response<BillArray> response = await api.v1BillsGet(
-        page: page,
-      );
+      final Response<BillArray> response = await api.v1BillsGet(page: page);
 
       if (!response.isSuccessful || response.body == null) {
         throw Exception("Failed to fetch bills: ${response.error}");
@@ -570,9 +562,7 @@ class SyncService extends ChangeNotifier {
     bool hasMore = true;
 
     while (hasMore) {
-      final Response<BudgetArray> response = await api.v1BudgetsGet(
-        page: page,
-      );
+      final Response<BudgetArray> response = await api.v1BudgetsGet(page: page);
 
       if (!response.isSuccessful || response.body == null) {
         throw Exception("Failed to fetch budgets: ${response.error}");
@@ -636,7 +626,9 @@ class SyncService extends ChangeNotifier {
       }
 
       // Check for conflicts
-      final BudgetLimitRead? existing = await repo.getBudgetLimitById(budgetLimit.id);
+      final BudgetLimitRead? existing = await repo.getBudgetLimitById(
+        budgetLimit.id,
+      );
       if (existing != null) {
         final DateTime? localUpdatedAt = existing.attributes.updatedAt;
         if (localUpdatedAt != null &&
@@ -732,7 +724,7 @@ class SyncService extends ChangeNotifier {
     }
 
     final FireflyIii api = fireflyService.api;
-    
+
     for (final Insights insight in staleInsights) {
       try {
         dynamic data;
@@ -741,27 +733,42 @@ class SyncService extends ChangeNotifier {
           final Response<InsightTotal> response =
               insight.insightType == 'expense'
                   ? await api.v1InsightExpenseTotalGet(
-                      start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                          .format(insight.startDate),
-                      end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                          .format(insight.endDate),
-                    )
+                    start: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.startDate),
+                    end: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.endDate),
+                  )
                   : insight.insightType == 'income'
-                      ? await api.v1InsightIncomeTotalGet(
-                          start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.startDate),
-                          end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.endDate),
-                        )
-                      : await api.v1InsightTransferTotalGet(
-                          start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.startDate),
-                          end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.endDate),
-                        );
+                  ? await api.v1InsightIncomeTotalGet(
+                    start: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.startDate),
+                    end: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.endDate),
+                  )
+                  : await api.v1InsightTransferTotalGet(
+                    start: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.startDate),
+                    end: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.endDate),
+                  );
 
           if (response.isSuccessful && response.body != null) {
-            data = response.body!.map((InsightTotalEntry e) => e.toJson()).toList();
+            data =
+                response.body!
+                    .map((InsightTotalEntry e) => e.toJson())
+                    .toList();
           }
         } else if (insight.insightSubtype.startsWith('no-')) {
           final String baseType = insight.insightSubtype.substring(3);
@@ -769,73 +776,115 @@ class SyncService extends ChangeNotifier {
               insight.insightType == 'expense'
                   ? baseType == 'category'
                       ? await api.v1InsightExpenseNoCategoryGet(
-                          start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.startDate),
-                          end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.endDate),
-                        )
+                        start: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.startDate),
+                        end: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.endDate),
+                      )
                       : baseType == 'tag'
-                          ? await api.v1InsightExpenseNoTagGet(
-                              start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                                  .format(insight.startDate),
-                              end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                                  .format(insight.endDate),
-                            )
-                          : await api.v1InsightExpenseNoBillGet(
-                              start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                                  .format(insight.startDate),
-                              end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                                  .format(insight.endDate),
-                            )
+                      ? await api.v1InsightExpenseNoTagGet(
+                        start: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.startDate),
+                        end: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.endDate),
+                      )
+                      : await api.v1InsightExpenseNoBillGet(
+                        start: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.startDate),
+                        end: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.endDate),
+                      )
                   : await api.v1InsightIncomeNoCategoryGet(
-                      start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                          .format(insight.startDate),
-                      end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                          .format(insight.endDate),
-                    );
+                    start: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.startDate),
+                    end: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.endDate),
+                  );
 
           if (response.isSuccessful && response.body != null) {
-            data = response.body!.map((InsightTotalEntry e) => e.toJson()).toList();
+            data =
+                response.body!
+                    .map((InsightTotalEntry e) => e.toJson())
+                    .toList();
           }
         } else {
           final Response<InsightGroup> response =
               insight.insightType == 'expense'
                   ? insight.insightSubtype == 'category'
                       ? await api.v1InsightExpenseCategoryGet(
-                          start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.startDate),
-                          end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.endDate),
-                        )
+                        start: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.startDate),
+                        end: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.endDate),
+                      )
                       : insight.insightSubtype == 'tag'
-                          ? await api.v1InsightExpenseTagGet(
-                              start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                                  .format(insight.startDate),
-                              end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                                  .format(insight.endDate),
-                            )
-                          : await api.v1InsightExpenseBillGet(
-                              start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                                  .format(insight.startDate),
-                              end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                                  .format(insight.endDate),
-                            )
+                      ? await api.v1InsightExpenseTagGet(
+                        start: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.startDate),
+                        end: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.endDate),
+                      )
+                      : await api.v1InsightExpenseBillGet(
+                        start: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.startDate),
+                        end: intl.DateFormat(
+                          'yyyy-MM-dd',
+                          'en_US',
+                        ).format(insight.endDate),
+                      )
                   : insight.insightSubtype == 'category'
-                      ? await api.v1InsightIncomeCategoryGet(
-                          start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.startDate),
-                          end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.endDate),
-                        )
-                      : await api.v1InsightIncomeTagGet(
-                          start: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.startDate),
-                          end: intl.DateFormat('yyyy-MM-dd', 'en_US')
-                              .format(insight.endDate),
-                        );
+                  ? await api.v1InsightIncomeCategoryGet(
+                    start: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.startDate),
+                    end: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.endDate),
+                  )
+                  : await api.v1InsightIncomeTagGet(
+                    start: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.startDate),
+                    end: intl.DateFormat(
+                      'yyyy-MM-dd',
+                      'en_US',
+                    ).format(insight.endDate),
+                  );
 
           if (response.isSuccessful && response.body != null) {
-            data = response.body!.map((InsightGroupEntry e) => e.toJson()).toList();
+            data =
+                response.body!
+                    .map((InsightGroupEntry e) => e.toJson())
+                    .toList();
           }
         }
 
@@ -862,61 +911,65 @@ class SyncService extends ChangeNotifier {
     insightRepo.setFireflyService(fireflyService);
     final FireflyIii api = fireflyService.api;
     final TimeZoneHandler tzHandler = fireflyService.tzHandler;
-    
+
     final DateTime now = tzHandler.sNow().clearTime();
-    
+
     try {
       // Prefetch current month category insights (for CategoryChart)
       final DateTime monthStart = now.copyWith(day: 1);
       final DateTime monthEnd = now;
-      
+
       // Check if already cached
-      final List<InsightGroupEntry> expenseCategories = await insightRepo.getGrouped(
-        'expense',
-        'category',
-        monthStart,
-        monthEnd,
-      );
-      final List<InsightGroupEntry> incomeCategories = await insightRepo.getGrouped(
-        'income',
-        'category',
-        monthStart,
-        monthEnd,
-      );
-      
+      final List<InsightGroupEntry> expenseCategories = await insightRepo
+          .getGrouped('expense', 'category', monthStart, monthEnd);
+      final List<InsightGroupEntry> incomeCategories = await insightRepo
+          .getGrouped('income', 'category', monthStart, monthEnd);
+
       // Only fetch if not cached
       if (expenseCategories.isEmpty || incomeCategories.isEmpty) {
         try {
           // Fetch expense categories
           if (expenseCategories.isEmpty) {
-            final Response<InsightGroup> response = await api.v1InsightExpenseCategoryGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(monthStart),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(monthEnd),
-            );
+            final Response<InsightGroup> response = await api
+                .v1InsightExpenseCategoryGet(
+                  start: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(monthStart),
+                  end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(monthEnd),
+                );
             if (response.isSuccessful && response.body != null) {
               await insightRepo.cacheInsight(
                 'expense',
                 'category',
                 monthStart,
                 monthEnd,
-                response.body!.map((InsightGroupEntry e) => e.toJson()).toList(),
+                response.body!
+                    .map((InsightGroupEntry e) => e.toJson())
+                    .toList(),
               );
             }
           }
-          
+
           // Fetch income categories
           if (incomeCategories.isEmpty) {
-            final Response<InsightGroup> response = await api.v1InsightIncomeCategoryGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(monthStart),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(monthEnd),
-            );
+            final Response<InsightGroup> response = await api
+                .v1InsightIncomeCategoryGet(
+                  start: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(monthStart),
+                  end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(monthEnd),
+                );
             if (response.isSuccessful && response.body != null) {
               await insightRepo.cacheInsight(
                 'income',
                 'category',
                 monthStart,
                 monthEnd,
-                response.body!.map((InsightGroupEntry e) => e.toJson()).toList(),
+                response.body!
+                    .map((InsightGroupEntry e) => e.toJson())
+                    .toList(),
               );
             }
           }
@@ -924,13 +977,15 @@ class SyncService extends ChangeNotifier {
           log.warning("Failed to prefetch category insights", e);
         }
       }
-      
+
       // Prefetch last 3 months totals (for NetEarningsChart)
       final List<DateTime> lastMonths = <DateTime>[];
       for (int i = 0; i < 3; i++) {
-        lastMonths.add(DateTime(now.year, now.month - i, (i == 0) ? now.day : 1));
+        lastMonths.add(
+          DateTime(now.year, now.month - i, (i == 0) ? now.day : 1),
+        );
       }
-      
+
       for (DateTime monthDate in lastMonths) {
         late DateTime start;
         late DateTime end;
@@ -941,7 +996,7 @@ class SyncService extends ChangeNotifier {
           start = monthDate;
           end = monthDate.copyWith(month: monthDate.month + 1, day: 0);
         }
-        
+
         // Check if already cached
         final List<InsightTotalEntry> expenseTotal = await insightRepo.getTotal(
           'expense',
@@ -953,45 +1008,54 @@ class SyncService extends ChangeNotifier {
           start,
           end,
         );
-        
+
         // Only fetch if not cached
         if (expenseTotal.isEmpty || incomeTotal.isEmpty) {
           try {
             // Fetch expense total
             if (expenseTotal.isEmpty) {
-              final Response<InsightTotal> response = await api.v1InsightExpenseTotalGet(
-                start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-                end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-              );
+              final Response<InsightTotal> response = await api
+                  .v1InsightExpenseTotalGet(
+                    start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
+                    end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
+                  );
               if (response.isSuccessful && response.body != null) {
                 await insightRepo.cacheInsight(
                   'expense',
                   'total',
                   start,
                   end,
-                  response.body!.map((InsightTotalEntry e) => e.toJson()).toList(),
+                  response.body!
+                      .map((InsightTotalEntry e) => e.toJson())
+                      .toList(),
                 );
               }
             }
-            
+
             // Fetch income total
             if (incomeTotal.isEmpty) {
-              final Response<InsightTotal> response = await api.v1InsightIncomeTotalGet(
-                start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-                end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-              );
+              final Response<InsightTotal> response = await api
+                  .v1InsightIncomeTotalGet(
+                    start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
+                    end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
+                  );
               if (response.isSuccessful && response.body != null) {
                 await insightRepo.cacheInsight(
                   'income',
                   'total',
                   start,
                   end,
-                  response.body!.map((InsightTotalEntry e) => e.toJson()).toList(),
+                  response.body!
+                      .map((InsightTotalEntry e) => e.toJson())
+                      .toList(),
                 );
               }
             }
           } catch (e) {
-            log.warning("Failed to prefetch monthly totals for ${start.toString()}", e);
+            log.warning(
+              "Failed to prefetch monthly totals for ${start.toString()}",
+              e,
+            );
           }
         }
       }
@@ -1013,37 +1077,42 @@ class SyncService extends ChangeNotifier {
     bool? credentialsValidated,
     bool? credentialsInvalid,
   }) async {
-    final SyncMetadata? existing = await isar.syncMetadatas
-        .filter()
-        .entityTypeEqualTo(entityType)
-        .findFirst();
+    final SyncMetadata? existing =
+        await isar.syncMetadatas
+            .filter()
+            .entityTypeEqualTo(entityType)
+            .findFirst();
 
     if (existing == null) {
-      final SyncMetadata metadata = SyncMetadata()
-        ..entityType = entityType
-        ..lastDownloadSync = lastDownloadSync
-        ..lastUploadSync = lastUploadSync
-        ..lastFullSync = lastFullSync
-        ..syncPaused = syncPaused ?? false
-        ..retryCount = retryCount ?? 0
-        ..nextRetryAt = nextRetryAt
-        ..lastError = lastError
-        ..credentialsValidated = credentialsValidated ?? false
-        ..credentialsInvalid = credentialsInvalid ?? false;
+      final SyncMetadata metadata =
+          SyncMetadata()
+            ..entityType = entityType
+            ..lastDownloadSync = lastDownloadSync
+            ..lastUploadSync = lastUploadSync
+            ..lastFullSync = lastFullSync
+            ..syncPaused = syncPaused ?? false
+            ..retryCount = retryCount ?? 0
+            ..nextRetryAt = nextRetryAt
+            ..lastError = lastError
+            ..credentialsValidated = credentialsValidated ?? false
+            ..credentialsInvalid = credentialsInvalid ?? false;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);
       });
     } else {
-      if (lastDownloadSync != null) existing.lastDownloadSync = lastDownloadSync;
+      if (lastDownloadSync != null)
+        existing.lastDownloadSync = lastDownloadSync;
       if (lastUploadSync != null) existing.lastUploadSync = lastUploadSync;
       if (lastFullSync != null) existing.lastFullSync = lastFullSync;
       if (syncPaused != null) existing.syncPaused = syncPaused;
       if (retryCount != null) existing.retryCount = retryCount;
       if (nextRetryAt != null) existing.nextRetryAt = nextRetryAt;
       if (lastError != null) existing.lastError = lastError;
-      if (credentialsValidated != null) existing.credentialsValidated = credentialsValidated;
-      if (credentialsInvalid != null) existing.credentialsInvalid = credentialsInvalid;
+      if (credentialsValidated != null)
+        existing.credentialsValidated = credentialsValidated;
+      if (credentialsInvalid != null)
+        existing.credentialsInvalid = credentialsInvalid;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(existing);
@@ -1081,4 +1150,3 @@ class SyncService extends ChangeNotifier {
     super.dispose();
   }
 }
-

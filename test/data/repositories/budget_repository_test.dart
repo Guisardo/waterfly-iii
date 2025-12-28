@@ -37,9 +37,7 @@ void main() {
       final BudgetRead budget = BudgetRead(
         type: 'budgets',
         id: 'test-1',
-        attributes: BudgetProperties(
-          name: 'Test Budget',
-        ),
+        attributes: BudgetProperties(name: 'Test Budget'),
       );
 
       await repository.create(budget);
@@ -54,17 +52,13 @@ void main() {
       final BudgetRead budget1 = BudgetRead(
         type: 'budgets',
         id: 'test-2',
-        attributes: BudgetProperties(
-          name: 'Groceries Budget',
-        ),
+        attributes: BudgetProperties(name: 'Groceries Budget'),
       );
 
       final BudgetRead budget2 = BudgetRead(
         type: 'budgets',
         id: 'test-3',
-        attributes: BudgetProperties(
-          name: 'Entertainment Budget',
-        ),
+        attributes: BudgetProperties(name: 'Entertainment Budget'),
       );
 
       await repository.create(budget1);
@@ -79,14 +73,14 @@ void main() {
       final BudgetRead budget = BudgetRead(
         type: 'budgets',
         id: 'test-4',
-        attributes: BudgetProperties(
-          name: 'Test Budget',
-        ),
+        attributes: BudgetProperties(name: 'Test Budget'),
       );
 
       await repository.create(budget);
 
-      final List<AutocompleteBudget> results = await repository.autocomplete('Test');
+      final List<AutocompleteBudget> results = await repository.autocomplete(
+        'Test',
+      );
       expect(results.length, 1);
       expect(results.first.id, 'test-4');
       expect(results.first.name, 'Test Budget');
@@ -96,9 +90,7 @@ void main() {
       final BudgetRead budget = BudgetRead(
         type: 'budgets',
         id: 'test-5',
-        attributes: BudgetProperties(
-          name: 'Synced Budget',
-        ),
+        attributes: BudgetProperties(name: 'Synced Budget'),
       );
 
       await repository.upsertFromSync(budget);
@@ -108,4 +100,3 @@ void main() {
     });
   });
 }
-

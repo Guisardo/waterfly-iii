@@ -169,7 +169,10 @@ class _TagDialogState extends State<TagDialog> {
     final Isar isar = await AppDatabase.instance;
     final TagRepository tagRepo = TagRepository(isar);
     final List<TagRead> tags = await tagRepo.getAll();
-    return tags.map((TagRead e) => e.attributes.tag).where((String tag) => tag.isNotEmpty).toList();
+    return tags
+        .map((TagRead e) => e.attributes.tag)
+        .where((String tag) => tag.isNotEmpty)
+        .toList();
   }
 
   void _newTagSubmitted(

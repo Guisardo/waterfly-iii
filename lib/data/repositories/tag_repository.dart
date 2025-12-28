@@ -24,17 +24,12 @@ class TagRepository {
     });
 
     return rows.map((Tags row) {
-      return TagRead.fromJson(
-        jsonDecode(row.data) as Map<String, dynamic>,
-      );
+      return TagRead.fromJson(jsonDecode(row.data) as Map<String, dynamic>);
     }).toList();
   }
 
   Future<TagRead?> getById(String id) async {
-    final Tags? row = await isar.tags
-        .filter()
-        .tagIdEqualTo(id)
-        .findFirst();
+    final Tags? row = await isar.tags.filter().tagIdEqualTo(id).findFirst();
     if (row == null) {
       return null;
     }
@@ -66,25 +61,27 @@ class TagRepository {
     final DateTime now = _getNow();
     final DateTime? updatedAt = tag.attributes.updatedAt;
 
-    final Tags row = Tags()
-      ..tagId = tag.id
-      ..data = jsonEncode(tag.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = false;
+    final Tags row =
+        Tags()
+          ..tagId = tag.id
+          ..data = jsonEncode(tag.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.tags.put(row);
     });
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'tags'
-      ..entityId = null
-      ..operation = 'CREATE'
-      ..data = jsonEncode(tag.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'tags'
+          ..entityId = null
+          ..operation = 'CREATE'
+          ..data = jsonEncode(tag.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -94,10 +91,8 @@ class TagRepository {
   Future<void> update(TagRead tag) async {
     final DateTime now = _getNow();
 
-    final Tags? existing = await isar.tags
-        .filter()
-        .tagIdEqualTo(tag.id)
-        .findFirst();
+    final Tags? existing =
+        await isar.tags.filter().tagIdEqualTo(tag.id).findFirst();
 
     if (existing != null) {
       existing
@@ -110,14 +105,15 @@ class TagRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'tags'
-      ..entityId = tag.id
-      ..operation = 'UPDATE'
-      ..data = jsonEncode(tag.toJson())
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'tags'
+          ..entityId = tag.id
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(tag.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -127,10 +123,8 @@ class TagRepository {
   Future<void> delete(String id) async {
     final DateTime now = _getNow();
 
-    final Tags? existing = await isar.tags
-        .filter()
-        .tagIdEqualTo(id)
-        .findFirst();
+    final Tags? existing =
+        await isar.tags.filter().tagIdEqualTo(id).findFirst();
 
     if (existing != null) {
       existing.synced = false;
@@ -140,14 +134,15 @@ class TagRepository {
       });
     }
 
-    final PendingChanges pendingChange = PendingChanges()
-      ..entityType = 'tags'
-      ..entityId = id
-      ..operation = 'DELETE'
-      ..data = null
-      ..createdAt = now
-      ..retryCount = 0
-      ..synced = false;
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'tags'
+          ..entityId = id
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(pendingChange);
@@ -158,12 +153,13 @@ class TagRepository {
     final DateTime? updatedAt = tag.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Tags row = Tags()
-      ..tagId = tag.id
-      ..data = jsonEncode(tag.toJson())
-      ..updatedAt = updatedAt
-      ..localUpdatedAt = now
-      ..synced = true;
+    final Tags row =
+        Tags()
+          ..tagId = tag.id
+          ..data = jsonEncode(tag.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = true;
 
     await isar.writeTxn(() async {
       await isar.tags.put(row);

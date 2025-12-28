@@ -80,18 +80,21 @@ class SyncStatusProvider extends ChangeNotifier {
   Future<void> refreshMetadata() async {
     try {
       final Isar isar = await AppDatabase.instance;
-      final SyncMetadata? download = await isar.syncMetadatas
-          .filter()
-          .entityTypeEqualTo('download')
-          .findFirst();
-      final SyncMetadata? upload = await isar.syncMetadatas
-          .filter()
-          .entityTypeEqualTo('upload')
-          .findFirst();
-      final SyncMetadata? auth = await isar.syncMetadatas
-          .filter()
-          .entityTypeEqualTo('auth')
-          .findFirst();
+      final SyncMetadata? download =
+          await isar.syncMetadatas
+              .filter()
+              .entityTypeEqualTo('download')
+              .findFirst();
+      final SyncMetadata? upload =
+          await isar.syncMetadatas
+              .filter()
+              .entityTypeEqualTo('upload')
+              .findFirst();
+      final SyncMetadata? auth =
+          await isar.syncMetadatas
+              .filter()
+              .entityTypeEqualTo('auth')
+              .findFirst();
 
       _downloadMetadata = download;
       _uploadMetadata = upload;
@@ -133,4 +136,3 @@ class SyncStatusProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-

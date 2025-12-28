@@ -247,9 +247,7 @@ class _HomeTransactionsState extends State<HomeTransactions>
       }
 
       // Use repository instead of stock
-      final DateTime? endDate = settingsProvider.showFutureTXs
-          ? null
-          : now;
+      final DateTime? endDate = settingsProvider.showFutureTXs ? null : now;
 
       if (widget.filters?.account != null) {
         transactionList = await repo.getByAccount(
@@ -265,11 +263,18 @@ class _HomeTransactionsState extends State<HomeTransactions>
           accountId: _filters.account?.id,
           currencyCode: _filters.currency?.attributes.code,
           categoryId: _filters.category?.id,
-          categoryName: _filters.category?.id != "-1" ? _filters.category?.attributes.name : null,
+          categoryName:
+              _filters.category?.id != "-1"
+                  ? _filters.category?.attributes.name
+                  : null,
           budgetId: _filters.budget?.id,
-          budgetName: _filters.budget?.id != "-1" ? _filters.budget?.attributes.name : null,
+          budgetName:
+              _filters.budget?.id != "-1"
+                  ? _filters.budget?.attributes.name
+                  : null,
           billId: _filters.bill?.id,
-          billName: _filters.bill?.id != "-1" ? _filters.bill?.attributes.name : null,
+          billName:
+              _filters.bill?.id != "-1" ? _filters.bill?.attributes.name : null,
           tags: _filters.tags?.tags,
           startDate: startDate,
           endDate: endDate,
@@ -803,7 +808,8 @@ class _HomeTransactionsState extends State<HomeTransactions>
 
                       // Delete via repository (queues for sync)
                       final Isar isar = await AppDatabase.instance;
-                      final TransactionRepository txRepo = TransactionRepository(isar);
+                      final TransactionRepository txRepo =
+                          TransactionRepository(isar);
                       await txRepo.delete(item.id);
                       _rowsWithDate = <int>[];
                       _lastDate = null;
@@ -997,9 +1003,13 @@ class _HomeTransactionsState extends State<HomeTransactions>
           // Retrieve the account from repository to get the current balance
           final Isar isar = await AppDatabase.instance;
           final AccountRepository accountRepo = AccountRepository(isar);
-          final AccountRead? account = await accountRepo.getById(_filters.account!.id);
+          final AccountRead? account = await accountRepo.getById(
+            _filters.account!.id,
+          );
           if (account == null) {
-            log.warning("Account not found in repository: ${_filters.account!.id}");
+            log.warning(
+              "Account not found in repository: ${_filters.account!.id}",
+            );
             return;
           }
           _lastCalculatedBalance =
