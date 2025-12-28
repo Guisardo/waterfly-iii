@@ -987,116 +987,116 @@ class SPt extends S {
   String get transactionTypeWithdrawal => 'Withdrawal';
 
   @override
-  String get syncSettingsTitle => 'Configurações de sincronização';
+  String get syncSettingsTitle => 'Sync Settings';
 
   @override
-  String get syncSettingsMobileDataTitle => 'Sincronizar com dados móveis';
+  String get syncSettingsMobileDataTitle => 'Sync on mobile data';
 
   @override
   String get syncSettingsMobileDataSubtitle =>
-      'Permitir sincronização ao usar dados móveis (desativado por padrão para economizar dados)';
+      'Allow synchronization when using mobile data (disabled by default to save data)';
 
   @override
-  String get syncSettingsCredentialsTitle => 'Credenciais';
+  String get syncSettingsCredentialsTitle => 'Credentials';
 
   @override
   String get syncSettingsCredentialsInvalid =>
-      'Inválido - Por favor, reintroduza as credenciais';
+      'Invalid - Please re-enter credentials';
 
   @override
-  String get syncSettingsCredentialsValidated => 'Validado';
+  String get syncSettingsCredentialsValidated => 'Validated';
 
   @override
-  String get syncSettingsCredentialsNotValidated => 'Não validado';
+  String get syncSettingsCredentialsNotValidated => 'Not validated';
 
   @override
-  String get syncSettingsReenterButton => 'Reintroduzir';
+  String get syncSettingsReenterButton => 'Re-enter';
 
   @override
-  String get syncSettingsDownloadSync => 'Sincronização de descarga';
+  String get syncSettingsDownloadSync => 'Download Sync';
 
   @override
-  String get syncSettingsUploadSync => 'Sincronização de carregamento';
+  String get syncSettingsUploadSync => 'Upload Sync';
 
   @override
   String syncSettingsLastSync(String date) {
-    return 'Última sincronização: $date';
+    return 'Last sync: $date';
   }
 
   @override
-  String get syncSettingsStatusPaused => 'Estado: Pausado';
+  String get syncSettingsStatusPaused => 'Status: Paused';
 
   @override
-  String get syncSettingsStatusActive => 'Estado: Ativo';
+  String get syncSettingsStatusActive => 'Status: Active';
 
   @override
   String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {
-    return 'Número de tentativas: $count';
+    return 'Retry count: $count';
   }
 
   @override
   String syncSettingsNextRetry(String date) {
-    return 'Próxima tentativa: $date';
+    return 'Next retry: $date';
   }
 
   @override
   String syncSettingsError(String error) {
-    return 'Erro: $error';
+    return 'Error: $error';
   }
 
   @override
-  String get syncSettingsResumeButton => 'Retomar agora';
+  String get syncSettingsResumeButton => 'Resume Now';
 
   @override
-  String get syncSettingsManualSyncTitle => 'Sincronização manual';
+  String get syncSettingsManualSyncTitle => 'Manual Sync';
 
   @override
-  String get syncSettingsManualSyncSubtitle => 'Ativar sincronização agora';
+  String get syncSettingsManualSyncSubtitle => 'Trigger sync now';
 
   @override
-  String get syncSettingsSyncNowButton => 'Sincronizar agora';
+  String get syncSettingsSyncNowButton => 'Sync Now';
 
   @override
-  String get syncNotificationSyncing => 'A sincronizar...';
+  String get syncNotificationSyncing => 'Syncing...';
 
   @override
-  String get syncNotificationSyncingBody => 'A sincronizar com Firefly III';
+  String get syncNotificationSyncingBody => 'Synchronizing with Firefly III';
 
   @override
   String syncNotificationSyncingEntity(String entityType) {
-    return 'A sincronizar $entityType...';
+    return 'Syncing $entityType...';
   }
 
   @override
-  String get syncNotificationCompleted => 'Sincronização concluída';
+  String get syncNotificationCompleted => 'Sync completed';
 
   @override
   String get syncNotificationCompletedBody =>
-      'Sincronização com Firefly III concluída com sucesso';
+      'Synchronization with Firefly III completed successfully';
 
   @override
-  String get syncNotificationPaused => 'Sincronização pausada';
+  String get syncNotificationPaused => 'Sync paused';
 
   @override
   String get syncNotificationPausedBody =>
-      'Sincronização pausada devido a um erro. Será tentado novamente automaticamente.';
+      'Synchronization paused due to error. Will retry automatically.';
 
   @override
-  String get syncNotificationAuthError => 'Erro de autenticação';
+  String get syncNotificationAuthError => 'Authentication error';
 
   @override
   String get syncNotificationAuthErrorBody =>
-      'Por favor, reintroduza as suas credenciais nas configurações';
+      'Please re-enter your credentials in settings';
 
   @override
-  String get syncNotificationChannelName => 'Sincronização';
+  String get syncNotificationChannelName => 'Synchronization';
 
   @override
   String get syncNotificationChannelDescription =>
-      'Estado da sincronização em segundo plano';
+      'Background synchronization status';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
