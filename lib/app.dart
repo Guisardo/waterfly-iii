@@ -49,6 +49,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
   bool _requiresAuth = false;
   DateTime? _lcLastOpen;
   bool _wasOffline = true; // Track previous connectivity state
+  bool _pendingAuthedUpdate = false; // Track if we've scheduled _authed update
 
   @override
   void initState() {
@@ -301,8 +302,10 @@ class _WaterflyAppState extends State<WaterflyApp> {
                   unawaited(
                     Future<void>.microtask(() async {
                       try {
+                        // Restore credentials from storage without API calls
+                        // API validation will happen during sync
                         final bool signedIn =
-                            await fireflyService.signInFromStorage();
+                            await fireflyService.restoreFromStorage();
                         if (signedIn) {
                           // Initialize WorkManager for background sync
                           await WorkManagerSync.initialize();
@@ -370,6 +373,34 @@ class _WaterflyAppState extends State<WaterflyApp> {
               "signedIn: $signedInForUI, isAuthenticating: $isAuthenticating",
             );
 
+            // Update _authed flag when signedIn state changes (e.g., after login from SplashPage)
+            // This ensures the home widget switches from SplashPage to NavPage after successful login
+            if (!_startup &&
+                signedInForUI &&
+                !_authed &&
+                !_pendingAuthedUpdate) {
+              _pendingAuthedUpdate = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    _authed = true;
+                    _pendingAuthedUpdate = false;
+                  });
+                }
+              });
+            } else if (_authed && _pendingAuthedUpdate) {
+              // Reset flag if _authed is already true (e.g., set by another path)
+              _pendingAuthedUpdate = false;
+            }
+
+            // Determine home widget: if signedInForUI is true, we can show NavPage even if _authed is false
+            // (this handles the case where login completes from SplashPage)
+            final bool showSplash =
+                !signedInForUI &&
+                ((_startup || !_authed) ||
+                    isAuthenticating ||
+                    hasStorageException);
+
             return MaterialApp(
               title: 'Waterfly III',
               theme: ThemeData(
@@ -402,9 +433,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
               locale: context.select((SettingsProvider s) => s.locale),
               navigatorKey: navigatorKey,
               home:
-                  ((_startup || !_authed) ||
-                          isAuthenticating ||
-                          hasStorageException)
+                  showSplash
                       ? const SplashPage()
                       : signedInForUI
                       ? (_notificationPayload != null ||

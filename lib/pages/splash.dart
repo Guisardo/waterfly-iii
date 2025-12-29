@@ -32,8 +32,13 @@ class _SplashPageState extends State<SplashPage> {
 
     try {
       if (host == null || apiKey == null) {
-        log.finer(() => "SplashPage->_login() from storage");
-        success = await context.read<FireflyService>().signInFromStorage();
+        log.finer(
+          () =>
+              "SplashPage->_login() from storage - should not happen, use restoreFromStorage()",
+        );
+        // This path should not be used - app startup should use restoreFromStorage()
+        // But keeping for backward compatibility
+        success = await context.read<FireflyService>().restoreFromStorage();
       } else {
         log.finer(
           () =>

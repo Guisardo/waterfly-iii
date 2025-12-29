@@ -148,7 +148,7 @@ void nlCallback() {
       );
       try {
         final FireflyService ffService = FireflyService();
-        if (!await ffService.signInFromStorage()) {
+        if (!await ffService.restoreFromStorage()) {
           throw UnauthenticatedResponse;
         }
         final FireflyIii api = ffService.api;

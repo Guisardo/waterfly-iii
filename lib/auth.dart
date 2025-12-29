@@ -22,6 +22,7 @@ import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
+import 'package:waterflyiii/data/repositories/currency_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/sync/sync_notifications.dart';
@@ -162,6 +163,21 @@ class AuthUser {
     };
   }
 
+  /// Creates AuthUser without API validation (for restoring from storage)
+  static AuthUser createWithoutValidation(String host, String apiKey) {
+    final Logger log = Logger("Auth.AuthUser");
+    log.config("AuthUser->createWithoutValidation($host)");
+
+    late Uri uri;
+    try {
+      uri = Uri.parse(host);
+    } on FormatException {
+      throw AuthErrorHost(host);
+    }
+
+    return AuthUser._create(uri, apiKey);
+  }
+
   static Future<AuthUser> create(String host, String apiKey) async {
     final Logger log = Logger("Auth.AuthUser");
     log.config("AuthUser->create($host)");
@@ -258,7 +274,9 @@ class FireflyService with ChangeNotifier {
     log.finest(() => "new FireflyService");
   }
 
-  Future<bool> signInFromStorage() async {
+  /// Restores credentials from storage without making API calls.
+  /// API validation should happen during sync, not on every app start.
+  Future<bool> restoreFromStorage() async {
     _storageSignInException = null;
     _isAuthenticating = true;
     notifyListeners();
@@ -268,7 +286,7 @@ class FireflyService with ChangeNotifier {
       final String? apiKey = await storage.read(key: 'api_key');
 
       log.config(
-        "storage: $apiHost, apiKey ${apiKey?.isEmpty ?? true ? "unset" : "set"}",
+        "restoreFromStorage: $apiHost, apiKey ${apiKey?.isEmpty ?? true ? "unset" : "set"}",
       );
 
       if (apiHost == null || apiKey == null) {
@@ -278,24 +296,139 @@ class FireflyService with ChangeNotifier {
       }
 
       try {
-        await signIn(apiHost, apiKey);
+        // Create API client without making API calls
+        // Credentials will be validated during sync
+        final String host = apiHost.strip().rightStrip('/');
+        final String key = apiKey.strip();
+
+        _lastTriedHost = host;
+
+        // Create AuthUser without API validation
+        // This just sets up the API client structure
+        _currentUser = AuthUser.createWithoutValidation(host, key);
+
+        if (_currentUser == null || !hasApi) {
+          _isAuthenticating = false;
+          notifyListeners();
+          return false;
+        }
+
+        // Try to restore timezone from storage if available
+        try {
+          final SharedPreferences prefs = await SharedPreferences.getInstance();
+          final String? timezone = prefs.getString('server_timezone');
+
+          if (timezone != null) {
+            tzHandler = TimeZoneHandler(timezone);
+          } else {
+            // Default timezone if not stored - will be fetched during sync
+            tzHandler = TimeZoneHandler('UTC');
+          }
+        } catch (e) {
+          log.finer(() => "Could not restore timezone from storage: $e");
+          // Use default - will be fetched during sync
+          tzHandler = TimeZoneHandler('UTC');
+        }
+
+        // Try to restore default currency from local database
+        // If not available, it will be fetched during sync
+        try {
+          final SharedPreferences prefs = await SharedPreferences.getInstance();
+          final String? defaultCurrencyId = prefs.getString(
+            'default_currency_id',
+          );
+
+          if (defaultCurrencyId != null) {
+            final Isar isar = await AppDatabase.instance;
+            final CurrencyRepository currencyRepo = CurrencyRepository(isar);
+            final CurrencyRead? currency = await currencyRepo.getById(
+              defaultCurrencyId,
+            );
+
+            if (currency != null) {
+              defaultCurrency = currency;
+              log.finer(
+                () =>
+                    "Restored default currency from database: ${currency.attributes.code}",
+              );
+            } else {
+              // Currency not in database yet - will be fetched during sync
+              // Create a temporary default currency to avoid LateInitializationError
+              defaultCurrency = CurrencyRead(
+                type: "currencies",
+                id: defaultCurrencyId,
+                attributes: const CurrencyProperties(
+                  code: "USD",
+                  name: "US Dollar",
+                  symbol: "\$",
+                  decimalPlaces: 2,
+                ),
+              );
+              log.finer(
+                () =>
+                    "Created temporary default currency, will be updated during sync",
+              );
+            }
+          } else {
+            // No stored currency ID - create a temporary default
+            defaultCurrency = const CurrencyRead(
+              type: "currencies",
+              id: "0",
+              attributes: CurrencyProperties(
+                code: "USD",
+                name: "US Dollar",
+                symbol: "\$",
+                decimalPlaces: 2,
+              ),
+            );
+            log.finer(
+              () =>
+                  "No default currency stored, using temporary default, will be updated during sync",
+            );
+          }
+        } catch (e) {
+          log.finer(() => "Could not restore default currency: $e");
+          // Create a temporary default currency to avoid LateInitializationError
+          defaultCurrency = const CurrencyRead(
+            type: "currencies",
+            id: "0",
+            attributes: CurrencyProperties(
+              code: "USD",
+              name: "US Dollar",
+              symbol: "\$",
+              decimalPlaces: 2,
+            ),
+          );
+        }
+
+        _signedIn = true;
         _isAuthenticating = false;
+        log.finest(() => "notify FireflyService->restoreFromStorage");
         notifyListeners();
         return true;
       } catch (e) {
         _storageSignInException = e;
         _isAuthenticating = false;
-        log.finest(() => "notify FireflyService->signInFromStorage");
+        log.finest(() => "notify FireflyService->restoreFromStorage");
         notifyListeners();
         return false;
       }
     } catch (e) {
       _storageSignInException = e;
       _isAuthenticating = false;
-      log.finest(() => "notify FireflyService->signInFromStorage");
+      log.finest(() => "notify FireflyService->restoreFromStorage");
       notifyListeners();
       return false;
     }
+  }
+
+  /// Deprecated: Use restoreFromStorage() instead for app startup.
+  /// This method makes API calls and should only be used for actual login.
+  @Deprecated(
+    'Use restoreFromStorage() for app startup. Use signIn() for new logins.',
+  )
+  Future<bool> signInFromStorage() async {
+    return restoreFromStorage();
   }
 
   Future<void> signOut() async {
@@ -398,6 +531,14 @@ class FireflyService with ChangeNotifier {
           await nextUser.api.v1CurrenciesPrimaryGet();
       final CurrencyRead nextDefaultCurrency = currencyInfo.body!.data;
 
+      // Store default currency ID for future restoreFromStorage() calls
+      try {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('default_currency_id', nextDefaultCurrency.id);
+      } catch (e) {
+        log.finer(() => "Could not store default currency ID: $e");
+      }
+
       final Response<SystemInfo> about = await nextUser.api.v1AboutGet();
       late Version nextApiVersion;
       try {
@@ -459,6 +600,14 @@ class FireflyService with ChangeNotifier {
           key: 'api_headers',
           value: encodeCustomHeaders(customHeaders),
         );
+      }
+
+      // Store timezone for future restoreFromStorage() calls
+      try {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('server_timezone', tzHandler.serverTimezone);
+      } catch (e) {
+        log.finer(() => "Could not store timezone: $e");
       }
 
       // Trigger initial sync in background
