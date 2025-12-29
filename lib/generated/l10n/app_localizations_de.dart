@@ -1104,4 +1104,52 @@ class SDe extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Status der Hintergrundsynchronisierung';
+
+  @override
+  String get syncSettingsEntityStatusTitle =>
+      'Entitäts-Synchronisierungsstatus';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transaktionen';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Konten';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategorien';
+
+  @override
+  String get syncSettingsEntityTags => 'Tags';
+
+  @override
+  String get syncSettingsEntityBills => 'Rechnungen';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budgets';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Währungen';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Sparschweine';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Nie synchronisiert';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Wird synchronisiert...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Erfolgreich';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Fehler';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Pausiert';
 }

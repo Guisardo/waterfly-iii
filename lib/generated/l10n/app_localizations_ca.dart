@@ -1112,4 +1112,52 @@ class SCa extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Estat de la sincronització en segon pla';
+
+  @override
+  String get syncSettingsEntityStatusTitle =>
+      'Estat de sincronització d\'entitats';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transaccions';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Comptes';
+
+  @override
+  String get syncSettingsEntityCategories => 'Categories';
+
+  @override
+  String get syncSettingsEntityTags => 'Etiquetes';
+
+  @override
+  String get syncSettingsEntityBills => 'Factures';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Pressupostos';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Monedes';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Guardioles';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Mai sincronitzat';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Sincronitzant...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Èxit';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Error';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Pausat';
 }

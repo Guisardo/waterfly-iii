@@ -1358,5 +1358,75 @@
     "syncNotificationChannelDescription": "Estat de la sincronització en segon pla",
     "@syncNotificationChannelDescription": {
         "description": "Description of the sync notification channel"
+    },
+    "syncSettingsEntityStatusTitle": "Estat de sincronització d'entitats",
+    "@syncSettingsEntityStatusTitle": {
+        "description": "Title for the per-entity sync status section"
+    },
+    "syncSettingsEntityTransactions": "Transaccions",
+    "@syncSettingsEntityTransactions": {
+        "description": "Entity type name: Transactions"
+    },
+    "syncSettingsEntityAccounts": "Comptes",
+    "@syncSettingsEntityAccounts": {
+        "description": "Entity type name: Accounts"
+    },
+    "syncSettingsEntityCategories": "Categories",
+    "@syncSettingsEntityCategories": {
+        "description": "Entity type name: Categories"
+    },
+    "syncSettingsEntityTags": "Etiquetes",
+    "@syncSettingsEntityTags": {
+        "description": "Entity type name: Tags"
+    },
+    "syncSettingsEntityBills": "Factures",
+    "@syncSettingsEntityBills": {
+        "description": "Entity type name: Bills"
+    },
+    "syncSettingsEntityBudgets": "Pressupostos",
+    "@syncSettingsEntityBudgets": {
+        "description": "Entity type name: Budgets"
+    },
+    "syncSettingsEntityCurrencies": "Monedes",
+    "@syncSettingsEntityCurrencies": {
+        "description": "Entity type name: Currencies"
+    },
+    "syncSettingsEntityPiggyBanks": "Guardioles",
+    "@syncSettingsEntityPiggyBanks": {
+        "description": "Entity type name: Piggy Banks"
+    },
+    "syncSettingsEntityStatusNeverSynced": "Mai sincronitzat",
+    "@syncSettingsEntityStatusNeverSynced": {
+        "description": "Status text when an entity has never been synced"
+    },
+    "syncSettingsEntityStatusSyncing": "Sincronitzant...",
+    "syncSettingsEntityProgress": "{current} of {total}",
+    "@syncSettingsEntityProgress": {
+        "description": "Progress indicator showing current count and total count",
+        "placeholders": {
+            "current": {
+                "type": "int",
+                "example": "42"
+            },
+            "total": {
+                "type": "int",
+                "example": "100"
+            }
+        }
+    },
+    "@syncSettingsEntityStatusSyncing": {
+        "description": "Status text when an entity is currently syncing"
+    },
+    "syncSettingsEntityStatusSuccess": "Èxit",
+    "@syncSettingsEntityStatusSuccess": {
+        "description": "Status text when an entity sync was successful"
+    },
+    "syncSettingsEntityStatusError": "Error",
+    "@syncSettingsEntityStatusError": {
+        "description": "Status text when an entity sync has an error"
+    },
+    "syncSettingsEntityStatusPaused": "Pausat",
+    "@syncSettingsEntityStatusPaused": {
+        "description": "Status text when an entity sync is paused"
     }
 }

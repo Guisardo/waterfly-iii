@@ -1299,5 +1299,75 @@
     "syncNotificationChannelDescription": "Статус фоновой синхронизации",
     "@syncNotificationChannelDescription": {
         "description": "Description of the sync notification channel"
+    },
+    "syncSettingsEntityStatusTitle": "Статус синхронизации сущностей",
+    "@syncSettingsEntityStatusTitle": {
+        "description": "Title for the per-entity sync status section"
+    },
+    "syncSettingsEntityTransactions": "Транзакции",
+    "@syncSettingsEntityTransactions": {
+        "description": "Entity type name: Transactions"
+    },
+    "syncSettingsEntityAccounts": "Счета",
+    "@syncSettingsEntityAccounts": {
+        "description": "Entity type name: Accounts"
+    },
+    "syncSettingsEntityCategories": "Категории",
+    "@syncSettingsEntityCategories": {
+        "description": "Entity type name: Categories"
+    },
+    "syncSettingsEntityTags": "Теги",
+    "@syncSettingsEntityTags": {
+        "description": "Entity type name: Tags"
+    },
+    "syncSettingsEntityBills": "Счета",
+    "@syncSettingsEntityBills": {
+        "description": "Entity type name: Bills"
+    },
+    "syncSettingsEntityBudgets": "Бюджеты",
+    "@syncSettingsEntityBudgets": {
+        "description": "Entity type name: Budgets"
+    },
+    "syncSettingsEntityCurrencies": "Валюты",
+    "@syncSettingsEntityCurrencies": {
+        "description": "Entity type name: Currencies"
+    },
+    "syncSettingsEntityPiggyBanks": "Копилки",
+    "@syncSettingsEntityPiggyBanks": {
+        "description": "Entity type name: Piggy Banks"
+    },
+    "syncSettingsEntityStatusNeverSynced": "Никогда не синхронизировалось",
+    "@syncSettingsEntityStatusNeverSynced": {
+        "description": "Status text when an entity has never been synced"
+    },
+    "syncSettingsEntityStatusSyncing": "Синхронизация...",
+    "syncSettingsEntityProgress": "{current} of {total}",
+    "@syncSettingsEntityProgress": {
+        "description": "Progress indicator showing current count and total count",
+        "placeholders": {
+            "current": {
+                "type": "int",
+                "example": "42"
+            },
+            "total": {
+                "type": "int",
+                "example": "100"
+            }
+        }
+    },
+    "@syncSettingsEntityStatusSyncing": {
+        "description": "Status text when an entity is currently syncing"
+    },
+    "syncSettingsEntityStatusSuccess": "Успешно",
+    "@syncSettingsEntityStatusSuccess": {
+        "description": "Status text when an entity sync was successful"
+    },
+    "syncSettingsEntityStatusError": "Ошибка",
+    "@syncSettingsEntityStatusError": {
+        "description": "Status text when an entity sync has an error"
+    },
+    "syncSettingsEntityStatusPaused": "Приостановлено",
+    "@syncSettingsEntityStatusPaused": {
+        "description": "Status text when an entity sync is paused"
     }
 }

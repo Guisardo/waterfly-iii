@@ -1098,4 +1098,51 @@ class STr extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Arka plan senkronizasyon durumu';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Varlık Senkronizasyon Durumu';
+
+  @override
+  String get syncSettingsEntityTransactions => 'İşlemler';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Hesaplar';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategoriler';
+
+  @override
+  String get syncSettingsEntityTags => 'Etiketler';
+
+  @override
+  String get syncSettingsEntityBills => 'Faturalar';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Bütçeler';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Para Birimleri';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Kumbara';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Hiç senkronize edilmedi';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Senkronize ediliyor...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Başarılı';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Hata';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Duraklatıldı';
 }

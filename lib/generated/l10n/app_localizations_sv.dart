@@ -1098,4 +1098,51 @@ class SSv extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Status för bakgrundssynkronisering';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Entitetssynkroniseringsstatus';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transaktioner';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Konton';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategorier';
+
+  @override
+  String get syncSettingsEntityTags => 'Taggar';
+
+  @override
+  String get syncSettingsEntityBills => 'Räkningar';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budgetar';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Valutor';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Spargrisar';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Aldrig synkroniserat';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Synkroniserar...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Framgång';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Fel';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Pausad';
 }

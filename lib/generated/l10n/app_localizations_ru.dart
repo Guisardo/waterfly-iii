@@ -1109,4 +1109,52 @@ class SRu extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Статус фоновой синхронизации';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Статус синхронизации сущностей';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Транзакции';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Счета';
+
+  @override
+  String get syncSettingsEntityCategories => 'Категории';
+
+  @override
+  String get syncSettingsEntityTags => 'Теги';
+
+  @override
+  String get syncSettingsEntityBills => 'Счета';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Бюджеты';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Валюты';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Копилки';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced =>
+      'Никогда не синхронизировалось';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Синхронизация...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Успешно';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Ошибка';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Приостановлено';
 }

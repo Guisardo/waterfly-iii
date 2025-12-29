@@ -1853,6 +1853,96 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Background synchronization status'**
   String get syncNotificationChannelDescription;
+
+  /// Title for the per-entity sync status section
+  ///
+  /// In en, this message translates to:
+  /// **'Entity Sync Status'**
+  String get syncSettingsEntityStatusTitle;
+
+  /// Entity type name: Transactions
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get syncSettingsEntityTransactions;
+
+  /// Entity type name: Accounts
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get syncSettingsEntityAccounts;
+
+  /// Entity type name: Categories
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get syncSettingsEntityCategories;
+
+  /// Entity type name: Tags
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get syncSettingsEntityTags;
+
+  /// Entity type name: Bills
+  ///
+  /// In en, this message translates to:
+  /// **'Bills'**
+  String get syncSettingsEntityBills;
+
+  /// Entity type name: Budgets
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get syncSettingsEntityBudgets;
+
+  /// Entity type name: Currencies
+  ///
+  /// In en, this message translates to:
+  /// **'Currencies'**
+  String get syncSettingsEntityCurrencies;
+
+  /// Entity type name: Piggy Banks
+  ///
+  /// In en, this message translates to:
+  /// **'Piggy Banks'**
+  String get syncSettingsEntityPiggyBanks;
+
+  /// Status text when an entity has never been synced
+  ///
+  /// In en, this message translates to:
+  /// **'Never synced'**
+  String get syncSettingsEntityStatusNeverSynced;
+
+  /// Status text when an entity is currently syncing
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get syncSettingsEntityStatusSyncing;
+
+  /// Progress indicator showing current count and total count
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String syncSettingsEntityProgress(int current, int total);
+
+  /// Status text when an entity sync was successful
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get syncSettingsEntityStatusSuccess;
+
+  /// Status text when an entity sync has an error
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get syncSettingsEntityStatusError;
+
+  /// Status text when an entity sync is paused
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get syncSettingsEntityStatusPaused;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

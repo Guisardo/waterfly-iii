@@ -665,13 +665,32 @@ class TransactionRepository {
     final DateTime? updatedAt = transaction.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Transactions row =
-        Transactions()
-          ..transactionId = transaction.id
-          ..data = jsonEncode(transaction.toJson())
-          ..updatedAt = updatedAt
-          ..localUpdatedAt = now
-          ..synced = true;
+    // Check if transaction already exists
+    final Transactions? existing =
+        await isar.transactions
+            .filter()
+            .transactionIdEqualTo(transaction.id)
+            .findFirst();
+
+    final Transactions row;
+    if (existing != null) {
+      // Update existing transaction
+      row =
+          existing
+            ..data = jsonEncode(transaction.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    } else {
+      // Create new transaction
+      row =
+          Transactions()
+            ..transactionId = transaction.id
+            ..data = jsonEncode(transaction.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    }
 
     await isar.writeTxn(() async {
       await isar.transactions.put(row);

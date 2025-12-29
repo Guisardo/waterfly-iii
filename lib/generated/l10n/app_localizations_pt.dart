@@ -1097,6 +1097,53 @@ class SPt extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Background synchronization status';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Entity Sync Status';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transactions';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Accounts';
+
+  @override
+  String get syncSettingsEntityCategories => 'Categories';
+
+  @override
+  String get syncSettingsEntityTags => 'Tags';
+
+  @override
+  String get syncSettingsEntityBills => 'Bills';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budgets';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Currencies';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Piggy Banks';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Never synced';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Syncing...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Success';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Error';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Paused';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -2144,4 +2191,52 @@ class SPtBr extends SPt {
   @override
   String get syncNotificationChannelDescription =>
       'Status da sincronização em segundo plano';
+
+  @override
+  String get syncSettingsEntityStatusTitle =>
+      'Status de sincronização de entidades';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transações';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Contas';
+
+  @override
+  String get syncSettingsEntityCategories => 'Categorias';
+
+  @override
+  String get syncSettingsEntityTags => 'Tags';
+
+  @override
+  String get syncSettingsEntityBills => 'Faturas';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Orçamentos';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Moedas';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Cofrinhos';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Nunca sincronizado';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Sincronizando...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Sucesso';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Erro';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Pausado';
 }

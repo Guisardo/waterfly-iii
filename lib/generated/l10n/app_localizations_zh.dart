@@ -1072,6 +1072,53 @@ class SZh extends S {
 
   @override
   String get syncNotificationChannelDescription => '后台同步状态';
+
+  @override
+  String get syncSettingsEntityStatusTitle => '实体同步状态';
+
+  @override
+  String get syncSettingsEntityTransactions => '交易';
+
+  @override
+  String get syncSettingsEntityAccounts => '账户';
+
+  @override
+  String get syncSettingsEntityCategories => '分类';
+
+  @override
+  String get syncSettingsEntityTags => '标签';
+
+  @override
+  String get syncSettingsEntityBills => '账单';
+
+  @override
+  String get syncSettingsEntityBudgets => '预算';
+
+  @override
+  String get syncSettingsEntityCurrencies => '货币';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => '存钱罐';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => '从未同步';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => '同步中...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => '成功';
+
+  @override
+  String get syncSettingsEntityStatusError => '错误';
+
+  @override
+  String get syncSettingsEntityStatusPaused => '已暂停';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -1986,4 +2033,51 @@ class SZhTw extends SZh {
 
   @override
   String get transactionTypeWithdrawal => '提款';
+
+  @override
+  String get syncSettingsEntityStatusTitle => '實體同步狀態';
+
+  @override
+  String get syncSettingsEntityTransactions => '交易';
+
+  @override
+  String get syncSettingsEntityAccounts => '帳戶';
+
+  @override
+  String get syncSettingsEntityCategories => '分類';
+
+  @override
+  String get syncSettingsEntityTags => '標籤';
+
+  @override
+  String get syncSettingsEntityBills => '帳單';
+
+  @override
+  String get syncSettingsEntityBudgets => '預算';
+
+  @override
+  String get syncSettingsEntityCurrencies => '貨幣';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => '存錢罐';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => '從未同步';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => '同步中...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => '成功';
+
+  @override
+  String get syncSettingsEntityStatusError => '錯誤';
+
+  @override
+  String get syncSettingsEntityStatusPaused => '已暫停';
 }

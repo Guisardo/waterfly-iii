@@ -1102,4 +1102,51 @@ class SPl extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Status synchronizacji w tle';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Status synchronizacji encji';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transakcje';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Konta';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategorie';
+
+  @override
+  String get syncSettingsEntityTags => 'Tagi';
+
+  @override
+  String get syncSettingsEntityBills => 'Rachunki';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budżety';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Waluty';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Skarbonki';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Nigdy nie synchronizowano';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Synchronizowanie...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Sukces';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Błąd';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Wstrzymane';
 }

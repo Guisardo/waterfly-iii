@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/auth.dart';
@@ -16,6 +17,22 @@ class SyncStatusProvider extends ChangeNotifier {
   SyncMetadata? _downloadMetadata;
   SyncMetadata? _uploadMetadata;
   SyncMetadata? _authMetadata;
+  Map<String, SyncMetadata> _entityMetadata = <String, SyncMetadata>{};
+  String? _currentSyncingEntity;
+  StreamSubscription<SyncProgress>? _progressSubscription;
+  SyncProgress? _currentProgress;
+
+  // List of all entity types that are synced
+  static const List<String> entityTypes = <String>[
+    'transactions',
+    'accounts',
+    'categories',
+    'tags',
+    'bills',
+    'budgets',
+    'currencies',
+    'piggy_banks',
+  ];
 
   bool get isDownloadSyncing => _syncService?.isSyncing ?? false;
   bool get isUploading => _uploadService?.isUploading ?? false;
@@ -23,6 +40,9 @@ class SyncStatusProvider extends ChangeNotifier {
   SyncMetadata? get downloadMetadata => _downloadMetadata;
   SyncMetadata? get uploadMetadata => _uploadMetadata;
   SyncMetadata? get authMetadata => _authMetadata;
+  Map<String, SyncMetadata> get entityMetadata => _entityMetadata;
+  String? get currentSyncingEntity => _currentSyncingEntity;
+  SyncProgress? get currentProgress => _currentProgress;
 
   bool get hasDownloadError => _downloadMetadata?.syncPaused ?? false;
   bool get hasUploadError => _uploadMetadata?.syncPaused ?? false;
@@ -65,6 +85,9 @@ class SyncStatusProvider extends ChangeNotifier {
       _syncService!.addListener(_onSyncStatusChanged);
       _uploadService!.addListener(_onSyncStatusChanged);
 
+      // Subscribe to progress stream when it becomes available
+      _subscribeToProgressStream();
+
       // Load initial metadata
       await refreshMetadata();
     } catch (e) {
@@ -74,6 +97,24 @@ class SyncStatusProvider extends ChangeNotifier {
 
   void _onSyncStatusChanged() {
     notifyListeners();
+    // Re-subscribe to progress stream if sync started
+    _subscribeToProgressStream();
+  }
+
+  void _subscribeToProgressStream() {
+    // Cancel existing subscription if any
+    _progressSubscription?.cancel();
+    _progressSubscription = null;
+
+    // Listen to sync progress stream to track current syncing entity
+    final Stream<SyncProgress>? progressStream = _syncService?.progressStream;
+    if (progressStream != null) {
+      _progressSubscription = progressStream.listen((SyncProgress progress) {
+        _currentSyncingEntity = progress.entityType;
+        _currentProgress = progress;
+        notifyListeners();
+      });
+    }
   }
 
   /// Refresh sync metadata from database
@@ -99,6 +140,31 @@ class SyncStatusProvider extends ChangeNotifier {
       _downloadMetadata = download;
       _uploadMetadata = upload;
       _authMetadata = auth;
+
+      // Load metadata for all entity types
+      final Map<String, SyncMetadata> entityMetadata = <String, SyncMetadata>{};
+      for (final String entityType in entityTypes) {
+        try {
+          final SyncMetadata? metadata =
+              await isar.syncMetadatas
+                  .filter()
+                  .entityTypeEqualTo(entityType)
+                  .findFirst();
+          if (metadata != null) {
+            entityMetadata[entityType] = metadata;
+          }
+        } catch (e) {
+          // Ignore errors for individual entity types
+        }
+      }
+      _entityMetadata = entityMetadata;
+
+      // Clear current syncing entity and progress if sync is not active
+      if (!isDownloadSyncing) {
+        _currentSyncingEntity = null;
+        _currentProgress = null;
+      }
+
       notifyListeners();
     } catch (e) {
       // Ignore errors, metadata will be null
@@ -111,6 +177,8 @@ class SyncStatusProvider extends ChangeNotifier {
       return;
     }
     await _syncService!.sync();
+    // Small delay to ensure database transactions are committed
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     await refreshMetadata();
   }
 
@@ -127,10 +195,15 @@ class SyncStatusProvider extends ChangeNotifier {
   Future<void> syncAll() async {
     await sync();
     await upload();
+    // Small delay to ensure database transactions are committed
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    // Ensure metadata is refreshed after both syncs complete
+    await refreshMetadata();
   }
 
   @override
   void dispose() {
+    _progressSubscription?.cancel();
     _syncService?.removeListener(_onSyncStatusChanged);
     _uploadService?.removeListener(_onSyncStatusChanged);
     super.dispose();

@@ -1100,4 +1100,51 @@ class SUk extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Статус фонової синхронізації';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Статус синхронізації сутностей';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Транзакції';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Рахунки';
+
+  @override
+  String get syncSettingsEntityCategories => 'Категорії';
+
+  @override
+  String get syncSettingsEntityTags => 'Теги';
+
+  @override
+  String get syncSettingsEntityBills => 'Рахунки';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Бюджети';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Валюти';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Скарбнички';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Ніколи не синхронізовано';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Синхронізація...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Успішно';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Помилка';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Призупинено';
 }

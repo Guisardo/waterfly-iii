@@ -162,13 +162,32 @@ class CurrencyRepository {
     final DateTime? updatedAt = currency.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Currencies row =
-        Currencies()
-          ..currencyId = currency.id
-          ..data = jsonEncode(currency.toJson())
-          ..updatedAt = updatedAt
-          ..localUpdatedAt = now
-          ..synced = true;
+    // Check if currency already exists
+    final Currencies? existing =
+        await isar.currencies
+            .filter()
+            .currencyIdEqualTo(currency.id)
+            .findFirst();
+
+    final Currencies row;
+    if (existing != null) {
+      // Update existing currency
+      row =
+          existing
+            ..data = jsonEncode(currency.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    } else {
+      // Create new currency
+      row =
+          Currencies()
+            ..currencyId = currency.id
+            ..data = jsonEncode(currency.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    }
 
     await isar.writeTxn(() async {
       await isar.currencies.put(row);

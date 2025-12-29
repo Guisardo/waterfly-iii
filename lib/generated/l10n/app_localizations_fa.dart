@@ -1093,4 +1093,51 @@ class SFa extends S {
 
   @override
   String get syncNotificationChannelDescription => 'وضعیت همگام‌سازی پس‌زمینه';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'وضعیت همگام‌سازی موجودیت';
+
+  @override
+  String get syncSettingsEntityTransactions => 'تراکنش‌ها';
+
+  @override
+  String get syncSettingsEntityAccounts => 'حساب‌ها';
+
+  @override
+  String get syncSettingsEntityCategories => 'دسته‌بندی‌ها';
+
+  @override
+  String get syncSettingsEntityTags => 'برچسب‌ها';
+
+  @override
+  String get syncSettingsEntityBills => 'صورتحساب‌ها';
+
+  @override
+  String get syncSettingsEntityBudgets => 'بودجه‌ها';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'ارزها';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'کمک‌های پس‌انداز';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'هرگز همگام‌سازی نشده';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'در حال همگام‌سازی...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'موفق';
+
+  @override
+  String get syncSettingsEntityStatusError => 'خطا';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'متوقف شده';
 }
