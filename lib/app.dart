@@ -341,10 +341,15 @@ class _WaterflyAppState extends State<WaterflyApp> {
                     }),
                   );
 
-                  // Mark startup as complete immediately so UI can render
-                  setState(() {
-                    log.finest(() => "set _startup = false (non-blocking)");
-                    _startup = false;
+                  // Mark startup as complete after build phase completes
+                  // Cannot call setState during build - defer to post-frame callback
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      setState(() {
+                        log.finest(() => "set _startup = false (non-blocking)");
+                        _startup = false;
+                      });
+                    }
                   });
                 }
               }
