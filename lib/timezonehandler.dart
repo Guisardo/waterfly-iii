@@ -5,18 +5,21 @@ import 'package:timezone/timezone.dart' as tz;
 class TimeZoneHandler {
   late tz.Location _serverLoc;
   tz.Location? _deviceLoc;
+  String _serverTimezone;
 
   final Logger log = Logger("TimeZoneHandler");
 
   // :TODO: make variable
   bool _useServerTime = true;
   bool get useServerTime => _useServerTime;
+  String get serverTimezone => _serverTimezone;
 
-  TimeZoneHandler(String serverTZ) {
+  TimeZoneHandler(String serverTZ) : _serverTimezone = serverTZ {
     try {
       _serverLoc = tz.getLocation(serverTZ);
     } on tz.LocationNotFoundException {
       _serverLoc = tz.getLocation("UTC");
+      _serverTimezone = "UTC";
     }
     log.info(() => "Server Timezone: $serverTZ ($sLocation)");
     updateDeviceLocation().then(
