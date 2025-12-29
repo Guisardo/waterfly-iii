@@ -1140,4 +1140,10 @@ class SFa extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'متوقف شده';
+
+  @override
+  String get settingsSynchronization => 'همگام‌سازی';
+
+  @override
+  String get settingsSynchronizationSubtitle => 'تنظیمات و وضعیت همگام‌سازی';
 }

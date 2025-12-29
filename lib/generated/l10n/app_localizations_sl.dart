@@ -1148,4 +1148,11 @@ class SSl extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Začasno ustavljeno';
+
+  @override
+  String get settingsSynchronization => 'Sinhronizacija';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Nastavitve in stanje sinhronizacije';
 }

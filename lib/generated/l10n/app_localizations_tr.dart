@@ -1145,4 +1145,11 @@ class STr extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Duraklatıldı';
+
+  @override
+  String get settingsSynchronization => 'Senkronizasyon';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Senkronizasyon ayarları ve durumu';
 }

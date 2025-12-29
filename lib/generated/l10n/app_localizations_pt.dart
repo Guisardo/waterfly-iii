@@ -1144,6 +1144,13 @@ class SPt extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Paused';
+
+  @override
+  String get settingsSynchronization => 'Sincronização';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Configurações e status de sincronização';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -2239,4 +2246,11 @@ class SPtBr extends SPt {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Pausado';
+
+  @override
+  String get settingsSynchronization => 'Sincronização';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Configurações e status de sincronização';
 }

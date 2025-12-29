@@ -1152,4 +1152,11 @@ class SDe extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Pausiert';
+
+  @override
+  String get settingsSynchronization => 'Synchronisierung';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Synchronisierungseinstellungen und Status';
 }

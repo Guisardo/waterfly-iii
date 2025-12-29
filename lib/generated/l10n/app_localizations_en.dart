@@ -1144,4 +1144,10 @@ class SEn extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Paused';
+
+  @override
+  String get settingsSynchronization => 'Synchronization';
+
+  @override
+  String get settingsSynchronizationSubtitle => 'Sync settings and status';
 }

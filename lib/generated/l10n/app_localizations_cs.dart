@@ -1150,4 +1150,11 @@ class SCs extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Pozastaveno';
+
+  @override
+  String get settingsSynchronization => 'Synchronizace';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Nastavení a stav synchronizace';
 }

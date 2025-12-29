@@ -1130,4 +1130,10 @@ class SKo extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => '일시 중지됨';
+
+  @override
+  String get settingsSynchronization => '동기화';
+
+  @override
+  String get settingsSynchronizationSubtitle => '동기화 설정 및 상태';
 }

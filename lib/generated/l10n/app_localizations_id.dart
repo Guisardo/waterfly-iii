@@ -1148,4 +1148,11 @@ class SId extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Dijeda';
+
+  @override
+  String get settingsSynchronization => 'Sinkronisasi';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Pengaturan dan status sinkronisasi';
 }

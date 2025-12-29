@@ -1147,4 +1147,11 @@ class SUk extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Призупинено';
+
+  @override
+  String get settingsSynchronization => 'Синхронізація';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Налаштування та статус синхронізації';
 }

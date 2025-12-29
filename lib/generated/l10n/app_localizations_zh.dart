@@ -1119,6 +1119,12 @@ class SZh extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => '已暂停';
+
+  @override
+  String get settingsSynchronization => '同步';
+
+  @override
+  String get settingsSynchronizationSubtitle => '同步设置和状态';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2080,4 +2086,10 @@ class SZhTw extends SZh {
 
   @override
   String get syncSettingsEntityStatusPaused => '已暫停';
+
+  @override
+  String get settingsSynchronization => '同步';
+
+  @override
+  String get settingsSynchronizationSubtitle => '同步設定和狀態';
 }

@@ -1146,4 +1146,11 @@ class SNl extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Gepauzeerd';
+
+  @override
+  String get settingsSynchronization => 'Synchronisatie';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Synchronisatie-instellingen en status';
 }

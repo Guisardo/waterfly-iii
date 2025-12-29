@@ -1145,4 +1145,11 @@ class SDa extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Pauset';
+
+  @override
+  String get settingsSynchronization => 'Synkronisering';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Synkroniseringsindstillinger og status';
 }

@@ -1155,4 +1155,11 @@ class SEs extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Pausado';
+
+  @override
+  String get settingsSynchronization => 'Sincronización';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Configuración y estado de sincronización';
 }
