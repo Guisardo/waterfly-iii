@@ -1161,4 +1161,11 @@ class SFr extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'En pause';
+
+  @override
+  String get settingsSynchronization => 'Synchronisation';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Paramètres et statut de synchronisation';
 }

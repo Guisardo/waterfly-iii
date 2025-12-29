@@ -71,6 +71,7 @@
     "@generalReset": {
         "description": "Reset something (i.e. set filters)"
     },
+<<<<<<< HEAD
     "syncSettingsTitle": "Configurações de sincronização",
     "@syncSettingsTitle": {
         "description": "Title for sync settings page"
@@ -224,5 +225,13 @@
     "syncNotificationChannelDescription": "Estado da sincronização em segundo plano",
     "@syncNotificationChannelDescription": {
         "description": "Description of the sync notification channel"
+    },
+    "settingsSynchronization": "Sincronização",
+    "@settingsSynchronization": {
+        "description": "Title for synchronization settings option in main settings page"
+    },
+    "settingsSynchronizationSubtitle": "Configurações e status de sincronização",
+    "@settingsSynchronizationSubtitle": {
+        "description": "Subtitle for synchronization settings option in main settings page"
     }
 }

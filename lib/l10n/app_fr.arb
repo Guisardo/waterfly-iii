@@ -1428,5 +1428,13 @@
     "syncSettingsEntityStatusPaused": "En pause",
     "@syncSettingsEntityStatusPaused": {
         "description": "Status text when an entity sync is paused"
+    },
+    "settingsSynchronization": "Synchronisation",
+    "@settingsSynchronization": {
+        "description": "Title for synchronization settings option in main settings page"
+    },
+    "settingsSynchronizationSubtitle": "Paramètres et statut de synchronisation",
+    "@settingsSynchronizationSubtitle": {
+        "description": "Subtitle for synchronization settings option in main settings page"
     }
 }

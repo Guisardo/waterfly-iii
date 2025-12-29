@@ -1145,4 +1145,11 @@ class SSv extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Pausad';
+
+  @override
+  String get settingsSynchronization => 'Synkronisering';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Synkroniseringsinställningar och status';
 }

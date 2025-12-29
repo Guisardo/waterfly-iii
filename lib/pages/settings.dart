@@ -267,8 +267,8 @@ class SettingsPageState extends State<SettingsPage>
           closedElevation: 0,
           closedBuilder:
               (BuildContext context, Function openContainer) => ListTile(
-                title: const Text('Synchronization'),
-                subtitle: const Text('Sync settings and status'),
+                title: Text(S.of(context).settingsSynchronization),
+                subtitle: Text(S.of(context).settingsSynchronizationSubtitle),
                 leading: const CircleAvatar(child: Icon(Icons.sync)),
                 onTap: () => openContainer(),
               ),

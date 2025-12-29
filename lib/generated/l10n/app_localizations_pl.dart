@@ -1149,4 +1149,11 @@ class SPl extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Wstrzymane';
+
+  @override
+  String get settingsSynchronization => 'Synchronizacja';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Ustawienia i status synchronizacji';
 }

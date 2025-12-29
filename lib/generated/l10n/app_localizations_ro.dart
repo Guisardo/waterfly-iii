@@ -1152,4 +1152,11 @@ class SRo extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Pauzat';
+
+  @override
+  String get settingsSynchronization => 'Sincronizare';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Setări și stare de sincronizare';
 }

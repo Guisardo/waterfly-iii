@@ -1158,4 +1158,11 @@ class SHu extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Szüneteltetve';
+
+  @override
+  String get settingsSynchronization => 'Szinkronizálás';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Szinkronizálási beállítások és állapot';
 }

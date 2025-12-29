@@ -1432,5 +1432,13 @@
     "syncSettingsEntityStatusPaused": "已暫停",
     "@syncSettingsEntityStatusPaused": {
         "description": "Status text when an entity sync is paused"
+    },
+    "settingsSynchronization": "同步",
+    "@settingsSynchronization": {
+        "description": "Title for synchronization settings option in main settings page"
+    },
+    "settingsSynchronizationSubtitle": "同步設定和狀態",
+    "@settingsSynchronizationSubtitle": {
+        "description": "Subtitle for synchronization settings option in main settings page"
     }
 }

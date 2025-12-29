@@ -1150,4 +1150,11 @@ class SIt extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'In pausa';
+
+  @override
+  String get settingsSynchronization => 'Sincronizzazione';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Impostazioni e stato di sincronizzazione';
 }

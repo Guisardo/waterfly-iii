@@ -1943,6 +1943,18 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Paused'**
   String get syncSettingsEntityStatusPaused;
+
+  /// Title for synchronization settings option in main settings page
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization'**
+  String get settingsSynchronization;
+
+  /// Subtitle for synchronization settings option in main settings page
+  ///
+  /// In en, this message translates to:
+  /// **'Sync settings and status'**
+  String get settingsSynchronizationSubtitle;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

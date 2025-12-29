@@ -1160,4 +1160,11 @@ class SCa extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Pausat';
+
+  @override
+  String get settingsSynchronization => 'Sincronització';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Configuració i estat de sincronització';
 }

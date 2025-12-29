@@ -1157,4 +1157,11 @@ class SRu extends S {
 
   @override
   String get syncSettingsEntityStatusPaused => 'Приостановлено';
+
+  @override
+  String get settingsSynchronization => 'Синхронизация';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Настройки и статус синхронизации';
 }
