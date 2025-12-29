@@ -100,7 +100,7 @@ class _HomeMainState extends State<HomeMain>
     super.dispose();
   }
 
-  Future<bool> _fetchLastDays() async {
+  Future<bool> _fetchLastDays() {
     _cachedFetchLastDays ??= _fetchLastDaysImpl();
     return _cachedFetchLastDays!;
   }
@@ -118,14 +118,20 @@ class _HomeMainState extends State<HomeMain>
       const TimeOfDay(hour: 12, minute: 0),
     );
 
+    // Fix: Use subtract instead of copyWith to handle month boundaries correctly
+    final DateTime startDate = now.subtract(const Duration(days: 6));
+    final String startDateStr = DateFormat(
+      'yyyy-MM-dd',
+      'en_US',
+    ).format(startDate);
+    final String endDateStr = DateFormat('yyyy-MM-dd', 'en_US').format(now);
+
     final Response<List<ChartDataSet>> respBalanceData = await api
         .v1ChartBalanceBalanceGet(
-          start: DateFormat(
-            'yyyy-MM-dd',
-            'en_US',
-          ).format(now.copyWith(day: now.day - 6)),
-          end: DateFormat('yyyy-MM-dd', 'en_US').format(now),
+          start: startDateStr,
+          end: endDateStr,
           period: .value_1d,
+          preselected: V1ChartBalanceBalanceGetPreselected.all,
         );
     apiThrowErrorIfEmpty(respBalanceData, mounted ? context : null);
 
@@ -154,7 +160,7 @@ class _HomeMainState extends State<HomeMain>
     return true;
   }
 
-  Future<bool> _fetchOverviewChart() async {
+  Future<bool> _fetchOverviewChart() {
     _cachedFetchOverviewChart ??= _fetchOverviewChartImpl();
     return _cachedFetchOverviewChart!;
   }
@@ -190,7 +196,7 @@ class _HomeMainState extends State<HomeMain>
     return true;
   }
 
-  Future<bool> _fetchLastMonths() async {
+  Future<bool> _fetchLastMonths() {
     _cachedFetchLastMonths ??= _fetchLastMonthsImpl();
     return _cachedFetchLastMonths!;
   }
@@ -269,7 +275,7 @@ class _HomeMainState extends State<HomeMain>
     return true;
   }
 
-  Future<bool> _fetchCategories({bool tags = false}) async {
+  Future<bool> _fetchCategories({bool tags = false}) {
     if (tags) {
       _cachedFetchCategoriesTags ??= _fetchCategoriesImpl(tags: true);
       return _cachedFetchCategoriesTags!;
@@ -422,7 +428,7 @@ class _HomeMainState extends State<HomeMain>
         .toList(growable: false);
   }
 
-  Future<bool> _fetchBalance() async {
+  Future<bool> _fetchBalance() {
     _cachedFetchBalance ??= _fetchBalanceImpl();
     return _cachedFetchBalance!;
   }
