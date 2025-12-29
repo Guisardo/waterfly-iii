@@ -1097,4 +1097,51 @@ class SEn extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Background synchronization status';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Entity Sync Status';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transactions';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Accounts';
+
+  @override
+  String get syncSettingsEntityCategories => 'Categories';
+
+  @override
+  String get syncSettingsEntityTags => 'Tags';
+
+  @override
+  String get syncSettingsEntityBills => 'Bills';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budgets';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Currencies';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Piggy Banks';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Never synced';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Syncing...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Success';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Error';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Paused';
 }

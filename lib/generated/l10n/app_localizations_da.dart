@@ -1098,4 +1098,51 @@ class SDa extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Status for baggrundssynkronisering';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Entitetssynkroniseringsstatus';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transaktioner';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Konti';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategorier';
+
+  @override
+  String get syncSettingsEntityTags => 'Tags';
+
+  @override
+  String get syncSettingsEntityBills => 'Regninger';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budgetter';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Valutaer';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Sparegriser';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Aldrig synkroniseret';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Synkroniserer...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Succes';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Fejl';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Pauset';
 }

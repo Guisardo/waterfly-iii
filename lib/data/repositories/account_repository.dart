@@ -352,13 +352,29 @@ class AccountRepository {
     final DateTime? updatedAt = account.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Accounts row =
-        Accounts()
-          ..accountId = account.id
-          ..data = jsonEncode(account.toJson())
-          ..updatedAt = updatedAt
-          ..localUpdatedAt = now
-          ..synced = true;
+    // Check if account already exists
+    final Accounts? existing =
+        await isar.accounts.filter().accountIdEqualTo(account.id).findFirst();
+
+    final Accounts row;
+    if (existing != null) {
+      // Update existing account
+      row =
+          existing
+            ..data = jsonEncode(account.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    } else {
+      // Create new account
+      row =
+          Accounts()
+            ..accountId = account.id
+            ..data = jsonEncode(account.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    }
 
     await isar.writeTxn(() async {
       await isar.accounts.put(row);

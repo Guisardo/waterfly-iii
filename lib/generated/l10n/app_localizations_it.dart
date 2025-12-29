@@ -1103,4 +1103,51 @@ class SIt extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Stato della sincronizzazione in background';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Stato sincronizzazione entità';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transazioni';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Conti';
+
+  @override
+  String get syncSettingsEntityCategories => 'Categorie';
+
+  @override
+  String get syncSettingsEntityTags => 'Tag';
+
+  @override
+  String get syncSettingsEntityBills => 'Bollette';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budget';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Valute';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Salvadanai';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Mai sincronizzato';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Sincronizzazione...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Successo';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Errore';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'In pausa';
 }

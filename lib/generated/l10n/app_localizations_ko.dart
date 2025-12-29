@@ -1083,4 +1083,51 @@ class SKo extends S {
 
   @override
   String get syncNotificationChannelDescription => '백그라운드 동기화 상태';
+
+  @override
+  String get syncSettingsEntityStatusTitle => '엔티티 동기화 상태';
+
+  @override
+  String get syncSettingsEntityTransactions => '거래';
+
+  @override
+  String get syncSettingsEntityAccounts => '계정';
+
+  @override
+  String get syncSettingsEntityCategories => '카테고리';
+
+  @override
+  String get syncSettingsEntityTags => '태그';
+
+  @override
+  String get syncSettingsEntityBills => '청구서';
+
+  @override
+  String get syncSettingsEntityBudgets => '예산';
+
+  @override
+  String get syncSettingsEntityCurrencies => '통화';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => '저금통';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => '동기화되지 않음';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => '동기화 중...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => '성공';
+
+  @override
+  String get syncSettingsEntityStatusError => '오류';
+
+  @override
+  String get syncSettingsEntityStatusPaused => '일시 중지됨';
 }

@@ -1099,4 +1099,51 @@ class SNl extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Status van achtergrondsynchronisatie';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Entiteit synchronisatiestatus';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transacties';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Rekeningen';
+
+  @override
+  String get syncSettingsEntityCategories => 'Categorieën';
+
+  @override
+  String get syncSettingsEntityTags => 'Tags';
+
+  @override
+  String get syncSettingsEntityBills => 'Rekeningen';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budgetten';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Valuta';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Spaarpotten';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Nooit gesynchroniseerd';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Synchroniseren...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Succesvol';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Fout';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Gepauzeerd';
 }

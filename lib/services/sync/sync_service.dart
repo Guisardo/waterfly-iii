@@ -180,6 +180,12 @@ class SyncService extends ChangeNotifier {
           await _syncEntityType(type, forceFullSync: forceFullSync);
         } catch (e, stackTrace) {
           log.severe("Error syncing $type", e, stackTrace);
+          // Record error in metadata even when sync fails
+          await _updateSyncMetadata(
+            type,
+            lastError: e.toString(),
+            syncPaused: false, // Don't pause individual entity types on error
+          );
           // Continue with other entity types
         }
       }
@@ -243,41 +249,75 @@ class SyncService extends ChangeNotifier {
     final DateTime? lastSync =
         forceFullSync ? null : metadata?.lastDownloadSync;
 
-    switch (entityType) {
-      case 'transactions':
-        await _syncTransactions(lastSync);
-        break;
-      case 'accounts':
-        await _syncAccounts(lastSync);
-        break;
-      case 'categories':
-        await _syncCategories(lastSync);
-        break;
-      case 'tags':
-        await _syncTags(lastSync);
-        break;
-      case 'bills':
-        await _syncBills(lastSync);
-        break;
-      case 'budgets':
-        await _syncBudgets(lastSync);
-        break;
-      case 'budget_limits':
-        await _syncBudgetLimits(lastSync);
-        break;
-      case 'currencies':
-        await _syncCurrencies(lastSync);
-        break;
-      case 'piggy_banks':
-        await _syncPiggyBanks(lastSync);
-        break;
+    bool syncSuccess = false;
+    try {
+      switch (entityType) {
+        case 'transactions':
+          await _syncTransactions(lastSync);
+          break;
+        case 'accounts':
+          await _syncAccounts(lastSync);
+          break;
+        case 'categories':
+          await _syncCategories(lastSync);
+          break;
+        case 'tags':
+          await _syncTags(lastSync);
+          break;
+        case 'bills':
+          await _syncBills(lastSync);
+          break;
+        case 'budgets':
+          await _syncBudgets(lastSync);
+          break;
+        case 'budget_limits':
+          await _syncBudgetLimits(lastSync);
+          break;
+        case 'currencies':
+          await _syncCurrencies(lastSync);
+          break;
+        case 'piggy_banks':
+          await _syncPiggyBanks(lastSync);
+          break;
+      }
+      syncSuccess = true;
+    } catch (e, stackTrace) {
+      log.severe("Error syncing $entityType", e, stackTrace);
+      // Record error in metadata even when sync fails
+      try {
+        await _updateSyncMetadata(
+          entityType,
+          lastError: e.toString(),
+          syncPaused: false, // Don't pause individual entity types on error
+        );
+      } catch (metadataError) {
+        log.severe(
+          "Failed to record error in metadata for $entityType",
+          metadataError,
+        );
+      }
+      // Don't update lastDownloadSync on error - let it be handled by the caller
+      rethrow;
+    } finally {
+      // Update last sync time only on success
+      if (syncSuccess) {
+        try {
+          final DateTime syncTime = DateTime.now().toUtc();
+          await _updateSyncMetadata(
+            entityType,
+            lastDownloadSync: syncTime,
+            lastError: null, // Clear error on success
+          );
+          log.config("Updated metadata for $entityType: $syncTime");
+        } catch (e, stackTrace) {
+          log.severe(
+            "Failed to update metadata for $entityType",
+            e,
+            stackTrace,
+          );
+        }
+      }
     }
-
-    // Update last sync time
-    await _updateSyncMetadata(
-      entityType,
-      lastDownloadSync: DateTime.now().toUtc(),
-    );
   }
 
   Future<void> _syncTransactions(DateTime? lastSync) async {
@@ -324,6 +364,7 @@ class SyncService extends ChangeNotifier {
         );
 
         final List<TransactionRead> transactions = transactionArray.data;
+
         if (transactions.isEmpty) {
           hasMore = false;
           break;

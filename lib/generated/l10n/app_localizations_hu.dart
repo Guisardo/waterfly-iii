@@ -1111,4 +1111,51 @@ class SHu extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Háttérszinkronizálás állapota';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Entitás szinkronizálási állapot';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Tranzakciók';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Számlák';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategóriák';
+
+  @override
+  String get syncSettingsEntityTags => 'Címkék';
+
+  @override
+  String get syncSettingsEntityBills => 'Számlák';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Költségvetések';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Pénznemek';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Malacperselyek';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Soha nem szinkronizálva';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Szinkronizálás...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Sikeres';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Hiba';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Szüneteltetve';
 }

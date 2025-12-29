@@ -1103,4 +1103,51 @@ class SCs extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Stav synchronizace na pozadí';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Stav synchronizace entit';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transakce';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Účty';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategorie';
+
+  @override
+  String get syncSettingsEntityTags => 'Štítky';
+
+  @override
+  String get syncSettingsEntityBills => 'Účty';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Rozpočty';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Měny';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Pokladničky';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Nikdy nesynchronizováno';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Synchronizace...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Úspěch';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Chyba';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Pozastaveno';
 }

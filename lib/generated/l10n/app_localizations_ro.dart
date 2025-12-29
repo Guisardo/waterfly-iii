@@ -1105,4 +1105,51 @@ class SRo extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Status sincronizare în fundal';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Status sincronizare entități';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Tranzacții';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Conturi';
+
+  @override
+  String get syncSettingsEntityCategories => 'Categorii';
+
+  @override
+  String get syncSettingsEntityTags => 'Etichete';
+
+  @override
+  String get syncSettingsEntityBills => 'Facturi';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Bugete';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Valute';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Pușculițe';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Niciodată sincronizat';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Sincronizare...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Succes';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Eroare';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Pauzat';
 }

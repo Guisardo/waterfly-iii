@@ -1107,4 +1107,52 @@ class SEs extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Estado de sincronización en segundo plano';
+
+  @override
+  String get syncSettingsEntityStatusTitle =>
+      'Estado de sincronización de entidades';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transacciones';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Cuentas';
+
+  @override
+  String get syncSettingsEntityCategories => 'Categorías';
+
+  @override
+  String get syncSettingsEntityTags => 'Etiquetas';
+
+  @override
+  String get syncSettingsEntityBills => 'Facturas';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Presupuestos';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Monedas';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Huchas';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Nunca sincronizado';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Sincronizando...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Éxito';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Error';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Pausado';
 }

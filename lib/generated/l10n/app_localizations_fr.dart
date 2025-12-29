@@ -1113,4 +1113,52 @@ class SFr extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Statut de la synchronisation en arrière-plan';
+
+  @override
+  String get syncSettingsEntityStatusTitle =>
+      'Statut de synchronisation des entités';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transactions';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Comptes';
+
+  @override
+  String get syncSettingsEntityCategories => 'Catégories';
+
+  @override
+  String get syncSettingsEntityTags => 'Tags';
+
+  @override
+  String get syncSettingsEntityBills => 'Factures';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budgets';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Devises';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Tirelires';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Jamais synchronisé';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Synchronisation...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Succès';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Erreur';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'En pause';
 }

@@ -1101,4 +1101,51 @@ class SId extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Status sinkronisasi latar belakang';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Status Sinkronisasi Entitas';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transaksi';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Akun';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategori';
+
+  @override
+  String get syncSettingsEntityTags => 'Tag';
+
+  @override
+  String get syncSettingsEntityBills => 'Tagihan';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Anggaran';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Mata Uang';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Celengan';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Belum pernah disinkronkan';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Menyinkronkan...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Berhasil';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Kesalahan';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Dijeda';
 }

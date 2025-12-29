@@ -1101,4 +1101,51 @@ class SSl extends S {
   @override
   String get syncNotificationChannelDescription =>
       'Status sinhronizacije v ozadju';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Status sinhronizacije entitet';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transakcije';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Računi';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategorije';
+
+  @override
+  String get syncSettingsEntityTags => 'Oznake';
+
+  @override
+  String get syncSettingsEntityBills => 'Računi';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Proračuni';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Valute';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Hranilniki';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Nikoli sinhronizirano';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Sinhroniziranje...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Uspešno';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Napaka';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Začasno ustavljeno';
 }
