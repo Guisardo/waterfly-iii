@@ -1,10 +1,31 @@
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_conflicts.dart';
 
-enum ConflictType { download, upload, concurrent }
+/// Type of sync conflict that occurred.
+enum ConflictType {
+  /// Conflict during download (server data conflicts with local).
+  download,
 
-enum ConflictResolution { serverWins, localCancelled }
+  /// Conflict during upload (local changes conflict with server).
+  upload,
 
+  /// Concurrent modification conflict.
+  concurrent,
+}
+
+/// Resolution strategy for conflicts.
+enum ConflictResolution {
+  /// Server version is kept, local changes are discarded.
+  serverWins,
+
+  /// Local changes were cancelled.
+  localCancelled,
+}
+
+/// Resolves conflicts between local and server data.
+///
+/// Currently implements "server wins" strategy: server data always takes
+/// precedence. Conflicts are logged for review in sync settings.
 class ConflictResolver {
   final Isar isar;
 
@@ -59,13 +80,24 @@ class ConflictResolver {
     String? entityType,
     int? limit,
   }) async {
-    final List<SyncConflicts> conflicts =
+    List<SyncConflicts> conflicts =
         entityType != null
             ? await isar.syncConflicts
                 .filter()
                 .entityTypeEqualTo(entityType)
                 .findAll()
             : await isar.syncConflicts.where().findAll();
+
+    // Fallback: filter in memory if MockIsar filter didn't work
+    // This handles cases where MockIsar's filter has limitations
+    if (entityType != null) {
+      conflicts =
+          conflicts
+              .where(
+                (SyncConflicts conflict) => conflict.entityType == entityType,
+              )
+              .toList();
+    }
 
     conflicts.sort(
       (SyncConflicts a, SyncConflicts b) => b.timestamp.compareTo(a.timestamp),

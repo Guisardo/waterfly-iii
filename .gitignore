@@ -49,3 +49,6 @@ docs/plans/
 
 # Generated dart dev files
 *.g.dart
+
+# Coverage
+coverage/

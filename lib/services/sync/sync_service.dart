@@ -31,10 +31,18 @@ import 'package:waterflyiii/extensions.dart';
 
 final Logger log = Logger("Sync");
 
+/// Progress information for sync operations.
 class SyncProgress {
+  /// The type of entity being synced (e.g., 'transactions', 'accounts').
   final String entityType;
+
+  /// Current number of items processed.
   final int current;
+
+  /// Total number of items to process.
   final int total;
+
+  /// Optional status message.
   final String? message;
 
   SyncProgress({
@@ -45,6 +53,13 @@ class SyncProgress {
   });
 }
 
+/// Service for downloading and synchronizing data from Firefly III API.
+///
+/// Handles background synchronization with exponential backoff retry logic,
+/// conflict resolution, and offline support. Automatically pauses sync on
+/// network errors, timeouts, or server errors, and resumes after backoff period.
+///
+/// Sync operations are idempotent and can be safely retried.
 class SyncService extends ChangeNotifier {
   final Isar isar;
   final FireflyService fireflyService;
@@ -53,6 +68,7 @@ class SyncService extends ChangeNotifier {
   final ConflictResolver conflictResolver;
   final SyncNotifications notifications;
   final SettingsProvider? settingsProvider;
+  final http.Client? _httpClient;
 
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
@@ -66,18 +82,39 @@ class SyncService extends ChangeNotifier {
     required this.connectivityService,
     required this.notifications,
     this.settingsProvider,
+    http.Client? httpClient,
   }) : retryManager = RetryManager(isar),
-       conflictResolver = ConflictResolver(isar) {
+       conflictResolver = ConflictResolver(isar),
+       _httpClient = httpClient {
     // Set settings provider for notifications localization
     notifications.setSettingsProvider(settingsProvider);
   }
 
+  /// Get HTTP client - uses injected client or falls back to global httpClient
+  http.Client get _getHttpClient => _httpClient ?? httpClient;
+
   Future<bool> validateCredentials() async {
     try {
+      // Check if service is signed in first to avoid accessing secure storage unnecessarily
+      if (!fireflyService.signedIn) {
+        await _updateSyncMetadata(
+          'auth',
+          credentialsValidated: false,
+          credentialsInvalid: true,
+        );
+        return false;
+      }
+
       final FireflyIii api = fireflyService.api;
       final Response<SystemInfo> about = await api.v1AboutGet();
 
       if (!about.isSuccessful || about.body == null) {
+        // Mark credentials as invalid
+        await _updateSyncMetadata(
+          'auth',
+          credentialsValidated: false,
+          credentialsInvalid: true,
+        );
         return false;
       }
 
@@ -91,11 +128,17 @@ class SyncService extends ChangeNotifier {
       return true;
     } catch (e) {
       log.warning("Credential validation failed", e);
-      await _updateSyncMetadata(
-        'auth',
-        credentialsValidated: false,
-        credentialsInvalid: true,
-      );
+      // Mark credentials as invalid
+      // Handle exceptions gracefully (e.g., secure storage unavailable in tests)
+      try {
+        await _updateSyncMetadata(
+          'auth',
+          credentialsValidated: false,
+          credentialsInvalid: true,
+        );
+      } catch (_) {
+        // If metadata update fails, continue anyway
+      }
       return false;
     }
   }
@@ -108,7 +151,7 @@ class SyncService extends ChangeNotifier {
 
     _isSyncing = true;
     _progressController = StreamController<SyncProgress>.broadcast();
-    notifyListeners();
+    _notifyListenersIfNotDisposed();
 
     try {
       // Check if sync is paused
@@ -116,7 +159,7 @@ class SyncService extends ChangeNotifier {
       if (await retryManager.isPaused(syncEntityType)) {
         log.config("Sync is paused for $syncEntityType");
         _isSyncing = false;
-        notifyListeners();
+        _notifyListenersIfNotDisposed();
         return;
       }
 
@@ -124,7 +167,7 @@ class SyncService extends ChangeNotifier {
       if (!connectivityService.isOnline) {
         log.config("Device is offline, skipping sync");
         _isSyncing = false;
-        notifyListeners();
+        _notifyListenersIfNotDisposed();
         return;
       }
 
@@ -133,7 +176,7 @@ class SyncService extends ChangeNotifier {
           (settingsProvider?.syncUseMobileData ?? false) == false) {
         log.config("Mobile data sync disabled, skipping");
         _isSyncing = false;
-        notifyListeners();
+        _notifyListenersIfNotDisposed();
         return;
       }
 
@@ -146,7 +189,7 @@ class SyncService extends ChangeNotifier {
           log.warning("Credentials invalid, cannot sync");
           await notifications.showCredentialError();
           _isSyncing = false;
-          notifyListeners();
+          _notifyListenersIfNotDisposed();
           return;
         }
       }
@@ -154,7 +197,7 @@ class SyncService extends ChangeNotifier {
       if (authMetadata?.credentialsInvalid ?? false) {
         log.warning("Credentials marked as invalid, cannot sync");
         _isSyncing = false;
-        notifyListeners();
+        _notifyListenersIfNotDisposed();
         return;
       }
 
@@ -206,7 +249,7 @@ class SyncService extends ChangeNotifier {
       await notifications.showSyncCompleted();
 
       _isSyncing = false;
-      notifyListeners();
+      _notifyListenersIfNotDisposed();
     } catch (e, stackTrace) {
       log.severe("Sync failed", e, stackTrace);
 
@@ -223,7 +266,7 @@ class SyncService extends ChangeNotifier {
       }
 
       _isSyncing = false;
-      notifyListeners();
+      _notifyListenersIfNotDisposed();
     } finally {
       await _progressController?.close();
       _progressController = null;
@@ -322,7 +365,7 @@ class SyncService extends ChangeNotifier {
 
   Future<void> _syncTransactions(DateTime? lastSync) async {
     final TransactionRepository repo = TransactionRepository(isar);
-    final http.Client client = httpClient;
+    final http.Client client = _getHttpClient;
 
     int page = 1;
     bool hasMore = true;
@@ -1181,34 +1224,88 @@ class SyncService extends ChangeNotifier {
     }
   }
 
+  /// Detects network-related errors that should trigger retry with backoff
   bool _isNetworkError(dynamic error) {
-    return error.toString().contains('SocketException') ||
-        error.toString().contains('NetworkException') ||
-        error.toString().contains('Failed host lookup');
+    // Check for actual exception types first
+    if (error is Exception) {
+      final String errorStr = error.toString().toLowerCase();
+      return errorStr.contains('socketexception') ||
+          errorStr.contains('networkexception') ||
+          errorStr.contains('failed host lookup') ||
+          errorStr.contains('connection refused') ||
+          errorStr.contains('connection reset') ||
+          errorStr.contains('connection timed out') ||
+          errorStr.contains('no internet connection') ||
+          errorStr.contains('network is unreachable');
+    }
+    // Fallback to string matching
+    final String errorStr = error.toString().toLowerCase();
+    return errorStr.contains('socketexception') ||
+        errorStr.contains('networkexception') ||
+        errorStr.contains('failed host lookup') ||
+        errorStr.contains('connection refused') ||
+        errorStr.contains('connection reset');
   }
 
+  /// Detects timeout errors that should trigger retry with backoff
   bool _isTimeoutError(dynamic error) {
-    return error.toString().contains('TimeoutException') ||
-        error.toString().contains('timeout');
+    if (error is Response) {
+      // HTTP 408 Request Timeout
+      if (error.statusCode == 408) {
+        return true;
+      }
+    }
+    final String errorStr = error.toString().toLowerCase();
+    return errorStr.contains('timeoutexception') ||
+        errorStr.contains('timeout') ||
+        errorStr.contains('timed out') ||
+        errorStr.contains('deadline exceeded');
   }
 
+  /// Detects server errors (5xx) that should trigger retry with backoff
   bool _isServerError(dynamic error) {
     if (error is Response) {
-      return error.statusCode >= 500 && error.statusCode < 600;
+      // 5xx server errors and 429 (rate limiting)
+      return (error.statusCode >= 500 && error.statusCode < 600) ||
+          error.statusCode == 429;
     }
-    return false;
+    final String errorStr = error.toString().toLowerCase();
+    return errorStr.contains('500') ||
+        errorStr.contains('502') ||
+        errorStr.contains('503') ||
+        errorStr.contains('504') ||
+        errorStr.contains('429');
   }
 
+  /// Detects authentication/authorization errors
   bool _isAuthError(dynamic error) {
     if (error is Response) {
       return error.statusCode == 401 || error.statusCode == 403;
     }
-    return error.toString().contains('401') || error.toString().contains('403');
+    final String errorStr = error.toString().toLowerCase();
+    return errorStr.contains('401') ||
+        errorStr.contains('403') ||
+        errorStr.contains('unauthorized') ||
+        errorStr.contains('forbidden');
   }
+
+  bool _disposed = false;
 
   @override
   void dispose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
     _progressController?.close();
     super.dispose();
+  }
+
+  // Helper to check if disposed before notifying listeners
+  // This prevents errors when async operations complete after disposal
+  void _notifyListenersIfNotDisposed() {
+    if (!_disposed) {
+      notifyListeners();
+    }
   }
 }

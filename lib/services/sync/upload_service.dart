@@ -97,7 +97,12 @@ class UploadService extends ChangeNotifier {
         return;
       }
 
-      await notifications.showSyncStarted();
+      try {
+        await notifications.showSyncStarted();
+      } catch (e, stackTrace) {
+        log.warning("Failed to show sync started notification", e, stackTrace);
+        // Continue anyway - notification failure shouldn't block upload
+      }
 
       int successCount = 0;
       int failureCount = 0;
@@ -119,6 +124,22 @@ class UploadService extends ChangeNotifier {
         } catch (e, stackTrace) {
           log.severe("Error processing change ${change.id}", e, stackTrace);
           failureCount++;
+
+          // Check for conflict errors first
+          if (_isConflictError(e)) {
+            // Handle conflict - mark change as synced
+            await conflictResolver.logConflict(
+              entityType: change.entityType,
+              entityId: change.entityId ?? 'unknown',
+              conflictType: ConflictType.upload,
+              serverUpdatedAt: DateTime.now().toUtc(),
+              resolution: ConflictResolution.serverWins,
+            );
+            await _markChangeAsSynced(change.id);
+            successCount++;
+            failureCount--; // Don't count conflicts as failures
+            continue;
+          }
 
           // Handle errors
           if (_isNetworkError(e) || _isTimeoutError(e) || _isServerError(e)) {
@@ -202,58 +223,218 @@ class UploadService extends ChangeNotifier {
     try {
       Response<dynamic>? response;
 
-      switch (change.entityType) {
-        case 'transactions':
-          final TransactionStore store = TransactionStore.fromJson(data);
-          response = await api.v1TransactionsPost(body: store);
-          if (response.isSuccessful && response.body != null) {
-            final TransactionRead created = response.body!.data;
-            final TransactionRepository repo = TransactionRepository(isar);
-            await repo.upsertFromSync(created);
-          }
-          break;
-        case 'accounts':
-          final AccountStore store = AccountStore.fromJson(data);
-          response = await api.v1AccountsPost(body: store);
-          break;
-        case 'categories':
-          final CategoryStore store = CategoryStore.fromJson(data);
-          response = await api.v1CategoriesPost(body: store);
-          break;
-        case 'tags':
-          final TagModelStore store = TagModelStore.fromJson(data);
-          response = await api.v1TagsPost(body: store);
-          break;
-        case 'bills':
-          final BillStore store = BillStore.fromJson(data);
-          response = await api.v1BillsPost(body: store);
-          break;
-        case 'budgets':
-          final BudgetStore store = BudgetStore.fromJson(data);
-          response = await api.v1BudgetsPost(body: store);
-          break;
-        case 'budget_limits':
-          // Budget limits require budgetId - extract from data
-          final Map<String, dynamic> dataMap = data;
-          final String? budgetId = dataMap['budget_id'] as String?;
-          if (budgetId == null) {
-            log.warning("Budget limit missing budget_id");
+      try {
+        switch (change.entityType) {
+          case 'transactions':
+            TransactionStore store;
+            try {
+              store = TransactionStore.fromJson(data);
+            } catch (e, stackTrace) {
+              log.warning(
+                "Failed to parse TransactionStore from data",
+                e,
+                stackTrace,
+              );
+              rethrow;
+            }
+
+            try {
+              response = await api.v1TransactionsPost(body: store);
+            } catch (e) {
+              // If Chopper throws during the call, check if it's a conflict
+              // before rethrowing
+              if (_isConflictError(e)) {
+                await conflictResolver.logConflict(
+                  entityType: change.entityType,
+                  entityId: change.entityId ?? 'unknown',
+                  conflictType: ConflictType.upload,
+                  serverUpdatedAt: DateTime.now().toUtc(),
+                  resolution: ConflictResolution.serverWins,
+                );
+                await _markChangeAsSynced(change.id);
+                return true;
+              }
+              // Also check if the error has a Response with 409 status
+              try {
+                final dynamic errorObj = e;
+                final dynamic errorResponse = (errorObj as dynamic).response;
+                if (errorResponse is Response &&
+                    errorResponse.statusCode == 409) {
+                  await conflictResolver.logConflict(
+                    entityType: change.entityType,
+                    entityId: change.entityId ?? 'unknown',
+                    conflictType: ConflictType.upload,
+                    serverUpdatedAt: DateTime.now().toUtc(),
+                    resolution: ConflictResolution.serverWins,
+                  );
+                  await _markChangeAsSynced(change.id);
+                  return true;
+                }
+              } catch (_) {
+                // Response property might not exist
+              }
+              rethrow;
+            }
+
+            // Check for conflict first (before checking isSuccessful)
+            // Chopper returns Response with isSuccessful=false for non-2xx status codes
+            // But Chopper might also throw an exception for 409 during deserialization
+            if (response.statusCode == 409) {
+              await conflictResolver.logConflict(
+                entityType: change.entityType,
+                entityId: change.entityId ?? 'unknown',
+                conflictType: ConflictType.upload,
+                serverUpdatedAt: DateTime.now().toUtc(),
+                resolution: ConflictResolution.serverWins,
+              );
+              await _markChangeAsSynced(change.id);
+              return true;
+            }
+            if (response.isSuccessful && response.body != null) {
+              try {
+                final TransactionRead created = response.body!.data;
+                final TransactionRepository repo = TransactionRepository(isar);
+                await repo.upsertFromSync(created);
+                await _markChangeAsSynced(change.id);
+                return true;
+              } catch (e) {
+                // If deserialization fails but response has 409, treat as conflict
+                if (response.statusCode == 409) {
+                  await conflictResolver.logConflict(
+                    entityType: change.entityType,
+                    entityId: change.entityId ?? 'unknown',
+                    conflictType: ConflictType.upload,
+                    serverUpdatedAt: DateTime.now().toUtc(),
+                    resolution: ConflictResolution.serverWins,
+                  );
+                  await _markChangeAsSynced(change.id);
+                  return true;
+                }
+                rethrow;
+              }
+            }
+            break;
+          case 'accounts':
+            final AccountStore store = AccountStore.fromJson(data);
+            response = await api.v1AccountsPost(body: store);
+            break;
+          case 'categories':
+            final CategoryStore store = CategoryStore.fromJson(data);
+            response = await api.v1CategoriesPost(body: store);
+            break;
+          case 'tags':
+            final TagModelStore store = TagModelStore.fromJson(data);
+            response = await api.v1TagsPost(body: store);
+            break;
+          case 'bills':
+            final BillStore store = BillStore.fromJson(data);
+            response = await api.v1BillsPost(body: store);
+            break;
+          case 'budgets':
+            final BudgetStore store = BudgetStore.fromJson(data);
+            response = await api.v1BudgetsPost(body: store);
+            break;
+          case 'budget_limits':
+            // Budget limits require budgetId - extract from data
+            final Map<String, dynamic> dataMap = data;
+            final String? budgetId = dataMap['budget_id'] as String?;
+            if (budgetId == null) {
+              log.warning("Budget limit missing budget_id");
+              return false;
+            }
+            final BudgetLimitStore store = BudgetLimitStore.fromJson(data);
+            response = await api.v1BudgetsIdLimitsPost(
+              id: budgetId,
+              body: store,
+            );
+            break;
+          default:
+            log.warning(
+              "Unsupported entity type for CREATE: ${change.entityType}",
+            );
             return false;
-          }
-          final BudgetLimitStore store = BudgetLimitStore.fromJson(data);
-          response = await api.v1BudgetsIdLimitsPost(id: budgetId, body: store);
-          break;
-        default:
-          log.warning(
-            "Unsupported entity type for CREATE: ${change.entityType}",
+        }
+      } catch (apiError) {
+        // Check if response was set before exception (Chopper might set response then throw)
+        if (response != null && response.statusCode == 409) {
+          await conflictResolver.logConflict(
+            entityType: change.entityType,
+            entityId: change.entityId ?? 'unknown',
+            conflictType: ConflictType.upload,
+            serverUpdatedAt: DateTime.now().toUtc(),
+            resolution: ConflictResolution.serverWins,
           );
-          return false;
+          await _markChangeAsSynced(change.id);
+          return true;
+        }
+        // Chopper might throw an exception for non-2xx responses or deserialization failures
+        // Check if it's a conflict error first
+        if (_isConflictError(apiError)) {
+          // Handle conflict
+          await conflictResolver.logConflict(
+            entityType: change.entityType,
+            entityId: change.entityId ?? 'unknown',
+            conflictType: ConflictType.upload,
+            serverUpdatedAt: DateTime.now().toUtc(),
+            resolution: ConflictResolution.serverWins,
+          );
+          await _markChangeAsSynced(change.id);
+          return true;
+        }
+        // Also check if the error contains a Response with 409 status
+        try {
+          final dynamic errorObj = apiError;
+          // Try to access response property
+          final dynamic errorResponse = (errorObj as dynamic).response;
+          if (errorResponse is Response && errorResponse.statusCode == 409) {
+            await conflictResolver.logConflict(
+              entityType: change.entityType,
+              entityId: change.entityId ?? 'unknown',
+              conflictType: ConflictType.upload,
+              serverUpdatedAt: DateTime.now().toUtc(),
+              resolution: ConflictResolution.serverWins,
+            );
+            await _markChangeAsSynced(change.id);
+            return true;
+          }
+        } catch (_) {
+          // Response property might not exist
+        }
+        // Re-throw if not a conflict - this will be caught by outer catch
+        throw apiError;
+      }
+
+      // Check for conflict first (before checking isSuccessful)
+      // Chopper returns Response with isSuccessful=false for non-2xx status codes
+      // Check statusCode directly for 409 conflicts
+      if (response.statusCode == 409) {
+        await conflictResolver.logConflict(
+          entityType: change.entityType,
+          entityId: change.entityId ?? 'unknown',
+          conflictType: ConflictType.upload,
+          serverUpdatedAt: DateTime.now().toUtc(),
+          resolution: ConflictResolution.serverWins,
+        );
+        await _markChangeAsSynced(change.id);
+        return true;
       }
 
       if (response.isSuccessful) {
         await _markChangeAsSynced(change.id);
         return true;
       } else {
+        // Check for conflict before throwing (fallback check using _isConflictError)
+        if (_isConflictError(response)) {
+          await conflictResolver.logConflict(
+            entityType: change.entityType,
+            entityId: change.entityId ?? 'unknown',
+            conflictType: ConflictType.upload,
+            serverUpdatedAt: DateTime.now().toUtc(),
+            resolution: ConflictResolution.serverWins,
+          );
+          await _markChangeAsSynced(change.id);
+          return true;
+        }
         throw Exception(
           "Failed to create ${change.entityType}: ${response.error}",
         );
@@ -362,6 +543,18 @@ class UploadService extends ChangeNotifier {
         await _markChangeAsSynced(change.id);
         return true;
       } else {
+        // Check for conflict before throwing
+        if (_isConflictError(response)) {
+          await conflictResolver.logConflict(
+            entityType: change.entityType,
+            entityId: change.entityId!,
+            conflictType: ConflictType.upload,
+            serverUpdatedAt: DateTime.now().toUtc(),
+            resolution: ConflictResolution.serverWins,
+          );
+          await _markChangeAsSynced(change.id);
+          return true;
+        }
         throw Exception(
           "Failed to update ${change.entityType}: ${response.error}",
         );
@@ -466,30 +659,125 @@ class UploadService extends ChangeNotifier {
     });
   }
 
+  /// Detects network-related errors that should trigger retry with backoff
   bool _isNetworkError(dynamic error) {
-    return error.toString().contains('SocketException') ||
-        error.toString().contains('NetworkException') ||
-        error.toString().contains('Failed host lookup');
+    // Check for actual exception types first
+    if (error is Exception) {
+      final String errorStr = error.toString().toLowerCase();
+      return errorStr.contains('socketexception') ||
+          errorStr.contains('networkexception') ||
+          errorStr.contains('failed host lookup') ||
+          errorStr.contains('connection refused') ||
+          errorStr.contains('connection reset') ||
+          errorStr.contains('connection timed out') ||
+          errorStr.contains('no internet connection') ||
+          errorStr.contains('network is unreachable');
+    }
+    // Fallback to string matching
+    final String errorStr = error.toString().toLowerCase();
+    return errorStr.contains('socketexception') ||
+        errorStr.contains('networkexception') ||
+        errorStr.contains('failed host lookup') ||
+        errorStr.contains('connection refused') ||
+        errorStr.contains('connection reset');
   }
 
+  /// Detects timeout errors that should trigger retry with backoff
   bool _isTimeoutError(dynamic error) {
-    return error.toString().contains('TimeoutException') ||
-        error.toString().contains('timeout');
+    if (error is Response) {
+      // HTTP 408 Request Timeout
+      if (error.statusCode == 408) {
+        return true;
+      }
+    }
+    final String errorStr = error.toString().toLowerCase();
+    return errorStr.contains('timeoutexception') ||
+        errorStr.contains('timeout') ||
+        errorStr.contains('timed out') ||
+        errorStr.contains('deadline exceeded');
   }
 
+  /// Detects server errors (5xx) and rate limiting (429) that should trigger retry with backoff
   bool _isServerError(dynamic error) {
     if (error is Response) {
-      return error.statusCode >= 500 && error.statusCode < 600;
+      // 5xx server errors and 429 (rate limiting)
+      return (error.statusCode >= 500 && error.statusCode < 600) ||
+          error.statusCode == 429;
     }
-    return false;
+    final String errorStr = error.toString().toLowerCase();
+    return errorStr.contains('500') ||
+        errorStr.contains('502') ||
+        errorStr.contains('503') ||
+        errorStr.contains('504') ||
+        errorStr.contains('429');
   }
 
   bool _isConflictError(dynamic error) {
+    // Check if it's a Chopper Response object
     if (error is Response) {
+      // Chopper Response has statusCode accessible directly
       return error.statusCode == 409;
     }
-    return error.toString().contains('409') ||
-        error.toString().contains('Conflict');
+
+    // Check if the error has a response with status code
+    // Chopper exceptions might have a 'base' or 'response' property that contains the Response
+    try {
+      if (error is Exception) {
+        final dynamic errorObj = error;
+
+        // Try to access 'base' property (Chopper ResponseException pattern)
+        try {
+          final dynamic base = (errorObj as dynamic).base;
+          if (base is Response && base.statusCode == 409) {
+            return true;
+          }
+        } catch (_) {
+          // 'base' property might not exist or not be accessible
+        }
+
+        // Try to access 'response' property (alternative Chopper exception pattern)
+        try {
+          final dynamic response = (errorObj as dynamic).response;
+          if (response is Response && response.statusCode == 409) {
+            return true;
+          }
+        } catch (_) {
+          // 'response' property might not exist or not be accessible
+        }
+
+        // Try to access 'originalResponse' property (Chopper might store it here)
+        try {
+          final dynamic originalResponse =
+              (errorObj as dynamic).originalResponse;
+          if (originalResponse is Response &&
+              originalResponse.statusCode == 409) {
+            return true;
+          }
+        } catch (_) {
+          // 'originalResponse' property might not exist
+        }
+
+        // Check error string for status code patterns
+        final String errorStr = errorObj.toString();
+
+        // Look for status code in various formats: "409", "statusCode: 409", "HTTP 409", etc.
+        final RegExp statusCodePattern = RegExp(r'\b409\b');
+        if (statusCodePattern.hasMatch(errorStr)) {
+          return true;
+        }
+        if (errorStr.contains('Conflict') || errorStr.contains('conflict')) {
+          return true;
+        }
+      }
+    } catch (_) {
+      // Ignore reflection/access errors
+    }
+
+    // Final fallback: check if it's an Exception with conflict information
+    final String errorStr = error.toString();
+    return errorStr.contains('409') ||
+        errorStr.contains('Conflict') ||
+        errorStr.contains('conflict');
   }
 
   Future<void> _updateSyncMetadata(
@@ -520,8 +808,14 @@ class UploadService extends ChangeNotifier {
     }
   }
 
+  bool _disposed = false;
+
   @override
   void dispose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
     super.dispose();
   }
 }

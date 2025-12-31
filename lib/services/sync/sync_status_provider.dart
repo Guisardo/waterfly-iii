@@ -21,6 +21,7 @@ class SyncStatusProvider extends ChangeNotifier {
   String? _currentSyncingEntity;
   StreamSubscription<SyncProgress>? _progressSubscription;
   SyncProgress? _currentProgress;
+  Isar? _isar; // Injected Isar for testing, falls back to AppDatabase.instance
 
   // List of all entity types that are synced
   static const List<String> entityTypes = <String>[
@@ -51,22 +52,25 @@ class SyncStatusProvider extends ChangeNotifier {
   String? get uploadError => _uploadMetadata?.lastError;
 
   /// Initialize sync services (call once when app starts)
+  /// [isar] - Optional Isar instance for testing, falls back to AppDatabase.instance
   Future<void> initialize({
     required FireflyService fireflyService,
     required ConnectivityService connectivityService,
     required SettingsProvider settingsProvider,
+    Isar? isar,
   }) async {
     if (_syncService != null && _uploadService != null) {
       return; // Already initialized
     }
 
     try {
-      final Isar isar = await AppDatabase.instance;
+      final Isar isarInstance = isar ?? await AppDatabase.instance;
+      _isar = isarInstance; // Store for refreshMetadata
       final SyncNotifications notifications = SyncNotifications();
       notifications.setSettingsProvider(settingsProvider);
 
       _syncService = SyncService(
-        isar: isar,
+        isar: isarInstance,
         fireflyService: fireflyService,
         connectivityService: connectivityService,
         notifications: notifications,
@@ -74,7 +78,7 @@ class SyncStatusProvider extends ChangeNotifier {
       );
 
       _uploadService = UploadService(
-        isar: isar,
+        isar: isarInstance,
         fireflyService: fireflyService,
         connectivityService: connectivityService,
         notifications: notifications,
@@ -120,7 +124,7 @@ class SyncStatusProvider extends ChangeNotifier {
   /// Refresh sync metadata from database
   Future<void> refreshMetadata() async {
     try {
-      final Isar isar = await AppDatabase.instance;
+      final Isar isar = _isar ?? await AppDatabase.instance;
       final SyncMetadata? download =
           await isar.syncMetadatas
               .filter()
