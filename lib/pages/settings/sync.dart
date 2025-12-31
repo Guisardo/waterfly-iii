@@ -86,7 +86,7 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
             syncStatus.downloadMetadata,
             syncStatus.isDownloadSyncing,
             () async {
-              await syncStatus.sync();
+              await syncStatus.sync(forceRetry: true);
             },
           ),
 
@@ -119,7 +119,7 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                     )
                     : ElevatedButton(
                       onPressed: () async {
-                        await syncStatus.syncAll();
+                        await syncStatus.syncAll(forceRetry: true);
                         // Force a refresh to ensure UI updates
                         if (mounted) {
                           await syncStatus.refreshMetadata();

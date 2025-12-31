@@ -313,7 +313,8 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
         final dynamic coll = _collection;
         final dynamic dataProperty = coll.data;
         if (dataProperty is List) {
-          final MockIsarCollection<T> mockCollection = _collection!;
+          final MockIsarCollection<T> mockCollection =
+              unsafeCast<MockIsarCollection<T>>(_collection!);
           // Re-apply filter on live data each time
 
           // Pass filter info to _MockQuery so it can apply filter when data is accessed
@@ -336,7 +337,8 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
         final dynamic coll = _collection;
         final dynamic dataProperty = (coll as dynamic).data;
         if (dataProperty is List) {
-          final MockIsarCollection<T> mockCollection = _collection!;
+          final MockIsarCollection<T> mockCollection =
+              unsafeCast<MockIsarCollection<T>>(_collection!);
           // Use a getter function to always get live data
           // Pass filter info if available
           return _MockQuery<T>.live(

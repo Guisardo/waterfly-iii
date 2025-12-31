@@ -176,11 +176,12 @@ class SyncStatusProvider extends ChangeNotifier {
   }
 
   /// Trigger download sync
-  Future<void> sync() async {
+  /// [forceRetry] - If true, bypasses pause state and clears errors (for manual sync)
+  Future<void> sync({bool forceRetry = false}) async {
     if (_syncService == null) {
       return;
     }
-    await _syncService!.sync();
+    await _syncService!.sync(forceRetry: forceRetry);
     // Small delay to ensure database transactions are committed
     await Future<void>.delayed(const Duration(milliseconds: 100));
     await refreshMetadata();
@@ -196,8 +197,9 @@ class SyncStatusProvider extends ChangeNotifier {
   }
 
   /// Trigger both download and upload sync
-  Future<void> syncAll() async {
-    await sync();
+  /// [forceRetry] - If true, bypasses pause state and clears errors (for manual sync)
+  Future<void> syncAll({bool forceRetry = false}) async {
+    await sync(forceRetry: forceRetry);
     await upload();
     // Small delay to ensure database transactions are committed
     await Future<void>.delayed(const Duration(milliseconds: 100));

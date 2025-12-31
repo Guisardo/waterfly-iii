@@ -143,7 +143,11 @@ class SyncService extends ChangeNotifier {
     }
   }
 
-  Future<void> sync({bool forceFullSync = false, String? entityType}) async {
+  Future<void> sync({
+    bool forceFullSync = false,
+    String? entityType,
+    bool forceRetry = false,
+  }) async {
     if (_isSyncing) {
       log.config("Sync already in progress, skipping");
       return;
@@ -154,18 +158,53 @@ class SyncService extends ChangeNotifier {
     _notifyListenersIfNotDisposed();
 
     try {
-      // Check if sync is paused
-      final String syncEntityType = entityType ?? 'download';
-      if (await retryManager.isPaused(syncEntityType)) {
-        log.config("Sync is paused for $syncEntityType");
+      // Check connectivity first - if online, reset pause state
+      if (!connectivityService.isOnline) {
+        log.config("Device is offline, skipping sync");
         _isSyncing = false;
         _notifyListenersIfNotDisposed();
         return;
       }
 
-      // Check connectivity
-      if (!connectivityService.isOnline) {
-        log.config("Device is offline, skipping sync");
+      // Check if sync is paused
+      final String syncEntityType = entityType ?? 'download';
+      final bool isPaused = await retryManager.isPaused(syncEntityType);
+
+      // If forceRetry is true, reset pause state to allow sync to proceed
+      // Don't clear errors here - they will be cleared after successful sync
+      // This allows manual sync to bypass pause state while still recording new errors
+      if (forceRetry) {
+        log.config(
+          "Force retry requested - resetting pause state for $syncEntityType",
+        );
+        await retryManager.resetRetry(syncEntityType);
+      } else if (isPaused && connectivityService.isOnline) {
+        // If network is online and sync is paused, reset pause state to allow retry
+        // This handles the case where network reconnected but pause state wasn't reset
+        log.config(
+          "Network is online but sync is paused - resetting pause state for $syncEntityType",
+        );
+        await retryManager.resetRetry(syncEntityType);
+        // Also clear errors from all entity types to prevent stale error messages in UI
+        // This ensures that when network reconnects, all entity-level errors are cleared
+        final List<String> entityTypesToClear =
+            entityType != null
+                ? <String>[entityType]
+                : <String>[
+                  'transactions',
+                  'accounts',
+                  'categories',
+                  'tags',
+                  'bills',
+                  'budgets',
+                  'currencies',
+                  'piggy_banks',
+                ];
+        for (final String type in entityTypesToClear) {
+          await _updateSyncMetadata(type, clearError: true);
+        }
+      } else if (isPaused) {
+        log.config("Sync is paused for $syncEntityType");
         _isSyncing = false;
         _notifyListenersIfNotDisposed();
         return;
@@ -229,7 +268,15 @@ class SyncService extends ChangeNotifier {
             lastError: e.toString(),
             syncPaused: false, // Don't pause individual entity types on error
           );
-          // Continue with other entity types
+          // Re-throw network/timeout/server errors so they pause the entire sync
+          // Other errors (like auth errors) should also bubble up
+          if (_isNetworkError(e) ||
+              _isTimeoutError(e) ||
+              _isServerError(e) ||
+              _isAuthError(e)) {
+            rethrow;
+          }
+          // Continue with other entity types for non-critical errors
         }
       }
 
@@ -244,6 +291,25 @@ class SyncService extends ChangeNotifier {
         'download',
         lastDownloadSync: DateTime.now().toUtc(),
       );
+
+      // Clear errors from all entity types after successful sync
+      // This ensures stale errors are cleared only when sync actually succeeds
+      final List<String> entityTypesToClear =
+          entityType != null
+              ? <String>[entityType]
+              : <String>[
+                'transactions',
+                'accounts',
+                'categories',
+                'tags',
+                'bills',
+                'budgets',
+                'currencies',
+                'piggy_banks',
+              ];
+      for (final String type in entityTypesToClear) {
+        await _updateSyncMetadata(type, clearError: true);
+      }
 
       await retryManager.resetRetry('download');
       await notifications.showSyncCompleted();
@@ -349,7 +415,8 @@ class SyncService extends ChangeNotifier {
           await _updateSyncMetadata(
             entityType,
             lastDownloadSync: syncTime,
-            lastError: null, // Clear error on success
+            clearError: true, // Clear error on success
+            syncPaused: false, // Ensure not paused on success
           );
           log.config("Updated metadata for $entityType: $syncTime");
         } catch (e, stackTrace) {
@@ -1165,6 +1232,7 @@ class SyncService extends ChangeNotifier {
     String? lastError,
     bool? credentialsValidated,
     bool? credentialsInvalid,
+    bool clearError = false,
   }) async {
     final SyncMetadata? existing =
         await isar.syncMetadatas
@@ -1208,8 +1276,8 @@ class SyncService extends ChangeNotifier {
       if (nextRetryAt != null) {
         existing.nextRetryAt = nextRetryAt;
       }
-      if (lastError != null) {
-        existing.lastError = lastError;
+      if (clearError || lastError != null) {
+        existing.lastError = clearError ? null : lastError;
       }
       if (credentialsValidated != null) {
         existing.credentialsValidated = credentialsValidated;
@@ -1236,7 +1304,10 @@ class SyncService extends ChangeNotifier {
           errorStr.contains('connection reset') ||
           errorStr.contains('connection timed out') ||
           errorStr.contains('no internet connection') ||
-          errorStr.contains('network is unreachable');
+          errorStr.contains('network is unreachable') ||
+          errorStr.contains('err_network_changed') ||
+          errorStr.contains('cronet') ||
+          errorStr.contains('clientexception');
     }
     // Fallback to string matching
     final String errorStr = error.toString().toLowerCase();
@@ -1244,7 +1315,10 @@ class SyncService extends ChangeNotifier {
         errorStr.contains('networkexception') ||
         errorStr.contains('failed host lookup') ||
         errorStr.contains('connection refused') ||
-        errorStr.contains('connection reset');
+        errorStr.contains('connection reset') ||
+        errorStr.contains('err_network_changed') ||
+        errorStr.contains('cronet') ||
+        errorStr.contains('clientexception');
   }
 
   /// Detects timeout errors that should trigger retry with backoff
