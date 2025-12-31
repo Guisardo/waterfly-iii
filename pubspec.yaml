@@ -95,7 +95,6 @@ flutter_native_splash:
   color_dark: "#1a1c1e"
 
 dependency_overrides:
-  dart_style: ^3.1.2
   build: ^4.0.2
   # Note: analyzer version must be compatible with isar_community_generator 3.3.0
   # isar_community_generator 3.3.0 uses TypeChecker.fromRuntime() which was removed in analyzer 6.0.0+
