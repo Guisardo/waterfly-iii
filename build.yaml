@@ -20,3 +20,6 @@ targets:
         generate_for:
           - lib/data/local/database/**.dart
           - lib/data/local/database/tables/**.dart
+        options:
+          # Try to disable formatting to avoid dart_style issues
+          format: false

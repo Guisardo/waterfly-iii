@@ -34,7 +34,8 @@ class _MockQuery<T> implements Query<T> {
   // Store filter info for applying filters at query execution time
   final String? _filterField;
   final dynamic _filterValue;
-  final IsarCollection<T>? _collection;
+  // ignore: unused_field
+  final IsarCollection<T>? _collection; // Used in null checks and type casts throughout the class
   final Map<String, Function(T, dynamic)>? _fieldComparators;
 
   _MockQuery(
@@ -217,14 +218,14 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
     // This ensures filters see updates made via put()
     // If _data is empty (from where()/filter()), use collection.data
     // Otherwise, _data might be from a previous filter, so use it but ensure it's from live data
-    List<T> dataToUse = _data;
+    // Note: We check _collection to ensure we can access live data, but don't need to store the result
     if (_collection != null) {
       try {
         final dynamic coll = _collection;
         if (coll is MockIsarCollection<T>) {
           // Always use live collection data for filtering
           // This ensures we see updates made via put() operations
-          dataToUse = coll.data;
+          // The collection reference is stored so build() can access live data
         }
       } catch (e) {
         // Use _data fallback
@@ -314,7 +315,9 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
         final dynamic dataProperty = coll.data;
         if (dataProperty is List) {
           final MockIsarCollection<T> mockCollection =
-              unsafeCast<MockIsarCollection<T>>(_collection!);
+              unsafeCast<MockIsarCollection<T>>(
+                _collection as MockIsarCollection<T>,
+              );
           // Re-apply filter on live data each time
 
           // Pass filter info to _MockQuery so it can apply filter when data is accessed
@@ -338,7 +341,9 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
         final dynamic dataProperty = (coll as dynamic).data;
         if (dataProperty is List) {
           final MockIsarCollection<T> mockCollection =
-              unsafeCast<MockIsarCollection<T>>(_collection!);
+              unsafeCast<MockIsarCollection<T>>(
+                _collection as MockIsarCollection<T>,
+              );
           // Use a getter function to always get live data
           // Pass filter info if available
           return _MockQuery<T>.live(
@@ -439,7 +444,7 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
     if (_filterField != null &&
         _collection != null &&
         _collection is MockIsarCollection<T>) {
-      final MockIsarCollection<T> mockCollection = _collection!;
+      final MockIsarCollection<T> mockCollection = _collection;
       final List<T> liveData = mockCollection.data;
       final comparator = _fieldComparators[_filterField];
       final List<T> filtered =
@@ -535,7 +540,7 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
     if (_filterField != null &&
         _collection != null &&
         _collection is MockIsarCollection<T>) {
-      final MockIsarCollection<T> mockCollection = _collection!;
+      final MockIsarCollection<T> mockCollection = _collection;
       final List<T> liveData = mockCollection.data;
       final comparator = _fieldComparators[_filterField];
       final List<T> filtered =
