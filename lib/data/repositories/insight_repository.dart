@@ -270,20 +270,35 @@ class InsightRepository {
 
     // Mark insights that overlap with the date range as stale
     // Fetch all insights and filter in memory since Isar doesn't support complex date range queries easily
-    final List<Insights> allInsights = await isar.insights.where().findAll();
     final DateTime endDate = end ?? DateTime.now();
     final DateTime startDate = start ?? DateTime(1970);
-    final List<Insights> insights =
-        allInsights.where((Insights insight) {
-          // Check if insight date range overlaps with the given range
-          return insight.startDate.isBefore(endDate) &&
-              insight.endDate.isAfter(startDate);
-        }).toList();
 
     await isar.writeTxn(() async {
+      // Fetch all insights fresh within the transaction
+      final List<Insights> allInsights = await isar.insights.where().findAll();
+      final List<Insights> insights =
+          allInsights.where((Insights insight) {
+            // Check if insight date range overlaps with the given range
+            // Two ranges [start1, end1] and [start2, end2] overlap if:
+            // start1 <= end2 && end1 >= start2
+            // Using isBefore/isAfter with strict comparison to avoid edge cases
+            return !insight.startDate.isAfter(endDate) &&
+                !insight.endDate.isBefore(startDate);
+          }).toList();
+
       for (final Insights insight in insights) {
-        insight.stale = true;
-        await isar.insights.put(insight);
+        // Create a new object with updated values to ensure Isar detects the change
+        final Insights updated =
+            Insights()
+              ..id = insight.id
+              ..insightType = insight.insightType
+              ..insightSubtype = insight.insightSubtype
+              ..startDate = insight.startDate
+              ..endDate = insight.endDate
+              ..data = insight.data
+              ..cachedAt = insight.cachedAt
+              ..stale = true;
+        await isar.insights.put(updated);
       }
     });
   }
@@ -307,14 +322,32 @@ class InsightRepository {
     // This method is called by sync service to refresh stale insights
     // The actual fetching from API happens in sync service
     // This method just marks them as no longer stale after refresh
-    final List<Insights> staleInsights =
-        await isar.insights.filter().staleEqualTo(true).findAll();
+    final DateTime now = _getNow();
 
+    // Update all stale insights in a single transaction
+    // Create new objects to ensure MockIsar sees the updates correctly
     await isar.writeTxn(() async {
+      // Get all stale insight IDs
+      final List<Insights> staleInsights =
+          await isar.insights.filter().staleEqualTo(true).findAll();
+      if (staleInsights.isEmpty) return;
+
+      // Create new objects with updated values to ensure MockIsar sees the changes
       for (final Insights insight in staleInsights) {
-        insight.stale = false;
-        insight.cachedAt = _getNow();
-        await isar.insights.put(insight);
+        if (insight.stale) {
+          // Create a new object with updated values
+          final Insights updated =
+              Insights()
+                ..id = insight.id
+                ..insightType = insight.insightType
+                ..insightSubtype = insight.insightSubtype
+                ..startDate = insight.startDate
+                ..endDate = insight.endDate
+                ..data = insight.data
+                ..cachedAt = now
+                ..stale = false;
+          await isar.insights.put(updated);
+        }
       }
     });
   }

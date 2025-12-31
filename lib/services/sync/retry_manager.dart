@@ -1,13 +1,28 @@
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 
+/// Manages retry logic with exponential backoff for sync operations.
+///
+/// Implements exponential backoff strategy: 2^retryCount * 60 seconds,
+/// capped at 1 hour. Tracks pause state and next retry time for each
+/// entity type independently.
 class RetryManager {
   final Isar isar;
 
   RetryManager(this.isar);
 
+  /// Maximum backoff time in seconds (1 hour).
   static const int maxBackoffSeconds = 3600; // 1 hour
 
+  /// Calculates backoff time in seconds based on retry count.
+  ///
+  /// Formula: 2^retryCount * 60 seconds, capped at [maxBackoffSeconds].
+  /// Examples:
+  /// - retryCount 0: 60 seconds (1 minute)
+  /// - retryCount 1: 120 seconds (2 minutes)
+  /// - retryCount 2: 240 seconds (4 minutes)
+  /// - retryCount 5: 1920 seconds (32 minutes)
+  /// - retryCount 6+: 3600 seconds (1 hour, max)
   int calculateBackoffSeconds(int retryCount) {
     final int backoff = (1 << retryCount) * 60; // 2^retryCount * 60 seconds
     return backoff > maxBackoffSeconds ? maxBackoffSeconds : backoff;

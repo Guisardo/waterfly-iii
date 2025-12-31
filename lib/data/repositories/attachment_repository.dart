@@ -72,6 +72,72 @@ class AttachmentRepository {
     }).toList();
   }
 
+  Future<void> create(AttachmentRead attachment) async {
+    final DateTime now = _getNow();
+    final DateTime? updatedAt = attachment.attributes.updatedAt;
+
+    final Attachments row =
+        Attachments()
+          ..attachmentId = attachment.id
+          ..data = jsonEncode(attachment.toJson())
+          ..updatedAt = updatedAt
+          ..localUpdatedAt = now
+          ..synced = false;
+
+    await isar.writeTxn(() async {
+      await isar.attachments.put(row);
+    });
+
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'attachments'
+          ..entityId = null
+          ..operation = 'CREATE'
+          ..data = jsonEncode(attachment.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
+    await isar.writeTxn(() async {
+      await isar.pendingChanges.put(pendingChange);
+    });
+  }
+
+  Future<void> update(AttachmentRead attachment) async {
+    final DateTime now = _getNow();
+
+    final Attachments? existing =
+        await isar.attachments
+            .filter()
+            .attachmentIdEqualTo(attachment.id)
+            .findFirst();
+
+    if (existing != null) {
+      existing
+        ..data = jsonEncode(attachment.toJson())
+        ..localUpdatedAt = now
+        ..synced = false;
+
+      await isar.writeTxn(() async {
+        await isar.attachments.put(existing);
+      });
+    }
+
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'attachments'
+          ..entityId = attachment.id
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(attachment.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
+    await isar.writeTxn(() async {
+      await isar.pendingChanges.put(pendingChange);
+    });
+  }
+
   Future<void> upsertFromSync(AttachmentRead attachment) async {
     final DateTime? updatedAt = attachment.attributes.updatedAt;
     final DateTime now = _getNow();

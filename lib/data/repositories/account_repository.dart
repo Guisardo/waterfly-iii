@@ -9,9 +9,17 @@ import 'package:waterflyiii/data/repositories/currency_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart'
     show AccountRead, AutocompleteAccount, CurrencyRead;
 
+/// Repository for managing account data in local Isar database.
+///
+/// Provides CRUD operations for accounts with offline-first architecture.
+/// All create/update/delete operations queue pending changes for background sync.
+/// Data is stored as JSON in the database for flexibility.
 class AccountRepository {
   final Isar isar;
 
+  /// Creates an AccountRepository instance.
+  ///
+  /// [isar] - The Isar database instance to use for storage.
   AccountRepository(this.isar);
 
   DateTime _getNow() => DateTime.now().toUtc();
