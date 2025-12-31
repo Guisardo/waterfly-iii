@@ -355,4 +355,68 @@ class InsightRepository {
   Future<List<Insights>> getStaleInsights() async {
     return isar.insights.filter().staleEqualTo(true).findAll();
   }
+
+  /// Cache chart data (ChartDataSet list or ChartLine) to the database
+  Future<void> cacheChartData(
+    String chartType,
+    DateTime start,
+    DateTime end,
+    List<ChartDataSet> data,
+  ) async {
+    final DateTime now = _getNow();
+
+    await isar.writeTxn(() async {
+      // Check if existing row exists
+      final Insights? existing =
+          await isar.insights
+              .filter()
+              .insightTypeEqualTo('chart')
+              .insightSubtypeEqualTo(chartType)
+              .startDateEqualTo(start)
+              .endDateEqualTo(end)
+              .findFirst();
+
+      final Insights row = existing ??
+          Insights()
+            ..insightType = 'chart'
+            ..insightSubtype = chartType
+            ..startDate = start
+            ..endDate = end;
+
+      row
+        ..data = jsonEncode(data.map((ChartDataSet e) => e.toJson()).toList())
+        ..cachedAt = now
+        ..stale = false;
+
+      await isar.insights.put(row);
+    });
+  }
+
+  /// Retrieve cached chart data from the database
+  /// Returns null if no cached data exists
+  Future<List<ChartDataSet>?> getChartData(
+    String chartType,
+    DateTime start,
+    DateTime end,
+  ) async {
+    final Insights? cached =
+        await isar.insights
+            .filter()
+            .insightTypeEqualTo('chart')
+            .insightSubtypeEqualTo(chartType)
+            .startDateEqualTo(start)
+            .endDateEqualTo(end)
+            .findFirst();
+
+    if (cached != null) {
+      // Return cached data even if stale
+      final List<dynamic> dataList = jsonDecode(cached.data) as List<dynamic>;
+      return dataList
+          .map((dynamic e) => ChartDataSet.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+
+    // No cached data
+    return null;
+  }
 }
