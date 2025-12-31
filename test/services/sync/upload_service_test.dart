@@ -1126,7 +1126,8 @@ void main() {
                 ..synced = false;
 
           // Create a matching pending category (simulating offline creation)
-          final String pendingCategoryId = 'pending-${now.millisecondsSinceEpoch}';
+          final String pendingCategoryId =
+              'pending-${now.millisecondsSinceEpoch}';
           // Create temporary CategoryRead for local storage
           final CategoryRead tempCategory = CategoryRead(
             type: 'categories',
@@ -1138,12 +1139,13 @@ void main() {
               earned: null,
             ),
           );
-          final Categories pendingCategory = Categories()
-            ..categoryId = pendingCategoryId
-            ..data = jsonEncode(tempCategory.toJson())
-            ..updatedAt = null
-            ..localUpdatedAt = now
-            ..synced = false;
+          final Categories pendingCategory =
+              Categories()
+                ..categoryId = pendingCategoryId
+                ..data = jsonEncode(tempCategory.toJson())
+                ..updatedAt = null
+                ..localUpdatedAt = now
+                ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1151,10 +1153,11 @@ void main() {
           });
 
           // Verify pending category exists before upload
-          final Categories? pendingBefore = await isar.categories
-              .filter()
-              .categoryIdEqualTo(pendingCategoryId)
-              .findFirst();
+          final Categories? pendingBefore =
+              await isar.categories
+                  .filter()
+                  .categoryIdEqualTo(pendingCategoryId)
+                  .findFirst();
           expect(pendingBefore, isNotNull);
 
           // Set up successful CREATE response
@@ -1171,12 +1174,9 @@ void main() {
           final CategorySingle categorySingle = CategorySingle(
             data: categoryRead,
           );
-          final Map<String, dynamic> categoryResponse =
-              categorySingle.toJson();
+          final Map<String, dynamic> categoryResponse = categorySingle.toJson();
 
-          mockApiHelper.mockHttpClient.setHandler('/v1/categories', (
-            request,
-          ) {
+          mockApiHelper.mockHttpClient.setHandler('/v1/categories', (request) {
             return http.Response(
               jsonEncode(categoryResponse),
               200,

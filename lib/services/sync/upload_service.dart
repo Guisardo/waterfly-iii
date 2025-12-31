@@ -917,8 +917,7 @@ class UploadService extends ChangeNotifier {
       final String? dest2 = split2.destinationName?.trim();
       final bool dest1Empty = dest1?.isEmpty ?? true;
       final bool dest2Empty = dest2?.isEmpty ?? true;
-      if (dest1Empty != dest2Empty ||
-          (!dest1Empty && dest1 != dest2)) {
+      if (dest1Empty != dest2Empty || (!dest1Empty && dest1 != dest2)) {
         return false;
       }
     }
