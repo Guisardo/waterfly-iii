@@ -238,6 +238,33 @@ void main() {
       expect(syncService.isSyncing, false);
     });
 
+    test('sync with forceRetry bypasses pause state', () async {
+      // Create paused metadata
+      final SyncMetadata downloadMetadata =
+          SyncMetadata()
+            ..entityType = 'download'
+            ..syncPaused = true
+            ..nextRetryAt = DateTime.now().toUtc().add(
+              const Duration(hours: 1),
+            );
+
+      await isar.writeTxn(() async {
+        await isar.syncMetadatas.put(downloadMetadata);
+      });
+
+      // Force retry should bypass pause
+      await syncService.sync(forceRetry: true);
+      expect(syncService.isSyncing, false);
+
+      // Verify pause state was reset
+      final SyncMetadata? metadata =
+          await isar.syncMetadatas
+              .filter()
+              .entityTypeEqualTo('download')
+              .findFirst();
+      expect(metadata?.syncPaused, false);
+    });
+
     test('sync validates credentials when needed', () async {
       // Create metadata without validated credentials
       final SyncMetadata authMetadata =
