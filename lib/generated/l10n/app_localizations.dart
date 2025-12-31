@@ -492,6 +492,42 @@ abstract class S {
   /// **'Unknown error.'**
   String get errorUnknown;
 
+  /// Error: The provided host URL is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid host'**
+  String get errorInvalidHost;
+
+  /// Error: The provided API key is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid API key'**
+  String get errorInvalidApiKey;
+
+  /// Error: The Firefly API version is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Firefly API version'**
+  String get errorInvalidApiVersion;
+
+  /// Error: The Firefly API version is too low
+  ///
+  /// In en, this message translates to:
+  /// **'Firefly API version too low'**
+  String get errorApiVersionTooLow;
+
+  /// Error: Received an unexpected HTTP status code
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected HTTP status code'**
+  String get errorUnexpectedStatusCode;
+
+  /// Error: The host is not a valid Firefly III instance
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid Firefly III instance'**
+  String get errorNotValidInstance;
+
   /// Button Label: Help
   ///
   /// In en, this message translates to:
@@ -1847,6 +1883,30 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Synchronization'**
   String get syncNotificationChannelName;
+
+  /// Title of notification asking user to create a transaction from another notification
+  ///
+  /// In en, this message translates to:
+  /// **'Create Transaction?'**
+  String get notificationListenerCreateTransactionTitle;
+
+  /// Body of notification asking user to create a transaction from another notification
+  ///
+  /// In en, this message translates to:
+  /// **'Click to create a transaction based on the notification {appName}'**
+  String notificationListenerCreateTransactionBody(String appName);
+
+  /// Name of the notification listener channel
+  ///
+  /// In en, this message translates to:
+  /// **'Create Transaction from Notification'**
+  String get notificationListenerChannelName;
+
+  /// Description of the notification listener channel
+  ///
+  /// In en, this message translates to:
+  /// **'Notification asking to create a transaction from another Notification.'**
+  String get notificationListenerChannelDescription;
 
   /// Description of the sync notification channel
   ///

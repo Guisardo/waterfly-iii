@@ -7,6 +7,8 @@ import 'package:waterflyiii/auth.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
 import 'package:waterflyiii/data/local/database/tables/transactions.dart';
+import 'package:waterflyiii/data/local/database/tables/categories.dart';
+import 'package:waterflyiii/data/repositories/category_repository.dart';
 import 'package:waterflyiii/data/repositories/insight_repository.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -314,7 +316,7 @@ class UploadService extends ChangeNotifier {
                           jsonDecode(pendingTx.data) as Map<String, dynamic>;
                       final TransactionStore pendingStore =
                           TransactionStore.fromJson(pendingData);
-                      
+
                       // Compare key fields to match
                       if (_transactionsMatch(store, pendingStore)) {
                         matchingPending = pendingTx;
@@ -382,6 +384,75 @@ class UploadService extends ChangeNotifier {
           case 'categories':
             final CategoryStore store = CategoryStore.fromJson(data);
             response = await api.v1CategoriesPost(body: store);
+            if (response.isSuccessful && response.body != null) {
+              try {
+                final CategoryRead created = response.body!.data;
+                final CategoryRepository repo = CategoryRepository(isar);
+
+                // Find and delete the pending category that matches this PendingChange
+                // Match by comparing CategoryStore data (name and notes)
+                try {
+                  final List<Categories> allPending =
+                      await isar.categories
+                          .filter()
+                          .categoryIdStartsWith('pending-')
+                          .findAll();
+
+                  Categories? matchingPending;
+                  for (final Categories pendingCat in allPending) {
+                    try {
+                      final Map<String, dynamic> pendingData =
+                          jsonDecode(pendingCat.data) as Map<String, dynamic>;
+                      final CategoryRead pendingRead = CategoryRead.fromJson(
+                        pendingData,
+                      );
+
+                      // Compare key fields to match
+                      if (pendingRead.attributes.name == store.name &&
+                          (pendingRead.attributes.notes ?? '') ==
+                              (store.notes ?? '')) {
+                        matchingPending = pendingCat;
+                        break;
+                      }
+                    } catch (e) {
+                      // Skip if parsing fails
+                      continue;
+                    }
+                  }
+
+                  if (matchingPending != null) {
+                    await isar.writeTxn(() async {
+                      await isar.categories.delete(matchingPending!.id);
+                    });
+                  }
+                } catch (e, stackTrace) {
+                  log.warning(
+                    "Error finding/deleting matching pending category",
+                    e,
+                    stackTrace,
+                  );
+                  // Continue anyway - upsert will still work
+                }
+
+                await repo.upsertFromSync(created);
+                await _markChangeAsSynced(change.id);
+                return true;
+              } catch (e) {
+                // If deserialization fails but response has 409, treat as conflict
+                if (response.statusCode == 409) {
+                  await conflictResolver.logConflict(
+                    entityType: change.entityType,
+                    entityId: change.entityId ?? 'unknown',
+                    conflictType: ConflictType.upload,
+                    serverUpdatedAt: DateTime.now().toUtc(),
+                    resolution: ConflictResolution.serverWins,
+                  );
+                  await _markChangeAsSynced(change.id);
+                  return true;
+                }
+                rethrow;
+              }
+            }
             break;
           case 'tags':
             final TagModelStore store = TagModelStore.fromJson(data);
@@ -785,7 +856,8 @@ class UploadService extends ChangeNotifier {
     final String? title1 = store1.groupTitle;
     final String? title2 = store2.groupTitle;
     if ((title1?.trim().isEmpty ?? true) != (title2?.trim().isEmpty ?? true) ||
-        (title1?.trim().isNotEmpty ?? false) && title1?.trim() != title2?.trim()) {
+        (title1?.trim().isNotEmpty ?? false) &&
+            title1?.trim() != title2?.trim()) {
       return false;
     }
 
@@ -795,36 +867,38 @@ class UploadService extends ChangeNotifier {
       final TransactionSplitStore split2 = store2.transactions[i];
 
       // Compare date (normalize to same precision)
-      if (split1.date != null && split2.date != null) {
+      final DateTime? date1 = split1.date;
+      final DateTime? date2 = split2.date;
+      if (date1 != null && date2 != null) {
         // Compare dates ignoring time differences (only date matters)
-        final DateTime date1 = DateTime(
-          split1.date!.year,
-          split1.date!.month,
-          split1.date!.day,
+        final DateTime normalizedDate1 = DateTime(
+          date1.year,
+          date1.month,
+          date1.day,
         );
-        final DateTime date2 = DateTime(
-          split2.date!.year,
-          split2.date!.month,
-          split2.date!.day,
+        final DateTime normalizedDate2 = DateTime(
+          date2.year,
+          date2.month,
+          date2.day,
         );
-        if (!date1.isAtSameMomentAs(date2)) {
+        if (!normalizedDate1.isAtSameMomentAs(normalizedDate2)) {
           return false;
         }
-      } else if (split1.date != null || split2.date != null) {
+      } else if (date1 != null || date2 != null) {
         // One has date, other doesn't - not a match
         return false;
       }
 
       // Compare amount (normalize strings)
-      final String amount1 = (split1.amount ?? '').trim();
-      final String amount2 = (split2.amount ?? '').trim();
+      final String amount1 = split1.amount.trim();
+      final String amount2 = split2.amount.trim();
       if (amount1 != amount2) {
         return false;
       }
 
       // Compare description (normalize strings)
-      final String desc1 = (split1.description ?? '').trim();
-      final String desc2 = (split2.description ?? '').trim();
+      final String desc1 = split1.description.trim();
+      final String desc2 = split2.description.trim();
       if (desc1 != desc2) {
         return false;
       }
@@ -832,15 +906,19 @@ class UploadService extends ChangeNotifier {
       // Compare source and destination names (handle null/empty as equivalent)
       final String? source1 = split1.sourceName?.trim();
       final String? source2 = split2.sourceName?.trim();
-      if ((source1?.isEmpty ?? true) != (source2?.isEmpty ?? true) ||
-          (source1?.isNotEmpty ?? false) && source1 != source2) {
+      final bool source1Empty = source1?.isEmpty ?? true;
+      final bool source2Empty = source2?.isEmpty ?? true;
+      if (source1Empty != source2Empty ||
+          (!source1Empty && source1 != source2)) {
         return false;
       }
-      
+
       final String? dest1 = split1.destinationName?.trim();
       final String? dest2 = split2.destinationName?.trim();
-      if ((dest1?.isEmpty ?? true) != (dest2?.isEmpty ?? true) ||
-          (dest1?.isNotEmpty ?? false) && dest1 != dest2) {
+      final bool dest1Empty = dest1?.isEmpty ?? true;
+      final bool dest2Empty = dest2?.isEmpty ?? true;
+      if (dest1Empty != dest2Empty ||
+          (!dest1Empty && dest1 != dest2)) {
         return false;
       }
     }
@@ -868,7 +946,8 @@ class UploadService extends ChangeNotifier {
       final Map<String, dynamic> split2 = tx2[i] as Map<String, dynamic>;
 
       // Compare essential fields (handle both snake_case and camelCase)
-      if (_normalizeString(split1['amount']) != _normalizeString(split2['amount'])) {
+      if (_normalizeString(split1['amount']) !=
+          _normalizeString(split2['amount'])) {
         return false;
       }
       if (_normalizeString(split1['description']) !=

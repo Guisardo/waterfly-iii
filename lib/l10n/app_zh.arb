@@ -323,6 +323,30 @@
     "@errorUnknown": {
         "description": "Error without further information occurred."
     },
+    "errorInvalidHost": "无效的主机",
+    "@errorInvalidHost": {
+        "description": "Error: The provided host URL is invalid"
+    },
+    "errorInvalidApiKey": "无效的API密钥",
+    "@errorInvalidApiKey": {
+        "description": "Error: The provided API key is invalid"
+    },
+    "errorInvalidApiVersion": "无效的Firefly API版本",
+    "@errorInvalidApiVersion": {
+        "description": "Error: The Firefly API version is invalid"
+    },
+    "errorApiVersionTooLow": "Firefly API版本过低",
+    "@errorApiVersionTooLow": {
+        "description": "Error: The Firefly API version is too low"
+    },
+    "errorUnexpectedStatusCode": "意外的HTTP状态码",
+    "@errorUnexpectedStatusCode": {
+        "description": "Error: Received an unexpected HTTP status code"
+    },
+    "errorNotValidInstance": "不是有效的Firefly III实例",
+    "@errorNotValidInstance": {
+        "description": "Error: The host is not a valid Firefly III instance"
+    },
     "formButtonHelp": "帮助",
     "@formButtonHelp": {
         "description": "Button Label: Help"
@@ -1436,5 +1460,27 @@
     "settingsSynchronizationSubtitle": "同步设置和状态",
     "@settingsSynchronizationSubtitle": {
         "description": "Subtitle for synchronization settings option in main settings page"
+    },
+    "notificationListenerCreateTransactionTitle": "创建交易？",
+    "@notificationListenerCreateTransactionTitle": {
+        "description": "Title of notification asking user to create a transaction from another notification"
+    },
+    "notificationListenerCreateTransactionBody": "点击以基于通知 {appName} 创建交易",
+    "@notificationListenerCreateTransactionBody": {
+        "description": "Body of notification asking user to create a transaction from another notification",
+        "placeholders": {
+            "appName": {
+                "type": "String",
+                "example": "Google Pay"
+            }
+        }
+    },
+    "notificationListenerChannelName": "从通知创建交易",
+    "@notificationListenerChannelName": {
+        "description": "Name of the notification listener channel"
+    },
+    "notificationListenerChannelDescription": "请求从另一个通知创建交易的通知。",
+    "@notificationListenerChannelDescription": {
+        "description": "Description of the notification listener channel"
     }
 }

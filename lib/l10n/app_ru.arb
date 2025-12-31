@@ -323,6 +323,30 @@
     "@errorUnknown": {
         "description": "Error without further information occurred."
     },
+    "errorInvalidHost": "Неверный хост",
+    "@errorInvalidHost": {
+        "description": "Error: The provided host URL is invalid"
+    },
+    "errorInvalidApiKey": "Неверный API-ключ",
+    "@errorInvalidApiKey": {
+        "description": "Error: The provided API key is invalid"
+    },
+    "errorInvalidApiVersion": "Неверная версия API Firefly",
+    "@errorInvalidApiVersion": {
+        "description": "Error: The Firefly API version is invalid"
+    },
+    "errorApiVersionTooLow": "Версия API Firefly слишком низкая",
+    "@errorApiVersionTooLow": {
+        "description": "Error: The Firefly API version is too low"
+    },
+    "errorUnexpectedStatusCode": "Неожиданный HTTP-код состояния",
+    "@errorUnexpectedStatusCode": {
+        "description": "Error: Received an unexpected HTTP status code"
+    },
+    "errorNotValidInstance": "Не является действительным экземпляром Firefly III",
+    "@errorNotValidInstance": {
+        "description": "Error: The host is not a valid Firefly III instance"
+    },
     "formButtonHelp": "Помощь",
     "@formButtonHelp": {
         "description": "Button Label: Help"
@@ -1377,5 +1401,27 @@
     "settingsSynchronizationSubtitle": "Настройки и статус синхронизации",
     "@settingsSynchronizationSubtitle": {
         "description": "Subtitle for synchronization settings option in main settings page"
+    },
+    "notificationListenerCreateTransactionTitle": "Создать транзакцию?",
+    "@notificationListenerCreateTransactionTitle": {
+        "description": "Title of notification asking user to create a transaction from another notification"
+    },
+    "notificationListenerCreateTransactionBody": "Нажмите, чтобы создать транзакцию на основе уведомления {appName}",
+    "@notificationListenerCreateTransactionBody": {
+        "description": "Body of notification asking user to create a transaction from another notification",
+        "placeholders": {
+            "appName": {
+                "type": "String",
+                "example": "Google Pay"
+            }
+        }
+    },
+    "notificationListenerChannelName": "Создать транзакцию из уведомления",
+    "@notificationListenerChannelName": {
+        "description": "Name of the notification listener channel"
+    },
+    "notificationListenerChannelDescription": "Уведомление с запросом на создание транзакции из другого уведомления.",
+    "@notificationListenerChannelDescription": {
+        "description": "Description of the notification listener channel"
     }
 }

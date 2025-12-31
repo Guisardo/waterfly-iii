@@ -276,6 +276,24 @@ class SZh extends S {
   String get errorUnknown => '未知错误';
 
   @override
+  String get errorInvalidHost => '无效的主机';
+
+  @override
+  String get errorInvalidApiKey => '无效的API密钥';
+
+  @override
+  String get errorInvalidApiVersion => '无效的Firefly API版本';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API版本过低';
+
+  @override
+  String get errorUnexpectedStatusCode => '意外的HTTP状态码';
+
+  @override
+  String get errorNotValidInstance => '不是有效的Firefly III实例';
+
+  @override
   String get formButtonHelp => '帮助';
 
   @override
@@ -1071,6 +1089,20 @@ class SZh extends S {
   String get syncNotificationChannelName => '同步';
 
   @override
+  String get notificationListenerCreateTransactionTitle => '创建交易？';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return '点击以基于通知 $appName 创建交易';
+  }
+
+  @override
+  String get notificationListenerChannelName => '从通知创建交易';
+
+  @override
+  String get notificationListenerChannelDescription => '请求从另一个通知创建交易的通知。';
+
+  @override
   String get syncNotificationChannelDescription => '后台同步状态';
 
   @override
@@ -1397,6 +1429,24 @@ class SZhTw extends SZh {
 
   @override
   String get errorUnknown => '未知的錯誤。';
+
+  @override
+  String get errorInvalidHost => 'Invalid host';
+
+  @override
+  String get errorInvalidApiKey => 'Invalid API key';
+
+  @override
+  String get errorInvalidApiVersion => 'Invalid Firefly API version';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API version too low';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Unexpected HTTP status code';
+
+  @override
+  String get errorNotValidInstance => 'Not a valid Firefly III instance';
 
   @override
   String get formButtonHelp => '幫助';
@@ -2039,6 +2089,23 @@ class SZhTw extends SZh {
 
   @override
   String get transactionTypeWithdrawal => '提款';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Create Transaction?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Click to create a transaction based on the notification $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Create Transaction from Notification';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notification asking to create a transaction from another Notification.';
 
   @override
   String get syncSettingsEntityStatusTitle => '實體同步狀態';

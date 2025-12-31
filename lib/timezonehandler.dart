@@ -1,5 +1,6 @@
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:logging/logging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class TimeZoneHandler {
@@ -9,7 +10,6 @@ class TimeZoneHandler {
 
   final Logger log = Logger("TimeZoneHandler");
 
-  // :TODO: make variable
   bool _useServerTime = true;
   bool get useServerTime => _useServerTime;
   String get serverTimezone => _serverTimezone;
@@ -22,9 +22,26 @@ class TimeZoneHandler {
       _serverTimezone = "UTC";
     }
     log.info(() => "Server Timezone: $serverTZ ($sLocation)");
-    updateDeviceLocation().then(
-      (_) => tz.setLocalLocation(useServerTime ? sLocation : dLocation),
-    );
+    // Load useServerTime setting from SharedPreferences
+    _loadUseServerTimeSetting().then((bool useServerTime) {
+      _useServerTime = useServerTime;
+      updateDeviceLocation().then(
+        (_) => tz.setLocalLocation(useServerTime ? sLocation : dLocation),
+      );
+    });
+  }
+
+  Future<bool> _loadUseServerTimeSetting() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      return prefs.getBool('USESERVERTIME') ?? true;
+    } catch (e) {
+      log.warning(
+        "Failed to load useServerTime setting, defaulting to true",
+        e,
+      );
+      return true;
+    }
   }
 
   tz.Location get sLocation => _serverLoc;

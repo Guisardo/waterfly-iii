@@ -281,6 +281,24 @@ class SIt extends S {
   String get errorUnknown => 'Errore sconosciuto.';
 
   @override
+  String get errorInvalidHost => 'Host non valido';
+
+  @override
+  String get errorInvalidApiKey => 'Chiave API non valida';
+
+  @override
+  String get errorInvalidApiVersion => 'Versione API Firefly non valida';
+
+  @override
+  String get errorApiVersionTooLow => 'Versione API Firefly troppo bassa';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Codice di stato HTTP imprevisto';
+
+  @override
+  String get errorNotValidInstance => 'Non è un\'istanza Firefly III valida';
+
+  @override
   String get formButtonHelp => 'Aiuto';
 
   @override
@@ -1099,6 +1117,22 @@ class SIt extends S {
 
   @override
   String get syncNotificationChannelName => 'Sincronizzazione';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Creare transazione?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Tocca per creare una transazione basata sulla notifica $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName => 'Crea transazione da notifica';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notifica che chiede di creare una transazione da un\'altra notifica.';
 
   @override
   String get syncNotificationChannelDescription =>

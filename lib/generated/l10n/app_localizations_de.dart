@@ -281,6 +281,24 @@ class SDe extends S {
   String get errorUnknown => 'Unbekannter Fehler.';
 
   @override
+  String get errorInvalidHost => 'Ungültiger Host';
+
+  @override
+  String get errorInvalidApiKey => 'Ungültiger API-Schlüssel';
+
+  @override
+  String get errorInvalidApiVersion => 'Ungültige Firefly API-Version';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API-Version zu niedrig';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Unerwarteter HTTP-Statuscode';
+
+  @override
+  String get errorNotValidInstance => 'Keine gültige Firefly III-Instanz';
+
+  @override
   String get formButtonHelp => 'Hilfe';
 
   @override
@@ -1100,6 +1118,23 @@ class SDe extends S {
 
   @override
   String get syncNotificationChannelName => 'Synchronisierung';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Transaktion erstellen?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Tippen Sie, um eine Transaktion basierend auf der Benachrichtigung $appName zu erstellen';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Transaktion aus Benachrichtigung erstellen';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Benachrichtigung, die zum Erstellen einer Transaktion aus einer anderen Benachrichtigung auffordert.';
 
   @override
   String get syncNotificationChannelDescription =>

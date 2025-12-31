@@ -281,6 +281,26 @@ class SEs extends S {
   String get errorUnknown => 'Error desconocido.';
 
   @override
+  String get errorInvalidHost => 'Host inválido';
+
+  @override
+  String get errorInvalidApiKey => 'Clave API inválida';
+
+  @override
+  String get errorInvalidApiVersion => 'Versión de API de Firefly inválida';
+
+  @override
+  String get errorApiVersionTooLow =>
+      'Versión de API de Firefly demasiado baja';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Código de estado HTTP inesperado';
+
+  @override
+  String get errorNotValidInstance =>
+      'No es una instancia válida de Firefly III';
+
+  @override
   String get formButtonHelp => 'Ayuda';
 
   @override
@@ -1103,6 +1123,23 @@ class SEs extends S {
 
   @override
   String get syncNotificationChannelName => 'Sincronización';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      '¿Crear transacción?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Toca para crear una transacción basada en la notificación $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Crear transacción desde notificación';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notificación que solicita crear una transacción a partir de otra notificación.';
 
   @override
   String get syncNotificationChannelDescription =>

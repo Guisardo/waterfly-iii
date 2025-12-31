@@ -10,11 +10,10 @@ import 'package:waterflyiii/widgets/logo.dart';
 final Logger log = Logger("Pages.Splash");
 
 class SplashPage extends StatefulWidget {
-  const SplashPage({super.key, this.host, this.apiKey, this.customHeadersRaw});
+  const SplashPage({super.key, this.host, this.apiKey});
 
   final String? host;
   final String? apiKey;
-  final String? customHeadersRaw;
 
   @override
   State<SplashPage> createState() => _SplashPageState();
@@ -42,14 +41,10 @@ class _SplashPageState extends State<SplashPage> {
       } else {
         log.finer(
           () =>
-              "SplashPage->_login() with credentials: $host, apiKey ${apiKey.isEmpty ? "unset" : "set"}, "
-              "customHeaders ${widget.customHeadersRaw?.isNotEmpty ?? false ? "set" : "unset"}",
+              "SplashPage->_login() with credentials: $host, apiKey ${apiKey.isEmpty ? "unset" : "set"}",
         );
-        success = await context.read<FireflyService>().signIn(
-          host,
-          apiKey,
-          customHeadersRaw: widget.customHeadersRaw,
-        );
+        // New login with credentials - validate with API calls
+        success = await context.read<FireflyService>().signIn(host, apiKey);
       }
     } catch (e, stackTrace) {
       log.warning(
@@ -108,7 +103,7 @@ class _SplashPageState extends State<SplashPage> {
       log.finer(() => "_loginError null --> show spinner");
       page = Container(
         alignment: const Alignment(0, 0),
-        child: const CircularProgressIndicator.adaptive(),
+        child: const CircularProgressIndicator(),
       );
       const QuickActions().setShortcutItems(<ShortcutItem>[
         ShortcutItem(
@@ -122,12 +117,20 @@ class _SplashPageState extends State<SplashPage> {
       String errorDetails =
           "Host: ${context.read<FireflyService>().lastTriedHost}";
       final String errorDescription = () {
-        if (_loginError is AuthErrorStatusCode) {
+        if (_loginError is AuthErrorHost) {
+          return S.of(context).errorInvalidHost;
+        } else if (_loginError is AuthErrorApiKey) {
+          return S.of(context).errorInvalidApiKey;
+        } else if (_loginError is AuthErrorNoInstance) {
+          return S.of(context).errorNotValidInstance;
+        } else if (_loginError is AuthErrorVersionInvalid) {
+          return S.of(context).errorInvalidApiVersion;
+        } else if (_loginError is AuthErrorStatusCode) {
           final AuthErrorStatusCode errorType =
               _loginError as AuthErrorStatusCode;
           errorDetails += "\n";
           errorDetails += S.of(context).errorStatusCode(errorType.code);
-          return errorType.cause;
+          return S.of(context).errorUnexpectedStatusCode;
         } else if (_loginError is AuthErrorVersionTooLow) {
           final AuthErrorVersionTooLow errorType =
               _loginError as AuthErrorVersionTooLow;
@@ -135,16 +138,13 @@ class _SplashPageState extends State<SplashPage> {
           errorDetails += S
               .of(context)
               .errorMinAPIVersion(errorType.requiredVersion.toString());
-          return errorType.cause;
-        } else if (_loginError is AuthError) {
-          final AuthError errorType = _loginError as AuthError;
-          return errorType.cause;
+          return S.of(context).errorApiVersionTooLow;
         }
         errorDetails += "\n$_loginError";
         return S.of(context).errorUnknown;
       }();
       page = SizedBox(
-        width: .infinity,
+        width: double.infinity,
         child: Column(
           children: <Widget>[
             AnimatedHeight(
@@ -152,7 +152,7 @@ class _SplashPageState extends State<SplashPage> {
                 elevation: 0,
                 color: Theme.of(context).colorScheme.errorContainer,
                 child: Padding(
-                  padding: const .all(12),
+                  padding: const EdgeInsets.all(12),
                   child: Text(
                     errorDescription,
                     style: TextStyle(
@@ -168,7 +168,7 @@ class _SplashPageState extends State<SplashPage> {
                 elevation: 0,
                 color: Theme.of(context).colorScheme.errorContainer,
                 child: Padding(
-                  padding: const .all(12),
+                  padding: const EdgeInsets.all(12),
                   child: Text(
                     errorDetails,
                     style: TextStyle(
@@ -181,7 +181,7 @@ class _SplashPageState extends State<SplashPage> {
             ),
             const SizedBox(height: 12),
             OverflowBar(
-              alignment: .center,
+              alignment: MainAxisAlignment.center,
               spacing: 12,
               children: <Widget>[
                 OutlinedButton(
@@ -192,11 +192,12 @@ class _SplashPageState extends State<SplashPage> {
                       context.read<FireflyService>().signOut();
                     }
                   },
-                  child: Navigator.canPop(context)
-                      ? Text(
-                          MaterialLocalizations.of(context).backButtonTooltip,
-                        )
-                      : Text(S.of(context).formButtonResetLogin),
+                  child:
+                      Navigator.canPop(context)
+                          ? Text(
+                            MaterialLocalizations.of(context).backButtonTooltip,
+                          )
+                          : Text(S.of(context).formButtonResetLogin),
                 ),
                 FilledButton(
                   onPressed: () {
@@ -219,7 +220,7 @@ class _SplashPageState extends State<SplashPage> {
         child: Center(
           child: ListView(
             shrinkWrap: true,
-            padding: const .all(24),
+            padding: const EdgeInsets.all(24),
             children: <Widget>[
               Column(
                 children: <Widget>[

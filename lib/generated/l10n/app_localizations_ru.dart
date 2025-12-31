@@ -290,6 +290,25 @@ class SRu extends S {
   String get errorUnknown => 'Неизвестная ошибка.';
 
   @override
+  String get errorInvalidHost => 'Неверный хост';
+
+  @override
+  String get errorInvalidApiKey => 'Неверный API-ключ';
+
+  @override
+  String get errorInvalidApiVersion => 'Неверная версия API Firefly';
+
+  @override
+  String get errorApiVersionTooLow => 'Версия API Firefly слишком низкая';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Неожиданный HTTP-код состояния';
+
+  @override
+  String get errorNotValidInstance =>
+      'Не является действительным экземпляром Firefly III';
+
+  @override
   String get formButtonHelp => 'Помощь';
 
   @override
@@ -1105,6 +1124,23 @@ class SRu extends S {
 
   @override
   String get syncNotificationChannelName => 'Синхронизация';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Создать транзакцию?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Нажмите, чтобы создать транзакцию на основе уведомления $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Создать транзакцию из уведомления';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Уведомление с запросом на создание транзакции из другого уведомления.';
 
   @override
   String get syncNotificationChannelDescription =>

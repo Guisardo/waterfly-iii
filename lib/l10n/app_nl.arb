@@ -323,6 +323,30 @@
     "@errorUnknown": {
         "description": "Error without further information occurred."
     },
+    "errorInvalidHost": "Ongeldige host",
+    "@errorInvalidHost": {
+        "description": "Error: The provided host URL is invalid"
+    },
+    "errorInvalidApiKey": "Ongeldige API-sleutel",
+    "@errorInvalidApiKey": {
+        "description": "Error: The provided API key is invalid"
+    },
+    "errorInvalidApiVersion": "Ongeldige Firefly API-versie",
+    "@errorInvalidApiVersion": {
+        "description": "Error: The Firefly API version is invalid"
+    },
+    "errorApiVersionTooLow": "Firefly API-versie te laag",
+    "@errorApiVersionTooLow": {
+        "description": "Error: The Firefly API version is too low"
+    },
+    "errorUnexpectedStatusCode": "Onverwachte HTTP-statuscode",
+    "@errorUnexpectedStatusCode": {
+        "description": "Error: Received an unexpected HTTP status code"
+    },
+    "errorNotValidInstance": "Geen geldige Firefly III-instantie",
+    "@errorNotValidInstance": {
+        "description": "Error: The host is not a valid Firefly III instance"
+    },
     "formButtonHelp": "Hulp",
     "@formButtonHelp": {
         "description": "Button Label: Help"
@@ -1436,5 +1460,27 @@
     "settingsSynchronizationSubtitle": "Synchronisatie-instellingen en status",
     "@settingsSynchronizationSubtitle": {
         "description": "Subtitle for synchronization settings option in main settings page"
+    },
+    "notificationListenerCreateTransactionTitle": "Transactie aanmaken?",
+    "@notificationListenerCreateTransactionTitle": {
+        "description": "Title of notification asking user to create a transaction from another notification"
+    },
+    "notificationListenerCreateTransactionBody": "Tik om een transactie aan te maken op basis van de melding {appName}",
+    "@notificationListenerCreateTransactionBody": {
+        "description": "Body of notification asking user to create a transaction from another notification",
+        "placeholders": {
+            "appName": {
+                "type": "String",
+                "example": "Google Pay"
+            }
+        }
+    },
+    "notificationListenerChannelName": "Transactie maken van melding",
+    "@notificationListenerChannelName": {
+        "description": "Name of the notification listener channel"
+    },
+    "notificationListenerChannelDescription": "Melding die vraagt om een transactie aan te maken van een andere melding.",
+    "@notificationListenerChannelDescription": {
+        "description": "Description of the notification listener channel"
     }
 }

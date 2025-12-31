@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:chopper/chopper.dart';
 import 'package:flutter/material.dart';
 import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
-import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/local/database/tables/categories.dart';
+import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
 import 'package:waterflyiii/data/repositories/category_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -43,7 +43,9 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
     try {
       final Isar isar = await AppDatabase.instance;
       final CategoryRepository categoryRepo = CategoryRepository(isar);
-      final CategoryRead? category = await categoryRepo.getById(widget.category!.id);
+      final CategoryRead? category = await categoryRepo.getById(
+        widget.category!.id,
+      );
 
       if (category == null) {
         log.severe("Category not found in repository");
@@ -113,8 +115,8 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
             onPressed: () async {
               final bool? ok = await showDialog(
                 context: context,
-                builder: (BuildContext context) =>
-                    const DeletionConfirmDialog(),
+                builder:
+                    (BuildContext context) => const DeletionConfirmDialog(),
               );
               if (!(ok ?? false)) {
                 return;
@@ -155,9 +157,6 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
           onPressed: () async {
             // Capture context values before async gaps
             final ScaffoldMessengerState msg = ScaffoldMessenger.of(context);
-            final FireflyService fireflyService =
-                context.read<FireflyService>();
-            final FireflyIii api = fireflyService.api;
             final S localizations = S.of(context);
 
             try {
@@ -165,52 +164,68 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
               final CategoryRepository categoryRepo = CategoryRepository(isar);
 
               if (widget.category == null) {
-                // Create new category
-                // For now, we'll need to call the API to get the full CategoryRead
-                // TODO: Consider creating a method that generates a temporary ID
-                // For now, keeping API call for create to get server-generated ID
-                if (!mounted) return;
-                final Response<CategorySingle> resp = await api.v1CategoriesPost(
-                  body: CategoryStore(
+                // Create new category using local-first architecture
+                // Generate temporary ID for offline support
+                final String tempCategoryId =
+                    'pending-${DateTime.now().millisecondsSinceEpoch}';
+
+                // Create CategoryStore for PendingChange (what API expects)
+                final CategoryStore categoryStore = CategoryStore(
+                  name: titleController.text,
+                  notes: notesController.text,
+                );
+
+                // Create temporary CategoryRead for local storage (what UI needs)
+                final CategoryRead tempCategory = CategoryRead(
+                  type: "categories",
+                  id: tempCategoryId,
+                  attributes: CategoryProperties(
                     name: titleController.text,
                     notes: notesController.text,
+                    spent: null,
+                    earned: null,
                   ),
                 );
 
-                if (!resp.isSuccessful || resp.body == null) {
-                  late String error;
-                  try {
-                    final ValidationErrorResponse valError =
-                        ValidationErrorResponse.fromJson(
-                          json.decode(resp.error.toString()),
-                        );
-                    error =
-                        valError.message ??
-                        (context.mounted
-                            ? S.of(context).errorUnknown
-                            : "[nocontext] Unknown error.");
-                  } catch (_) {
-                    error =
-                        context.mounted
-                            ? S.of(context).errorUnknown
-                            : "[nocontext] Unknown error.";
-                  }
+                // Store category locally first
+                final Categories categoryRow =
+                    Categories()
+                      ..categoryId = tempCategoryId
+                      ..data = jsonEncode(tempCategory.toJson())
+                      ..updatedAt = null
+                      ..localUpdatedAt = DateTime.now().toUtc()
+                      ..synced = false;
 
+                // Create PendingChange with CategoryStore (what upload service expects)
+                final PendingChanges pendingChange =
+                    PendingChanges()
+                      ..entityType = 'categories'
+                      ..entityId = null
+                      ..operation = 'CREATE'
+                      ..data = jsonEncode(categoryStore.toJson())
+                      ..createdAt = DateTime.now().toUtc()
+                      ..retryCount = 0
+                      ..synced = false;
+
+                await isar.writeTxn(() async {
+                  await isar.categories.put(categoryRow);
+                  await isar.pendingChanges.put(pendingChange);
+                });
+
+                // Show success message
+                if (mounted) {
                   msg.showSnackBar(
                     SnackBar(
-                      content: Text(error),
+                      content: Text(localizations.transactionSavedOffline),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
-                  return;
                 }
-
-                // Store in repository after successful API call
-                await categoryRepo.upsertFromSync(resp.body!.data);
               } else {
                 // Update existing category
-                final CategoryRead? existing =
-                    await categoryRepo.getById(widget.category!.id);
+                final CategoryRead? existing = await categoryRepo.getById(
+                  widget.category!.id,
+                );
                 if (existing == null) {
                   if (!mounted) return;
                   msg.showSnackBar(
@@ -222,14 +237,15 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
                   return;
                 }
 
-                // Create updated category by patching JSON attributes
+                // Create updated category
                 final Map<String, dynamic> categoryJson = existing.toJson();
                 categoryJson['attributes'] =
                     (categoryJson['attributes'] as Map<String, dynamic>)
                       ..['name'] = titleController.text
                       ..['notes'] = notesController.text;
-                final CategoryRead updatedCategory =
-                    CategoryRead.fromJson(categoryJson);
+                final CategoryRead updatedCategory = CategoryRead.fromJson(
+                  categoryJson,
+                );
 
                 // Update via repository (queues for sync)
                 await categoryRepo.update(updatedCategory);
@@ -297,15 +313,16 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
             if (widget.category != null)
               SizedBox(
                 width: inputWidth,
-                child: SwitchListTile.adaptive(
+                child: SwitchListTile(
                   title: Text(S.of(context).categoryFormLabelIncludeInSum),
                   value: includeInSum,
                   isThreeLine: false,
-                  onChanged: loaded != true
-                      ? null
-                      : (bool value) => setState(() {
-                          includeInSum = value;
-                        }),
+                  onChanged:
+                      loaded != true
+                          ? null
+                          : (bool value) => setState(() {
+                            includeInSum = value;
+                          }),
                 ),
               ),
           ],

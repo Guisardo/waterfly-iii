@@ -323,6 +323,30 @@
     "@errorUnknown": {
         "description": "Error without further information occurred."
     },
+    "errorInvalidHost": "Invalid host",
+    "@errorInvalidHost": {
+        "description": "Error: The provided host URL is invalid"
+    },
+    "errorInvalidApiKey": "Invalid API key",
+    "@errorInvalidApiKey": {
+        "description": "Error: The provided API key is invalid"
+    },
+    "errorInvalidApiVersion": "Invalid Firefly API version",
+    "@errorInvalidApiVersion": {
+        "description": "Error: The Firefly API version is invalid"
+    },
+    "errorApiVersionTooLow": "Firefly API version too low",
+    "@errorApiVersionTooLow": {
+        "description": "Error: The Firefly API version is too low"
+    },
+    "errorUnexpectedStatusCode": "Unexpected HTTP status code",
+    "@errorUnexpectedStatusCode": {
+        "description": "Error: Received an unexpected HTTP status code"
+    },
+    "errorNotValidInstance": "Not a valid Firefly III instance",
+    "@errorNotValidInstance": {
+        "description": "Error: The host is not a valid Firefly III instance"
+    },
     "formButtonHelp": "Hjælp",
     "@formButtonHelp": {
         "description": "Button Label: Help"
@@ -1436,5 +1460,27 @@
     "settingsSynchronizationSubtitle": "Synkroniseringsindstillinger og status",
     "@settingsSynchronizationSubtitle": {
         "description": "Subtitle for synchronization settings option in main settings page"
+    },
+    "notificationListenerCreateTransactionTitle": "Create Transaction?",
+    "@notificationListenerCreateTransactionTitle": {
+        "description": "Title of notification asking user to create a transaction from another notification"
+    },
+    "notificationListenerCreateTransactionBody": "Click to create a transaction based on the notification {appName}",
+    "@notificationListenerCreateTransactionBody": {
+        "description": "Body of notification asking user to create a transaction from another notification",
+        "placeholders": {
+            "appName": {
+                "type": "String",
+                "example": "Google Pay"
+            }
+        }
+    },
+    "notificationListenerChannelName": "Create Transaction from Notification",
+    "@notificationListenerChannelName": {
+        "description": "Name of the notification listener channel"
+    },
+    "notificationListenerChannelDescription": "Notification asking to create a transaction from another Notification.",
+    "@notificationListenerChannelDescription": {
+        "description": "Description of the notification listener channel"
     }
 }

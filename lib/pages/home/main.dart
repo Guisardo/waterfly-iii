@@ -179,7 +179,7 @@ class _HomeMainState extends State<HomeMain>
           respBalanceData.body!,
         );
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // If we have cached data, use it instead of throwing
       if (lastDaysExpense.isNotEmpty || lastDaysIncome.isNotEmpty) {
         if (mounted) {
@@ -229,7 +229,7 @@ class _HomeMainState extends State<HomeMain>
       return true;
     }
 
-    for (ChartDataSet e in respBalanceData!.body!) {
+    for (ChartDataSet e in respBalanceData.body!) {
       final Map<String, dynamic> entries = e.entries as Map<String, dynamic>;
       entries.forEach((String dateStr, dynamic valueStr) {
         final DateTime date = tzHandler
@@ -315,7 +315,7 @@ class _HomeMainState extends State<HomeMain>
       }
 
       return true;
-    } catch (e, stackTrace) {
+    } catch (e) {
       // If we have cached data, use it instead of throwing
       if (overviewChartData.isNotEmpty) {
         if (mounted) {
@@ -398,7 +398,7 @@ class _HomeMainState extends State<HomeMain>
                 ? incomeTotals.first
                 : const InsightTotalEntry(differenceFloat: 0);
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // If we have cached data, use it instead of throwing
       if (lastMonthsExpense.isNotEmpty || lastMonthsIncome.isNotEmpty) {
         if (mounted) {
@@ -496,7 +496,7 @@ class _HomeMainState extends State<HomeMain>
           end,
         );
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // If we have cached data, use it instead of throwing
       if ((tags && tagChartData.isNotEmpty) ||
           (!tags && catChartData.isNotEmpty)) {
@@ -772,7 +772,7 @@ class _HomeMainState extends State<HomeMain>
           respBalanceData.body!,
         );
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // If we have cached data, use it instead of throwing
       if (lastMonthsEarned.isNotEmpty ||
           lastMonthsAssets.isNotEmpty ||
@@ -906,7 +906,7 @@ class _HomeMainState extends State<HomeMain>
       for (AccountRead e in liabilityAccounts)
         e.attributes.name: e.attributes.includeNetWorth ?? true,
     });
-    for (ChartDataSet e in respBalanceData!.body!) {
+    for (ChartDataSet e in respBalanceData.body!) {
       if (includeInNetWorth.containsKey(e.label) &&
           includeInNetWorth[e.label] != true) {
         continue;
