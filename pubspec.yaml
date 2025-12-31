@@ -66,7 +66,7 @@ dependencies:
   connectivity_plus: ^7.0.0
 
 dev_dependencies:
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   # needed for swagger_dart_code_generator
   build_runner: ^2.10.4
   chopper_generator: ^8.5.0
@@ -95,11 +95,12 @@ flutter_native_splash:
   color_dark: "#1a1c1e"
 
 dependency_overrides:
+  # Versions from commit 37d64966 that had all tests passing
+  dart_style: ^3.1.2
   build: ^4.0.2
-  # Note: analyzer version must be compatible with isar_community_generator 3.3.0
-  # isar_community_generator 3.3.0 uses TypeChecker.fromRuntime() which was removed in analyzer 6.0.0+
-  # Using analyzer 5.5.0 (last stable before 6.0.0) to maintain compatibility
-  # _fe_analyzer_shared will be resolved automatically to match analyzer version
-  analyzer: 5.5.0
+  # Versions from commit 37d64966 - use analyzer 8.4.1 as it was working there
+  # Note: This may require patching isar_community_generator or using a compatible version
+  analyzer: 8.4.1
+  _fe_analyzer_shared: 91.0.0
   chopper_generator: ^8.5.0
   source_gen: ^4.1.1
