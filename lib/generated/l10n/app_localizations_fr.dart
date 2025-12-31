@@ -284,6 +284,25 @@ class SFr extends S {
   String get errorUnknown => 'Erreur inconnue.';
 
   @override
+  String get errorInvalidHost => 'Hôte invalide';
+
+  @override
+  String get errorInvalidApiKey => 'Clé API invalide';
+
+  @override
+  String get errorInvalidApiVersion => 'Version de l\'API Firefly invalide';
+
+  @override
+  String get errorApiVersionTooLow => 'Version de l\'API Firefly trop basse';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Code de statut HTTP inattendu';
+
+  @override
+  String get errorNotValidInstance =>
+      'Ce n\'est pas une instance Firefly III valide';
+
+  @override
   String get formButtonHelp => 'Aide';
 
   @override
@@ -1109,6 +1128,23 @@ class SFr extends S {
 
   @override
   String get syncNotificationChannelName => 'Synchronisation';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Créer une transaction ?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Appuyez pour créer une transaction basée sur la notification $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Créer une transaction à partir d\'une notification';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notification demandant de créer une transaction à partir d\'une autre notification.';
 
   @override
   String get syncNotificationChannelDescription =>

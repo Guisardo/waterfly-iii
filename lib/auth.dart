@@ -57,7 +57,6 @@ class APITZReplyData {
   }
 }
 
-// :TODO: translate strings. cause returns just an identifier for the translation.
 class AuthError implements Exception {
   const AuthError(this.cause);
 

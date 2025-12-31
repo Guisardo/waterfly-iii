@@ -281,6 +281,24 @@ class SNl extends S {
   String get errorUnknown => 'Onbekende fout.';
 
   @override
+  String get errorInvalidHost => 'Ongeldige host';
+
+  @override
+  String get errorInvalidApiKey => 'Ongeldige API-sleutel';
+
+  @override
+  String get errorInvalidApiVersion => 'Ongeldige Firefly API-versie';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API-versie te laag';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Onverwachte HTTP-statuscode';
+
+  @override
+  String get errorNotValidInstance => 'Geen geldige Firefly III-instantie';
+
+  @override
   String get formButtonHelp => 'Hulp';
 
   @override
@@ -1095,6 +1113,22 @@ class SNl extends S {
 
   @override
   String get syncNotificationChannelName => 'Synchronisatie';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Transactie aanmaken?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Tik om een transactie aan te maken op basis van de melding $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName => 'Transactie maken van melding';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Melding die vraagt om een transactie aan te maken van een andere melding.';
 
   @override
   String get syncNotificationChannelDescription =>
