@@ -35,7 +35,8 @@ class _MockQuery<T> implements Query<T> {
   final String? _filterField;
   final dynamic _filterValue;
   // ignore: unused_field
-  final IsarCollection<T>? _collection; // Used in null checks and type casts throughout the class
+  final IsarCollection<T>?
+  _collection; // Used in null checks and type casts throughout the class
   final Map<String, Function(T, dynamic)>? _fieldComparators;
 
   _MockQuery(

@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
+import 'package:waterflyiii/data/local/database/tables/transactions.dart';
 import 'package:waterflyiii/data/repositories/insight_repository.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
@@ -294,6 +295,66 @@ class UploadService extends ChangeNotifier {
               try {
                 final TransactionRead created = response.body!.data;
                 final TransactionRepository repo = TransactionRepository(isar);
+
+                // Find and delete the pending transaction that matches this PendingChange
+                // Match by comparing TransactionStore data
+                try {
+                  final List<Transactions> allPending =
+                      await isar.transactions
+                          .filter()
+                          .transactionIdStartsWith('pending-')
+                          .findAll();
+
+                  Transactions? matchingPending;
+                  // First try to match by comparing TransactionStore objects
+                  for (final Transactions pendingTx in allPending) {
+                    Map<String, dynamic>? pendingData;
+                    try {
+                      pendingData =
+                          jsonDecode(pendingTx.data) as Map<String, dynamic>;
+                      final TransactionStore pendingStore =
+                          TransactionStore.fromJson(pendingData);
+                      
+                      // Compare key fields to match
+                      if (_transactionsMatch(store, pendingStore)) {
+                        matchingPending = pendingTx;
+                        break;
+                      }
+                    } catch (e) {
+                      // If parsing fails, try JSON string comparison as fallback
+                      if (pendingData != null) {
+                        try {
+                          final Map<String, dynamic> storeJson = store.toJson();
+                          // Compare essential fields from JSON directly
+                          if (_jsonTransactionsMatch(storeJson, pendingData)) {
+                            matchingPending = pendingTx;
+                            break;
+                          }
+                        } catch (_) {
+                          // Skip if both methods fail
+                          continue;
+                        }
+                      } else {
+                        // Skip if we couldn't even parse the JSON
+                        continue;
+                      }
+                    }
+                  }
+
+                  if (matchingPending != null) {
+                    await isar.writeTxn(() async {
+                      await isar.transactions.delete(matchingPending!.id);
+                    });
+                  }
+                } catch (e, stackTrace) {
+                  log.warning(
+                    "Error finding/deleting matching pending transaction",
+                    e,
+                    stackTrace,
+                  );
+                  // Continue anyway - upsert will still work
+                }
+
                 await repo.upsertFromSync(created);
                 await _markChangeAsSynced(change.id);
                 return true;
@@ -710,6 +771,137 @@ class UploadService extends ChangeNotifier {
         errorStr.contains('503') ||
         errorStr.contains('504') ||
         errorStr.contains('429');
+  }
+
+  /// Compares two TransactionStore objects to determine if they represent the same transaction
+  /// Matches by comparing key fields: date, amount, description, source/destination names
+  bool _transactionsMatch(TransactionStore store1, TransactionStore store2) {
+    // Compare number of transaction splits
+    if (store1.transactions.length != store2.transactions.length) {
+      return false;
+    }
+
+    // Compare group title (handle null as empty string for comparison)
+    final String? title1 = store1.groupTitle;
+    final String? title2 = store2.groupTitle;
+    if ((title1?.trim().isEmpty ?? true) != (title2?.trim().isEmpty ?? true) ||
+        (title1?.trim().isNotEmpty ?? false) && title1?.trim() != title2?.trim()) {
+      return false;
+    }
+
+    // Compare each transaction split
+    for (int i = 0; i < store1.transactions.length; i++) {
+      final TransactionSplitStore split1 = store1.transactions[i];
+      final TransactionSplitStore split2 = store2.transactions[i];
+
+      // Compare date (normalize to same precision)
+      if (split1.date != null && split2.date != null) {
+        // Compare dates ignoring time differences (only date matters)
+        final DateTime date1 = DateTime(
+          split1.date!.year,
+          split1.date!.month,
+          split1.date!.day,
+        );
+        final DateTime date2 = DateTime(
+          split2.date!.year,
+          split2.date!.month,
+          split2.date!.day,
+        );
+        if (!date1.isAtSameMomentAs(date2)) {
+          return false;
+        }
+      } else if (split1.date != null || split2.date != null) {
+        // One has date, other doesn't - not a match
+        return false;
+      }
+
+      // Compare amount (normalize strings)
+      final String amount1 = (split1.amount ?? '').trim();
+      final String amount2 = (split2.amount ?? '').trim();
+      if (amount1 != amount2) {
+        return false;
+      }
+
+      // Compare description (normalize strings)
+      final String desc1 = (split1.description ?? '').trim();
+      final String desc2 = (split2.description ?? '').trim();
+      if (desc1 != desc2) {
+        return false;
+      }
+
+      // Compare source and destination names (handle null/empty as equivalent)
+      final String? source1 = split1.sourceName?.trim();
+      final String? source2 = split2.sourceName?.trim();
+      if ((source1?.isEmpty ?? true) != (source2?.isEmpty ?? true) ||
+          (source1?.isNotEmpty ?? false) && source1 != source2) {
+        return false;
+      }
+      
+      final String? dest1 = split1.destinationName?.trim();
+      final String? dest2 = split2.destinationName?.trim();
+      if ((dest1?.isEmpty ?? true) != (dest2?.isEmpty ?? true) ||
+          (dest1?.isNotEmpty ?? false) && dest1 != dest2) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /// Fallback matching by comparing JSON directly
+  bool _jsonTransactionsMatch(
+    Map<String, dynamic> json1,
+    Map<String, dynamic> json2,
+  ) {
+    // Compare transactions array
+    final List<dynamic>? tx1 = json1['transactions'] as List<dynamic>?;
+    final List<dynamic>? tx2 = json2['transactions'] as List<dynamic>?;
+    if ((tx1?.length ?? 0) != (tx2?.length ?? 0)) {
+      return false;
+    }
+    if (tx1 == null || tx2 == null) {
+      return tx1 == tx2;
+    }
+
+    for (int i = 0; i < tx1.length; i++) {
+      final Map<String, dynamic> split1 = tx1[i] as Map<String, dynamic>;
+      final Map<String, dynamic> split2 = tx2[i] as Map<String, dynamic>;
+
+      // Compare essential fields (handle both snake_case and camelCase)
+      if (_normalizeString(split1['amount']) != _normalizeString(split2['amount'])) {
+        return false;
+      }
+      if (_normalizeString(split1['description']) !=
+          _normalizeString(split2['description'])) {
+        return false;
+      }
+      // Try both snake_case and camelCase field names
+      final String? source1 = _normalizeString(
+        split1['source_name'] ?? split1['sourceName'],
+      );
+      final String? source2 = _normalizeString(
+        split2['source_name'] ?? split2['sourceName'],
+      );
+      if (source1 != source2) {
+        return false;
+      }
+      final String? dest1 = _normalizeString(
+        split1['destination_name'] ?? split1['destinationName'],
+      );
+      final String? dest2 = _normalizeString(
+        split2['destination_name'] ?? split2['destinationName'],
+      );
+      if (dest1 != dest2) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  String _normalizeString(dynamic value) {
+    if (value == null) return '';
+    return value.toString().trim();
   }
 
   bool _isConflictError(dynamic error) {

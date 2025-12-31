@@ -784,7 +784,12 @@ void main() {
           ),
         ];
 
-        await repository.cacheChartData('balance_balance', start, end, chartData);
+        await repository.cacheChartData(
+          'balance_balance',
+          start,
+          end,
+          chartData,
+        );
 
         final List<ChartDataSet>? result = await repository.getChartData(
           'balance_balance',
@@ -808,13 +813,16 @@ void main() {
             currencyCode: 'USD',
             currencySymbol: '\$',
             currencyDecimalPlaces: 2,
-            entries: <String, String>{
-              '2024-01-01': '100.00',
-            },
+            entries: <String, String>{'2024-01-01': '100.00'},
           ),
         ];
 
-        await repository.cacheChartData('account_overview', start, end, chartData);
+        await repository.cacheChartData(
+          'account_overview',
+          start,
+          end,
+          chartData,
+        );
         await repository.markStale(start, end);
 
         final List<ChartDataSet>? result = await repository.getChartData(
@@ -852,8 +860,18 @@ void main() {
           ),
         ];
 
-        await repository.cacheChartData('balance_balance', start, end, chartData1);
-        await repository.cacheChartData('balance_balance', start, end, chartData2);
+        await repository.cacheChartData(
+          'balance_balance',
+          start,
+          end,
+          chartData1,
+        );
+        await repository.cacheChartData(
+          'balance_balance',
+          start,
+          end,
+          chartData2,
+        );
 
         final List<ChartDataSet>? result = await repository.getChartData(
           'balance_balance',
@@ -881,7 +899,12 @@ void main() {
           ),
         ];
 
-        await repository.cacheChartData('balance_balance', start, end, chartData);
+        await repository.cacheChartData(
+          'balance_balance',
+          start,
+          end,
+          chartData,
+        );
 
         final List<ChartDataSet>? result = await repository.getChartData(
           'account_overview',
@@ -912,7 +935,12 @@ void main() {
           ),
         ];
 
-        await repository.cacheChartData('balance_balance', start1, end1, chartData);
+        await repository.cacheChartData(
+          'balance_balance',
+          start1,
+          end1,
+          chartData,
+        );
 
         final List<ChartDataSet>? result = await repository.getChartData(
           'balance_balance',

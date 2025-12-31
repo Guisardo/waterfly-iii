@@ -376,8 +376,8 @@ class InsightRepository {
               .endDateEqualTo(end)
               .findFirst();
 
-      final Insights row = existing ??
-          Insights()
+      final Insights row =
+          existing ?? Insights()
             ..insightType = 'chart'
             ..insightSubtype = chartType
             ..startDate = start
