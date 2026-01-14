@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/transactions.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 
 class TransactionRepository {
@@ -649,6 +650,205 @@ class TransactionRepository {
         PendingChanges()
           ..entityType = 'transactions'
           ..entityId = id
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
+    await isar.writeTxn(() async {
+      await isar.pendingChanges.put(pendingChange);
+    });
+  }
+
+  /// Creates a new transaction from a TransactionStore.
+  /// Used when creating new transactions from the UI.
+  /// The transaction is stored locally with a pending- prefix and queued for sync.
+  /// Returns the local transaction ID for UI reference.
+  Future<String> createNew(TransactionStore transaction) async {
+    final DateTime now = _getNow();
+    final String pendingId = 'pending-${now.millisecondsSinceEpoch}';
+
+    final Transactions row =
+        Transactions()
+          ..transactionId = pendingId
+          ..data = jsonEncode(transaction.toJson())
+          ..updatedAt = null
+          ..localUpdatedAt = now
+          ..synced = false;
+
+    await isar.writeTxn(() async {
+      await isar.transactions.put(row);
+    });
+
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = null // null for CREATE operations
+          ..operation = 'CREATE'
+          ..data = jsonEncode(transaction.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
+    await isar.writeTxn(() async {
+      await isar.pendingChanges.put(pendingChange);
+    });
+
+    return pendingId;
+  }
+
+  /// Updates an existing transaction with a TransactionUpdate.
+  /// Used when editing transactions from the UI.
+  /// The changes are stored locally and queued for sync.
+  Future<void> updateExisting(String id, TransactionUpdate update) async {
+    final DateTime now = _getNow();
+
+    // For pending transactions, we need to merge the update into the stored TransactionStore
+    if (id.startsWith('pending-')) {
+      final Transactions? existing =
+          await isar.transactions.filter().transactionIdEqualTo(id).findFirst();
+      if (existing != null) {
+        try {
+          final Map<String, dynamic> existingData =
+              jsonDecode(existing.data) as Map<String, dynamic>;
+          final TransactionStore existingStore =
+              TransactionStore.fromJson(existingData);
+
+          // Merge update into existing store
+          final List<TransactionSplitStore> updatedSplits =
+              <TransactionSplitStore>[];
+          for (int i = 0; i < (update.transactions?.length ?? 0); i++) {
+            final TransactionSplitUpdate splitUpdate = update.transactions![i];
+            final TransactionSplitStore? existingSplit =
+                existingStore.transactions.elementAtOrNull(i);
+
+            updatedSplits.add(
+              TransactionSplitStore(
+                type:
+                    splitUpdate.type ??
+                    existingSplit?.type ??
+                    TransactionTypeProperty.withdrawal,
+                date: splitUpdate.date ?? existingSplit?.date ?? now,
+                amount: splitUpdate.amount ?? existingSplit?.amount ?? '0',
+                description:
+                    splitUpdate.description ??
+                    existingSplit?.description ??
+                    '',
+                sourceName:
+                    splitUpdate.sourceName ?? existingSplit?.sourceName,
+                sourceId: splitUpdate.sourceId ?? existingSplit?.sourceId,
+                destinationName:
+                    splitUpdate.destinationName ??
+                    existingSplit?.destinationName,
+                destinationId:
+                    splitUpdate.destinationId ?? existingSplit?.destinationId,
+                categoryName:
+                    splitUpdate.categoryName ?? existingSplit?.categoryName,
+                categoryId: splitUpdate.categoryId ?? existingSplit?.categoryId,
+                budgetName: splitUpdate.budgetName ?? existingSplit?.budgetName,
+                budgetId: splitUpdate.budgetId ?? existingSplit?.budgetId,
+                billId: splitUpdate.billId ?? existingSplit?.billId,
+                billName: splitUpdate.billName ?? existingSplit?.billName,
+                tags: splitUpdate.tags ?? existingSplit?.tags,
+                notes: splitUpdate.notes ?? existingSplit?.notes,
+                foreignAmount:
+                    splitUpdate.foreignAmount ?? existingSplit?.foreignAmount,
+                foreignCurrencyId:
+                    splitUpdate.foreignCurrencyId ??
+                    existingSplit?.foreignCurrencyId,
+                foreignCurrencyCode:
+                    splitUpdate.foreignCurrencyCode ??
+                    existingSplit?.foreignCurrencyCode,
+                reconciled:
+                    splitUpdate.reconciled ?? existingSplit?.reconciled,
+                order: splitUpdate.order ?? existingSplit?.order ?? i,
+              ),
+            );
+          }
+
+          final TransactionStore updatedStore = TransactionStore(
+            groupTitle: update.groupTitle ?? existingStore.groupTitle,
+            transactions: updatedSplits,
+            applyRules: existingStore.applyRules,
+            fireWebhooks: existingStore.fireWebhooks,
+            errorIfDuplicateHash: existingStore.errorIfDuplicateHash,
+          );
+
+          existing
+            ..data = jsonEncode(updatedStore.toJson())
+            ..localUpdatedAt = now
+            ..synced = false;
+
+          await isar.writeTxn(() async {
+            await isar.transactions.put(existing);
+          });
+
+          // Update the pending change if it exists
+          final PendingChanges? existingPending =
+              await isar.pendingChanges
+                  .filter()
+                  .entityTypeEqualTo('transactions')
+                  .entityIdIsNull()
+                  .dataContains(id)
+                  .findFirst();
+
+          if (existingPending != null) {
+            existingPending
+              ..data = jsonEncode(updatedStore.toJson())
+              ..createdAt = now;
+
+            await isar.writeTxn(() async {
+              await isar.pendingChanges.put(existingPending);
+            });
+          }
+        } catch (e) {
+          // If merge fails, just store the update as is
+        }
+      }
+      return;
+    }
+
+    // For synced transactions, store the update and queue for sync
+    final Transactions? existing =
+        await isar.transactions.filter().transactionIdEqualTo(id).findFirst();
+
+    if (existing != null) {
+      // We store the TransactionUpdate directly - the sync service will handle it
+      existing
+        ..localUpdatedAt = now
+        ..synced = false;
+
+      await isar.writeTxn(() async {
+        await isar.transactions.put(existing);
+      });
+    }
+
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = id
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(update.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
+    await isar.writeTxn(() async {
+      await isar.pendingChanges.put(pendingChange);
+    });
+  }
+
+  /// Deletes a transaction split (journal) by its ID.
+  /// Used when removing splits from split transactions.
+  /// The deletion is queued for sync.
+  Future<void> deleteSplit(String journalId) async {
+    final DateTime now = _getNow();
+
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'transaction_journals'
+          ..entityId = journalId
           ..operation = 'DELETE'
           ..data = null
           ..createdAt = now

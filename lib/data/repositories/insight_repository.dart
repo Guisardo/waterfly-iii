@@ -352,7 +352,7 @@ class InsightRepository {
     });
   }
 
-  Future<List<Insights>> getStaleInsights() async {
+  Future<List<Insights>> getStaleInsights() {
     return isar.insights.filter().staleEqualTo(true).findAll();
   }
 

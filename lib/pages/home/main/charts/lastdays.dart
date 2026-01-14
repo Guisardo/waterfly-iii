@@ -70,7 +70,7 @@ class LastDaysChart extends StatelessWidget {
 
     // Check if all values are zero
     final bool allZero =
-        chartData.isEmpty || chartData.every((e) => e.amount == 0);
+        chartData.isEmpty || chartData.every((LabelAmountChart e) => e.amount == 0);
 
     // Show placeholder if no data or all zeros
     if (allZero) {

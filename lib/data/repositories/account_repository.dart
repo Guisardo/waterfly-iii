@@ -80,7 +80,7 @@ class AccountRepository {
     if (type != null) {
       filtered =
           all.where((AccountRead account) {
-            final enums.ShortAccountTypeProperty? accountType =
+            final enums.ShortAccountTypeProperty accountType =
                 account.attributes.type;
             final enums.AccountTypeFilter typeFilter = type;
             switch (typeFilter) {
@@ -186,7 +186,7 @@ class AccountRepository {
     if (types != null && types.isNotEmpty) {
       filtered =
           filtered.where((AccountRead account) {
-            final enums.ShortAccountTypeProperty? accountType =
+            final enums.ShortAccountTypeProperty accountType =
                 account.attributes.type;
             final List<enums.AccountTypeFilter> typesList = types;
             return typesList.any((enums.AccountTypeFilter type) {

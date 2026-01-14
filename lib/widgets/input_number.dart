@@ -61,9 +61,13 @@ class NumberInput extends StatelessWidget {
               return newValue;
             }
 
-            // Check for operators in newValue
+            // Check for operators in newValue (excluding leading minus for negative numbers)
+            final String textWithoutLeadingMinus =
+                newValue.text.startsWith('-')
+                    ? newValue.text.substring(1)
+                    : newValue.text;
             final int opCount =
-                RegExp(r'[+\-*/]').allMatches(newValue.text).length;
+                RegExp(r'[+\-*/]').allMatches(textWithoutLeadingMinus).length;
 
             // no operators --> normal number validation
             if (opCount == 0) {
@@ -75,22 +79,8 @@ class NumberInput extends StatelessWidget {
               return newValue;
             }
 
-            if (opCount > 1) {
-              // Only when last operator was inserted at end
-              if (newValue.text.startsWith(oldValue.text)) {
-                final String result = _evaluateExpression(
-                  oldValue.text,
-                  decimals,
-                );
-
-                final String newText =
-                    result + newValue.text.substring(oldValue.text.length);
-                return newValue.copyWith(
-                  text: newText,
-                  selection: TextSelection.collapsed(offset: newText.length),
-                );
-              }
-            }
+            // Allow multiple operators - expression will be evaluated on blur
+            // This preserves operator precedence (e.g., 1+2*3 = 7, not 9)
 
             // Split number by operators, validate each number separately
             final List<String> numbers = newValue.text.split(

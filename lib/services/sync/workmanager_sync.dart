@@ -7,8 +7,6 @@ import 'package:waterflyiii/services/sync/sync_service.dart';
 import 'package:waterflyiii/services/sync/upload_service.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart'
     show ConnectivityService;
-import 'package:workmanager_platform_interface/src/pigeon/workmanager_api.g.dart'
-    as workmanager;
 import 'package:waterflyiii/services/sync/sync_notifications.dart';
 import 'package:waterflyiii/auth.dart';
 
@@ -113,7 +111,7 @@ class WorkManagerSync {
       syncTaskName,
       frequency: const Duration(minutes: 15),
       constraints: Constraints(
-        networkType: workmanager.NetworkType.connected,
+        networkType: NetworkType.connected,
         requiresBatteryNotLow: false,
         requiresCharging: false,
         requiresDeviceIdle: false,
@@ -126,7 +124,7 @@ class WorkManagerSync {
       uploadTaskName,
       frequency: const Duration(minutes: 15),
       constraints: Constraints(
-        networkType: workmanager.NetworkType.connected,
+        networkType: NetworkType.connected,
         requiresBatteryNotLow: false,
         requiresCharging: false,
         requiresDeviceIdle: false,
@@ -144,7 +142,7 @@ class WorkManagerSync {
         '${syncTaskName}_onetime',
         syncTaskName,
         constraints: Constraints(
-          networkType: workmanager.NetworkType.connected,
+          networkType: NetworkType.connected,
         ),
       );
     }
@@ -154,7 +152,7 @@ class WorkManagerSync {
         '${uploadTaskName}_onetime',
         uploadTaskName,
         constraints: Constraints(
-          networkType: workmanager.NetworkType.connected,
+          networkType: NetworkType.connected,
         ),
       );
     }

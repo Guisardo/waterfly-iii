@@ -533,7 +533,7 @@ class UploadService extends ChangeNotifier {
           // Response property might not exist
         }
         // Re-throw if not a conflict - this will be caught by outer catch
-        throw apiError;
+        rethrow;
       }
 
       // Check for conflict first (before checking isSuccessful)
@@ -597,14 +597,14 @@ class UploadService extends ChangeNotifier {
     final Map<String, dynamic> data =
         jsonDecode(change.data!) as Map<String, dynamic>;
 
+    final String entityId = change.entityId!;
     try {
       Response<dynamic>? response;
-
       switch (change.entityType) {
         case 'transactions':
           final TransactionUpdate update = TransactionUpdate.fromJson(data);
           response = await api.v1TransactionsIdPut(
-            id: change.entityId!,
+            id: entityId,
             body: update,
           );
           if (response.isSuccessful && response.body != null) {
@@ -616,32 +616,32 @@ class UploadService extends ChangeNotifier {
         case 'accounts':
           final AccountUpdate update = AccountUpdate.fromJson(data);
           response = await api.v1AccountsIdPut(
-            id: change.entityId!,
+            id: entityId,
             body: update,
           );
           break;
         case 'categories':
           final CategoryUpdate update = CategoryUpdate.fromJson(data);
           response = await api.v1CategoriesIdPut(
-            id: change.entityId!,
+            id: entityId,
             body: update,
           );
           break;
         case 'tags':
           final TagModelUpdate update = TagModelUpdate.fromJson(data);
           response = await api.v1TagsTagPut(
-            tag: change.entityId!,
+            tag: entityId,
             body: update,
           );
           break;
         case 'bills':
           final BillUpdate update = BillUpdate.fromJson(data);
-          response = await api.v1BillsIdPut(id: change.entityId!, body: update);
+          response = await api.v1BillsIdPut(id: entityId, body: update);
           break;
         case 'budgets':
           final BudgetUpdate update = BudgetUpdate.fromJson(data);
           response = await api.v1BudgetsIdPut(
-            id: change.entityId!,
+            id: entityId,
             body: update,
           );
           break;
@@ -656,7 +656,7 @@ class UploadService extends ChangeNotifier {
           final BudgetLimitUpdate update = BudgetLimitUpdate.fromJson(data);
           response = await api.v1BudgetsIdLimitsLimitIdPut(
             id: budgetId,
-            limitId: change.entityId!,
+            limitId: entityId,
             body: update,
           );
           break;
@@ -679,7 +679,7 @@ class UploadService extends ChangeNotifier {
         if (_isConflictError(response)) {
           await conflictResolver.logConflict(
             entityType: change.entityType,
-            entityId: change.entityId!,
+            entityId: entityId,
             conflictType: ConflictType.upload,
             serverUpdatedAt: DateTime.now().toUtc(),
             resolution: ConflictResolution.serverWins,
@@ -695,7 +695,7 @@ class UploadService extends ChangeNotifier {
       if (_isConflictError(e)) {
         await conflictResolver.logConflict(
           entityType: change.entityType,
-          entityId: change.entityId!,
+          entityId: entityId,
           conflictType: ConflictType.upload,
           serverUpdatedAt: DateTime.now().toUtc(),
           resolution: ConflictResolution.serverWins,
@@ -713,28 +713,29 @@ class UploadService extends ChangeNotifier {
       return false;
     }
 
+    final String entityId = change.entityId!;
     try {
       Response<dynamic>? response;
 
       switch (change.entityType) {
         case 'transactions':
-          response = await api.v1TransactionsIdDelete(id: change.entityId!);
+          response = await api.v1TransactionsIdDelete(id: entityId);
           break;
         case 'accounts':
-          response = await api.v1AccountsIdDelete(id: change.entityId!);
+          response = await api.v1AccountsIdDelete(id: entityId);
           break;
         case 'categories':
-          response = await api.v1CategoriesIdDelete(id: change.entityId!);
+          response = await api.v1CategoriesIdDelete(id: entityId);
           break;
         case 'tags':
           // Tags use tag name, not ID
-          response = await api.v1TagsTagDelete(tag: change.entityId!);
+          response = await api.v1TagsTagDelete(tag: entityId);
           break;
         case 'bills':
-          response = await api.v1BillsIdDelete(id: change.entityId!);
+          response = await api.v1BillsIdDelete(id: entityId);
           break;
         case 'budgets':
-          response = await api.v1BudgetsIdDelete(id: change.entityId!);
+          response = await api.v1BudgetsIdDelete(id: entityId);
           break;
         default:
           log.warning(
@@ -867,25 +868,20 @@ class UploadService extends ChangeNotifier {
       final TransactionSplitStore split2 = store2.transactions[i];
 
       // Compare date (normalize to same precision)
-      final DateTime? date1 = split1.date;
-      final DateTime? date2 = split2.date;
-      if (date1 != null && date2 != null) {
-        // Compare dates ignoring time differences (only date matters)
-        final DateTime normalizedDate1 = DateTime(
-          date1.year,
-          date1.month,
-          date1.day,
-        );
-        final DateTime normalizedDate2 = DateTime(
-          date2.year,
-          date2.month,
-          date2.day,
-        );
-        if (!normalizedDate1.isAtSameMomentAs(normalizedDate2)) {
-          return false;
-        }
-      } else if (date1 != null || date2 != null) {
-        // One has date, other doesn't - not a match
+      final DateTime date1 = split1.date;
+      final DateTime date2 = split2.date;
+      // Compare dates ignoring time differences (only date matters)
+      final DateTime normalizedDate1 = DateTime(
+        date1.year,
+        date1.month,
+        date1.day,
+      );
+      final DateTime normalizedDate2 = DateTime(
+        date2.year,
+        date2.month,
+        date2.day,
+      );
+      if (!normalizedDate1.isAtSameMomentAs(normalizedDate2)) {
         return false;
       }
 
@@ -954,19 +950,19 @@ class UploadService extends ChangeNotifier {
         return false;
       }
       // Try both snake_case and camelCase field names
-      final String? source1 = _normalizeString(
+      final String source1 = _normalizeString(
         split1['source_name'] ?? split1['sourceName'],
       );
-      final String? source2 = _normalizeString(
+      final String source2 = _normalizeString(
         split2['source_name'] ?? split2['sourceName'],
       );
       if (source1 != source2) {
         return false;
       }
-      final String? dest1 = _normalizeString(
+      final String dest1 = _normalizeString(
         split1['destination_name'] ?? split1['destinationName'],
       );
-      final String? dest2 = _normalizeString(
+      final String dest2 = _normalizeString(
         split2['destination_name'] ?? split2['destinationName'],
       );
       if (dest1 != dest2) {

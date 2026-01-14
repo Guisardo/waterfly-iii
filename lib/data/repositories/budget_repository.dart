@@ -180,11 +180,8 @@ class BudgetRepository {
   Future<List<BudgetLimitRead>> getAllBudgetLimits() async {
     final List<BudgetLimits> rows = await isar.budgetLimits.where().findAll();
     rows.sort((BudgetLimits a, BudgetLimits b) {
-      final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
-      final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
-      if (dateA == null && dateB == null) return 0;
-      if (dateA == null) return 1;
-      if (dateB == null) return -1;
+      final DateTime dateA = a.updatedAt ?? a.localUpdatedAt;
+      final DateTime dateB = b.updatedAt ?? b.localUpdatedAt;
       return dateB.compareTo(dateA);
     });
 

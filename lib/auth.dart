@@ -426,7 +426,7 @@ class FireflyService with ChangeNotifier {
   @Deprecated(
     'Use restoreFromStorage() for app startup. Use signIn() for new logins.',
   )
-  Future<bool> signInFromStorage() async {
+  Future<bool> signInFromStorage() {
     return restoreFromStorage();
   }
 

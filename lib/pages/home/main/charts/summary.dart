@@ -57,8 +57,8 @@ class _SummaryChartState extends State<SummaryChart> {
       }
 
       // Skip series with all zeros to avoid rendering issues
-      final bool hasNonZeroValues = chartPoints.any((p) => p.value != 0.0);
-      if (!hasNonZeroValues && chartPoints.length > 0) {
+      final bool hasNonZeroValues = chartPoints.any((TimeSeriesChart p) => p.value != 0.0);
+      if (!hasNonZeroValues && chartPoints.isNotEmpty) {
         continue;
       }
 
@@ -81,7 +81,7 @@ class _SummaryChartState extends State<SummaryChart> {
     // Create a unique key based on data version and data hash to force complete recreation
     final int dataHash = data.fold<int>(
       0,
-      (sum, e) => sum + (e.label?.hashCode ?? 0) + e.toChart().length,
+      (int sum, ChartDataSet e) => sum + (e.label?.hashCode ?? 0) + e.toChart().length,
     );
     final int? version = dataVersion;
     final Key chartKey =
