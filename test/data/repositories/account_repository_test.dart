@@ -95,5 +95,105 @@ void main() {
       final AccountRead? retrieved = await repository.getById('test-4');
       expect(retrieved, isNotNull);
     });
+
+    group('getByType', () {
+      test('filters by assetAccount type', () async {
+        final AccountRead assetAccount = AccountRead(
+          type: 'accounts',
+          id: 'asset-filter-1',
+          attributes: AccountProperties(
+            name: 'Bank Account',
+            type: enums.ShortAccountTypeProperty.asset,
+          ),
+        );
+
+        await repository.upsertFromSync(assetAccount);
+
+        final List<AccountRead> results =
+            await repository.getByType(enums.AccountTypeFilter.assetAccount);
+
+        expect(results.length, 1);
+        expect(results.first.attributes.name, 'Bank Account');
+      });
+
+      test('filters by asset type alias', () async {
+        final AccountRead assetAccount = AccountRead(
+          type: 'accounts',
+          id: 'asset-alias-1',
+          attributes: AccountProperties(
+            name: 'Asset Alias Test',
+            type: enums.ShortAccountTypeProperty.asset,
+          ),
+        );
+
+        await repository.upsertFromSync(assetAccount);
+
+        // Test both assetAccount and asset filter types
+        final List<AccountRead> results1 =
+            await repository.getByType(enums.AccountTypeFilter.assetAccount);
+        final List<AccountRead> results2 =
+            await repository.getByType(enums.AccountTypeFilter.asset);
+
+        expect(results1.length, 1);
+        expect(results2.length, 1);
+        expect(results1.first.id, results2.first.id);
+      });
+
+      test('filters by expenseAccount type', () async {
+        final AccountRead expenseAccount = AccountRead(
+          type: 'accounts',
+          id: 'expense-filter-1',
+          attributes: AccountProperties(
+            name: 'Groceries',
+            type: enums.ShortAccountTypeProperty.expense,
+          ),
+        );
+
+        await repository.upsertFromSync(expenseAccount);
+
+        final List<AccountRead> results =
+            await repository.getByType(enums.AccountTypeFilter.expenseAccount);
+
+        expect(results.length, 1);
+        expect(results.first.attributes.name, 'Groceries');
+      });
+
+      test('filters by revenueAccount type', () async {
+        final AccountRead revenueAccount = AccountRead(
+          type: 'accounts',
+          id: 'revenue-filter-1',
+          attributes: AccountProperties(
+            name: 'Salary',
+            type: enums.ShortAccountTypeProperty.revenue,
+          ),
+        );
+
+        await repository.upsertFromSync(revenueAccount);
+
+        final List<AccountRead> results =
+            await repository.getByType(enums.AccountTypeFilter.revenueAccount);
+
+        expect(results.length, 1);
+        expect(results.first.attributes.name, 'Salary');
+      });
+
+      test('returns all accounts when type is null', () async {
+        final AccountRead account = AccountRead(
+          type: 'accounts',
+          id: 'null-type-1',
+          attributes: AccountProperties(
+            name: 'Any Account',
+            type: enums.ShortAccountTypeProperty.asset,
+          ),
+        );
+
+        await repository.upsertFromSync(account);
+
+        final List<AccountRead> results = await repository.getByType(null);
+
+        expect(results.length, 1);
+        expect(results.first.attributes.name, 'Any Account');
+      });
+    });
   });
 }
