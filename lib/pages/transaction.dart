@@ -28,6 +28,7 @@ import 'package:waterflyiii/pages/transaction/tags.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/timezonehandler.dart';
 import 'package:waterflyiii/widgets/autocompletetext.dart';
@@ -1163,9 +1164,6 @@ class _TransactionPageState extends State<TransactionPage>
     const Widget hDivider = SizedBox(height: 16);
     const Widget vDivider = SizedBox(width: 16);
 
-    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOpSource;
-    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOpDestination;
-
     // Title
     childs.add(
       Row(
@@ -1310,31 +1308,20 @@ class _TransactionPageState extends State<TransactionPage>
                       (AutocompleteAccount option) => option.name,
                   optionsBuilder: (TextEditingValue textEditingValue) async {
                     try {
-                      unawaited(fetchOpSource?.cancel());
-
-                      final FireflyIii api = context.read<FireflyService>().api;
-                      fetchOpSource = CancelableOperation<
-                        Response<AutocompleteAccountArray>
-                      >.fromFuture(
-                        api.v1AutocompleteAccountsGet(
-                          query: textEditingValue.text,
-                          types: _destinationAccountType.allowedOpposingTypes(
-                            false,
-                          ),
-                        ),
-                      );
-                      final Response<AutocompleteAccountArray>? response =
-                          await fetchOpSource?.valueOrCancellation();
-                      if (response == null) {
-                        // Cancelled
-                        return const Iterable<AutocompleteAccount>.empty();
-                      }
-                      apiThrowErrorIfEmpty(response, mounted ? context : null);
-
-                      return response.body!;
+                      final Isar isar = await AppDatabase.instance;
+                      final AccountRepository accountRepo =
+                          AccountRepository(isar);
+                      final List<AutocompleteAccount> accounts =
+                          await accountRepo.autocomplete(
+                            query: textEditingValue.text,
+                            types: _destinationAccountType.allowedOpposingTypes(
+                              false,
+                            ),
+                          );
+                      return accounts;
                     } catch (e, stackTrace) {
                       log.severe(
-                        "Error while fetching autocomplete from API",
+                        "Error while fetching accounts from local database",
                         e,
                         stackTrace,
                       );
@@ -1411,35 +1398,20 @@ class _TransactionPageState extends State<TransactionPage>
                     },
                     optionsBuilder: (TextEditingValue textEditingValue) async {
                       try {
-                        unawaited(fetchOpDestination?.cancel());
-
-                        final FireflyIii api =
-                            context.read<FireflyService>().api;
-                        fetchOpDestination = CancelableOperation<
-                          Response<AutocompleteAccountArray>
-                        >.fromFuture(
-                          api.v1AutocompleteAccountsGet(
-                            query: textEditingValue.text,
-                            types: _sourceAccountType.allowedOpposingTypes(
-                              true,
-                            ),
-                          ),
-                        );
-                        final Response<AutocompleteAccountArray>? response =
-                            await fetchOpDestination?.valueOrCancellation();
-                        if (response == null) {
-                          // Cancelled
-                          return const Iterable<AutocompleteAccount>.empty();
-                        }
-                        apiThrowErrorIfEmpty(
-                          response,
-                          mounted ? context : null,
-                        );
-
-                        return response.body!;
+                        final Isar isar = await AppDatabase.instance;
+                        final AccountRepository accountRepo =
+                            AccountRepository(isar);
+                        final List<AutocompleteAccount> accounts =
+                            await accountRepo.autocomplete(
+                              query: textEditingValue.text,
+                              types: _sourceAccountType.allowedOpposingTypes(
+                                true,
+                              ),
+                            );
+                        return accounts;
                       } catch (e, stackTrace) {
                         log.severe(
-                          "Error while fetching autocomplete from API",
+                          "Error while fetching accounts from local database",
                           e,
                           stackTrace,
                         );
@@ -1648,8 +1620,6 @@ class _TransactionPageState extends State<TransactionPage>
   Card _buildSplitWidget(BuildContext context, int i) {
     const Widget hDivider = SizedBox(height: 16);
 
-    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOp;
-
     return Card(
       key: ValueKey<int>(i),
       child: Padding(
@@ -1702,40 +1672,21 @@ class _TransactionPageState extends State<TransactionPage>
                                       TextEditingValue textEditingValue,
                                     ) async {
                                       try {
-                                        unawaited(fetchOp?.cancel());
-
-                                        final FireflyIii api =
-                                            context.read<FireflyService>().api;
-                                        fetchOp = CancelableOperation<
-                                          Response<AutocompleteAccountArray>
-                                        >.fromFuture(
-                                          api.v1AutocompleteAccountsGet(
-                                            query: textEditingValue.text,
-                                            types: _destinationAccountType
-                                                .allowedOpposingTypes(false),
-                                          ),
-                                        );
-                                        final Response<
-                                          AutocompleteAccountArray
-                                        >?
-                                        response =
-                                            await fetchOp
-                                                ?.valueOrCancellation();
-                                        if (response == null) {
-                                          // Cancelled
-                                          return const Iterable<
-                                            AutocompleteAccount
-                                          >.empty();
-                                        }
-                                        apiThrowErrorIfEmpty(
-                                          response,
-                                          mounted ? context : null,
-                                        );
-
-                                        return response.body!;
+                                        final Isar isar =
+                                            await AppDatabase.instance;
+                                        final AccountRepository accountRepo =
+                                            AccountRepository(isar);
+                                        final List<AutocompleteAccount>
+                                        accounts = await accountRepo
+                                            .autocomplete(
+                                              query: textEditingValue.text,
+                                              types: _destinationAccountType
+                                                  .allowedOpposingTypes(false),
+                                            );
+                                        return accounts;
                                       } catch (e, stackTrace) {
                                         log.severe(
-                                          "Error while fetching autocomplete from API",
+                                          "Error while fetching accounts from local database",
                                           e,
                                           stackTrace,
                                         );
@@ -1782,38 +1733,21 @@ class _TransactionPageState extends State<TransactionPage>
                                       TextEditingValue textEditingValue,
                                     ) async {
                                       try {
-                                        final FireflyIii api =
-                                            context.read<FireflyService>().api;
-                                        fetchOp = CancelableOperation<
-                                          Response<AutocompleteAccountArray>
-                                        >.fromFuture(
-                                          api.v1AutocompleteAccountsGet(
-                                            query: textEditingValue.text,
-                                            types: _sourceAccountType
-                                                .allowedOpposingTypes(true),
-                                          ),
-                                        );
-                                        final Response<
-                                          AutocompleteAccountArray
-                                        >?
-                                        response =
-                                            await fetchOp
-                                                ?.valueOrCancellation();
-                                        if (response == null) {
-                                          // Cancelled
-                                          return const Iterable<
-                                            AutocompleteAccount
-                                          >.empty();
-                                        }
-                                        apiThrowErrorIfEmpty(
-                                          response,
-                                          mounted ? context : null,
-                                        );
-
-                                        return response.body!;
+                                        final Isar isar =
+                                            await AppDatabase.instance;
+                                        final AccountRepository accountRepo =
+                                            AccountRepository(isar);
+                                        final List<AutocompleteAccount>
+                                        accounts = await accountRepo
+                                            .autocomplete(
+                                              query: textEditingValue.text,
+                                              types: _sourceAccountType
+                                                  .allowedOpposingTypes(true),
+                                            );
+                                        return accounts;
                                       } catch (e, stackTrace) {
                                         log.severe(
-                                          "Error while fetching autocomplete from API",
+                                          "Error while fetching accounts from local database",
                                           e,
                                           stackTrace,
                                         );

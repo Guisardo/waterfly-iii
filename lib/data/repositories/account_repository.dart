@@ -85,10 +85,15 @@ class AccountRepository {
             final enums.AccountTypeFilter typeFilter = type;
             switch (typeFilter) {
               case enums.AccountTypeFilter.assetAccount:
+              case enums.AccountTypeFilter.asset:
                 return accountType == enums.ShortAccountTypeProperty.asset;
+              case enums.AccountTypeFilter.cashAccount:
+                return accountType == enums.ShortAccountTypeProperty.cash;
               case enums.AccountTypeFilter.expenseAccount:
+              case enums.AccountTypeFilter.expense:
                 return accountType == enums.ShortAccountTypeProperty.expense;
               case enums.AccountTypeFilter.revenueAccount:
+              case enums.AccountTypeFilter.revenue:
                 return accountType == enums.ShortAccountTypeProperty.revenue;
               case enums.AccountTypeFilter.liabilities:
               case enums.AccountTypeFilter.liability:
@@ -101,12 +106,10 @@ class AccountRepository {
                 return accountType ==
                         enums.ShortAccountTypeProperty.liability ||
                     accountType == enums.ShortAccountTypeProperty.liabilities;
-              case enums.AccountTypeFilter.asset:
+              case enums.AccountTypeFilter.initialBalanceAccount:
+              case enums.AccountTypeFilter.reconciliationAccount:
+                // Internal account types, match to asset
                 return accountType == enums.ShortAccountTypeProperty.asset;
-              case enums.AccountTypeFilter.expense:
-                return accountType == enums.ShortAccountTypeProperty.expense;
-              case enums.AccountTypeFilter.revenue:
-                return accountType == enums.ShortAccountTypeProperty.revenue;
               case enums.AccountTypeFilter.all:
               default:
                 return true;
@@ -192,10 +195,15 @@ class AccountRepository {
             return typesList.any((enums.AccountTypeFilter type) {
               switch (type) {
                 case enums.AccountTypeFilter.assetAccount:
+                case enums.AccountTypeFilter.asset:
                   return accountType == enums.ShortAccountTypeProperty.asset;
+                case enums.AccountTypeFilter.cashAccount:
+                  return accountType == enums.ShortAccountTypeProperty.cash;
                 case enums.AccountTypeFilter.expenseAccount:
+                case enums.AccountTypeFilter.expense:
                   return accountType == enums.ShortAccountTypeProperty.expense;
                 case enums.AccountTypeFilter.revenueAccount:
+                case enums.AccountTypeFilter.revenue:
                   return accountType == enums.ShortAccountTypeProperty.revenue;
                 case enums.AccountTypeFilter.liabilities:
                 case enums.AccountTypeFilter.liability:
@@ -208,12 +216,11 @@ class AccountRepository {
                   return accountType ==
                           enums.ShortAccountTypeProperty.liability ||
                       accountType == enums.ShortAccountTypeProperty.liabilities;
-                case enums.AccountTypeFilter.asset:
+                case enums.AccountTypeFilter.initialBalanceAccount:
+                case enums.AccountTypeFilter.reconciliationAccount:
+                  // These are internal account types, typically not shown in autocomplete
+                  // but we match them to allow selection if needed
                   return accountType == enums.ShortAccountTypeProperty.asset;
-                case enums.AccountTypeFilter.expense:
-                  return accountType == enums.ShortAccountTypeProperty.expense;
-                case enums.AccountTypeFilter.revenue:
-                  return accountType == enums.ShortAccountTypeProperty.revenue;
                 case enums.AccountTypeFilter.all:
                 default:
                   return true;
@@ -221,6 +228,36 @@ class AccountRepository {
             });
           }).toList();
     }
+
+    // Sort filtered accounts: assets first, then by name
+    filtered.sort((AccountRead a, AccountRead b) {
+      // Priority: asset > cash > liability > revenue > expense
+      int getPriority(enums.ShortAccountTypeProperty type) {
+        switch (type) {
+          case enums.ShortAccountTypeProperty.asset:
+            return 0;
+          case enums.ShortAccountTypeProperty.cash:
+            return 1;
+          case enums.ShortAccountTypeProperty.liability:
+          case enums.ShortAccountTypeProperty.liabilities:
+            return 2;
+          case enums.ShortAccountTypeProperty.revenue:
+            return 3;
+          case enums.ShortAccountTypeProperty.expense:
+            return 4;
+          default:
+            return 5;
+        }
+      }
+
+      final int priorityA = getPriority(a.attributes.type);
+      final int priorityB = getPriority(b.attributes.type);
+      if (priorityA != priorityB) {
+        return priorityA.compareTo(priorityB);
+      }
+      // Same type, sort by name
+      return a.attributes.name.compareTo(b.attributes.name);
+    });
 
     // Convert to AutocompleteAccount format
     // Get currency repository for currency names
@@ -241,12 +278,31 @@ class AccountRepository {
                   ? '${account.attributes.name} (${account.attributes.currentBalance})'
                   : account.attributes.name;
 
+          // Convert ShortAccountTypeProperty to AccountTypeProperty value string
+          String getAccountTypeValue(enums.ShortAccountTypeProperty type) {
+            switch (type) {
+              case enums.ShortAccountTypeProperty.asset:
+                return 'Asset account';
+              case enums.ShortAccountTypeProperty.cash:
+                return 'Cash account';
+              case enums.ShortAccountTypeProperty.expense:
+                return 'Expense account';
+              case enums.ShortAccountTypeProperty.revenue:
+                return 'Revenue account';
+              case enums.ShortAccountTypeProperty.liability:
+              case enums.ShortAccountTypeProperty.liabilities:
+                return 'Debt'; // or 'Loan' or 'Mortgage' - default to Debt
+              default:
+                return 'Asset account';
+            }
+          }
+
           return AutocompleteAccount(
             id: account.id,
             name: account.attributes.name,
             nameWithBalance: nameWithBalance,
             active: account.attributes.active,
-            type: account.attributes.type.toString(),
+            type: getAccountTypeValue(account.attributes.type),
             currencyId: account.attributes.currencyId ?? '',
             currencyName: currency?.attributes.name ?? '',
             currencyCode: account.attributes.currencyCode ?? '',
