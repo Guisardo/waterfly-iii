@@ -118,8 +118,8 @@ class RetryManager {
     }
   }
 
-  Future<SyncMetadata?> getMetadata(String entityType) async {
-    return await isar.syncMetadatas
+  Future<SyncMetadata?> getMetadata(String entityType) {
+    return isar.syncMetadatas
         .filter()
         .entityTypeEqualTo(entityType)
         .findFirst();

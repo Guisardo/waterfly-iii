@@ -182,7 +182,7 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                         DateFormat.yMd().add_Hms().format(lastSync),
                       ),
                 ),
-              if (isPaused && !isSyncing) ...[
+              if (isPaused && !isSyncing) ...<Widget>[
                 Text(
                   S.of(context).syncSettingsStatusPaused,
                   style: const TextStyle(color: Colors.orange),
@@ -358,7 +358,7 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                       S.of(context).syncSettingsEntityStatusSyncing,
                       style: TextStyle(color: statusColor, fontSize: 12),
                     ),
-                  if (progress.total > 0) ...[
+                  if (progress.total > 0) ...<Widget>[
                     const SizedBox(height: 4),
                     LinearProgressIndicator(
                       value: progress.current / progress.total,

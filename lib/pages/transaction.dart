@@ -1,15 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:async/async.dart';
 import 'package:badges/badges.dart' as badges;
-import 'package:chopper/chopper.dart' show HttpMethod, Response;
+import 'package:chopper/chopper.dart' show Response;
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_sharing_intent/model/sharing_file.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
@@ -17,19 +14,8 @@ import 'package:provider/provider.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
-import 'package:isar_community/isar.dart';
-import 'package:waterflyiii/data/local/database/app_database.dart';
-import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
-import 'package:waterflyiii/data/local/database/tables/transactions.dart';
-import 'package:waterflyiii/data/repositories/account_repository.dart';
-import 'package:waterflyiii/data/repositories/attachment_repository.dart';
-import 'package:waterflyiii/data/repositories/budget_repository.dart';
-import 'package:waterflyiii/data/repositories/category_repository.dart';
-import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart'
-    as enums;
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/pages/navigation.dart';
@@ -40,62 +26,13 @@ import 'package:waterflyiii/pages/transaction/delete.dart';
 import 'package:waterflyiii/pages/transaction/piggy.dart';
 import 'package:waterflyiii/pages/transaction/tags.dart';
 import 'package:waterflyiii/settings.dart';
+import 'package:isar_community/isar.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/timezonehandler.dart';
 import 'package:waterflyiii/widgets/autocompletetext.dart';
 import 'package:waterflyiii/widgets/input_number.dart';
 import 'package:waterflyiii/widgets/materialiconbutton.dart';
-
-AccountTypeProperty _mapShortAccountTypeToAccountType(dynamic shortTypeInput) {
-  enums.ShortAccountTypeProperty? shortType;
-
-  if (shortTypeInput is enums.ShortAccountTypeProperty) {
-    shortType = shortTypeInput;
-  } else if (shortTypeInput is String) {
-    // Parse ShortAccountTypeProperty from string like "ShortAccountTypeProperty.asset"
-    final String enumName =
-        shortTypeInput.contains('.')
-            ? shortTypeInput.split('.').last
-            : shortTypeInput;
-
-    // Try to find by enum name first
-    shortType = enums.ShortAccountTypeProperty.values.firstWhereOrNull(
-      (enums.ShortAccountTypeProperty e) => e.name == enumName,
-    );
-
-    // If not found, try by value
-    if (shortType == null) {
-      shortType = enums.ShortAccountTypeProperty.values.firstWhereOrNull(
-        (enums.ShortAccountTypeProperty e) =>
-            e.value == enumName || e.value == shortTypeInput,
-      );
-    }
-  }
-
-  if (shortType == null) {
-    return AccountTypeProperty.swaggerGeneratedUnknown;
-  }
-
-  // Map based on the value property
-  switch (shortType.value) {
-    case 'asset':
-      return AccountTypeProperty.assetAccount;
-    case 'expense':
-      return AccountTypeProperty.expenseAccount;
-    case 'revenue':
-      return AccountTypeProperty.revenueAccount;
-    case 'cash':
-      return AccountTypeProperty.cashAccount;
-    case 'liability':
-    case 'liabilities':
-      return AccountTypeProperty.debt; // Default to debt for liability
-    case 'initial-balance':
-      return AccountTypeProperty.initialBalanceAccount;
-    case 'reconciliation':
-      return AccountTypeProperty.reconciliationAccount;
-    default:
-      return AccountTypeProperty.swaggerGeneratedUnknown;
-  }
-}
 
 final Logger log = Logger("Pages.Transaction");
 
@@ -150,7 +87,6 @@ class _TransactionPageState extends State<TransactionPage>
       AccountTypeProperty.swaggerGeneratedUnknown;
   final TextEditingController _localAmountTextController =
       TextEditingController();
-  final FocusNode _localAmountFocusNode = FocusNode();
 
   // Always in card view
   final List<TextEditingController> _categoryTextControllers =
@@ -180,11 +116,9 @@ class _TransactionPageState extends State<TransactionPage>
   final List<double> _localAmounts = <double>[];
   final List<TextEditingController> _localAmountTextControllers =
       <TextEditingController>[];
-  final List<FocusNode> _localAmountFocusNodes = <FocusNode>[];
   final List<double> _foreignAmounts = <double>[];
   final List<TextEditingController> _foreignAmountTextControllers =
       <TextEditingController>[];
-  final List<FocusNode> _foreignAmountFocusNodes = <FocusNode>[];
   final List<CurrencyRead?> _foreignCurrencies = <CurrencyRead?>[];
   final List<String?> _transactionJournalIDs = <String?>[];
   final List<String> _deletedSplitIDs = <String>[];
@@ -321,7 +255,6 @@ class _TransactionPageState extends State<TransactionPage>
             ),
           ),
         );
-        _localAmountFocusNodes.add(FocusNode());
 
         /// source account
         _sourceAccountTextControllers.add(
@@ -347,7 +280,6 @@ class _TransactionPageState extends State<TransactionPage>
             ),
           ),
         );
-        _foreignAmountFocusNodes.add(FocusNode());
         //// foreign currency
         if (trans.foreignCurrencyCode?.isNotEmpty ?? false) {
           _foreignCurrencies.add(
@@ -461,13 +393,15 @@ class _TransactionPageState extends State<TransactionPage>
           }
 
           // Check account
-          final Isar isar = await AppDatabase.instance;
-          final AccountRepository accountRepo = AccountRepository(isar);
-          final List<AccountRead> accounts = await accountRepo.getByType(
-            AccountTypeFilter.assetAccount,
+          final Response<AccountArray> response = await api.v1AccountsGet(
+            type: AccountTypeFilter.assetAccount,
           );
+          if (!response.isSuccessful || response.body == null) {
+            log.warning("api account fetch failed");
+            return;
+          }
           final String settingAppId = appSettings.defaultAccountId ?? "0";
-          for (AccountRead acc in accounts) {
+          for (AccountRead acc in response.body!.data) {
             if (acc.id == settingAppId ||
                 widget.notification!.body.containsIgnoreCase(
                   acc.attributes.name,
@@ -515,12 +449,15 @@ class _TransactionPageState extends State<TransactionPage>
         // Created from account screen, set account already
         if (widget.accountId != null && mounted) {
           // Check account
-          final Isar isar = await AppDatabase.instance;
-          final AccountRepository accountRepo = AccountRepository(isar);
-          final List<AccountRead> accounts = await accountRepo.getByType(
-            AccountTypeFilter.assetAccount,
-          );
-          for (AccountRead acc in accounts) {
+          final Response<AccountArray> response = await context
+              .read<FireflyService>()
+              .api
+              .v1AccountsGet(type: AccountTypeFilter.assetAccount);
+          if (!response.isSuccessful || response.body == null) {
+            log.warning("api account fetch failed");
+            return;
+          }
+          for (AccountRead acc in response.body!.data) {
             if (acc.id == widget.accountId) {
               _sourceAccountTextController.text = acc.attributes.name;
               _sourceAccountType = AccountTypeProperty.assetAccount;
@@ -579,7 +516,6 @@ class _TransactionPageState extends State<TransactionPage>
     _destinationAccountTextController.dispose();
     _destinationAccountFocusNode.dispose();
     _localAmountTextController.dispose();
-    _localAmountFocusNode.dispose();
 
     for (TextEditingController t in _sourceAccountTextControllers) {
       t.dispose();
@@ -620,14 +556,8 @@ class _TransactionPageState extends State<TransactionPage>
     for (TextEditingController t in _localAmountTextControllers) {
       t.dispose();
     }
-    for (FocusNode f in _localAmountFocusNodes) {
-      f.dispose();
-    }
     for (TextEditingController t in _foreignAmountTextControllers) {
       t.dispose();
-    }
-    for (FocusNode f in _foreignAmountFocusNodes) {
-      f.dispose();
     }
 
     for (AnimationController a in _cardsAnimationController) {
@@ -697,10 +627,8 @@ class _TransactionPageState extends State<TransactionPage>
     _titleFocusNodes.removeAt(i).dispose();
     _localAmounts.removeAt(i);
     _localAmountTextControllers.removeAt(i).dispose();
-    _localAmountFocusNodes.removeAt(i).dispose();
     _foreignAmounts.removeAt(i);
     _foreignAmountTextControllers.removeAt(i).dispose();
-    _foreignAmountFocusNodes.removeAt(i).dispose();
     _foreignCurrencies.removeAt(i);
     _deletedSplitIDs.add(_transactionJournalIDs.elementAtOrNull(i) ?? "");
     _transactionJournalIDs.removeAt(i);
@@ -783,10 +711,8 @@ class _TransactionPageState extends State<TransactionPage>
     _titleFocusNodes.add(FocusNode());
     _localAmounts.add(0);
     _localAmountTextControllers.add(TextEditingController());
-    _localAmountFocusNodes.add(FocusNode());
     _foreignAmounts.add(0);
     _foreignAmountTextControllers.add(TextEditingController());
-    _foreignAmountFocusNodes.add(FocusNode());
     _foreignCurrencies.add(_foreignCurrencies.firstOrNull);
     _transactionJournalIDs.add(null);
 
@@ -902,46 +828,17 @@ class _TransactionPageState extends State<TransactionPage>
 
   Future<void> updateAttachmentCount() async {
     try {
-      if (widget.transaction?.id == null) {
-        return;
-      }
-
-      // Capture context values before any async gaps
-      final FireflyService fireflyService = context.read<FireflyService>();
-      final FireflyIii api = fireflyService.api;
-      // Capture context before async - apiThrowErrorIfEmpty checks context?.mounted internally
-      final BuildContext capturedContext = context;
-
-      final Isar isar = await AppDatabase.instance;
-      final AttachmentRepository attachmentRepo = AttachmentRepository(isar);
-
-      // Try to get from repository first
-      final List<AttachmentRead> cachedAttachments = await attachmentRepo
-          .getByTransactionId(widget.transaction!.id);
-
-      if (cachedAttachments.isNotEmpty) {
-        _attachments = cachedAttachments;
-        setState(() {
-          _hasAttachments = _attachments?.isNotEmpty ?? false;
-        });
-      }
-
-      // Also fetch from API to ensure we have the latest (and cache it)
-
+      final FireflyIii api = context.read<FireflyService>().api;
       final Response<AttachmentArray> response = await api
-          .v1TransactionsIdAttachmentsGet(id: widget.transaction!.id);
-      apiThrowErrorIfEmpty(response, mounted ? capturedContext : null);
+          .v1TransactionsIdAttachmentsGet(id: widget.transaction?.id);
+      apiThrowErrorIfEmpty(response, mounted ? context : null);
 
       _attachments = response.body!.data;
-
-      // Cache the attachments in repository
-      await attachmentRepo.upsertListFromSync(_attachments!);
-
       setState(() {
         _hasAttachments = _attachments?.isNotEmpty ?? false;
       });
     } catch (e, stackTrace) {
-      log.severe("Error while fetching attachments", e, stackTrace);
+      log.severe("Error while fetching autocomplete from API", e, stackTrace);
     }
   }
 
@@ -971,96 +868,23 @@ class _TransactionPageState extends State<TransactionPage>
                 _savingInProgress
                     ? null
                     : () async {
-                      // Capture context values before async gaps
                       final ScaffoldMessengerState msg = ScaffoldMessenger.of(
                         context,
                       );
                       final NavigatorState nav = Navigator.of(context);
-                      final FireflyService fireflyService =
-                          context.read<FireflyService>();
-                      final FireflyIii api = fireflyService.api;
-                      final AuthUser? user = fireflyService.user;
-                      final S localizations = S.of(context);
-
-                      // Try to resolve account names from text input if account types are unknown
-                      if (_transactionType ==
-                              TransactionTypeProperty.swaggerGeneratedUnknown ||
-                          _ownAccountId == null) {
-                        try {
-                          final Isar isar = await AppDatabase.instance;
-                          final AccountRepository accountRepo =
-                              AccountRepository(isar);
-
-                          // Try to resolve source account
-                          if (_sourceAccountTextController.text.isNotEmpty &&
-                              _sourceAccountType ==
-                                  AccountTypeProperty.swaggerGeneratedUnknown) {
-                            final List<AccountRead> sourceAccounts =
-                                await accountRepo.search(
-                                  _sourceAccountTextController.text,
-                                );
-                            if (sourceAccounts.isNotEmpty) {
-                              final AccountRead account = sourceAccounts.first;
-                              _sourceAccountType =
-                                  _mapShortAccountTypeToAccountType(
-                                    account.attributes.type,
-                                  );
-                              if (_sourceAccountType ==
-                                      AccountTypeProperty.assetAccount ||
-                                  _sourceAccountType ==
-                                      AccountTypeProperty.debt) {
-                                _ownAccountId = account.id;
-                              }
-                            }
-                          }
-
-                          // Try to resolve destination account
-                          if (_destinationAccountTextController
-                                  .text
-                                  .isNotEmpty &&
-                              _destinationAccountType ==
-                                  AccountTypeProperty.swaggerGeneratedUnknown) {
-                            final List<AccountRead> destAccounts =
-                                await accountRepo.search(
-                                  _destinationAccountTextController.text,
-                                );
-                            if (destAccounts.isNotEmpty) {
-                              final AccountRead account = destAccounts.first;
-                              _destinationAccountType =
-                                  _mapShortAccountTypeToAccountType(
-                                    account.attributes.type,
-                                  );
-                              if (_destinationAccountType ==
-                                      AccountTypeProperty.assetAccount ||
-                                  _destinationAccountType ==
-                                      AccountTypeProperty.debt) {
-                                _ownAccountId = account.id;
-                              }
-                            }
-                          }
-
-                          // Re-check transaction type after resolving accounts
-                          checkTXType();
-                        } catch (e) {
-                          log.warning("Error resolving accounts", e);
-                        }
-                      }
 
                       // Sanity checks
                       String? error;
 
                       if (_ownAccountId == null) {
-                        error = localizations.transactionErrorNoAssetAccount;
+                        error = S.of(context).transactionErrorNoAssetAccount;
                       }
                       if (_titleTextController.text.isEmpty) {
-                        error = localizations.transactionErrorTitle;
-                      }
-                      if (user == null) {
-                        error = localizations.errorAPIUnavailable;
+                        error = S.of(context).transactionErrorTitle;
                       }
                       if (_transactionType ==
                           TransactionTypeProperty.swaggerGeneratedUnknown) {
-                        error = localizations.transactionErrorNoAccounts;
+                        error = S.of(context).transactionErrorNoAccounts;
                       }
                       if (error != null) {
                         msg.showSnackBar(
@@ -1071,22 +895,104 @@ class _TransactionPageState extends State<TransactionPage>
                         );
                         return;
                       }
-                      // Force evaluate any pending math expressions in amount fields
-                      // before reading _localAmounts in the save loop below.
-                      // FocusNode listeners fire synchronously on unfocus(), so
-                      // _onFocusChange → _evaluateExpression → onChanged completes
-                      // before the next line executes.
-                      FocusScope.of(context).unfocus();
-
                       // Do stuff
                       setState(() {
                         _savingInProgress = true;
                       });
 
-                      // Always queue new transactions for sync (local-first architecture)
-                      if (_newTX) {
-                        try {
-                          // Build TransactionStore
+                      // Get the repository
+                      final Isar isar = await AppDatabase.instance;
+                      final TransactionRepository transactionRepo =
+                          TransactionRepository(isar);
+
+                      try {
+                        // Update existing transaction
+                        if (!_newTX) {
+                          final String id = widget.transaction!.id;
+                          final List<TransactionSplitUpdate> txS =
+                              <TransactionSplitUpdate>[];
+                          for (int i = 0; i < _localAmounts.length; i++) {
+                            late String sourceName, destinationName;
+
+                            sourceName = _sourceAccountTextControllers[i].text;
+                            if (sourceName.isEmpty) {
+                              sourceName = _sourceAccountTextController.text;
+                            }
+                            destinationName =
+                                _destinationAccountTextControllers[i].text;
+                            if (destinationName.isEmpty) {
+                              destinationName =
+                                  _destinationAccountTextController.text;
+                            }
+
+                            final TransactionSplitUpdate txSs =
+                                TransactionSplitUpdate(
+                                  amount: _localAmounts[i].toString(),
+                                  billId: _bills[i]?.id ?? "0",
+                                  budgetName:
+                                      (_transactionType ==
+                                              TransactionTypeProperty.withdrawal)
+                                          ? _budgetTextControllers[i].text
+                                          : "",
+                                  categoryName: _categoryTextControllers[i].text,
+                                  date: _date,
+                                  description:
+                                      _split
+                                          ? _titleTextControllers[i].text
+                                          : _titleTextController.text,
+                                  destinationName: destinationName,
+                                  // :HAX: Since nulled fields are not submitted, we set
+                                  // the value to 0 so the foreign currency is gone...
+                                  foreignAmount:
+                                      _foreignCurrencies[i] != null
+                                          ? _foreignAmounts[i].toString()
+                                          : "0",
+                                  foreignCurrencyId: _foreignCurrencies[i]?.id,
+                                  notes: _noteTextControllers[i].text,
+                                  order: i,
+                                  sourceName: sourceName,
+                                  tags: _tags[i].tags,
+                                  transactionJournalId: _transactionJournalIDs
+                                      .elementAtOrNull(i),
+                                  type: _transactionType,
+                                  reconciled: _reconciled,
+                                );
+
+                            final TransactionSplit? oldSplit = widget
+                                .transaction
+                                ?.attributes
+                                .transactions
+                                .firstWhereOrNull(
+                                  (TransactionSplit e) =>
+                                      e.transactionJournalId != null &&
+                                      e.transactionJournalId ==
+                                          txSs.transactionJournalId,
+                                );
+                            if (oldSplit != null) {
+                              txS.add(txFilterSameFields(txSs, oldSplit));
+                            } else {
+                              txS.add(txSs);
+                            }
+                          }
+                          final TransactionUpdate txUpdate = TransactionUpdate(
+                            groupTitle:
+                                _split ? _titleTextController.text : null,
+                            transactions: txS,
+                          );
+
+                          // Queue deleted splits for sync
+                          for (final String splitId in _deletedSplitIDs) {
+                            if (splitId.isNotEmpty) {
+                              log.fine(() => "queuing split $splitId for deletion");
+                              await transactionRepo.deleteSplit(splitId);
+                            }
+                          }
+
+                          // Queue update for sync
+                          await transactionRepo.updateExisting(id, txUpdate);
+                          log.fine(() => "transaction update queued for sync");
+                        } else {
+                          // New transaction
                           final List<TransactionSplitStore> txS =
                               <TransactionSplitStore>[];
                           for (int i = 0; i < _localAmounts.length; i++) {
@@ -1128,6 +1034,8 @@ class _TransactionPageState extends State<TransactionPage>
                                         : "",
                                 categoryName: _categoryTextControllers[i].text,
                                 destinationName: destinationName,
+                                // :HAX: Since nulled fields are not submitted, we set
+                                // the value to 0 so the foreign currency is gone...
                                 foreignAmount:
                                     _foreignCurrencies[i] != null
                                         ? _foreignAmounts[i].toString()
@@ -1150,297 +1058,25 @@ class _TransactionPageState extends State<TransactionPage>
                             errorIfDuplicateHash: true,
                           );
 
-                          // Capture localization strings before async gap
-                          final String savedOfflineMsg =
-                              localizations.transactionSavedOffline;
-
-                          // Create pending change for offline sync
-                          final Isar isar = await AppDatabase.instance;
-                          final PendingChanges pendingChange =
-                              PendingChanges()
-                                ..entityType = 'transactions'
-                                ..entityId = null
-                                ..operation = 'CREATE'
-                                ..data = jsonEncode(newTx.toJson())
-                                ..createdAt = DateTime.now().toUtc()
-                                ..retryCount = 0
-                                ..synced = false;
-
-                          // Create a temporary local transaction row so it appears in the list immediately
-                          // The sync service will update it with the real ID when it processes the PendingChange
-                          final String tempTransactionId =
-                              'pending-${DateTime.now().millisecondsSinceEpoch}';
-                          final Transactions tempTransactionRow =
-                              Transactions()
-                                ..transactionId = tempTransactionId
-                                ..data = jsonEncode(newTx.toJson())
-                                ..updatedAt = null
-                                ..localUpdatedAt = DateTime.now().toUtc()
-                                ..synced = false;
-
-                          await isar.writeTxn(() async {
-                            await isar.pendingChanges.put(pendingChange);
-                            await isar.transactions.put(tempTransactionRow);
-                          });
-
-                          if (mounted) {
-                            msg.showSnackBar(
-                              SnackBar(
-                                content: Text(savedOfflineMsg),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                            nav.pop();
-                          }
-                        } catch (e, stackTrace) {
-                          log.severe(
-                            "Error saving transaction offline",
-                            e,
-                            stackTrace,
-                          );
-                          if (mounted) {
-                            final String errorMsg = localizations.errorUnknown;
-                            msg.showSnackBar(
-                              SnackBar(
-                                content: Text(errorMsg),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          }
-                        } finally {
-                          if (mounted) {
-                            setState(() {
-                              _savingInProgress = false;
-                            });
-                          }
-                        }
-                        return;
-                      }
-
-                      // Update existing transaction (new transactions are handled above via queuing)
-                      if (!_newTX) {
-                        late Response<TransactionSingle> resp;
-                        final String id = widget.transaction!.id;
-                        final List<TransactionSplitUpdate> txS =
-                            <TransactionSplitUpdate>[];
-                        for (int i = 0; i < _localAmounts.length; i++) {
-                          late String sourceName, destinationName;
-
-                          sourceName = _sourceAccountTextControllers[i].text;
-                          if (sourceName.isEmpty) {
-                            sourceName = _sourceAccountTextController.text;
-                          }
-                          destinationName =
-                              _destinationAccountTextControllers[i].text;
-                          if (destinationName.isEmpty) {
-                            destinationName =
-                                _destinationAccountTextController.text;
-                          }
-
-                          final TransactionSplitUpdate
-                          txSs = TransactionSplitUpdate(
-                            amount: _localAmounts[i].toString(),
-                            billId: _bills[i]?.id ?? "0",
-                            budgetName:
-                                (_transactionType ==
-                                        TransactionTypeProperty.withdrawal)
-                                    ? _budgetTextControllers[i].text
-                                    : "",
-                            categoryName: _categoryTextControllers[i].text,
-                            date: _date,
-                            description:
-                                _split
-                                    ? _titleTextControllers[i].text
-                                    : _titleTextController.text,
-                            destinationName: destinationName,
-                            // :HAX: Since nulled fields are not submitted, we set
-                            // the value to 0 so the foreign currency is gone...
-                            foreignAmount:
-                                _foreignCurrencies[i] != null
-                                    ? _foreignAmounts[i].toString()
-                                    : "0",
-                            foreignCurrencyId: _foreignCurrencies[i]?.id,
-                            notes: _noteTextControllers[i].text,
-                            order: i,
-                            sourceName: sourceName,
-                            tags: _tags[i].tags,
-                            transactionJournalId: _transactionJournalIDs
-                                .elementAtOrNull(i),
-                            type: _transactionType,
-                            reconciled: _reconciled,
-                          );
-
-                          final TransactionSplit? oldSplit = widget
-                              .transaction
-                              ?.attributes
-                              .transactions
-                              .firstWhereOrNull(
-                                (TransactionSplit e) =>
-                                    e.transactionJournalId != null &&
-                                    e.transactionJournalId ==
-                                        txSs.transactionJournalId,
-                              );
-                          if (oldSplit != null) {
-                            txS.add(txFilterSameFields(txSs, oldSplit));
-                          } else {
-                            txS.add(txSs);
-                          }
-                        }
-                        final TransactionUpdate txUpdate = TransactionUpdate(
-                          groupTitle: _split ? _titleTextController.text : null,
-                          transactions: txS,
-                        );
-                        // Delete old splits
-                        final List<Future<Response<dynamic>>> futures =
-                            _deletedSplitIDs
-                                .where((String id) => id.isNotEmpty)
-                                .map((String id) {
-                                  log.fine(() => "deleting split $id");
-                                  return api.v1TransactionJournalsIdDelete(
-                                    id: id,
-                                  );
-                                })
-                                .toList();
-                        if (futures.isNotEmpty) {
-                          await Future.wait(futures);
-                        }
-                        resp = await api.v1TransactionsIdPut(
-                          id: id,
-                          body: txUpdate,
-                        );
-
-                        // Check if update was successful
-                        if (!resp.isSuccessful || resp.body == null) {
-                          try {
-                            final ValidationErrorResponse valError =
-                                ValidationErrorResponse.fromJson(
-                                  json.decode(resp.error.toString()),
-                                );
-                            error =
-                                valError.message ??
-                                // ignore: use_build_context_synchronously
-                                (context.mounted
-                                    // ignore: use_build_context_synchronously
-                                    ? S.of(context).errorUnknown
-                                    : "[nocontext] Unknown error.");
-                          } catch (_) {
-                            // ignore: use_build_context_synchronously
-                            error =
-                                context.mounted
-                                    // ignore: use_build_context_synchronously
-                                    ? S.of(context).errorUnknown
-                                    : "[nocontext] Unknown error.";
-                          }
-
-                          msg.showSnackBar(
-                            SnackBar(
-                              content: Text(error),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                          setState(() {
-                            _savingInProgress = false;
-                          });
-                          return;
-                        }
-
-                        // Store transaction in repository after successful API call
-                        final TransactionRead? transactionData =
-                            resp.body?.data;
-                        if (transactionData != null) {
-                          // ignore: unnecessary_null_comparison
-                          final Isar isar = await AppDatabase.instance;
-                          final TransactionRepository txRepo =
-                              TransactionRepository(isar);
-                          // Use upsertFromSync since transaction is already synced with server
-                          await txRepo.upsertFromSync(resp.body!.data);
-                        }
-
-                        // Upload attachments if required
-                        if ((_attachments?.isNotEmpty ?? false) &&
-                            _transactionJournalIDs.firstWhereOrNull(
-                                  (String? e) => e != null,
-                                ) ==
-                                null) {
+                          // Create locally and queue for sync
+                          final String pendingId =
+                              await transactionRepo.createNew(newTx);
                           log.fine(
                             () =>
-                                "uploading ${_attachments!.length} attachments",
+                                "transaction created locally with id: $pendingId, queued for sync",
                           );
-                          final TransactionSplit? tx = resp
-                              .body
-                              ?.data
-                              .attributes
-                              .transactions
-                              .firstWhereOrNull(
-                                (TransactionSplit e) =>
-                                    e.transactionJournalId != null,
-                              );
-                          if (tx != null) {
-                            final String txId = tx.transactionJournalId!;
-                            log.finest(() => "uploading to txId $txId");
-                            for (AttachmentRead attachment in _attachments!) {
-                              log.finest(
-                                () =>
-                                    "uploading attachment ${attachment.id}: ${attachment.attributes.filename}",
-                              );
-                              final Response<AttachmentSingle> respAttachment =
-                                  await api.v1AttachmentsPost(
-                                    body: AttachmentStore(
-                                      filename: attachment.attributes.filename!,
-                                      attachableType:
-                                          AttachableType.transactionjournal,
-                                      attachableId: txId,
-                                    ),
-                                  );
-                              if (!respAttachment.isSuccessful ||
-                                  respAttachment.body == null) {
-                                log.warning(() => "error uploading attachment");
-                                continue;
-                              }
-                              final AttachmentRead newAttachment =
-                                  respAttachment.body!.data;
-                              log.finest(
-                                () => "attachment id is ${newAttachment.id}",
-                              );
 
-                              final File file = File(
-                                attachment.attributes.uploadUrl!,
-                              );
-
-                              final http.StreamedRequest request =
-                                  http.StreamedRequest(
-                                    HttpMethod.Post,
-                                    Uri.parse(
-                                      newAttachment.attributes.uploadUrl!,
-                                    ),
-                                  );
-                              request.headers.addAll(user!.headers());
-                              request.headers[HttpHeaders.contentTypeHeader] =
-                                  ContentType.binary.mimeType;
-                              request.contentLength = await file.length();
-                              log.fine(
-                                () =>
-                                    "AttachmentUpload: Starting Upload ${newAttachment.id}",
-                              );
-
-                              file.openRead().listen(
-                                (List<int> data) {
-                                  log.finest(() => "sent ${data.length} bytes");
-                                  request.sink.add(data);
-                                },
-                                onDone: () {
-                                  request.sink.close();
-                                },
-                              );
-
-                              await httpClient.send(request);
-
-                              log.fine(() => "done uploading attachment");
-                            }
+                          // Note: Attachments for new pending transactions will be
+                          // uploaded after the transaction is synced and has a real ID
+                          if (_attachments?.isNotEmpty ?? false) {
+                            log.info(
+                              () =>
+                                  "attachments will be uploaded after transaction is synced",
+                            );
                           }
                         }
 
-                        // Done saving
+                        // Done saving locally
                         setState(() => _savingInProgress = false);
 
                         if (nav.canPop()) {
@@ -1468,11 +1104,28 @@ class _TransactionPageState extends State<TransactionPage>
                           );
                           await nav.pushReplacement(
                             MaterialPageRoute<bool>(
-                              builder:
-                                  (BuildContext context) => const NavPage(),
+                              builder: (BuildContext context) =>
+                                  const NavPage(),
                             ),
                           );
                         }
+                      } catch (e, stackTrace) {
+                        log.severe("Error saving transaction", e, stackTrace);
+                        // ignore: use_build_context_synchronously
+                        error =
+                            context.mounted
+                                // ignore: use_build_context_synchronously
+                                ? S.of(context).errorUnknown
+                                : "[nocontext] Unknown error.";
+                        msg.showSnackBar(
+                          SnackBar(
+                            content: Text(error),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        setState(() {
+                          _savingInProgress = false;
+                        });
                       }
                     },
             child:
@@ -1510,8 +1163,8 @@ class _TransactionPageState extends State<TransactionPage>
     const Widget hDivider = SizedBox(height: 16);
     const Widget vDivider = SizedBox(width: 16);
 
-    CancelableOperation<List<AutocompleteAccount>>? fetchOpSource;
-    CancelableOperation<List<AutocompleteAccount>>? fetchOpDestination;
+    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOpSource;
+    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOpDestination;
 
     // Title
     childs.add(
@@ -1575,7 +1228,6 @@ class _TransactionPageState extends State<TransactionPage>
                   decimals: _localCurrency?.attributes.decimalPlaces ?? 2,
                   //style: Theme.of(context).textTheme.headlineLarge,
                   controller: _localAmountTextController,
-                  focusNode: _localAmountFocusNode,
                   disabled:
                       _savingInProgress ||
                       _split ||
@@ -1638,8 +1290,9 @@ class _TransactionPageState extends State<TransactionPage>
                         in _sourceAccountTextControllers) {
                       e.text = option.name;
                     }
-                    _sourceAccountType = _mapShortAccountTypeToAccountType(
-                      option.type,
+                    _sourceAccountType = AccountTypeProperty.values.firstWhere(
+                      (AccountTypeProperty e) => e.value == option.type,
+                      orElse: () => AccountTypeProperty.swaggerGeneratedUnknown,
                     );
                     log.finer(
                       () =>
@@ -1659,34 +1312,29 @@ class _TransactionPageState extends State<TransactionPage>
                     try {
                       unawaited(fetchOpSource?.cancel());
 
-                      final Isar isar = await AppDatabase.instance;
-                      final AccountRepository repo = AccountRepository(isar);
-
-                      // Source account should only show asset accounts
-                      final List<enums.AccountTypeFilter> types =
-                          <enums.AccountTypeFilter>[
-                            enums.AccountTypeFilter.assetAccount,
-                          ];
-
+                      final FireflyIii api = context.read<FireflyService>().api;
                       fetchOpSource = CancelableOperation<
-                        List<AutocompleteAccount>
+                        Response<AutocompleteAccountArray>
                       >.fromFuture(
-                        repo.autocomplete(
+                        api.v1AutocompleteAccountsGet(
                           query: textEditingValue.text,
-                          types: types,
+                          types: _destinationAccountType.allowedOpposingTypes(
+                            false,
+                          ),
                         ),
                       );
-                      final List<AutocompleteAccount>? results =
+                      final Response<AutocompleteAccountArray>? response =
                           await fetchOpSource?.valueOrCancellation();
-                      if (results == null) {
+                      if (response == null) {
                         // Cancelled
                         return const Iterable<AutocompleteAccount>.empty();
                       }
+                      apiThrowErrorIfEmpty(response, mounted ? context : null);
 
-                      return results;
+                      return response.body!;
                     } catch (e, stackTrace) {
                       log.severe(
-                        "Error while fetching autocomplete from repository",
+                        "Error while fetching autocomplete from API",
                         e,
                         stackTrace,
                       );
@@ -1742,8 +1390,13 @@ class _TransactionPageState extends State<TransactionPage>
                           in _destinationAccountTextControllers) {
                         e.text = option.name;
                       }
-                      _destinationAccountType =
-                          _mapShortAccountTypeToAccountType(option.type);
+                      _destinationAccountType = AccountTypeProperty.values
+                          .firstWhere(
+                            (AccountTypeProperty e) => e.value == option.type,
+                            orElse:
+                                () =>
+                                    AccountTypeProperty.swaggerGeneratedUnknown,
+                          );
                       if (_destinationAccountType ==
                               AccountTypeProperty.assetAccount ||
                           _destinationAccountType == AccountTypeProperty.debt) {
@@ -1760,29 +1413,30 @@ class _TransactionPageState extends State<TransactionPage>
                       try {
                         unawaited(fetchOpDestination?.cancel());
 
-                        final Isar isar = await AppDatabase.instance;
-                        final AccountRepository repo = AccountRepository(isar);
-
-                        // Get allowed opposing account types (already returns AccountTypeFilter list)
-                        final List<enums.AccountTypeFilter> types =
-                            _sourceAccountType.allowedOpposingTypes(true);
-
+                        final FireflyIii api =
+                            context.read<FireflyService>().api;
                         fetchOpDestination = CancelableOperation<
-                          List<AutocompleteAccount>
+                          Response<AutocompleteAccountArray>
                         >.fromFuture(
-                          repo.autocomplete(
+                          api.v1AutocompleteAccountsGet(
                             query: textEditingValue.text,
-                            types: types,
+                            types: _sourceAccountType.allowedOpposingTypes(
+                              true,
+                            ),
                           ),
                         );
-                        final List<AutocompleteAccount>? results =
+                        final Response<AutocompleteAccountArray>? response =
                             await fetchOpDestination?.valueOrCancellation();
-                        if (results == null) {
+                        if (response == null) {
                           // Cancelled
                           return const Iterable<AutocompleteAccount>.empty();
                         }
+                        apiThrowErrorIfEmpty(
+                          response,
+                          mounted ? context : null,
+                        );
 
-                        return results;
+                        return response.body!;
                       } catch (e, stackTrace) {
                         log.severe(
                           "Error while fetching autocomplete from API",
@@ -1994,7 +1648,7 @@ class _TransactionPageState extends State<TransactionPage>
   Card _buildSplitWidget(BuildContext context, int i) {
     const Widget hDivider = SizedBox(height: 16);
 
-    CancelableOperation<List<AutocompleteAccount>>? fetchOp;
+    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOp;
 
     return Card(
       key: ValueKey<int>(i),
@@ -2050,37 +1704,35 @@ class _TransactionPageState extends State<TransactionPage>
                                       try {
                                         unawaited(fetchOp?.cancel());
 
-                                        final Isar isar =
-                                            await AppDatabase.instance;
-                                        final AccountRepository repo =
-                                            AccountRepository(isar);
-
-                                        // Source account should only show asset accounts
-                                        final List<enums.AccountTypeFilter>
-                                        types = <enums.AccountTypeFilter>[
-                                          enums.AccountTypeFilter.assetAccount,
-                                        ];
-
+                                        final FireflyIii api =
+                                            context.read<FireflyService>().api;
                                         fetchOp = CancelableOperation<
-                                          List<AutocompleteAccount>
+                                          Response<AutocompleteAccountArray>
                                         >.fromFuture(
-                                          repo.autocomplete(
+                                          api.v1AutocompleteAccountsGet(
                                             query: textEditingValue.text,
-                                            types: types,
+                                            types: _destinationAccountType
+                                                .allowedOpposingTypes(false),
                                           ),
                                         );
-                                        final List<AutocompleteAccount>?
-                                        results =
+                                        final Response<
+                                          AutocompleteAccountArray
+                                        >?
+                                        response =
                                             await fetchOp
                                                 ?.valueOrCancellation();
-                                        if (results == null) {
+                                        if (response == null) {
                                           // Cancelled
                                           return const Iterable<
                                             AutocompleteAccount
                                           >.empty();
                                         }
+                                        apiThrowErrorIfEmpty(
+                                          response,
+                                          mounted ? context : null,
+                                        );
 
-                                        return results;
+                                        return response.body!;
                                       } catch (e, stackTrace) {
                                         log.severe(
                                           "Error while fetching autocomplete from API",
@@ -2130,36 +1782,35 @@ class _TransactionPageState extends State<TransactionPage>
                                       TextEditingValue textEditingValue,
                                     ) async {
                                       try {
-                                        final Isar isar =
-                                            await AppDatabase.instance;
-                                        final AccountRepository repo =
-                                            AccountRepository(isar);
-
-                                        // Get allowed opposing account types (already returns AccountTypeFilter list)
-                                        final List<enums.AccountTypeFilter>
-                                        types = _sourceAccountType
-                                            .allowedOpposingTypes(true);
-
+                                        final FireflyIii api =
+                                            context.read<FireflyService>().api;
                                         fetchOp = CancelableOperation<
-                                          List<AutocompleteAccount>
+                                          Response<AutocompleteAccountArray>
                                         >.fromFuture(
-                                          repo.autocomplete(
+                                          api.v1AutocompleteAccountsGet(
                                             query: textEditingValue.text,
-                                            types: types,
+                                            types: _sourceAccountType
+                                                .allowedOpposingTypes(true),
                                           ),
                                         );
-                                        final List<AutocompleteAccount>?
-                                        results =
+                                        final Response<
+                                          AutocompleteAccountArray
+                                        >?
+                                        response =
                                             await fetchOp
                                                 ?.valueOrCancellation();
-                                        if (results == null) {
+                                        if (response == null) {
                                           // Cancelled
                                           return const Iterable<
                                             AutocompleteAccount
                                           >.empty();
                                         }
+                                        apiThrowErrorIfEmpty(
+                                          response,
+                                          mounted ? context : null,
+                                        );
 
-                                        return results;
+                                        return response.body!;
                                       } catch (e, stackTrace) {
                                         log.severe(
                                           "Error while fetching autocomplete from API",
@@ -2223,10 +1874,6 @@ class _TransactionPageState extends State<TransactionPage>
                                         (_foreignCurrencies[i] != null)
                                             ? _foreignAmountTextControllers[i]
                                             : _localAmountTextControllers[i],
-                                    focusNode:
-                                        (_foreignCurrencies[i] != null)
-                                            ? _foreignAmountFocusNodes[i]
-                                            : _localAmountFocusNodes[i],
                                     hintText:
                                         _foreignCurrencies[i]?.zero() ??
                                         _localCurrency?.zero() ??
@@ -2278,7 +1925,6 @@ class _TransactionPageState extends State<TransactionPage>
                                   child: NumberInput(
                                     icon: const Icon(Icons.currency_exchange),
                                     controller: _localAmountTextControllers[i],
-                                    focusNode: _localAmountFocusNodes[i],
                                     hintText:
                                         _localCurrency?.zero() ??
                                         NumberFormat.currency(
@@ -2651,14 +2297,12 @@ class TransactionDeleteButton extends StatelessWidget {
                   return;
                 }
 
-                // Delete via repository (queues for sync)
-                final String? id = transactionId;
-                if (id != null) {
+                if (transactionId != null) {
+                  // Use repository to queue deletion for sync
                   final Isar isar = await AppDatabase.instance;
-                  final TransactionRepository txRepo = TransactionRepository(
-                    isar,
-                  );
-                  await txRepo.delete(id);
+                  final TransactionRepository transactionRepo =
+                      TransactionRepository(isar);
+                  await transactionRepo.delete(transactionId!);
                 }
                 nav.pop(true);
               },
@@ -2680,7 +2324,7 @@ class TransactionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final Logger log = Logger("Pages.Transaction.Title");
 
-    CancelableOperation<List<String>>? fetchOp;
+    CancelableOperation<Response<AutocompleteTransactionArray>>? fetchOp;
 
     log.finest(() => "build()");
     return Expanded(
@@ -2694,32 +2338,21 @@ class TransactionTitle extends StatelessWidget {
           try {
             unawaited(fetchOp?.cancel());
 
-            final Isar isar = await AppDatabase.instance;
-            final TransactionRepository repo = TransactionRepository(isar);
-
-            // Search transactions and return description/title
-            final List<TransactionRead> transactions = await repo.search(
-              textEditingValue.text,
+            final FireflyIii api = context.read<FireflyService>().api;
+            fetchOp = CancelableOperation<
+              Response<AutocompleteTransactionArray>
+            >.fromFuture(
+              api.v1AutocompleteTransactionsGet(query: textEditingValue.text),
             );
-            final Set<String> uniqueTitles = <String>{};
-            for (final TransactionRead tx in transactions) {
-              final String? description =
-                  tx.attributes.transactions.firstOrNull?.description;
-              if (description != null && description.isNotEmpty) {
-                uniqueTitles.add(description);
-              }
-            }
-
-            fetchOp = CancelableOperation<List<String>>.fromFuture(
-              Future<List<String>>.value(uniqueTitles.toList()),
-            );
-            final List<String>? results = await fetchOp?.valueOrCancellation();
-            if (results == null) {
+            final Response<AutocompleteTransactionArray>? response =
+                await fetchOp?.valueOrCancellation();
+            if (response == null) {
               // Cancelled
               return const Iterable<String>.empty();
             }
+            apiThrowErrorIfEmpty(response, context.mounted ? context : null);
 
-            return results;
+            return response.body!.map((AutocompleteTransaction e) => e.name);
           } catch (e, stackTrace) {
             log.severe(
               "Error while fetching autocomplete from API",
@@ -2778,7 +2411,7 @@ class TransactionCategory extends StatelessWidget {
   Widget build(BuildContext context) {
     final Logger log = Logger("Pages.Transaction.Category");
 
-    CancelableOperation<List<String>>? fetchOp;
+    CancelableOperation<Response<AutocompleteCategoryArray>>? fetchOp;
 
     log.finest(() => "build()");
     return Row(
@@ -2794,20 +2427,24 @@ class TransactionCategory extends StatelessWidget {
               try {
                 unawaited(fetchOp?.cancel());
 
-                final Isar isar = await AppDatabase.instance;
-                final CategoryRepository repo = CategoryRepository(isar);
-
-                fetchOp = CancelableOperation<List<String>>.fromFuture(
-                  repo.autocomplete(textEditingValue.text),
+                final FireflyIii api = context.read<FireflyService>().api;
+                fetchOp = CancelableOperation<
+                  Response<AutocompleteCategoryArray>
+                >.fromFuture(
+                  api.v1AutocompleteCategoriesGet(query: textEditingValue.text),
                 );
-                final List<String>? results =
+                final Response<AutocompleteCategoryArray>? response =
                     await fetchOp?.valueOrCancellation();
-                if (results == null) {
+                if (response == null) {
                   // Cancelled
                   return const Iterable<String>.empty();
                 }
+                apiThrowErrorIfEmpty(
+                  response,
+                  context.mounted ? context : null,
+                );
 
-                return results;
+                return response.body!.map((AutocompleteCategory e) => e.name);
               } catch (e, stackTrace) {
                 log.severe(
                   "Error while fetching autocomplete from API",
@@ -2860,22 +2497,21 @@ class _TransactionBudgetState extends State<TransactionBudget> {
         return;
       }
       try {
-        final Isar isar = await AppDatabase.instance;
-        final BudgetRepository repo = BudgetRepository(isar);
-        final List<AutocompleteBudget> budgets = await repo.autocomplete(
-          widget.textController.text,
-        );
+        final FireflyIii api = context.read<FireflyService>().api;
+        final Response<AutocompleteBudgetArray> response = await api
+            .v1AutocompleteBudgetsGet(query: widget.textController.text);
+        apiThrowErrorIfEmpty(response, mounted ? context : null);
 
-        if (budgets.isEmpty ||
-            (budgets.length > 1 &&
-                budgets.first.name != widget.textController.text)) {
+        if (response.body!.isEmpty ||
+            (response.body!.length > 1 &&
+                response.body!.first.name != widget.textController.text)) {
           setState(() {
             _budgetId = null;
           });
         } else {
-          widget.textController.text = budgets.first.name;
+          widget.textController.text = response.body!.first.name;
           setState(() {
-            _budgetId = budgets.first.id;
+            _budgetId = response.body!.first.id;
           });
         }
       } catch (e, stackTrace) {
@@ -2886,7 +2522,7 @@ class _TransactionBudgetState extends State<TransactionBudget> {
 
   @override
   Widget build(BuildContext context) {
-    CancelableOperation<List<AutocompleteBudget>>? fetchOp;
+    CancelableOperation<Response<AutocompleteBudgetArray>>? fetchOp;
 
     log.finest(() => "build()");
     return Row(
@@ -2913,21 +2549,21 @@ class _TransactionBudgetState extends State<TransactionBudget> {
               try {
                 unawaited(fetchOp?.cancel());
 
-                final Isar isar = await AppDatabase.instance;
-                final BudgetRepository repo = BudgetRepository(isar);
-
-                fetchOp =
-                    CancelableOperation<List<AutocompleteBudget>>.fromFuture(
-                      repo.autocomplete(textEditingValue.text),
-                    );
-                final List<AutocompleteBudget>? results =
+                final FireflyIii api = context.read<FireflyService>().api;
+                fetchOp = CancelableOperation<
+                  Response<AutocompleteBudgetArray>
+                >.fromFuture(
+                  api.v1AutocompleteBudgetsGet(query: textEditingValue.text),
+                );
+                final Response<AutocompleteBudgetArray>? response =
                     await fetchOp?.valueOrCancellation();
-                if (results == null) {
+                if (response == null) {
                   // Cancelled
                   return const Iterable<AutocompleteBudget>.empty();
                 }
+                apiThrowErrorIfEmpty(response, mounted ? context : null);
 
-                return results;
+                return response.body!;
               } catch (e, stackTrace) {
                 log.severe(
                   "Error while fetching autocomplete from API",

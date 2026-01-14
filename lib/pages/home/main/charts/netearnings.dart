@@ -49,8 +49,8 @@ class NetEarningsChart extends StatelessWidget {
 
     // Check if all values are zero
     final bool allZero =
-        incomeChartData.every((e) => e.amount == 0) &&
-        expenseChartData.every((e) => e.amount == 0);
+        incomeChartData.every((LabelAmountChart e) => e.amount == 0) &&
+        expenseChartData.every((LabelAmountChart e) => e.amount == 0);
 
     // Show placeholder if no data or all zeros
     if ((incomeChartData.isEmpty && expenseChartData.isEmpty) || allZero) {
