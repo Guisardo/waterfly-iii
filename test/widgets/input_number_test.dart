@@ -65,10 +65,67 @@ void main() {
       expect(await evaluateInWidget(tester, '1/3'), '0.33');
     });
 
-    testWidgets('- respects operator precedence', (tester) async {
+    testWidgets('- respects operator precedence (direct controller)', (tester) async {
       // 1 + (2*3) = 7, not (1+2)*3 = 9
       expect(await evaluateInWidget(tester, '1+2*3'), '7.00');
       expect(await evaluateInWidget(tester, '10-2*3'), '4.00');
+    });
+
+    testWidgets('- respects operator precedence when typing (user input)', (tester) async {
+      // This test simulates actual user input through the widget
+      // to ensure input formatters don't break operator precedence
+      final TextEditingController controller = TextEditingController();
+      final FocusNode focusNode = FocusNode();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: <Widget>[
+                NumberInput(controller: controller, decimals: 2),
+                // Another focusable widget to shift focus away
+                TextField(key: const Key('other'), focusNode: focusNode),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Focus the NumberInput
+      await tester.tap(find.byType(NumberInput));
+      await tester.pump();
+
+      // Simulate typing character by character through input formatters
+      // The bug: when second operator (*) is typed, formatter evaluates 1+2=3
+      // resulting in '3*' instead of '1+2*'
+      await tester.enterText(find.byType(NumberInput), '1');
+      await tester.pump();
+      expect(controller.text, '1');
+
+      await tester.enterText(find.byType(NumberInput), '1+');
+      await tester.pump();
+      expect(controller.text, '1+');
+
+      await tester.enterText(find.byType(NumberInput), '1+2');
+      await tester.pump();
+      expect(controller.text, '1+2');
+
+      // This is where the bug occurs - second operator triggers premature evaluation
+      await tester.enterText(find.byType(NumberInput), '1+2*');
+      await tester.pump();
+      // BUG: Currently becomes '3.00*' instead of '1+2*'
+      expect(controller.text, '1+2*');
+
+      await tester.enterText(find.byType(NumberInput), '1+2*3');
+      await tester.pump();
+      expect(controller.text, '1+2*3');
+
+      // Unfocus to trigger evaluation
+      focusNode.requestFocus();
+      await tester.pump();
+
+      // Should be 7.00 (respecting operator precedence), not 9.00
+      expect(controller.text, '7.00');
     });
 
     testWidgets('- rounds to 2 decimals correctly', (tester) async {
