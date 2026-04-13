@@ -15,10 +15,13 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     name: Analyze and Test
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       # Call setup_env action to setup workspace
       - name: Setup Flutter environment
