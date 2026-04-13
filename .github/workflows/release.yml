@@ -41,16 +41,15 @@ jobs:
 
       # Generate keystore from base64 secret
       - name: Generate keystore
-        uses: timheuer/base64-to-file@784a1a4a994315802b7d8e2084e116e783d157be # v1.2.4
-        id: android_keystore
-        with:
-          fileName: upload-keystore.jks
-          encodedString: ${{ secrets.KEYSTORE_BASE64 }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > "${{ runner.temp }}/upload-keystore.jks"
 
       # Create key.properties file for signing
       - name: Create key.properties
         run: |
-          echo "storeFile=${{ steps.android_keystore.outputs.filePath }}" > ${{env.PROPERTIES_PATH}}
+          echo "storeFile=${{ runner.temp }}/upload-keystore.jks" > ${{env.PROPERTIES_PATH}}
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> ${{env.PROPERTIES_PATH}}
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> ${{env.PROPERTIES_PATH}}
           echo "keyAlias=upload" >> ${{env.PROPERTIES_PATH}}
