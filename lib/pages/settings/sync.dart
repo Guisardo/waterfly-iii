@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
+import 'package:waterflyiii/pages/login.dart';
 import 'package:waterflyiii/services/sync/sync_service.dart';
 import 'package:waterflyiii/services/sync/sync_status_provider.dart';
 import 'package:waterflyiii/settings.dart';
@@ -70,8 +71,12 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                 syncStatus.authMetadata?.credentialsInvalid ?? false
                     ? ElevatedButton(
                       onPressed: () {
-                        // Navigate to login or show credential update dialog
-                        Navigator.pushNamed(context, '/login');
+                        Navigator.of(context).push(
+                          MaterialPageRoute<Widget>(
+                            builder: (BuildContext context) =>
+                                const LoginPage(),
+                          ),
+                        );
                       },
                       child: Text(S.of(context).syncSettingsReenterButton),
                     )
