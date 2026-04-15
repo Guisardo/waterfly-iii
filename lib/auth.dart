@@ -118,6 +118,7 @@ class APIRequestInterceptor implements Interceptor {
     );
     request.followRedirects = true;
     request.maxRedirects = 5;
+
     return chain.proceed(request);
   }
 }
@@ -201,7 +202,9 @@ class AuthUser {
       // See #497, redirect is a bad way to check for (un)successful login.
       request.followRedirects = true;
       request.maxRedirects = 5;
-      final http.StreamedResponse response = await client.send(request);
+      final http.StreamedResponse response = await client
+          .send(request)
+          .timeout(const Duration(seconds: 30));
 
       // If we get an html page, it's most likely the login page, and auth failed
       if (response.headers[HttpHeaders.contentTypeHeader]?.startsWith(
@@ -214,7 +217,9 @@ class AuthUser {
         throw AuthErrorStatusCode(response.statusCode);
       }
 
-      final String stringData = await response.stream.bytesToString();
+      final String stringData = await response.stream
+          .bytesToString()
+          .timeout(const Duration(seconds: 30));
 
       try {
         SystemInfo.fromJson(json.decode(stringData));
@@ -281,8 +286,14 @@ class FireflyService with ChangeNotifier {
     notifyListeners();
 
     try {
-      final String? apiHost = await storage.read(key: 'api_host');
-      final String? apiKey = await storage.read(key: 'api_key');
+      // Use timeouts on FlutterSecureStorage reads to prevent indefinite
+      // hangs caused by Android Keystore becoming temporarily unavailable.
+      final String? apiHost = await storage
+          .read(key: 'api_host')
+          .timeout(const Duration(seconds: 15));
+      final String? apiKey = await storage
+          .read(key: 'api_key')
+          .timeout(const Duration(seconds: 15));
 
       log.config(
         "restoreFromStorage: $apiHost, apiKey ${apiKey?.isEmpty ?? true ? "unset" : "set"}",
@@ -451,6 +462,24 @@ class FireflyService with ChangeNotifier {
         try {
           final Isar isar = await AppDatabase.instance;
 
+          // Clear stale credentialsInvalid flag so sync is not blocked
+          // after user enters new credentials. At this point signIn() has
+          // already verified the credentials are working.
+          final SyncMetadata? staleAuthMeta =
+              await isar.syncMetadatas
+                  .filter()
+                  .entityTypeEqualTo('auth')
+                  .findFirst();
+          if (staleAuthMeta != null) {
+            staleAuthMeta
+              ..credentialsInvalid = false
+              ..credentialsValidated = false;
+            await isar.writeTxn(() async {
+              await isar.syncMetadatas.put(staleAuthMeta);
+            });
+            log.config("Reset credentials metadata after new login");
+          }
+
           // Check if this is first-time login (no sync metadata exists)
           final SyncMetadata? downloadMetadata =
               await isar.syncMetadatas
@@ -527,7 +556,9 @@ class FireflyService with ChangeNotifier {
         customHeaders: customHeaders,
       );
       final Response<CurrencySingle> currencyInfo =
-          await nextUser.api.v1CurrenciesPrimaryGet();
+          await nextUser.api.v1CurrenciesPrimaryGet().timeout(
+            const Duration(seconds: 30),
+          );
       final CurrencyRead nextDefaultCurrency = currencyInfo.body!.data;
 
       // Store default currency ID for future restoreFromStorage() calls
@@ -538,7 +569,9 @@ class FireflyService with ChangeNotifier {
         log.finer(() => "Could not store default currency ID: $e");
       }
 
-      final Response<SystemInfo> about = await nextUser.api.v1AboutGet();
+      final Response<SystemInfo> about = await nextUser.api
+          .v1AboutGet()
+          .timeout(const Duration(seconds: 30));
       late Version nextApiVersion;
       try {
         String apiVersionStr = about.body?.data?.apiVersion ?? "";
@@ -570,10 +603,9 @@ class FireflyService with ChangeNotifier {
       );
       late TimeZoneHandler nextTzHandler;
       try {
-        final http.Response response = await client.get(
-          tzUri,
-          headers: nextUser.headers(),
-        );
+        final http.Response response = await client
+            .get(tzUri, headers: nextUser.headers())
+            .timeout(const Duration(seconds: 30));
         final APITZReply reply = APITZReply.fromJson(
           json.decode(response.body),
         );
@@ -592,22 +624,44 @@ class FireflyService with ChangeNotifier {
       log.finest(() => "notify FireflyService->signIn");
       notifyListeners();
 
-      await storage.write(key: 'api_host', value: host);
-      await storage.write(key: 'api_key', value: apiKey);
-      if (customHeaders.isNotEmpty) {
-        await storage.write(
-          key: 'api_headers',
-          value: encodeCustomHeaders(customHeaders),
-        );
-      }
+      // Write credentials in background — do NOT block signIn() return on
+      // FlutterSecureStorage, which can hang indefinitely on Android Keystore.
+      // notifyListeners() already fired above so the UI can proceed.
+      unawaited(
+        Future<void>(() async {
+          try {
+            await storage
+                .write(key: 'api_host', value: host)
+                .timeout(const Duration(seconds: 15));
+            await storage
+                .write(key: 'api_key', value: apiKey)
+                .timeout(const Duration(seconds: 15));
+            if (customHeaders.isNotEmpty) {
+              await storage
+                  .write(
+                    key: 'api_headers',
+                    value: encodeCustomHeaders(customHeaders),
+                  )
+                  .timeout(const Duration(seconds: 15));
+            }
+            log.info('Credentials saved to storage successfully');
+          } catch (e) {
+            log.warning('Failed to save credentials to storage: $e', e);
+          }
 
-      // Store timezone for future restoreFromStorage() calls
-      try {
-        final SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('server_timezone', tzHandler.serverTimezone);
-      } catch (e) {
-        log.finer(() => "Could not store timezone: $e");
-      }
+          // Store timezone for future restoreFromStorage() calls
+          try {
+            final SharedPreferences prefs =
+                await SharedPreferences.getInstance();
+            await prefs.setString(
+              'server_timezone',
+              tzHandler.serverTimezone,
+            );
+          } catch (e) {
+            log.finer(() => "Could not store timezone: $e");
+          }
+        }),
+      );
 
       // Trigger initial sync in background
       unawaited(_triggerInitialSync());

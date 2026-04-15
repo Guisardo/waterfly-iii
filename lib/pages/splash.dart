@@ -23,6 +23,7 @@ class _SplashPageState extends State<SplashPage> {
   final Logger log = Logger("Pages.Splash.Page");
 
   Object? _loginError;
+  bool _loginInProgress = false;
 
   Future<void> _login(String? host, String? apiKey) async {
     log.fine(() => "SplashPage->_login()");
@@ -52,9 +53,18 @@ class _SplashPageState extends State<SplashPage> {
         e,
         stackTrace,
       );
-      setState(() {
-        _loginError = e;
-      });
+      if (mounted) {
+        setState(() {
+          _loginError = e;
+        });
+      }
+    } finally {
+      // Allow auto-pop now that login attempt is complete
+      if (mounted) {
+        setState(() {
+          _loginInProgress = false;
+        });
+      }
     }
 
     log.fine(() => "_login() returning $success");
@@ -67,6 +77,7 @@ class _SplashPageState extends State<SplashPage> {
     super.initState();
 
     if (widget.host != null && widget.apiKey != null) {
+      _loginInProgress = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         log.finest(() => "initState() scheduling login");
         _login(widget.host, widget.apiKey);
@@ -81,7 +92,7 @@ class _SplashPageState extends State<SplashPage> {
     // Watch for authentication state changes reactively
     final FireflyService fireflyService = context.watch<FireflyService>();
 
-    if (fireflyService.signedIn) {
+    if (fireflyService.signedIn && !_loginInProgress && _loginError == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
       });
