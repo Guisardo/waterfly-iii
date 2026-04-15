@@ -920,6 +920,13 @@ class _TransactionPageState extends State<TransactionPage>
                         );
                         return;
                       }
+                      // Force evaluate any pending math expressions in amount fields
+                      // before reading _localAmounts in the save loop below.
+                      // FocusNode listeners fire synchronously on unfocus(), so
+                      // _onFocusChange → _evaluateExpression → onChanged completes
+                      // before the next line executes.
+                      FocusScope.of(context).unfocus();
+
                       // Do stuff
                       setState(() {
                         _savingInProgress = true;
