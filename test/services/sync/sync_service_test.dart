@@ -91,15 +91,12 @@ void main() {
         // Initialize _boolSettings to avoid LateInitializationError
         // This is a workaround for tests where SharedPreferences isn't available
       }
-      // Create mock HTTP client for testing
-      final MockHttpClient mockHttpClient = MockHttpClient();
       syncService = SyncService(
         isar: isar,
         fireflyService: fireflyService,
         connectivityService: connectivityService,
         notifications: notifications,
         settingsProvider: settingsProvider,
-        httpClient: mockHttpClient, // Inject mock HTTP client
       );
       await TestDatabase.clear();
     });
@@ -577,7 +574,6 @@ void main() {
           connectivityService: connectivityService,
           notifications: notifications,
           settingsProvider: settingsProvider,
-          httpClient: mockApiHelper.mockHttpClient,
         );
       });
 

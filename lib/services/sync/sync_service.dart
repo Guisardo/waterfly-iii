@@ -3,11 +3,10 @@ import 'dart:convert';
 
 import 'package:chopper/chopper.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' as intl;
 import 'package:logging/logging.dart';
 import 'package:isar_community/isar.dart';
-import 'package:waterflyiii/auth.dart' show FireflyService, httpClient;
+import 'package:waterflyiii/auth.dart' show FireflyService;
 import 'package:waterflyiii/data/local/database/tables/insights.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 import 'package:waterflyiii/data/repositories/account_repository.dart';
@@ -68,7 +67,6 @@ class SyncService extends ChangeNotifier {
   final ConflictResolver conflictResolver;
   final SyncNotifications notifications;
   final SettingsProvider? settingsProvider;
-  final http.Client? _httpClient;
 
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
@@ -82,20 +80,14 @@ class SyncService extends ChangeNotifier {
     required this.connectivityService,
     required this.notifications,
     this.settingsProvider,
-    http.Client? httpClient,
   }) : retryManager = RetryManager(isar),
-       conflictResolver = ConflictResolver(isar),
-       _httpClient = httpClient {
+       conflictResolver = ConflictResolver(isar) {
     // Set settings provider for notifications localization
     notifications.setSettingsProvider(settingsProvider);
   }
 
-  /// Get HTTP client - uses injected client or falls back to global httpClient
-  http.Client get _getHttpClient => _httpClient ?? httpClient;
-
   Future<bool> validateCredentials() async {
     try {
-      // Check if service is signed in first to avoid accessing secure storage unnecessarily
       if (!fireflyService.signedIn) {
         await _updateSyncMetadata(
           'auth',
@@ -105,20 +97,11 @@ class SyncService extends ChangeNotifier {
         return false;
       }
 
-      final FireflyIii api = fireflyService.api;
-      final Response<SystemInfo> about = await api.v1AboutGet();
-
-      if (!about.isSuccessful || about.body == null) {
-        // Mark credentials as invalid
-        await _updateSyncMetadata(
-          'auth',
-          credentialsValidated: false,
-          credentialsInvalid: true,
-        );
-        return false;
-      }
-
-      // Mark credentials as validated
+      // Credentials are considered valid when the user is signed in.
+      // Token validity is confirmed implicitly during entity sync.
+      // Calling /v1/about here is unreliable — some Firefly III instances
+      // return 401 on this endpoint even with valid tokens, while all other
+      // endpoints work correctly.
       await _updateSyncMetadata(
         'auth',
         credentialsValidated: true,
@@ -127,18 +110,7 @@ class SyncService extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      log.warning("Credential validation failed", e);
-      // Mark credentials as invalid
-      // Handle exceptions gracefully (e.g., secure storage unavailable in tests)
-      try {
-        await _updateSyncMetadata(
-          'auth',
-          credentialsValidated: false,
-          credentialsInvalid: true,
-        );
-      } catch (_) {
-        // If metadata update fails, continue anyway
-      }
+      log.warning("Credential check failed", e);
       return false;
     }
   }
@@ -178,6 +150,14 @@ class SyncService extends ChangeNotifier {
           "Force retry requested - resetting pause state for $syncEntityType",
         );
         await retryManager.resetRetry(syncEntityType);
+        // Also clear stale credential flags so sync is not blocked by a
+        // previous auth failure. forceRetry means the user explicitly asked
+        // to retry, so we should re-validate credentials from scratch.
+        await _updateSyncMetadata(
+          'auth',
+          credentialsValidated: false,
+          credentialsInvalid: false,
+        );
       } else if (isPaused && connectivityService.isOnline) {
         // If network is online and sync is paused, reset pause state to allow retry
         // This handles the case where network reconnected but pause state wasn't reset
@@ -220,7 +200,7 @@ class SyncService extends ChangeNotifier {
       }
 
       // Validate credentials
-      final SyncMetadata? authMetadata = await retryManager.getMetadata('auth');
+      SyncMetadata? authMetadata = await retryManager.getMetadata('auth');
       if (authMetadata == null || !authMetadata.credentialsValidated) {
         log.config("Validating credentials...");
         final bool valid = await validateCredentials();
@@ -231,6 +211,9 @@ class SyncService extends ChangeNotifier {
           _notifyListenersIfNotDisposed();
           return;
         }
+        // Re-read auth metadata after validation to avoid stale reference —
+        // validateCredentials() updates the DB, so the old object is outdated.
+        authMetadata = await retryManager.getMetadata('auth');
       }
 
       if (authMetadata?.credentialsInvalid ?? false) {
@@ -327,7 +310,14 @@ class SyncService extends ChangeNotifier {
         );
         await notifications.showSyncPaused(e.toString());
       } else if (_isAuthError(e)) {
-        await _updateSyncMetadata('auth', credentialsInvalid: true);
+        // Auth error from an entity endpoint — token is likely expired or revoked.
+        // In Firefly III all endpoints share the same Bearer token auth, so a
+        // 401 from any entity is a genuine credential failure.
+        await _updateSyncMetadata(
+          'auth',
+          credentialsValidated: false,
+          credentialsInvalid: true,
+        );
         await notifications.showCredentialError();
       }
 
@@ -432,7 +422,7 @@ class SyncService extends ChangeNotifier {
 
   Future<void> _syncTransactions(DateTime? lastSync) async {
     final TransactionRepository repo = TransactionRepository(isar);
-    final http.Client client = _getHttpClient;
+    final FireflyIii api = fireflyService.api;
 
     int page = 1;
     bool hasMore = true;
@@ -440,40 +430,22 @@ class SyncService extends ChangeNotifier {
 
     while (hasMore) {
       try {
-        // Use direct HTTP request to include order_by and order_direction parameters
-        // Order by updated_at DESC to get newest modified first
-        final Uri transactionsUri = fireflyService.user!.host.replace(
-          pathSegments: <String>[
-            ...fireflyService.user!.host.pathSegments,
-            'v1',
-            'transactions',
-          ],
-          queryParameters: <String, String>{
-            'page': page.toString(),
-            'limit': '50',
-            'order_by': 'updated_at',
-            'order_direction': 'desc',
-          },
+        // Use Chopper API client so auth headers are properly preserved on
+        // any server-side redirects (raw http.Client strips Authorization on redirect).
+        // The Firefly III v1 API does not support order_by/order_direction, so we
+        // paginate all pages and filter by updatedAt per-item for incremental sync.
+        final Response<TransactionArray> response = await api.v1TransactionsGet(
+          page: page,
+          limit: 50,
         );
 
-        final http.Response httpResponse = await client.get(
-          transactionsUri,
-          headers: fireflyService.user!.headers(),
-        );
-
-        if (httpResponse.statusCode != 200) {
+        if (!response.isSuccessful || response.body == null) {
           throw Exception(
-            "Failed to fetch transactions: ${httpResponse.statusCode} ${httpResponse.body}",
+            "Failed to fetch transactions: ${response.statusCode} ${response.error}",
           );
         }
 
-        final Map<String, dynamic> responseJson =
-            jsonDecode(httpResponse.body) as Map<String, dynamic>;
-        final TransactionArray transactionArray = TransactionArray.fromJson(
-          responseJson,
-        );
-
-        final List<TransactionRead> transactions = transactionArray.data;
+        final List<TransactionRead> transactions = response.body!.data;
 
         if (transactions.isEmpty) {
           hasMore = false;
@@ -483,14 +455,13 @@ class SyncService extends ChangeNotifier {
         for (final TransactionRead transaction in transactions) {
           final DateTime? updatedAt = transaction.attributes.updatedAt;
 
-          // Stop if we've reached already-synced items (incremental sync)
-          // Since we're ordering by updated_at DESC, once we hit an item older than lastSync,
-          // all subsequent items will also be older
+          // For incremental sync, skip transactions not modified since last sync.
+          // We do NOT break early here because ordering is not guaranteed by the
+          // API (no order_by=updated_at support), so older items may appear anywhere.
           if (lastSync != null &&
               updatedAt != null &&
               updatedAt.isBefore(lastSync)) {
-            hasMore = false;
-            break;
+            continue;
           }
 
           // Check for conflicts
@@ -527,7 +498,7 @@ class SyncService extends ChangeNotifier {
         );
 
         // Check if there are more pages
-        final int? totalPages = transactionArray.meta.pagination?.totalPages;
+        final int? totalPages = response.body!.meta.pagination?.totalPages;
         if (totalPages == null || page >= totalPages) {
           hasMore = false;
         } else {
