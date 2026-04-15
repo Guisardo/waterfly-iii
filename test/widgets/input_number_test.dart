@@ -157,7 +157,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: Column(
-              children: [
+              children: <Widget>[
                 NumberInput(
                   controller: controller,
                   focusNode: focusNode,
