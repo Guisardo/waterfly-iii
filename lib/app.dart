@@ -1,5 +1,5 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +14,6 @@ import 'package:provider/single_child_widget.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/layout.dart';
 import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/pages/login.dart';
 import 'package:waterflyiii/pages/navigation.dart';
@@ -51,36 +50,32 @@ class _WaterflyAppState extends State<WaterflyApp> {
   DateTime? _lcLastOpen;
   bool _wasOffline = true; // Track previous connectivity state
 
-  final LayoutProvider _layoutProvider = LayoutProvider();
-
   @override
   void initState() {
     super.initState();
 
-    // Notifications (Android only)
-    if (Platform.isAndroid) {
-      FlutterLocalNotificationsPlugin().initialize(
-        settings: const InitializationSettings(
-          android: AndroidInitializationSettings('ic_stat_notification'),
-        ),
-        onDidReceiveNotificationResponse: nlNotificationTap,
-      );
+    // Notifications
+    FlutterLocalNotificationsPlugin().initialize(
+      const InitializationSettings(
+        android: AndroidInitializationSettings('ic_stat_notification'),
+      ),
+      onDidReceiveNotificationResponse: nlNotificationTap,
+    );
 
-      FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails().then((
-        NotificationAppLaunchDetails? details,
-      ) {
-        log.config("checking NotificationAppLaunchDetails");
-        if ((details?.didNotificationLaunchApp ?? false) &&
-            (details?.notificationResponse?.payload?.isNotEmpty ?? false)) {
-          log.info("Was launched from notification!");
-          _notificationPayload = .fromJson(
-            jsonDecode(details!.notificationResponse!.payload!),
-          );
-        }
-      });
-    }
+    FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails().then((
+      NotificationAppLaunchDetails? details,
+    ) {
+      log.config("checking NotificationAppLaunchDetails");
+      if ((details?.didNotificationLaunchApp ?? false) &&
+          (details?.notificationResponse?.payload?.isNotEmpty ?? false)) {
+        log.info("Was launched from notification!");
+        _notificationPayload = NotificationTransaction.fromJson(
+          jsonDecode(details!.notificationResponse!.payload!),
+        );
+      }
+    });
 
-    // Quick Actions (Android + iOS)
+    // Quick Actions
     const QuickActions quickActions = QuickActions();
     quickActions.initialize((String shortcutType) {
       log.info("Was launched from QuickAction $shortcutType");
@@ -185,17 +180,6 @@ class _WaterflyAppState extends State<WaterflyApp> {
     super.dispose();
   }*/
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // Always called after initState() --> can be used to init _layoutProvider.
-    // No separate init needed inside initState()
-    if (mounted) {
-      _layoutProvider.updateSize(context);
-    }
-  }
-
   Future<bool> auth() {
     final LocalAuthentication auth = LocalAuthentication();
     return auth.authenticate(
@@ -209,16 +193,20 @@ class _WaterflyAppState extends State<WaterflyApp> {
     log.fine(() => "WaterflyApp() building");
 
     return DynamicColorBuilder(
-      builder: (ColorScheme? cSchemeDynamicLight, ColorScheme? cSchemeDynamicDark) {
-        final ColorScheme cSchemeLight = .fromSeed(seedColor: Colors.blue);
-        final ColorScheme cSchemeDark =
-            .fromSeed(
-              seedColor: Colors.blue,
-              brightness: Brightness.dark,
-            ).copyWith(
-              surfaceContainerHighest: Colors.blueGrey.shade900,
-              onSurfaceVariant: Colors.white,
-            );
+      builder: (
+        ColorScheme? cSchemeDynamicLight,
+        ColorScheme? cSchemeDynamicDark,
+      ) {
+        final ColorScheme cSchemeLight = ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+        );
+        final ColorScheme cSchemeDark = ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.dark,
+        ).copyWith(
+          surfaceContainerHighest: Colors.blueGrey.shade900,
+          onSurfaceVariant: Colors.white,
+        );
 
         log.finest(
           () =>
@@ -232,9 +220,6 @@ class _WaterflyAppState extends State<WaterflyApp> {
             ),
             ChangeNotifierProvider<SettingsProvider>(
               create: (_) => SettingsProvider(),
-            ),
-            ChangeNotifierProvider<LayoutProvider>.value(
-              value: _layoutProvider,
             ),
             ChangeNotifierProvider<ConnectivityService>(
               create: (_) => ConnectivityService(),
@@ -311,49 +296,88 @@ class _WaterflyAppState extends State<WaterflyApp> {
                   final SettingsProvider settingsProvider =
                       context.read<SettingsProvider>();
 
-                  fireflyService.signInFromStorage().then((
-                    bool signedIn,
-                  ) async {
-                    if (signedIn) {
-                      // Initialize WorkManager for background sync
-                      await WorkManagerSync.initialize();
-                      await WorkManagerSync.registerPeriodicSync();
+                  // Start authentication in background without blocking UI
+                  // The UI will reactively update when authentication completes
+                  unawaited(
+                    Future<void>.microtask(() async {
+                      try {
+                        final bool signedIn =
+                            await fireflyService.signInFromStorage();
+                        if (signedIn) {
+                          // Initialize WorkManager for background sync
+                          await WorkManagerSync.initialize();
+                          await WorkManagerSync.registerPeriodicSync();
 
-                      // Initialize sync status provider
-                      if (!mounted) return;
-                      await syncStatusProvider.initialize(
-                        fireflyService: fireflyService,
-                        connectivityService: connectivityService,
-                        settingsProvider: settingsProvider,
-                      );
-                    }
-                    if (!mounted) return;
-                    setState(() {
-                      log.finest(() => "set _startup = false");
-                      _authed = true;
-                      _startup = false;
-                    });
+                          // Initialize sync status provider
+                          if (!mounted) return;
+                          await syncStatusProvider.initialize(
+                            fireflyService: fireflyService,
+                            connectivityService: connectivityService,
+                            settingsProvider: settingsProvider,
+                          );
+                        }
+                        if (!mounted) return;
+                        setState(() {
+                          log.finest(() => "set _startup = false");
+                          _authed = true;
+                          _startup = false;
+                        });
+                      } catch (e, stackTrace) {
+                        log.warning(
+                          "Error during background authentication",
+                          e,
+                          stackTrace,
+                        );
+                        if (!mounted) return;
+                        setState(() {
+                          log.finest(() => "set _startup = false");
+                          _authed = true;
+                          _startup = false;
+                        });
+                      }
+                    }),
+                  );
+
+                  // Mark startup as complete immediately so UI can render
+                  setState(() {
+                    log.finest(() => "set _startup = false (non-blocking)");
+                    _startup = false;
                   });
                 }
               }
             } else {
-              signedIn = context.select((FireflyService f) => f.signedIn);
+              // Watch for authentication state changes reactively
+              final FireflyService fireflyService =
+                  context.watch<FireflyService>();
+              signedIn = fireflyService.signedIn;
               if (signedIn) {
-                context.read<FireflyService>().tzHandler.setUseServerTime(
+                fireflyService.tzHandler.setUseServerTime(
                   context.read<SettingsProvider>().useServerTime,
                 );
               }
               log.config("signedIn: $signedIn");
             }
 
+            // Watch for authentication state to reactively update UI
+            final FireflyService fireflyServiceForUI =
+                context.watch<FireflyService>();
+            final bool isAuthenticating = fireflyServiceForUI.isAuthenticating;
+            final bool signedInForUI = fireflyServiceForUI.signedIn;
+            final bool hasStorageException =
+                fireflyServiceForUI.storageSignInException != null;
+
+            log.config(
+              "signedIn: $signedInForUI, isAuthenticating: $isAuthenticating",
+            );
+
             return MaterialApp(
               title: 'Waterfly III',
               theme: ThemeData(
-                brightness: .light,
+                brightness: Brightness.light,
                 colorScheme:
                     context.select((SettingsProvider s) => s.dynamicColors)
-                    ? cSchemeDynamicLight?.harmonized() ?? cSchemeLight
-                    : cSchemeLight,
+                        ? cSchemeDynamicLight?.harmonized() ?? cSchemeLight
+                        : cSchemeLight,
                 useMaterial3: true,
                 // See https://github.com/flutter/flutter/issues/131042#issuecomment-1690737834
                 appBarTheme: const AppBarTheme(shape: RoundedRectangleBorder()),
@@ -365,11 +389,11 @@ class _WaterflyAppState extends State<WaterflyApp> {
                 ),
               ),
               darkTheme: ThemeData(
-                brightness: .dark,
+                brightness: Brightness.dark,
                 colorScheme:
                     context.select((SettingsProvider s) => s.dynamicColors)
-                    ? cSchemeDynamicDark?.harmonized() ?? cSchemeDark
-                    : cSchemeDark,
+                        ? cSchemeDynamicDark?.harmonized() ?? cSchemeDark
+                        : cSchemeDark,
                 useMaterial3: true,
               ),
               themeMode: context.select((SettingsProvider s) => s.theme),
@@ -379,21 +403,20 @@ class _WaterflyAppState extends State<WaterflyApp> {
               navigatorKey: navigatorKey,
               home:
                   ((_startup || !_authed) ||
-                      context.select(
-                        (FireflyService f) => f.storageSignInException != null,
-                      ))
-                  ? const SplashPage()
-                  : signedIn
-                  ? (_notificationPayload != null ||
-                            _quickAction == "action_transaction_add" ||
-                            (_filesSharedToApp != null &&
-                                _filesSharedToApp!.isNotEmpty))
-                        ? TransactionPage(
+                          isAuthenticating ||
+                          hasStorageException)
+                      ? const SplashPage()
+                      : signedInForUI
+                      ? (_notificationPayload != null ||
+                              _quickAction == "action_transaction_add" ||
+                              (_filesSharedToApp != null &&
+                                  _filesSharedToApp!.isNotEmpty))
+                          ? TransactionPage(
                             notification: _notificationPayload,
                             files: _filesSharedToApp,
                           )
-                        : const NavPage()
-                  : const LoginPage(),
+                          : const NavPage()
+                      : const LoginPage(),
             );
           },
         );

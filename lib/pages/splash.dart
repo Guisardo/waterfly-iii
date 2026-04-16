@@ -78,7 +78,10 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     log.finest(() => "build(loginError: $_loginError)");
 
-    if (context.read<FireflyService>().signedIn) {
+    // Watch for authentication state changes reactively
+    final FireflyService fireflyService = context.watch<FireflyService>();
+
+    if (fireflyService.signedIn) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
       });
@@ -87,9 +90,14 @@ class _SplashPageState extends State<SplashPage> {
 
     Widget page;
 
-    _loginError ??= context.select(
-      (FireflyService f) => f.storageSignInException,
-    );
+    // Update error from storage sign-in exception if available
+    _loginError ??= fireflyService.storageSignInException;
+
+    // Also watch for changes to storage sign-in exception
+    final Object? currentException = fireflyService.storageSignInException;
+    if (currentException != _loginError) {
+      _loginError = currentException;
+    }
 
     if (_loginError == null) {
       log.finer(() => "_loginError null --> show spinner");
