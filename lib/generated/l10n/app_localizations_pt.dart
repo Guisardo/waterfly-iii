@@ -679,11 +679,11 @@ class SPt extends S {
 
   @override
   String numPercent(double num) {
-    final intl.NumberFormat numNumberFormat = intl
-        .NumberFormat.decimalPercentPattern(
-      locale: localeName,
-      decimalDigits: 0,
-    );
+    final intl.NumberFormat numNumberFormat =
+        intl.NumberFormat.decimalPercentPattern(
+          locale: localeName,
+          decimalDigits: 0,
+        );
     final String numString = numNumberFormat.format(num);
 
     return '$numString';
@@ -691,11 +691,11 @@ class SPt extends S {
 
   @override
   String numPercentOf(double perc, String of) {
-    final intl.NumberFormat percNumberFormat = intl
-        .NumberFormat.decimalPercentPattern(
-      locale: localeName,
-      decimalDigits: 0,
-    );
+    final intl.NumberFormat percNumberFormat =
+        intl.NumberFormat.decimalPercentPattern(
+          locale: localeName,
+          decimalDigits: 0,
+        );
     final String percString = percNumberFormat.format(perc);
 
     return '$percString of $of';
@@ -1005,112 +1005,112 @@ class SPt extends S {
   String get transactionTypeWithdrawal => 'Withdrawal';
 
   @override
-  String get syncSettingsTitle => 'Sync Settings';
+  String get syncSettingsTitle => 'Configurações de sincronização';
 
   @override
-  String get syncSettingsMobileDataTitle => 'Sync on mobile data';
+  String get syncSettingsMobileDataTitle => 'Sincronizar com dados móveis';
 
   @override
   String get syncSettingsMobileDataSubtitle =>
-      'Allow synchronization when using mobile data (disabled by default to save data)';
+      'Permitir sincronização ao usar dados móveis (desativado por padrão para economizar dados)';
 
   @override
-  String get syncSettingsCredentialsTitle => 'Credentials';
+  String get syncSettingsCredentialsTitle => 'Credenciais';
 
   @override
   String get syncSettingsCredentialsInvalid =>
-      'Invalid - Please re-enter credentials';
+      'Inválido - Por favor, reintroduza as credenciais';
 
   @override
-  String get syncSettingsCredentialsValidated => 'Validated';
+  String get syncSettingsCredentialsValidated => 'Validado';
 
   @override
-  String get syncSettingsCredentialsNotValidated => 'Not validated';
+  String get syncSettingsCredentialsNotValidated => 'Não validado';
 
   @override
-  String get syncSettingsReenterButton => 'Re-enter';
+  String get syncSettingsReenterButton => 'Reintroduzir';
 
   @override
-  String get syncSettingsDownloadSync => 'Download Sync';
+  String get syncSettingsDownloadSync => 'Sincronização de descarga';
 
   @override
-  String get syncSettingsUploadSync => 'Upload Sync';
+  String get syncSettingsUploadSync => 'Sincronização de carregamento';
 
   @override
   String syncSettingsLastSync(String date) {
-    return 'Last sync: $date';
+    return 'Última sincronização: $date';
   }
 
   @override
-  String get syncSettingsStatusPaused => 'Status: Paused';
+  String get syncSettingsStatusPaused => 'Estado: Pausado';
 
   @override
-  String get syncSettingsStatusActive => 'Status: Active';
+  String get syncSettingsStatusActive => 'Estado: Ativo';
 
   @override
   String get syncSettingsStatusSyncing => 'Status: Syncing...';
 
   @override
   String syncSettingsRetryCount(int count) {
-    return 'Retry count: $count';
+    return 'Número de tentativas: $count';
   }
 
   @override
   String syncSettingsNextRetry(String date) {
-    return 'Next retry: $date';
+    return 'Próxima tentativa: $date';
   }
 
   @override
   String syncSettingsError(String error) {
-    return 'Error: $error';
+    return 'Erro: $error';
   }
 
   @override
-  String get syncSettingsResumeButton => 'Resume Now';
+  String get syncSettingsResumeButton => 'Retomar agora';
 
   @override
-  String get syncSettingsManualSyncTitle => 'Manual Sync';
+  String get syncSettingsManualSyncTitle => 'Sincronização manual';
 
   @override
-  String get syncSettingsManualSyncSubtitle => 'Trigger sync now';
+  String get syncSettingsManualSyncSubtitle => 'Ativar sincronização agora';
 
   @override
-  String get syncSettingsSyncNowButton => 'Sync Now';
+  String get syncSettingsSyncNowButton => 'Sincronizar agora';
 
   @override
-  String get syncNotificationSyncing => 'Syncing...';
+  String get syncNotificationSyncing => 'A sincronizar...';
 
   @override
-  String get syncNotificationSyncingBody => 'Synchronizing with Firefly III';
+  String get syncNotificationSyncingBody => 'A sincronizar com Firefly III';
 
   @override
   String syncNotificationSyncingEntity(String entityType) {
-    return 'Syncing $entityType...';
+    return 'A sincronizar $entityType...';
   }
 
   @override
-  String get syncNotificationCompleted => 'Sync completed';
+  String get syncNotificationCompleted => 'Sincronização concluída';
 
   @override
   String get syncNotificationCompletedBody =>
-      'Synchronization with Firefly III completed successfully';
+      'Sincronização com Firefly III concluída com sucesso';
 
   @override
-  String get syncNotificationPaused => 'Sync paused';
+  String get syncNotificationPaused => 'Sincronização pausada';
 
   @override
   String get syncNotificationPausedBody =>
-      'Synchronization paused due to error. Will retry automatically.';
+      'Sincronização pausada devido a um erro. Será tentado novamente automaticamente.';
 
   @override
-  String get syncNotificationAuthError => 'Authentication error';
+  String get syncNotificationAuthError => 'Erro de autenticação';
 
   @override
   String get syncNotificationAuthErrorBody =>
-      'Please re-enter your credentials in settings';
+      'Por favor, reintroduza as suas credenciais nas configurações';
 
   @override
-  String get syncNotificationChannelName => 'Synchronization';
+  String get syncNotificationChannelName => 'Sincronização';
 
   @override
   String get notificationListenerCreateTransactionTitle =>
@@ -1131,7 +1131,7 @@ class SPt extends S {
 
   @override
   String get syncNotificationChannelDescription =>
-      'Background synchronization status';
+      'Estado da sincronização em segundo plano';
 
   @override
   String get syncSettingsEntityStatusTitle => 'Entity Sync Status';
@@ -1851,11 +1851,11 @@ class SPtBr extends SPt {
 
   @override
   String numPercent(double num) {
-    final intl.NumberFormat numNumberFormat = intl
-        .NumberFormat.decimalPercentPattern(
-      locale: localeName,
-      decimalDigits: 0,
-    );
+    final intl.NumberFormat numNumberFormat =
+        intl.NumberFormat.decimalPercentPattern(
+          locale: localeName,
+          decimalDigits: 0,
+        );
     final String numString = numNumberFormat.format(num);
 
     return '$numString';
@@ -1863,11 +1863,11 @@ class SPtBr extends SPt {
 
   @override
   String numPercentOf(double perc, String of) {
-    final intl.NumberFormat percNumberFormat = intl
-        .NumberFormat.decimalPercentPattern(
-      locale: localeName,
-      decimalDigits: 0,
-    );
+    final intl.NumberFormat percNumberFormat =
+        intl.NumberFormat.decimalPercentPattern(
+          locale: localeName,
+          decimalDigits: 0,
+        );
     final String percString = percNumberFormat.format(perc);
 
     return '$percString de $of';
