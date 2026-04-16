@@ -22,9 +22,7 @@ class MathExpressionEvaluator {
   /// Normalizes an expression by removing whitespace and replacing commas
   /// with dots for decimal separator compatibility.
   String _normalize(String expression) {
-    return expression
-        .replaceAll(RegExp(r'\s+'), '')
-        .replaceAll(',', '.');
+    return expression.replaceAll(RegExp(r'\s+'), '').replaceAll(',', '.');
   }
 
   /// Evaluates a complete mathematical expression.
@@ -91,8 +89,10 @@ class MathExpressionEvaluator {
     _log.fine(() => 'Evaluating partial expression: $expression');
 
     final String normalized = _normalize(expression);
-    final String withoutTrailing =
-        normalized.replaceAll(RegExp(r'[+\-*/]$'), '');
+    final String withoutTrailing = normalized.replaceAll(
+      RegExp(r'[+\-*/]$'),
+      '',
+    );
 
     if (withoutTrailing.isEmpty) {
       _log.fine('Expression contains only operator');
