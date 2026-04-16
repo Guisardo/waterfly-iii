@@ -769,12 +769,14 @@ ChartDataSet _$ChartDataSetFromJson(Map<String, dynamic> json) => ChartDataSet(
   primaryCurrencyDecimalPlaces:
       (json['primary_currency_decimal_places'] as num?)?.toInt(),
   date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
-  startDate: json['start_date'] == null
-      ? null
-      : DateTime.parse(json['start_date'] as String),
-  endDate: json['end_date'] == null
-      ? null
-      : DateTime.parse(json['end_date'] as String),
+  startDate:
+      json['start_date'] == null
+          ? null
+          : DateTime.parse(json['start_date'] as String),
+  endDate:
+      json['end_date'] == null
+          ? null
+          : DateTime.parse(json['end_date'] as String),
   type: json['type'] as String?,
   period: chartDatasetPeriodPropertyNullableFromJson(json['period']),
   yAxisID: (json['yAxisID'] as num?)?.toInt(),
@@ -1282,12 +1284,14 @@ Map<String, dynamic> _$WebhookSingleToJson(WebhookSingle instance) =>
 
 AccountProperties _$AccountPropertiesFromJson(Map<String, dynamic> json) =>
     AccountProperties(
-      createdAt: json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
+      createdAt:
+          json['created_at'] == null
+              ? null
+              : DateTime.parse(json['created_at'] as String),
+      updatedAt:
+          json['updated_at'] == null
+              ? null
+              : DateTime.parse(json['updated_at'] as String),
       active: json['active'] as bool? ?? true,
       order: (json['order'] as num?)?.toInt(),
       name: json['name'] as String,
@@ -1318,22 +1322,25 @@ AccountProperties _$AccountPropertiesFromJson(Map<String, dynamic> json) =>
       pcVirtualBalance: json['pc_virtual_balance'] as String?,
       debtAmount: json['debt_amount'] as String?,
       pcDebtAmount: json['pc_debt_amount'] as String?,
-      currentBalanceDate: json['current_balance_date'] == null
-          ? null
-          : DateTime.parse(json['current_balance_date'] as String),
+      currentBalanceDate:
+          json['current_balance_date'] == null
+              ? null
+              : DateTime.parse(json['current_balance_date'] as String),
       notes: json['notes'] as String?,
-      monthlyPaymentDate: json['monthly_payment_date'] == null
-          ? null
-          : DateTime.parse(json['monthly_payment_date'] as String),
+      monthlyPaymentDate:
+          json['monthly_payment_date'] == null
+              ? null
+              : DateTime.parse(json['monthly_payment_date'] as String),
       creditCardType: creditCardTypePropertyNullableFromJson(
         json['credit_card_type'],
       ),
       accountNumber: json['account_number'] as String?,
       iban: json['iban'] as String?,
       bic: json['bic'] as String?,
-      openingBalanceDate: json['opening_balance_date'] == null
-          ? null
-          : DateTime.parse(json['opening_balance_date'] as String),
+      openingBalanceDate:
+          json['opening_balance_date'] == null
+              ? null
+              : DateTime.parse(json['opening_balance_date'] as String),
       liabilityType: liabilityTypePropertyNullableFromJson(
         json['liability_type'],
       ),
@@ -1348,9 +1355,10 @@ AccountProperties _$AccountPropertiesFromJson(Map<String, dynamic> json) =>
       longitude: (json['longitude'] as num?)?.toDouble(),
       latitude: (json['latitude'] as num?)?.toDouble(),
       zoomLevel: (json['zoom_level'] as num?)?.toInt(),
-      lastActivity: json['last_activity'] == null
-          ? null
-          : DateTime.parse(json['last_activity'] as String),
+      lastActivity:
+          json['last_activity'] == null
+              ? null
+              : DateTime.parse(json['last_activity'] as String),
     );
 
 Map<String, dynamic> _$AccountPropertiesToJson(
@@ -1442,9 +1450,10 @@ AccountStore _$AccountStoreFromJson(Map<String, dynamic> json) => AccountStore(
   bic: json['bic'] as String?,
   accountNumber: json['account_number'] as String?,
   openingBalance: json['opening_balance'] as String?,
-  openingBalanceDate: json['opening_balance_date'] == null
-      ? null
-      : DateTime.parse(json['opening_balance_date'] as String),
+  openingBalanceDate:
+      json['opening_balance_date'] == null
+          ? null
+          : DateTime.parse(json['opening_balance_date'] as String),
   virtualBalance: json['virtual_balance'] as String?,
   currencyId: json['currency_id'] as String?,
   currencyCode: json['currency_code'] as String?,
@@ -1455,9 +1464,10 @@ AccountStore _$AccountStoreFromJson(Map<String, dynamic> json) => AccountStore(
   creditCardType: creditCardTypePropertyNullableFromJson(
     json['credit_card_type'],
   ),
-  monthlyPaymentDate: json['monthly_payment_date'] == null
-      ? null
-      : DateTime.parse(json['monthly_payment_date'] as String),
+  monthlyPaymentDate:
+      json['monthly_payment_date'] == null
+          ? null
+          : DateTime.parse(json['monthly_payment_date'] as String),
   liabilityType: liabilityTypePropertyNullableFromJson(json['liability_type']),
   liabilityDirection: liabilityDirectionPropertyNullableFromJson(
     json['liability_direction'],
@@ -1514,9 +1524,10 @@ AccountUpdate _$AccountUpdateFromJson(Map<String, dynamic> json) =>
       bic: json['bic'] as String?,
       accountNumber: json['account_number'] as String?,
       openingBalance: json['opening_balance'] as String?,
-      openingBalanceDate: json['opening_balance_date'] == null
-          ? null
-          : DateTime.parse(json['opening_balance_date'] as String),
+      openingBalanceDate:
+          json['opening_balance_date'] == null
+              ? null
+              : DateTime.parse(json['opening_balance_date'] as String),
       virtualBalance: json['virtual_balance'] as String?,
       currencyId: json['currency_id'] as String?,
       currencyCode: json['currency_code'] as String?,
@@ -1527,9 +1538,10 @@ AccountUpdate _$AccountUpdateFromJson(Map<String, dynamic> json) =>
       creditCardType: creditCardTypePropertyNullableFromJson(
         json['credit_card_type'],
       ),
-      monthlyPaymentDate: json['monthly_payment_date'] == null
-          ? null
-          : DateTime.parse(json['monthly_payment_date'] as String),
+      monthlyPaymentDate:
+          json['monthly_payment_date'] == null
+              ? null
+              : DateTime.parse(json['monthly_payment_date'] as String),
       liabilityType: liabilityTypePropertyNullableFromJson(
         json['liability_type'],
       ),
@@ -1597,12 +1609,14 @@ Map<String, dynamic> _$ArrayEntryWithCurrencyAndSumToJson(
 AttachmentProperties _$AttachmentPropertiesFromJson(
   Map<String, dynamic> json,
 ) => AttachmentProperties(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   attachableType: attachableTypeNullableFromJson(json['attachable_type']),
   attachableId: json['attachable_id'] as String?,
   hash: json['hash'] as String?,
@@ -1693,12 +1707,14 @@ Map<String, dynamic> _$AttachmentUpdateToJson(AttachmentUpdate instance) =>
 AvailableBudgetProperties _$AvailableBudgetPropertiesFromJson(
   Map<String, dynamic> json,
 ) => AvailableBudgetProperties(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   objectHasCurrencySetting: json['object_has_currency_setting'] as bool?,
   currencyId: json['currency_id'] as String?,
   currencyName: json['currency_name'] as String?,
@@ -1942,12 +1958,14 @@ BillStore _$BillStoreFromJson(Map<String, dynamic> json) => BillStore(
   amountMin: json['amount_min'] as String,
   amountMax: json['amount_max'] as String,
   date: DateTime.parse(json['date'] as String),
-  endDate: json['end_date'] == null
-      ? null
-      : DateTime.parse(json['end_date'] as String),
-  extensionDate: json['extension_date'] == null
-      ? null
-      : DateTime.parse(json['extension_date'] as String),
+  endDate:
+      json['end_date'] == null
+          ? null
+          : DateTime.parse(json['end_date'] as String),
+  extensionDate:
+      json['extension_date'] == null
+          ? null
+          : DateTime.parse(json['extension_date'] as String),
   repeatFreq: billRepeatFrequencyFromJson(json['repeat_freq']),
   skip: (json['skip'] as num?)?.toInt(),
   active: json['active'] as bool?,
@@ -1980,12 +1998,14 @@ BillUpdate _$BillUpdateFromJson(Map<String, dynamic> json) => BillUpdate(
   amountMin: json['amount_min'] as String?,
   amountMax: json['amount_max'] as String?,
   date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
-  endDate: json['end_date'] == null
-      ? null
-      : DateTime.parse(json['end_date'] as String),
-  extensionDate: json['extension_date'] == null
-      ? null
-      : DateTime.parse(json['extension_date'] as String),
+  endDate:
+      json['end_date'] == null
+          ? null
+          : DateTime.parse(json['end_date'] as String),
+  extensionDate:
+      json['extension_date'] == null
+          ? null
+          : DateTime.parse(json['extension_date'] as String),
   repeatFreq: billRepeatFrequencyNullableFromJson(json['repeat_freq']),
   skip: (json['skip'] as num?)?.toInt(),
   active: json['active'] as bool?,
@@ -2014,12 +2034,14 @@ Map<String, dynamic> _$BillUpdateToJson(BillUpdate instance) =>
 
 BudgetProperties _$BudgetPropertiesFromJson(Map<String, dynamic> json) =>
     BudgetProperties(
-      createdAt: json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
+      createdAt:
+          json['created_at'] == null
+              ? null
+              : DateTime.parse(json['created_at'] as String),
+      updatedAt:
+          json['updated_at'] == null
+              ? null
+              : DateTime.parse(json['updated_at'] as String),
       active: json['active'] as bool?,
       name: json['name'] as String,
       order: (json['order'] as num?)?.toInt(),
@@ -2140,6 +2162,7 @@ Map<String, dynamic> _$BudgetStoreToJson(BudgetStore instance) =>
       'active': instance.active,
       'order': instance.order,
       'notes': instance.notes,
+      'fire_webhooks': instance.fireWebhooks,
       'auto_budget_type': autoBudgetTypeNullableToJson(instance.autoBudgetType),
       'auto_budget_currency_id': instance.autoBudgetCurrencyId,
       'auto_budget_currency_code': instance.autoBudgetCurrencyCode,
@@ -2170,6 +2193,7 @@ Map<String, dynamic> _$BudgetUpdateToJson(BudgetUpdate instance) =>
       'active': instance.active,
       'order': instance.order,
       'notes': instance.notes,
+      'fire_webhooks': instance.fireWebhooks,
       'auto_budget_type': autoBudgetTypeNullableToJson(instance.autoBudgetType),
       'auto_budget_currency_id': instance.autoBudgetCurrencyId,
       'auto_budget_currency_code': instance.autoBudgetCurrencyCode,
@@ -2182,12 +2206,14 @@ Map<String, dynamic> _$BudgetUpdateToJson(BudgetUpdate instance) =>
 BudgetLimitProperties _$BudgetLimitPropertiesFromJson(
   Map<String, dynamic> json,
 ) => BudgetLimitProperties(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   start: json['start'] == null ? null : DateTime.parse(json['start'] as String),
   end: json['end'] == null ? null : DateTime.parse(json['end'] as String),
   budgetId: json['budget_id'] as String?,
@@ -2301,40 +2327,42 @@ Map<String, dynamic> _$BudgetLimitStoreToJson(BudgetLimitStore instance) =>
       'end': _dateToJson(instance.end),
       'amount': instance.amount,
       'notes': instance.notes,
+      'fire_webhooks': instance.fireWebhooks,
     };
 
-BudgetLimitUpdate _$BudgetLimitUpdateFromJson(Map<String, dynamic> json) =>
-    BudgetLimitUpdate(
-      createdAt: json['created_at'] == null
+BudgetLimitUpdate _$BudgetLimitUpdateFromJson(
+  Map<String, dynamic> json,
+) => BudgetLimitUpdate(
+  createdAt:
+      json['created_at'] == null
           ? null
           : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null
+  updatedAt:
+      json['updated_at'] == null
           ? null
           : DateTime.parse(json['updated_at'] as String),
-      start: json['start'] == null
-          ? null
-          : DateTime.parse(json['start'] as String),
-      end: json['end'] == null ? null : DateTime.parse(json['end'] as String),
-      budgetId: json['budget_id'] as String?,
-      objectHasCurrencySetting: json['object_has_currency_setting'] as bool?,
-      currencyId: json['currency_id'] as String?,
-      currencyName: json['currency_name'] as String?,
-      currencyCode: json['currency_code'] as String?,
-      currencySymbol: json['currency_symbol'] as String?,
-      currencyDecimalPlaces: (json['currency_decimal_places'] as num?)?.toInt(),
-      primaryCurrencyId: json['primary_currency_id'] as String?,
-      primaryCurrencyName: json['primary_currency_name'] as String?,
-      primaryCurrencyCode: json['primary_currency_code'] as String?,
-      primaryCurrencySymbol: json['primary_currency_symbol'] as String?,
-      primaryCurrencyDecimalPlaces:
-          (json['primary_currency_decimal_places'] as num?)?.toInt(),
-      period: json['period'] as String?,
-      amount: json['amount'] as String?,
-      pcAmount: json['pc_amount'] as String?,
-      spent: json['spent'] as String?,
-      notes: json['notes'] as String?,
-      fireWebhooks: json['fire_webhooks'] as bool? ?? true,
-    );
+  start: json['start'] == null ? null : DateTime.parse(json['start'] as String),
+  end: json['end'] == null ? null : DateTime.parse(json['end'] as String),
+  budgetId: json['budget_id'] as String?,
+  objectHasCurrencySetting: json['object_has_currency_setting'] as bool?,
+  currencyId: json['currency_id'] as String?,
+  currencyName: json['currency_name'] as String?,
+  currencyCode: json['currency_code'] as String?,
+  currencySymbol: json['currency_symbol'] as String?,
+  currencyDecimalPlaces: (json['currency_decimal_places'] as num?)?.toInt(),
+  primaryCurrencyId: json['primary_currency_id'] as String?,
+  primaryCurrencyName: json['primary_currency_name'] as String?,
+  primaryCurrencyCode: json['primary_currency_code'] as String?,
+  primaryCurrencySymbol: json['primary_currency_symbol'] as String?,
+  primaryCurrencyDecimalPlaces:
+      (json['primary_currency_decimal_places'] as num?)?.toInt(),
+  period: json['period'] as String?,
+  amount: json['amount'] as String?,
+  pcAmount: json['pc_amount'] as String?,
+  spent: json['spent'] as String?,
+  notes: json['notes'] as String?,
+  fireWebhooks: json['fire_webhooks'] as bool? ?? true,
+);
 
 Map<String, dynamic> _$BudgetLimitUpdateToJson(BudgetLimitUpdate instance) =>
     <String, dynamic>{
@@ -2359,16 +2387,19 @@ Map<String, dynamic> _$BudgetLimitUpdateToJson(BudgetLimitUpdate instance) =>
       'pc_amount': instance.pcAmount,
       'spent': instance.spent,
       'notes': instance.notes,
+      'fire_webhooks': instance.fireWebhooks,
     };
 
 CategoryProperties _$CategoryPropertiesFromJson(Map<String, dynamic> json) =>
     CategoryProperties(
-      createdAt: json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
+      createdAt:
+          json['created_at'] == null
+              ? null
+              : DateTime.parse(json['created_at'] as String),
+      updatedAt:
+          json['updated_at'] == null
+              ? null
+              : DateTime.parse(json['updated_at'] as String),
       name: json['name'] as String,
       notes: json['notes'] as String?,
       objectHasCurrencySetting: json['object_has_currency_setting'] as bool?,
@@ -2475,24 +2506,26 @@ Map<String, dynamic> _$CategoryUpdateToJson(CategoryUpdate instance) =>
 CurrencyExchangeProperties _$CurrencyExchangePropertiesFromJson(
   Map<String, dynamic> json,
 ) => CurrencyExchangeProperties(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   fromCurrencyId: json['from_currency_id'] as String?,
   fromCurrencyName: json['from_currency_name'] as String?,
   fromCurrencyCode: json['from_currency_code'] as String?,
   fromCurrencySymbol: json['from_currency_symbol'] as String?,
-  fromCurrencyDecimalPlaces: (json['from_currency_decimal_places'] as num?)
-      ?.toInt(),
+  fromCurrencyDecimalPlaces:
+      (json['from_currency_decimal_places'] as num?)?.toInt(),
   toCurrencyId: json['to_currency_id'] as String?,
   toCurrencyName: json['to_currency_name'] as String?,
   toCurrencyCode: json['to_currency_code'] as String?,
   toCurrencySymbol: json['to_currency_symbol'] as String?,
-  toCurrencyDecimalPlaces: (json['to_currency_decimal_places'] as num?)
-      ?.toInt(),
+  toCurrencyDecimalPlaces:
+      (json['to_currency_decimal_places'] as num?)?.toInt(),
   rate: json['rate'] as String?,
   date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
 );
@@ -2521,14 +2554,16 @@ CurrencyExchangeRateRead _$CurrencyExchangeRateReadFromJson(
 ) => CurrencyExchangeRateRead(
   type: json['type'] as String?,
   id: json['id'] as String?,
-  attributes: json['attributes'] == null
-      ? null
-      : CurrencyExchangeProperties.fromJson(
-          json['attributes'] as Map<String, dynamic>,
-        ),
-  links: json['links'] == null
-      ? null
-      : ObjectLink.fromJson(json['links'] as Map<String, dynamic>),
+  attributes:
+      json['attributes'] == null
+          ? null
+          : CurrencyExchangeProperties.fromJson(
+            json['attributes'] as Map<String, dynamic>,
+          ),
+  links:
+      json['links'] == null
+          ? null
+          : ObjectLink.fromJson(json['links'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$CurrencyExchangeRateReadToJson(
@@ -2562,7 +2597,7 @@ CurrencyExchangeRateStore _$CurrencyExchangeRateStoreFromJson(
 Map<String, dynamic> _$CurrencyExchangeRateStoreToJson(
   CurrencyExchangeRateStore instance,
 ) => <String, dynamic>{
-  'date': ?_dateToJson(instance.date),
+  'date': _dateToJson(instance.date),
   'from': instance.from,
   'to': instance.to,
   'rate': instance.rate,
@@ -2614,12 +2649,14 @@ Map<String, dynamic> _$CurrencyExchangeRateUpdateNoDateToJson(
 ) => <String, dynamic>{'rate': instance.rate};
 
 ObjectGroup _$ObjectGroupFromJson(Map<String, dynamic> json) => ObjectGroup(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   title: json['title'] as String,
   order: (json['order'] as num).toInt(),
 );
@@ -2715,20 +2752,24 @@ Map<String, dynamic> _$PiggyBankAccountUpdateToJson(
 
 PiggyBankProperties _$PiggyBankPropertiesFromJson(Map<String, dynamic> json) =>
     PiggyBankProperties(
-      createdAt: json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
+      createdAt:
+          json['created_at'] == null
+              ? null
+              : DateTime.parse(json['created_at'] as String),
+      updatedAt:
+          json['updated_at'] == null
+              ? null
+              : DateTime.parse(json['updated_at'] as String),
       name: json['name'] as String,
       percentage: (json['percentage'] as num?)?.toInt(),
-      startDate: json['start_date'] == null
-          ? null
-          : DateTime.parse(json['start_date'] as String),
-      targetDate: json['target_date'] == null
-          ? null
-          : DateTime.parse(json['target_date'] as String),
+      startDate:
+          json['start_date'] == null
+              ? null
+              : DateTime.parse(json['start_date'] as String),
+      targetDate:
+          json['target_date'] == null
+              ? null
+              : DateTime.parse(json['target_date'] as String),
       order: (json['order'] as num?)?.toInt(),
       active: json['active'] as bool?,
       notes: json['notes'] as String?,
@@ -2815,9 +2856,10 @@ PiggyBankStore _$PiggyBankStoreFromJson(Map<String, dynamic> json) =>
       targetAmount: json['target_amount'] as String?,
       currentAmount: json['current_amount'] as String?,
       startDate: DateTime.parse(json['start_date'] as String),
-      targetDate: json['target_date'] == null
-          ? null
-          : DateTime.parse(json['target_date'] as String),
+      targetDate:
+          json['target_date'] == null
+              ? null
+              : DateTime.parse(json['target_date'] as String),
       order: (json['order'] as num?)?.toInt(),
       active: json['active'] as bool?,
       notes: json['notes'] as String?,
@@ -2854,12 +2896,14 @@ PiggyBankUpdate _$PiggyBankUpdateFromJson(Map<String, dynamic> json) =>
       currencyId: json['currency_id'] as String?,
       currencyCode: json['currency_code'] as String?,
       targetAmount: json['target_amount'] as String?,
-      startDate: json['start_date'] == null
-          ? null
-          : DateTime.parse(json['start_date'] as String),
-      targetDate: json['target_date'] == null
-          ? null
-          : DateTime.parse(json['target_date'] as String),
+      startDate:
+          json['start_date'] == null
+              ? null
+              : DateTime.parse(json['start_date'] as String),
+      targetDate:
+          json['target_date'] == null
+              ? null
+              : DateTime.parse(json['target_date'] as String),
       order: (json['order'] as num?)?.toInt(),
       active: json['active'] as bool?,
       notes: json['notes'] as String?,
@@ -2886,12 +2930,14 @@ Map<String, dynamic> _$PiggyBankUpdateToJson(PiggyBankUpdate instance) =>
 PiggyBankEventProperties _$PiggyBankEventPropertiesFromJson(
   Map<String, dynamic> json,
 ) => PiggyBankEventProperties(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   amount: json['amount'] as String?,
   pcAmount: json['pc_amount'] as String?,
   objectHasCurrencySetting: json['object_has_currency_setting'] as bool?,
@@ -2933,12 +2979,14 @@ Map<String, dynamic> _$PiggyBankEventPropertiesToJson(
 };
 
 Preference _$PreferenceFromJson(Map<String, dynamic> json) => Preference(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   name: json['name'] as String,
   data: PolymorphicProperty.fromJson(json['data'] as Map<String, dynamic>),
 );
@@ -2962,24 +3010,29 @@ Map<String, dynamic> _$PreferenceUpdateToJson(PreferenceUpdate instance) =>
 RecurrenceProperties _$RecurrencePropertiesFromJson(
   Map<String, dynamic> json,
 ) => RecurrenceProperties(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   type: recurrenceTransactionTypeNullableFromJson(json['type']),
   title: json['title'] as String?,
   description: json['description'] as String?,
-  firstDate: json['first_date'] == null
-      ? null
-      : DateTime.parse(json['first_date'] as String),
-  latestDate: json['latest_date'] == null
-      ? null
-      : DateTime.parse(json['latest_date'] as String),
-  repeatUntil: json['repeat_until'] == null
-      ? null
-      : DateTime.parse(json['repeat_until'] as String),
+  firstDate:
+      json['first_date'] == null
+          ? null
+          : DateTime.parse(json['first_date'] as String),
+  latestDate:
+      json['latest_date'] == null
+          ? null
+          : DateTime.parse(json['latest_date'] as String),
+  repeatUntil:
+      json['repeat_until'] == null
+          ? null
+          : DateTime.parse(json['repeat_until'] as String),
   applyRules: json['apply_rules'] as bool?,
   active: json['active'] as bool?,
   nrOfRepetitions: (json['nr_of_repetitions'] as num?)?.toInt(),
@@ -3024,9 +3077,10 @@ RecurrenceStore _$RecurrenceStoreFromJson(
   title: json['title'] as String,
   description: json['description'] as String?,
   firstDate: DateTime.parse(json['first_date'] as String),
-  repeatUntil: json['repeat_until'] == null
-      ? null
-      : DateTime.parse(json['repeat_until'] as String),
+  repeatUntil:
+      json['repeat_until'] == null
+          ? null
+          : DateTime.parse(json['repeat_until'] as String),
   nrOfRepetitions: (json['nr_of_repetitions'] as num?)?.toInt(),
   applyRules: json['apply_rules'] as bool?,
   active: json['active'] as bool?,
@@ -3069,12 +3123,14 @@ RecurrenceUpdate _$RecurrenceUpdateFromJson(
 ) => RecurrenceUpdate(
   title: json['title'] as String?,
   description: json['description'] as String?,
-  firstDate: json['first_date'] == null
-      ? null
-      : DateTime.parse(json['first_date'] as String),
-  repeatUntil: json['repeat_until'] == null
-      ? null
-      : DateTime.parse(json['repeat_until'] as String),
+  firstDate:
+      json['first_date'] == null
+          ? null
+          : DateTime.parse(json['first_date'] as String),
+  repeatUntil:
+      json['repeat_until'] == null
+          ? null
+          : DateTime.parse(json['repeat_until'] as String),
   nrOfRepetitions: (json['nr_of_repetitions'] as num?)?.toInt(),
   applyRules: json['apply_rules'] as bool?,
   active: json['active'] as bool?,
@@ -3115,12 +3171,14 @@ RecurrenceRepetition _$RecurrenceRepetitionFromJson(
   Map<String, dynamic> json,
 ) => RecurrenceRepetition(
   id: json['id'] as String?,
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   type: recurrenceRepetitionTypeFromJson(json['type']),
   moment: json['moment'] as String,
   skip: (json['skip'] as num?)?.toInt(),
@@ -3357,12 +3415,14 @@ Map<String, dynamic> _$RecurrenceTransactionUpdateToJson(
 };
 
 Rule _$RuleFromJson(Map<String, dynamic> json) => Rule(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   title: json['title'] as String,
   description: json['description'] as String?,
   ruleGroupId: json['rule_group_id'] as String,
@@ -3473,12 +3533,14 @@ Map<String, dynamic> _$RuleUpdateToJson(RuleUpdate instance) =>
 
 RuleAction _$RuleActionFromJson(Map<String, dynamic> json) => RuleAction(
   id: json['id'] as String?,
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   type: ruleActionKeywordFromJson(json['type']),
   value: json['value'] as String?,
   order: (json['order'] as num?)?.toInt(),
@@ -3535,12 +3597,14 @@ Map<String, dynamic> _$RuleActionUpdateToJson(RuleActionUpdate instance) =>
     };
 
 RuleGroup _$RuleGroupFromJson(Map<String, dynamic> json) => RuleGroup(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   title: json['title'] as String,
   description: json['description'] as String?,
   order: (json['order'] as num?)?.toInt(),
@@ -3590,12 +3654,14 @@ Map<String, dynamic> _$RuleGroupUpdateToJson(RuleGroupUpdate instance) =>
 
 RuleTrigger _$RuleTriggerFromJson(Map<String, dynamic> json) => RuleTrigger(
   id: json['id'] as String?,
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   type: ruleTriggerKeywordFromJson(json['type']),
   value: json['value'] as String,
   prohibited: json['prohibited'] as bool? ?? false,
@@ -3656,12 +3722,14 @@ Map<String, dynamic> _$RuleTriggerUpdateToJson(RuleTriggerUpdate instance) =>
     };
 
 TagModel _$TagModelFromJson(Map<String, dynamic> json) => TagModel(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   tag: json['tag'] as String,
   date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
   description: json['description'] as String?,
@@ -3684,9 +3752,8 @@ Map<String, dynamic> _$TagModelToJson(TagModel instance) => <String, dynamic>{
 TagModelStore _$TagModelStoreFromJson(Map<String, dynamic> json) =>
     TagModelStore(
       tag: json['tag'] as String,
-      date: json['date'] == null
-          ? null
-          : DateTime.parse(json['date'] as String),
+      date:
+          json['date'] == null ? null : DateTime.parse(json['date'] as String),
       description: json['description'] as String?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
@@ -3706,9 +3773,8 @@ Map<String, dynamic> _$TagModelStoreToJson(TagModelStore instance) =>
 TagModelUpdate _$TagModelUpdateFromJson(Map<String, dynamic> json) =>
     TagModelUpdate(
       tag: json['tag'] as String?,
-      date: json['date'] == null
-          ? null
-          : DateTime.parse(json['date'] as String),
+      date:
+          json['date'] == null ? null : DateTime.parse(json['date'] as String),
       description: json['description'] as String?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
@@ -3727,12 +3793,14 @@ Map<String, dynamic> _$TagModelUpdateToJson(TagModelUpdate instance) =>
 
 CurrencyProperties _$CurrencyPropertiesFromJson(Map<String, dynamic> json) =>
     CurrencyProperties(
-      createdAt: json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
+      createdAt:
+          json['created_at'] == null
+              ? null
+              : DateTime.parse(json['created_at'] as String),
+      updatedAt:
+          json['updated_at'] == null
+              ? null
+              : DateTime.parse(json['updated_at'] as String),
       enabled: json['enabled'] as bool? ?? true,
       primary: json['primary'] as bool?,
       code: json['code'] as String,
@@ -3794,12 +3862,14 @@ Map<String, dynamic> _$CurrencyUpdateToJson(CurrencyUpdate instance) =>
     };
 
 Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   user: json['user'] as String?,
   groupTitle: json['group_title'] as String?,
   transactions:
@@ -3868,12 +3938,14 @@ Map<String, dynamic> _$TransactionUpdateToJson(TransactionUpdate instance) =>
 
 TransactionLink _$TransactionLinkFromJson(Map<String, dynamic> json) =>
     TransactionLink(
-      createdAt: json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
+      createdAt:
+          json['created_at'] == null
+              ? null
+              : DateTime.parse(json['created_at'] as String),
+      updatedAt:
+          json['updated_at'] == null
+              ? null
+              : DateTime.parse(json['updated_at'] as String),
       linkTypeId: json['link_type_id'] as String?,
       linkTypeName: json['link_type_name'] as String?,
       inwardId: json['inward_id'] as String,
@@ -4031,24 +4103,30 @@ TransactionSplit _$TransactionSplitFromJson(
   sepaEp: json['sepa_ep'] as String?,
   sepaCi: json['sepa_ci'] as String?,
   sepaBatchId: json['sepa_batch_id'] as String?,
-  interestDate: json['interest_date'] == null
-      ? null
-      : DateTime.parse(json['interest_date'] as String),
-  bookDate: json['book_date'] == null
-      ? null
-      : DateTime.parse(json['book_date'] as String),
-  processDate: json['process_date'] == null
-      ? null
-      : DateTime.parse(json['process_date'] as String),
-  dueDate: json['due_date'] == null
-      ? null
-      : DateTime.parse(json['due_date'] as String),
-  paymentDate: json['payment_date'] == null
-      ? null
-      : DateTime.parse(json['payment_date'] as String),
-  invoiceDate: json['invoice_date'] == null
-      ? null
-      : DateTime.parse(json['invoice_date'] as String),
+  interestDate:
+      json['interest_date'] == null
+          ? null
+          : DateTime.parse(json['interest_date'] as String),
+  bookDate:
+      json['book_date'] == null
+          ? null
+          : DateTime.parse(json['book_date'] as String),
+  processDate:
+      json['process_date'] == null
+          ? null
+          : DateTime.parse(json['process_date'] as String),
+  dueDate:
+      json['due_date'] == null
+          ? null
+          : DateTime.parse(json['due_date'] as String),
+  paymentDate:
+      json['payment_date'] == null
+          ? null
+          : DateTime.parse(json['payment_date'] as String),
+  invoiceDate:
+      json['invoice_date'] == null
+          ? null
+          : DateTime.parse(json['invoice_date'] as String),
   latitude: (json['latitude'] as num?)?.toDouble(),
   longitude: (json['longitude'] as num?)?.toDouble(),
   zoomLevel: (json['zoom_level'] as num?)?.toInt(),
@@ -4174,24 +4252,30 @@ TransactionSplitStore _$TransactionSplitStoreFromJson(
   sepaEp: json['sepa_ep'] as String?,
   sepaCi: json['sepa_ci'] as String?,
   sepaBatchId: json['sepa_batch_id'] as String?,
-  interestDate: json['interest_date'] == null
-      ? null
-      : DateTime.parse(json['interest_date'] as String),
-  bookDate: json['book_date'] == null
-      ? null
-      : DateTime.parse(json['book_date'] as String),
-  processDate: json['process_date'] == null
-      ? null
-      : DateTime.parse(json['process_date'] as String),
-  dueDate: json['due_date'] == null
-      ? null
-      : DateTime.parse(json['due_date'] as String),
-  paymentDate: json['payment_date'] == null
-      ? null
-      : DateTime.parse(json['payment_date'] as String),
-  invoiceDate: json['invoice_date'] == null
-      ? null
-      : DateTime.parse(json['invoice_date'] as String),
+  interestDate:
+      json['interest_date'] == null
+          ? null
+          : DateTime.parse(json['interest_date'] as String),
+  bookDate:
+      json['book_date'] == null
+          ? null
+          : DateTime.parse(json['book_date'] as String),
+  processDate:
+      json['process_date'] == null
+          ? null
+          : DateTime.parse(json['process_date'] as String),
+  dueDate:
+      json['due_date'] == null
+          ? null
+          : DateTime.parse(json['due_date'] as String),
+  paymentDate:
+      json['payment_date'] == null
+          ? null
+          : DateTime.parse(json['payment_date'] as String),
+  invoiceDate:
+      json['invoice_date'] == null
+          ? null
+          : DateTime.parse(json['invoice_date'] as String),
 );
 
 Map<String, dynamic> _$TransactionSplitStoreToJson(
@@ -4288,24 +4372,30 @@ TransactionSplitUpdate _$TransactionSplitUpdateFromJson(
   sepaEp: json['sepa_ep'] as String?,
   sepaCi: json['sepa_ci'] as String?,
   sepaBatchId: json['sepa_batch_id'] as String?,
-  interestDate: json['interest_date'] == null
-      ? null
-      : DateTime.parse(json['interest_date'] as String),
-  bookDate: json['book_date'] == null
-      ? null
-      : DateTime.parse(json['book_date'] as String),
-  processDate: json['process_date'] == null
-      ? null
-      : DateTime.parse(json['process_date'] as String),
-  dueDate: json['due_date'] == null
-      ? null
-      : DateTime.parse(json['due_date'] as String),
-  paymentDate: json['payment_date'] == null
-      ? null
-      : DateTime.parse(json['payment_date'] as String),
-  invoiceDate: json['invoice_date'] == null
-      ? null
-      : DateTime.parse(json['invoice_date'] as String),
+  interestDate:
+      json['interest_date'] == null
+          ? null
+          : DateTime.parse(json['interest_date'] as String),
+  bookDate:
+      json['book_date'] == null
+          ? null
+          : DateTime.parse(json['book_date'] as String),
+  processDate:
+      json['process_date'] == null
+          ? null
+          : DateTime.parse(json['process_date'] as String),
+  dueDate:
+      json['due_date'] == null
+          ? null
+          : DateTime.parse(json['due_date'] as String),
+  paymentDate:
+      json['payment_date'] == null
+          ? null
+          : DateTime.parse(json['payment_date'] as String),
+  invoiceDate:
+      json['invoice_date'] == null
+          ? null
+          : DateTime.parse(json['invoice_date'] as String),
 );
 
 Map<String, dynamic> _$TransactionSplitUpdateToJson(
@@ -4362,12 +4452,14 @@ Map<String, dynamic> _$TransactionSplitUpdateToJson(
 };
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   email: json['email'] as String,
   blocked: json['blocked'] as bool?,
   blockedCode: userBlockedCodePropertyNullableFromJson(json['blocked_code']),
@@ -4404,12 +4496,14 @@ Map<String, dynamic> _$UserGroupReadToJson(UserGroupRead instance) =>
 UserGroupReadAttributes _$UserGroupReadAttributesFromJson(
   Map<String, dynamic> json,
 ) => UserGroupReadAttributes(
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
-  updatedAt: json['updated_at'] == null
-      ? null
-      : DateTime.parse(json['updated_at'] as String),
+  createdAt:
+      json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
+  updatedAt:
+      json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'] as String),
   inUse: json['in_use'] as bool?,
   canSeeMembers: json['can_see_members'] as bool?,
   title: json['title'] as String?,
@@ -4480,28 +4574,28 @@ Map<String, dynamic> _$UserGroupUpdateToJson(UserGroupUpdate instance) =>
       'primary_currency_code': instance.primaryCurrencyCode,
     };
 
-WebhookProperties _$WebhookPropertiesFromJson(Map<String, dynamic> json) =>
-    WebhookProperties(
-      createdAt: json['created_at'] == null
+WebhookProperties _$WebhookPropertiesFromJson(
+  Map<String, dynamic> json,
+) => WebhookProperties(
+  createdAt:
+      json['created_at'] == null
           ? null
           : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null
+  updatedAt:
+      json['updated_at'] == null
           ? null
           : DateTime.parse(json['updated_at'] as String),
-      active: json['active'] as bool?,
-      title: json['title'] as String,
-      secret: json['secret'] as String?,
-      triggers: (json['triggers'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-      responses: (json['responses'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-      deliveries: (json['deliveries'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-      url: json['url'] as String,
-    );
+  active: json['active'] as bool?,
+  title: json['title'] as String,
+  secret: json['secret'] as String?,
+  triggers:
+      (json['triggers'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  responses:
+      (json['responses'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  deliveries:
+      (json['deliveries'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  url: json['url'] as String,
+);
 
 Map<String, dynamic> _$WebhookPropertiesToJson(WebhookProperties instance) =>
     <String, dynamic>{
@@ -4519,15 +4613,12 @@ Map<String, dynamic> _$WebhookPropertiesToJson(WebhookProperties instance) =>
 WebhookStore _$WebhookStoreFromJson(Map<String, dynamic> json) => WebhookStore(
   active: json['active'] as bool?,
   title: json['title'] as String,
-  triggers: (json['triggers'] as List<dynamic>?)
-      ?.map((e) => e as String)
-      .toList(),
-  responses: (json['responses'] as List<dynamic>?)
-      ?.map((e) => e as String)
-      .toList(),
-  deliveries: (json['deliveries'] as List<dynamic>?)
-      ?.map((e) => e as String)
-      .toList(),
+  triggers:
+      (json['triggers'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  responses:
+      (json['responses'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  deliveries:
+      (json['deliveries'] as List<dynamic>?)?.map((e) => e as String).toList(),
   url: json['url'] as String,
 );
 
@@ -4541,22 +4632,20 @@ Map<String, dynamic> _$WebhookStoreToJson(WebhookStore instance) =>
       'url': instance.url,
     };
 
-WebhookUpdate _$WebhookUpdateFromJson(Map<String, dynamic> json) =>
-    WebhookUpdate(
-      active: json['active'] as bool?,
-      title: json['title'] as String?,
-      secret: json['secret'] as String?,
-      triggers: (json['triggers'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-      responses: (json['responses'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-      deliveries: (json['deliveries'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-      url: json['url'] as String?,
-    );
+WebhookUpdate _$WebhookUpdateFromJson(
+  Map<String, dynamic> json,
+) => WebhookUpdate(
+  active: json['active'] as bool?,
+  title: json['title'] as String?,
+  secret: json['secret'] as String?,
+  triggers:
+      (json['triggers'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  responses:
+      (json['responses'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  deliveries:
+      (json['deliveries'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  url: json['url'] as String?,
+);
 
 Map<String, dynamic> _$WebhookUpdateToJson(WebhookUpdate instance) =>
     <String, dynamic>{
@@ -4571,12 +4660,14 @@ Map<String, dynamic> _$WebhookUpdateToJson(WebhookUpdate instance) =>
 
 WebhookAttempt _$WebhookAttemptFromJson(Map<String, dynamic> json) =>
     WebhookAttempt(
-      createdAt: json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
+      createdAt:
+          json['created_at'] == null
+              ? null
+              : DateTime.parse(json['created_at'] as String),
+      updatedAt:
+          json['updated_at'] == null
+              ? null
+              : DateTime.parse(json['updated_at'] as String),
       webhookMessageId: json['webhook_message_id'] as String?,
       statusCode: (json['status_code'] as num?)?.toInt(),
       logs: json['logs'] as String?,
@@ -4595,12 +4686,14 @@ Map<String, dynamic> _$WebhookAttemptToJson(WebhookAttempt instance) =>
 
 WebhookMessage _$WebhookMessageFromJson(Map<String, dynamic> json) =>
     WebhookMessage(
-      createdAt: json['created_at'] == null
-          ? null
-          : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] == null
-          ? null
-          : DateTime.parse(json['updated_at'] as String),
+      createdAt:
+          json['created_at'] == null
+              ? null
+              : DateTime.parse(json['created_at'] as String),
+      updatedAt:
+          json['updated_at'] == null
+              ? null
+              : DateTime.parse(json['updated_at'] as String),
       sent: json['sent'] as bool?,
       errored: json['errored'] as bool?,
       webhookId: json['webhook_id'] as String?,
@@ -4690,17 +4783,22 @@ Map<String, dynamic> _$ConfigurationUpdateToJson(
 ) => <String, dynamic>{'value': instance.value.toJson()};
 
 CronResult _$CronResultFromJson(Map<String, dynamic> json) => CronResult(
-  recurringTransactions: json['recurring_transactions'] == null
-      ? null
-      : CronResultRow.fromJson(
-          json['recurring_transactions'] as Map<String, dynamic>,
-        ),
-  autoBudgets: json['auto_budgets'] == null
-      ? null
-      : CronResultRow.fromJson(json['auto_budgets'] as Map<String, dynamic>),
-  telemetry: json['telemetry'] == null
-      ? null
-      : CronResultRow.fromJson(json['telemetry'] as Map<String, dynamic>),
+  recurringTransactions:
+      json['recurring_transactions'] == null
+          ? null
+          : CronResultRow.fromJson(
+            json['recurring_transactions'] as Map<String, dynamic>,
+          ),
+  autoBudgets:
+      json['auto_budgets'] == null
+          ? null
+          : CronResultRow.fromJson(
+            json['auto_budgets'] as Map<String, dynamic>,
+          ),
+  telemetry:
+      json['telemetry'] == null
+          ? null
+          : CronResultRow.fromJson(json['telemetry'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$CronResultToJson(CronResult instance) =>
@@ -4727,9 +4825,10 @@ Map<String, dynamic> _$CronResultRowToJson(CronResultRow instance) =>
     };
 
 SystemInfo _$SystemInfoFromJson(Map<String, dynamic> json) => SystemInfo(
-  data: json['data'] == null
-      ? null
-      : SystemInfo$Data.fromJson(json['data'] as Map<String, dynamic>),
+  data:
+      json['data'] == null
+          ? null
+          : SystemInfo$Data.fromJson(json['data'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$SystemInfoToJson(SystemInfo instance) =>
@@ -4742,9 +4841,12 @@ Map<String, dynamic> _$UserSingleToJson(UserSingle instance) =>
     <String, dynamic>{'data': instance.data.toJson()};
 
 Meta _$MetaFromJson(Map<String, dynamic> json) => Meta(
-  pagination: json['pagination'] == null
-      ? null
-      : Meta$Pagination.fromJson(json['pagination'] as Map<String, dynamic>),
+  pagination:
+      json['pagination'] == null
+          ? null
+          : Meta$Pagination.fromJson(
+            json['pagination'] as Map<String, dynamic>,
+          ),
 );
 
 Map<String, dynamic> _$MetaToJson(Meta instance) => <String, dynamic>{
@@ -4807,11 +4909,12 @@ ValidationErrorResponse _$ValidationErrorResponseFromJson(
   Map<String, dynamic> json,
 ) => ValidationErrorResponse(
   message: json['message'] as String?,
-  errors: json['errors'] == null
-      ? null
-      : ValidationErrorResponse$Errors.fromJson(
-          json['errors'] as Map<String, dynamic>,
-        ),
+  errors:
+      json['errors'] == null
+          ? null
+          : ValidationErrorResponse$Errors.fromJson(
+            json['errors'] as Map<String, dynamic>,
+          ),
 );
 
 Map<String, dynamic> _$ValidationErrorResponseToJson(
