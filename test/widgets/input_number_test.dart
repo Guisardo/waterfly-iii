@@ -156,7 +156,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: Column(
-              children: [
+              children: <Widget>[
                 NumberInput(
                   controller: controller,
                   focusNode: focusNode,
@@ -408,5 +408,128 @@ void main() {
       // Check that the field is disabled (readOnly is not directly accessible)
       expect(field.enabled, false);
     });
+
+    testWidgets(
+      'does not evaluate or call onChanged when expression is invalid on focus loss',
+      (WidgetTester tester) async {
+        final TextEditingController controller = TextEditingController();
+        final FocusNode focusNode = FocusNode();
+        final List<String> changedValues = <String>[];
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Column(
+                children: <Widget>[
+                  NumberInput(
+                    controller: controller,
+                    focusNode: focusNode,
+                    decimals: 2,
+                    onChanged: (String value) => changedValues.add(value),
+                  ),
+                  const TextField(key: Key('other')),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.byType(TextFormField).first);
+        await tester.pump();
+        await tester.enterText(find.byType(TextFormField).first, '10+');
+        await tester.pump();
+
+        // Lose focus — "10+" is an incomplete/invalid expression
+        await tester.tap(find.byKey(const Key('other')));
+        await tester.pump();
+
+        // Controller text must remain unchanged (not evaluated)
+        expect(controller.text, '10+');
+        // onChanged must NOT have been called with an evaluated numeric result
+        expect(changedValues.where((String v) => v == '10.00').isEmpty, isTrue);
+      },
+    );
+
+    testWidgets(
+      'formats integer result without decimal places when decimals is 0',
+      (WidgetTester tester) async {
+        final TextEditingController controller = TextEditingController();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: NumberInput(
+                controller: controller,
+                decimals: 0,
+              ),
+            ),
+          ),
+        );
+
+        await tester.enterText(find.byType(TextFormField), '10+5');
+        await tester.pump();
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pump();
+
+        // Must be "15" not "15.0"
+        expect(controller.text, '15');
+      },
+    );
+
+    testWidgets(
+      'still evaluates on focus loss after widget rebuilds with a new focusNode',
+      (WidgetTester tester) async {
+        final TextEditingController controller = TextEditingController();
+        final FocusNode firstNode = FocusNode();
+        final FocusNode secondNode = FocusNode();
+        FocusNode activeNode = firstNode;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+                  return Column(
+                    children: <Widget>[
+                      NumberInput(
+                        controller: controller,
+                        focusNode: activeNode,
+                        decimals: 2,
+                      ),
+                      ElevatedButton(
+                        key: const Key('swap'),
+                        onPressed: () =>
+                            setState(() => activeNode = secondNode),
+                        child: const Text('Swap'),
+                      ),
+                      const TextField(key: Key('other')),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+
+        // Rebuild with secondNode — triggers didUpdateWidget
+        await tester.tap(find.byKey(const Key('swap')));
+        await tester.pump();
+
+        // Type expression with second node active
+        await tester.tap(find.byType(TextFormField).first);
+        await tester.pump();
+        await tester.enterText(find.byType(TextFormField).first, '8+2');
+        await tester.pump();
+
+        // Lose focus — evaluation should work via second node's listener
+        await tester.tap(find.byKey(const Key('other')));
+        await tester.pump();
+
+        expect(controller.text, '10.00');
+
+        firstNode.dispose();
+        secondNode.dispose();
+      },
+    );
   });
 }

@@ -657,6 +657,7 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
   final Logger log = Logger("Pages.Home.Piggybank.AdjustBalance");
 
   final TextEditingController _amountTextController = TextEditingController();
+  final FocusNode _amountFocusNode = FocusNode();
   TransactionTypeProperty _transactionType = .deposit;
 
   late double currentAmount;
@@ -693,6 +694,7 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
   @override
   void dispose() {
     _amountTextController.dispose();
+    _amountFocusNode.dispose();
 
     super.dispose();
   }
@@ -750,6 +752,7 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
                   Expanded(
                     child: NumberInput(
                       controller: _amountTextController,
+                      focusNode: _amountFocusNode,
                       hintText: "0.00",
                       decimals: currency.attributes.decimalPlaces ?? 2,
                       prefixText: "${currency.attributes.code} ",
