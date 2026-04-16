@@ -2411,7 +2411,7 @@ void main() {
           PendingChanges()
             ..entityType = 'transactions'
             ..entityId = 'tx-1'
-            ..operation = 'CREATE'
+            ..operation = PendingChangeOperation.create.name
             ..data = jsonEncode(<String, List<Map<String, String>>>{
               'transactions': <Map<String, String>>[
                 <String, String>{
@@ -2428,7 +2428,7 @@ void main() {
           PendingChanges()
             ..entityType = 'transactions'
             ..entityId = 'tx-2'
-            ..operation = 'CREATE'
+            ..operation = PendingChangeOperation.create.name
             ..data = jsonEncode(<String, List<Map<String, String>>>{
               'transactions': <Map<String, String>>[
                 <String, String>{
@@ -2568,7 +2568,7 @@ void main() {
           final PendingChanges change = PendingChanges()
             ..entityType = 'transactions'
             ..entityId = 'tx-1'
-            ..operation = 'CREATE'
+            ..operation = PendingChangeOperation.create.name
             ..data = jsonEncode(<String, String>{
               'type': 'withdrawal',
               'amount': '10.00',
@@ -2582,13 +2582,9 @@ void main() {
           });
 
           // Set up conflict error as Response object (409)
-          // Chopper may return Response with isSuccessful=false for 409
-          // Use a minimal valid JSON structure that Chopper can parse, but with 409 status
-          // In reality, a 409 might have an error response, but Chopper should still return a Response object
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
             http.BaseRequest request,
           ) {
-            // Return 409 with error response - Chopper should return Response with isSuccessful=false
             return http.Response(
               jsonEncode(<String, String>{
                 'message': 'Conflict',
@@ -2602,17 +2598,17 @@ void main() {
           await uploadService.uploadPendingChanges();
           expect(uploadService.isUploading, false);
 
-          // Verify change was marked as synced (conflict resolved)
+          // On 409 conflict, the change is NOT marked as synced — conflict is logged
+          // and the change is kept for manual resolution (plan item 1.4)
           final PendingChanges? updated = await isar.pendingChanges
               .filter()
               .idEqualTo(change.id)
               .findFirst();
-          // Conflict should be resolved and change marked as synced
           expect(updated, isNotNull, reason: 'Change should still exist');
           expect(
             updated!.synced,
-            isTrue,
-            reason: 'Conflict should mark change as synced',
+            isFalse,
+            reason: 'Conflict should NOT mark change as synced',
           );
         },
       );
@@ -2621,7 +2617,7 @@ void main() {
         final PendingChanges change = PendingChanges()
           ..entityType = 'transactions'
           ..entityId = 'tx-1'
-          ..operation = 'CREATE'
+          ..operation = PendingChangeOperation.create.name
           ..data = jsonEncode(<String, String>{
             'type': 'withdrawal',
             'amount': '10.00',
@@ -2644,17 +2640,17 @@ void main() {
         await uploadService.uploadPendingChanges();
         expect(uploadService.isUploading, false);
 
-        // Verify change was marked as synced (conflict resolved)
+        // On 409 conflict, the change is NOT marked as synced — conflict is logged
+        // and the change is kept for manual resolution (plan item 1.4)
         final PendingChanges? updated = await isar.pendingChanges
             .filter()
             .idEqualTo(change.id)
             .findFirst();
-        // Conflict should be resolved and change marked as synced
         expect(updated, isNotNull, reason: 'Change should still exist');
         expect(
           updated!.synced,
-          isTrue,
-          reason: 'Conflict should mark change as synced',
+          isFalse,
+          reason: 'Conflict should NOT mark change as synced',
         );
       });
 

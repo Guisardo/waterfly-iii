@@ -160,8 +160,8 @@ class MathExpressionEvaluator {
       return false;
     }
 
-    // Check for division by zero (allow /0.5, /0.123, etc., but not /0)
-    final RegExp divisionByZeroPattern = RegExp(r'/0(?!\.)');
+    // Check for division by zero (allow /0.5, /0.123, etc., but not /0 or /0.0)
+    final RegExp divisionByZeroPattern = RegExp(r'/0(?:\.0*)?(?![.\d])');
     if (divisionByZeroPattern.hasMatch(normalized)) {
       _log.warning('Division by zero detected in expression: $expression');
       return false;
