@@ -13,7 +13,9 @@ class PiggyBankRepository {
   DateTime _getNow() => DateTime.now().toUtc();
 
   Future<List<PiggyBankRead>> getAll() async {
-    final List<PiggyBanks> rows = await isar.piggyBanks.where().findAll();
+    final List<PiggyBanks> allRows = await isar.piggyBanks.where().findAll();
+    final List<PiggyBanks> rows =
+        allRows.where((PiggyBanks r) => r.deletedAt == null).toList();
     rows.sort((PiggyBanks a, PiggyBanks b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
@@ -36,6 +38,7 @@ class PiggyBankRepository {
     if (row == null) {
       return null;
     }
+    if (row.deletedAt != null) return null;
     final PiggyBankRead piggyBank = PiggyBankRead.fromJson(
       jsonDecode(row.data) as Map<String, dynamic>,
     );
@@ -72,21 +75,18 @@ class PiggyBankRepository {
           ..localUpdatedAt = now
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.piggyBanks.put(row);
-    });
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'piggy_banks'
           ..entityId = null
-          ..operation = 'CREATE'
+          ..operation = PendingChangeOperation.create.name
           ..data = jsonEncode(piggyBank.toJson())
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
     await isar.writeTxn(() async {
+      await isar.piggyBanks.put(row);
       await isar.pendingChanges.put(pendingChange);
     });
   }
@@ -100,6 +100,16 @@ class PiggyBankRepository {
             .piggyBankIdEqualTo(piggyBank.id)
             .findFirst();
 
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'piggy_banks'
+          ..entityId = piggyBank.id
+          ..operation = PendingChangeOperation.update.name
+          ..data = jsonEncode(piggyBank.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
     if (existing != null) {
       existing
         ..data = jsonEncode(piggyBank.toJson())
@@ -108,22 +118,13 @@ class PiggyBankRepository {
 
       await isar.writeTxn(() async {
         await isar.piggyBanks.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
       });
     }
-
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'piggy_banks'
-          ..entityId = piggyBank.id
-          ..operation = 'UPDATE'
-          ..data = jsonEncode(piggyBank.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
-
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
   }
 
   Future<void> delete(String id) async {
@@ -132,40 +133,58 @@ class PiggyBankRepository {
     final PiggyBanks? existing =
         await isar.piggyBanks.filter().piggyBankIdEqualTo(id).findFirst();
 
-    if (existing != null) {
-      existing.synced = false;
-
-      await isar.writeTxn(() async {
-        await isar.piggyBanks.put(existing);
-      });
-    }
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'piggy_banks'
           ..entityId = id
-          ..operation = 'DELETE'
+          ..operation = PendingChangeOperation.delete.name
           ..data = null
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
+    if (existing != null) {
+      existing.deletedAt = _getNow();
+      await isar.writeTxn(() async {
+        await isar.piggyBanks.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
+      });
+    }
   }
 
   Future<void> upsertFromSync(PiggyBankRead piggyBank) async {
     final DateTime? updatedAt = piggyBank.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final PiggyBanks row =
-        PiggyBanks()
-          ..piggyBankId = piggyBank.id
-          ..data = jsonEncode(piggyBank.toJson())
-          ..updatedAt = updatedAt
-          ..localUpdatedAt = now
-          ..synced = true;
+    final PiggyBanks? existing =
+        await isar.piggyBanks
+            .filter()
+            .piggyBankIdEqualTo(piggyBank.id)
+            .findFirst();
+
+    if (existing?.deletedAt != null) return; // locally deleted, keep tombstone
+
+    final PiggyBanks row;
+    if (existing != null) {
+      row =
+          existing
+            ..data = jsonEncode(piggyBank.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    } else {
+      row =
+          PiggyBanks()
+            ..piggyBankId = piggyBank.id
+            ..data = jsonEncode(piggyBank.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    }
 
     await isar.writeTxn(() async {
       await isar.piggyBanks.put(row);

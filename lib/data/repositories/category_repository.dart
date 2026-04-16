@@ -13,7 +13,9 @@ class CategoryRepository {
   DateTime _getNow() => DateTime.now().toUtc();
 
   Future<List<CategoryRead>> getAll() async {
-    final List<Categories> rows = await isar.categories.where().findAll();
+    final List<Categories> allRows = await isar.categories.where().findAll();
+    final List<Categories> rows =
+        allRows.where((Categories r) => r.deletedAt == null).toList();
     rows.sort((Categories a, Categories b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
@@ -36,6 +38,7 @@ class CategoryRepository {
     if (row == null) {
       return null;
     }
+    if (row.deletedAt != null) return null;
     return CategoryRead.fromJson(jsonDecode(row.data) as Map<String, dynamic>);
   }
 
@@ -77,21 +80,20 @@ class CategoryRepository {
           ..localUpdatedAt = now
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.categories.put(row);
-    });
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'categories'
           ..entityId = null
-          ..operation = 'CREATE'
+          ..operation = PendingChangeOperation.create.name
           ..data = jsonEncode(category.toJson())
           ..createdAt = now
           ..retryCount = 0
-          ..synced = false;
+          ..synced = false
+          ..localPendingId =
+              category.id.startsWith('pending-') ? category.id : null;
 
     await isar.writeTxn(() async {
+      await isar.categories.put(row);
       await isar.pendingChanges.put(pendingChange);
     });
   }
@@ -105,6 +107,16 @@ class CategoryRepository {
             .categoryIdEqualTo(category.id)
             .findFirst();
 
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'categories'
+          ..entityId = category.id
+          ..operation = PendingChangeOperation.update.name
+          ..data = jsonEncode(category.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
     if (existing != null) {
       existing
         ..data = jsonEncode(category.toJson())
@@ -113,22 +125,13 @@ class CategoryRepository {
 
       await isar.writeTxn(() async {
         await isar.categories.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
       });
     }
-
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'categories'
-          ..entityId = category.id
-          ..operation = 'UPDATE'
-          ..data = jsonEncode(category.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
-
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
   }
 
   Future<void> delete(String id) async {
@@ -137,40 +140,58 @@ class CategoryRepository {
     final Categories? existing =
         await isar.categories.filter().categoryIdEqualTo(id).findFirst();
 
-    if (existing != null) {
-      existing.synced = false;
-
-      await isar.writeTxn(() async {
-        await isar.categories.put(existing);
-      });
-    }
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'categories'
           ..entityId = id
-          ..operation = 'DELETE'
+          ..operation = PendingChangeOperation.delete.name
           ..data = null
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
+    if (existing != null) {
+      existing.deletedAt = _getNow();
+      await isar.writeTxn(() async {
+        await isar.categories.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
+      });
+    }
   }
 
   Future<void> upsertFromSync(CategoryRead category) async {
     final DateTime? updatedAt = category.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Categories row =
-        Categories()
-          ..categoryId = category.id
-          ..data = jsonEncode(category.toJson())
-          ..updatedAt = updatedAt
-          ..localUpdatedAt = now
-          ..synced = true;
+    final Categories? existing =
+        await isar.categories
+            .filter()
+            .categoryIdEqualTo(category.id)
+            .findFirst();
+
+    if (existing?.deletedAt != null) return; // locally deleted, keep tombstone
+
+    final Categories row;
+    if (existing != null) {
+      row =
+          existing
+            ..data = jsonEncode(category.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    } else {
+      row =
+          Categories()
+            ..categoryId = category.id
+            ..data = jsonEncode(category.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    }
 
     await isar.writeTxn(() async {
       await isar.categories.put(row);

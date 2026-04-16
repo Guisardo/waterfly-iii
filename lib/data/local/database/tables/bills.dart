@@ -17,4 +17,6 @@ class Bills {
 
   @Index()
   bool synced = false;
+
+  DateTime? deletedAt;
 }

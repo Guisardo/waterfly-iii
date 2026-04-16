@@ -17,4 +17,6 @@ class Tags {
 
   @Index()
   bool synced = false;
+
+  DateTime? deletedAt;
 }

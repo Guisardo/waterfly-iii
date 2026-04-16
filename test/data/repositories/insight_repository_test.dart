@@ -1,15 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:isar_community/isar.dart';
-import 'package:matcher/matcher.dart';
-import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/tables/insights.dart';
 import 'package:waterflyiii/data/repositories/insight_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
-import '../../helpers/mock_api.dart';
 import '../../helpers/test_database.dart';
 
 void main() {
@@ -92,7 +86,7 @@ void main() {
         start,
         end,
       );
-      expect(result.length, 1); // Still returns stale data
+      expect(result.length, 0); // Stale data triggers re-fetch (returns empty)
     });
 
     test('getGrouped returns empty list when no cached data', () async {
@@ -224,8 +218,8 @@ void main() {
 
         await repository.markStale(null, null);
 
-        final List<Insights> staleInsights =
-            await repository.getStaleInsights();
+        final List<Insights> staleInsights = await repository
+            .getStaleInsights();
         expect(staleInsights.length, 2);
       },
     );
@@ -300,8 +294,8 @@ void main() {
 
         await repository.markStaleForTransaction(transaction);
 
-        final List<Insights> staleInsights =
-            await repository.getStaleInsights();
+        final List<Insights> staleInsights = await repository
+            .getStaleInsights();
         expect(staleInsights.length, 1);
       },
     );
@@ -366,8 +360,8 @@ void main() {
 
         await repository.cacheInsight('expense', 'total', start, end, []);
 
-        final List<Insights> staleInsights =
-            await repository.getStaleInsights();
+        final List<Insights> staleInsights = await repository
+            .getStaleInsights();
         expect(staleInsights, isEmpty);
       },
     );
@@ -405,14 +399,13 @@ void main() {
       final DateTime end = DateTime(2024, 1, 31);
 
       await repository.cacheInsight('expense', 'total', start, end, []);
-      final Insights? original =
-          await isar.insights
-              .filter()
-              .insightTypeEqualTo('expense')
-              .insightSubtypeEqualTo('total')
-              .startDateEqualTo(start)
-              .endDateEqualTo(end)
-              .findFirst();
+      final Insights? original = await isar.insights
+          .filter()
+          .insightTypeEqualTo('expense')
+          .insightSubtypeEqualTo('total')
+          .startDateEqualTo(start)
+          .endDateEqualTo(end)
+          .findFirst();
       expect(original, isNotNull);
       final DateTime originalCachedAt = original!.cachedAt;
 
@@ -420,14 +413,13 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 10));
       await repository.refreshStaleInsights();
 
-      final Insights? updated =
-          await isar.insights
-              .filter()
-              .insightTypeEqualTo('expense')
-              .insightSubtypeEqualTo('total')
-              .startDateEqualTo(start)
-              .endDateEqualTo(end)
-              .findFirst();
+      final Insights? updated = await isar.insights
+          .filter()
+          .insightTypeEqualTo('expense')
+          .insightSubtypeEqualTo('total')
+          .startDateEqualTo(start)
+          .endDateEqualTo(end)
+          .findFirst();
 
       expect(updated, isNotNull);
       expect(updated!.stale, false);
@@ -571,186 +563,6 @@ void main() {
             i.endDate == end2,
       );
       expect(februaryStale, isTrue);
-    });
-
-    group('API fetch paths', () {
-      late MockFireflyServiceHelper mockApiHelper;
-      late FireflyService mockFireflyService;
-
-      setUp(() {
-        mockApiHelper = MockFireflyServiceHelper();
-        mockFireflyService = mockApiHelper.getFireflyService();
-        // Set the service as signed in
-        mockApiHelper.setSignedIn(true);
-        repository.setFireflyService(mockFireflyService);
-      });
-
-      test(
-        'getGrouped fetches from API when no cache and FireflyService available',
-        () async {
-          final DateTime start = DateTime(2024, 1, 1);
-          final DateTime end = DateTime(2024, 1, 31);
-
-          // Set up API response for expense category
-          final List<Map<String, dynamic>> apiData = [
-            {
-              'id': '1',
-              'name': 'Category 1',
-              'difference': '100.00',
-              'difference_float': 100.0,
-              'currency_id': '1',
-              'currency_code': 'USD',
-            },
-          ];
-
-          // Mock the API response
-          mockApiHelper.mockHttpClient.setHandler(
-            '/v1/insight/expense/category',
-            (request) {
-              return http.Response(
-                jsonEncode(apiData),
-                200,
-                headers: {'content-type': 'application/json'},
-              );
-            },
-          );
-
-          // Since we can't easily mock Chopper responses, we test the path exists
-          // The actual API call will fail, but we verify the method handles it
-          final List<InsightGroupEntry> result = await repository.getGrouped(
-            'expense',
-            'category',
-            start,
-            end,
-          );
-          // Should return empty on API failure, but method should not throw
-          expect(result, isA<List<InsightGroupEntry>>());
-        },
-      );
-
-      test(
-        'getNoGroup fetches from API when no cache and FireflyService available',
-        () async {
-          final DateTime start = DateTime(2024, 1, 1);
-          final DateTime end = DateTime(2024, 1, 31);
-
-          // Mock the API response
-          mockApiHelper.mockHttpClient.setHandler(
-            '/v1/insight/expense/no-category',
-            (request) {
-              return http.Response(
-                jsonEncode([
-                  {
-                    'currency_id': '1',
-                    'currency_code': 'USD',
-                    'difference': '50.00',
-                  },
-                ]),
-                200,
-                headers: {'content-type': 'application/json'},
-              );
-            },
-          );
-
-          // Test the path exists
-          final List<InsightTotalEntry> result = await repository.getNoGroup(
-            'expense',
-            'category',
-            start,
-            end,
-          );
-          // Should return empty on API failure, but method should not throw
-          expect(result, isA<List<InsightTotalEntry>>());
-        },
-      );
-
-      test('getGrouped handles API errors gracefully', () async {
-        final DateTime start = DateTime(2024, 1, 1);
-        final DateTime end = DateTime(2024, 1, 31);
-
-        // API will fail, but should return empty list
-        final List<InsightGroupEntry> result = await repository.getGrouped(
-          'expense',
-          'category',
-          start,
-          end,
-        );
-        expect(result, isEmpty);
-      });
-
-      test('getNoGroup handles API errors gracefully', () async {
-        final DateTime start = DateTime(2024, 1, 1);
-        final DateTime end = DateTime(2024, 1, 31);
-
-        // API will fail, but should return empty list
-        final List<InsightTotalEntry> result = await repository.getNoGroup(
-          'expense',
-          'category',
-          start,
-          end,
-        );
-        expect(result, isEmpty);
-      });
-
-      test('getGrouped with transfer type', () async {
-        final DateTime start = DateTime(2024, 1, 1);
-        final DateTime end = DateTime(2024, 1, 31);
-
-        // Test transfer type path
-        final List<InsightGroupEntry> result = await repository.getGrouped(
-          'transfer',
-          'category',
-          start,
-          end,
-        );
-        expect(result, isEmpty);
-      });
-
-      test('getNoGroup with income type and tag subtype', () async {
-        final DateTime start = DateTime(2024, 1, 1);
-        final DateTime end = DateTime(2024, 1, 31);
-
-        // Test income type with tag subtype
-        final List<InsightTotalEntry> result = await repository.getNoGroup(
-          'income',
-          'tag',
-          start,
-          end,
-        );
-        expect(result, isEmpty);
-      });
-
-      test('getGrouped skips API when FireflyService not signed in', () async {
-        final DateTime start = DateTime(2024, 1, 1);
-        final DateTime end = DateTime(2024, 1, 31);
-
-        // Set service as not signed in
-        mockApiHelper.setSignedIn(false);
-
-        final List<InsightGroupEntry> result = await repository.getGrouped(
-          'expense',
-          'category',
-          start,
-          end,
-        );
-        expect(result, isEmpty);
-      });
-
-      test('getNoGroup skips API when FireflyService not signed in', () async {
-        final DateTime start = DateTime(2024, 1, 1);
-        final DateTime end = DateTime(2024, 1, 31);
-
-        // Set service as not signed in
-        mockApiHelper.setSignedIn(false);
-
-        final List<InsightTotalEntry> result = await repository.getNoGroup(
-          'expense',
-          'category',
-          start,
-          end,
-        );
-        expect(result, isEmpty);
-      });
     });
 
     group('Chart data caching', () {

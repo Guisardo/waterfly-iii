@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:isar_community/isar.dart';
@@ -18,42 +19,49 @@ import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_conflicts.dart';
 
 class AppDatabase {
-  static Isar? _isar;
+  static Completer<Isar>? _completer;
 
   static Future<Isar> get instance async {
-    if (_isar != null) {
-      return _isar!;
+    if (_completer != null) {
+      return _completer!.future;
     }
-
-    final Directory dbFolder = await getApplicationDocumentsDirectory();
-
-    final Isar isarInstance = await Isar.open(
-      <CollectionSchema<dynamic>>[
-        TransactionsSchema,
-        AccountsSchema,
-        CategoriesSchema,
-        TagsSchema,
-        BillsSchema,
-        BudgetsSchema,
-        BudgetLimitsSchema,
-        CurrenciesSchema,
-        PiggyBanksSchema,
-        AttachmentsSchema,
-        InsightsSchema,
-        SyncMetadataSchema,
-        PendingChangesSchema,
-        SyncConflictsSchema,
-      ],
-      directory: dbFolder.path,
-      name: 'waterflyiii',
-    );
-
-    _isar = isarInstance;
-    return _isar!;
+    _completer = Completer<Isar>();
+    try {
+      final Directory dbFolder = await getApplicationDocumentsDirectory();
+      final Isar isar = await Isar.open(
+        <CollectionSchema<dynamic>>[
+          TransactionsSchema,
+          AccountsSchema,
+          CategoriesSchema,
+          TagsSchema,
+          BillsSchema,
+          BudgetsSchema,
+          BudgetLimitsSchema,
+          CurrenciesSchema,
+          PiggyBanksSchema,
+          AttachmentsSchema,
+          InsightsSchema,
+          SyncMetadataSchema,
+          PendingChangesSchema,
+          SyncConflictsSchema,
+        ],
+        directory: dbFolder.path,
+        name: 'waterflyiii',
+      );
+      _completer!.complete(isar);
+    } catch (e) {
+      _completer = null;
+      rethrow;
+    }
+    return _completer!.future;
   }
 
   static Future<void> close() async {
-    await _isar?.close();
-    _isar = null;
+    if (_completer == null) {
+      return;
+    }
+    final Isar isar = await _completer!.future;
+    await isar.close();
+    _completer = null;
   }
 }

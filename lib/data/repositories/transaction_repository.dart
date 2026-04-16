@@ -118,8 +118,32 @@ class TransactionRepository {
     }
   }
 
+  /// Deserializes a single Transactions row to TransactionRead.
+  /// Returns null if the row is soft-deleted or cannot be parsed.
+  TransactionRead? _deserializeRow(Transactions row) {
+    if (row.deletedAt != null) return null;
+    try {
+      final Map<String, dynamic> jsonData =
+          jsonDecode(row.data) as Map<String, dynamic>;
+      if (row.transactionId.startsWith('pending-')) {
+        final TransactionStore store = TransactionStore.fromJson(jsonData);
+        return _convertStoreToRead(store, row.transactionId);
+      }
+      if (jsonData.containsKey('type') &&
+          jsonData.containsKey('id') &&
+          jsonData.containsKey('attributes') &&
+          jsonData.containsKey('links')) {
+        return TransactionRead.fromJson(jsonData);
+      }
+    } catch (e) {
+      // skip
+    }
+    return null;
+  }
+
   Future<List<TransactionRead>> getAll() async {
-    final List<Transactions> rows = await isar.transactions.where().findAll();
+    final List<Transactions> rows =
+        await isar.transactions.filter().deletedAtIsNull().findAll();
     rows.sort((Transactions a, Transactions b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
@@ -131,40 +155,8 @@ class TransactionRepository {
 
     final List<TransactionRead> result = <TransactionRead>[];
     for (final Transactions row in rows) {
-      try {
-        final Map<String, dynamic> jsonData =
-            jsonDecode(row.data) as Map<String, dynamic>;
-
-        // Check if it's a pending transaction (TransactionStore format)
-        if (row.transactionId.startsWith('pending-')) {
-          // Try to convert TransactionStore to TransactionRead
-          try {
-            final TransactionStore store = TransactionStore.fromJson(jsonData);
-            final TransactionRead? converted = _convertStoreToRead(
-              store,
-              row.transactionId,
-            );
-            if (converted != null) {
-              result.add(converted);
-            }
-          } catch (e) {
-            // Skip if conversion fails
-            continue;
-          }
-        } else {
-          // It's a regular TransactionRead format
-          // Verify it's a TransactionRead format (has 'type', 'id', 'attributes', 'links')
-          if (jsonData.containsKey('type') &&
-              jsonData.containsKey('id') &&
-              jsonData.containsKey('attributes') &&
-              jsonData.containsKey('links')) {
-            result.add(TransactionRead.fromJson(jsonData));
-          }
-        }
-      } catch (e) {
-        // Skip invalid transaction data
-        continue;
-      }
+      final TransactionRead? tx = _deserializeRow(row);
+      if (tx != null) result.add(tx);
     }
     return result;
   }
@@ -175,6 +167,7 @@ class TransactionRepository {
     if (row == null) {
       return null;
     }
+    if (row.deletedAt != null) return null;
     // Handle pending transactions (they have TransactionStore format, not TransactionRead)
     if (row.transactionId.startsWith('pending-')) {
       try {
@@ -226,19 +219,19 @@ class TransactionRepository {
     int? page,
     int? limit,
   }) async {
-    final List<TransactionRead> all = await getAll();
-    final List<TransactionRead> filtered =
-        all.where((TransactionRead transaction) {
-          final DateTime? date =
-              transaction.attributes.transactions.firstOrNull?.date;
-          if (date == null) {
-            return false;
-          }
-          return date.isAfter(start.subtract(const Duration(days: 1))) &&
-              date.isBefore(end.add(const Duration(days: 1)));
-        }).toList();
+    final List<Transactions> rows =
+        await isar.transactions
+            .filter()
+            .deletedAtIsNull()
+            .dateBetween(start, end)
+            .findAll();
 
-    // Sort by date descending (newest first)
+    final List<TransactionRead> filtered = <TransactionRead>[];
+    for (final Transactions row in rows) {
+      final TransactionRead? tx = _deserializeRow(row);
+      if (tx != null) filtered.add(tx);
+    }
+
     filtered.sort((TransactionRead a, TransactionRead b) {
       final DateTime? dateA = a.attributes.transactions.firstOrNull?.date;
       final DateTime? dateB = b.attributes.transactions.firstOrNull?.date;
@@ -248,13 +241,10 @@ class TransactionRepository {
       return dateB.compareTo(dateA);
     });
 
-    // Apply pagination
     if (page != null && limit != null) {
       final int startIndex = (page - 1) * limit;
       final int endIndex = startIndex + limit;
-      if (startIndex >= filtered.length) {
-        return <TransactionRead>[];
-      }
+      if (startIndex >= filtered.length) return <TransactionRead>[];
       return filtered.sublist(
         startIndex,
         endIndex > filtered.length ? filtered.length : endIndex,
@@ -271,44 +261,36 @@ class TransactionRepository {
     int? page,
     int? limit,
   }) async {
-    final List<TransactionRead> all = await getAll();
-    final List<TransactionRead> filtered =
-        all.where((TransactionRead transaction) {
-          // Check if transaction involves this account
-          bool involvesAccount = false;
-          for (final TransactionSplit split
-              in transaction.attributes.transactions) {
-            if (split.sourceId == accountId ||
-                split.destinationId == accountId) {
-              involvesAccount = true;
-              break;
-            }
-          }
+    final QueryBuilder<Transactions, Transactions, QAfterFilterCondition>
+    query = isar.transactions.filter().deletedAtIsNull().group(
+      (QueryBuilder<Transactions, Transactions, QFilterCondition> q) => q
+          .sourceAccountIdEqualTo(accountId)
+          .or()
+          .destinationAccountIdEqualTo(accountId),
+    );
 
-          if (!involvesAccount) {
-            return false;
-          }
+    final List<Transactions> rows = await query.findAll();
 
-          // Apply date filter if provided
-          if (start != null || end != null) {
-            final DateTime? date =
-                transaction.attributes.transactions.firstOrNull?.date;
-            if (date == null) {
-              return false;
-            }
-            if (start != null &&
-                date.isBefore(start.subtract(const Duration(days: 1)))) {
-              return false;
-            }
-            if (end != null && date.isAfter(end.add(const Duration(days: 1)))) {
-              return false;
-            }
-          }
+    final List<TransactionRead> filtered = <TransactionRead>[];
+    for (final Transactions row in rows) {
+      final TransactionRead? tx = _deserializeRow(row);
+      if (tx == null) continue;
 
-          return true;
-        }).toList();
+      if (start != null || end != null) {
+        final DateTime? date = tx.attributes.transactions.firstOrNull?.date;
+        if (date == null) continue;
+        if (start != null &&
+            date.isBefore(start.subtract(const Duration(days: 1)))) {
+          continue;
+        }
+        if (end != null && date.isAfter(end.add(const Duration(days: 1)))) {
+          continue;
+        }
+      }
 
-    // Sort by date descending
+      filtered.add(tx);
+    }
+
     filtered.sort((TransactionRead a, TransactionRead b) {
       final DateTime? dateA = a.attributes.transactions.firstOrNull?.date;
       final DateTime? dateB = b.attributes.transactions.firstOrNull?.date;
@@ -318,13 +300,10 @@ class TransactionRepository {
       return dateB.compareTo(dateA);
     });
 
-    // Apply pagination
     if (page != null && limit != null) {
       final int startIndex = (page - 1) * limit;
       final int endIndex = startIndex + limit;
-      if (startIndex >= filtered.length) {
-        return <TransactionRead>[];
-      }
+      if (startIndex >= filtered.length) return <TransactionRead>[];
       return filtered.sublist(
         startIndex,
         endIndex > filtered.length ? filtered.length : endIndex,
@@ -578,23 +557,25 @@ class TransactionRepository {
           ..data = jsonEncode(transaction.toJson())
           ..updatedAt = updatedAt
           ..localUpdatedAt = now
-          ..synced = false;
-
-    await isar.writeTxn(() async {
-      await isar.transactions.put(row);
-    });
+          ..synced = false
+          ..date = transaction.attributes.transactions.firstOrNull?.date
+          ..sourceAccountId =
+              transaction.attributes.transactions.firstOrNull?.sourceId
+          ..destinationAccountId =
+              transaction.attributes.transactions.firstOrNull?.destinationId;
 
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'transactions'
           ..entityId = null
-          ..operation = 'CREATE'
+          ..operation = PendingChangeOperation.create.name
           ..data = jsonEncode(transaction.toJson())
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
     await isar.writeTxn(() async {
+      await isar.transactions.put(row);
       await isar.pendingChanges.put(pendingChange);
     });
   }
@@ -608,6 +589,16 @@ class TransactionRepository {
             .transactionIdEqualTo(transaction.id)
             .findFirst();
 
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = transaction.id
+          ..operation = PendingChangeOperation.update.name
+          ..data = jsonEncode(transaction.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
     if (existing != null) {
       existing
         ..data = jsonEncode(transaction.toJson())
@@ -616,22 +607,13 @@ class TransactionRepository {
 
       await isar.writeTxn(() async {
         await isar.transactions.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
       });
     }
-
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'transactions'
-          ..entityId = transaction.id
-          ..operation = 'UPDATE'
-          ..data = jsonEncode(transaction.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
-
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
   }
 
   Future<void> delete(String id) async {
@@ -640,25 +622,27 @@ class TransactionRepository {
     final Transactions? existing =
         await isar.transactions.filter().transactionIdEqualTo(id).findFirst();
 
-    if (existing != null) {
-      await isar.writeTxn(() async {
-        await isar.transactions.delete(existing.id);
-      });
-    }
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'transactions'
           ..entityId = id
-          ..operation = 'DELETE'
+          ..operation = PendingChangeOperation.delete.name
           ..data = null
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
+    if (existing != null) {
+      existing.deletedAt = _getNow();
+      await isar.writeTxn(() async {
+        await isar.transactions.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
+      });
+    }
   }
 
   /// Creates a new transaction from a TransactionStore.
@@ -675,23 +659,26 @@ class TransactionRepository {
           ..data = jsonEncode(transaction.toJson())
           ..updatedAt = null
           ..localUpdatedAt = now
-          ..synced = false;
-
-    await isar.writeTxn(() async {
-      await isar.transactions.put(row);
-    });
+          ..synced = false
+          ..date = transaction.transactions.firstOrNull?.date
+          ..sourceAccountId = transaction.transactions.firstOrNull?.sourceId
+          ..destinationAccountId =
+              transaction.transactions.firstOrNull?.destinationId;
 
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'transactions'
-          ..entityId = null // null for CREATE operations
-          ..operation = 'CREATE'
+          ..entityId =
+              null // null for CREATE operations
+          ..operation = PendingChangeOperation.create.name
           ..data = jsonEncode(transaction.toJson())
           ..createdAt = now
           ..retryCount = 0
-          ..synced = false;
+          ..synced = false
+          ..localPendingId = pendingId;
 
     await isar.writeTxn(() async {
+      await isar.transactions.put(row);
       await isar.pendingChanges.put(pendingChange);
     });
 
@@ -712,16 +699,18 @@ class TransactionRepository {
         try {
           final Map<String, dynamic> existingData =
               jsonDecode(existing.data) as Map<String, dynamic>;
-          final TransactionStore existingStore =
-              TransactionStore.fromJson(existingData);
+          final TransactionStore existingStore = TransactionStore.fromJson(
+            existingData,
+          );
 
           // Merge update into existing store
           final List<TransactionSplitStore> updatedSplits =
               <TransactionSplitStore>[];
           for (int i = 0; i < (update.transactions?.length ?? 0); i++) {
             final TransactionSplitUpdate splitUpdate = update.transactions![i];
-            final TransactionSplitStore? existingSplit =
-                existingStore.transactions.elementAtOrNull(i);
+            final TransactionSplitStore? existingSplit = existingStore
+                .transactions
+                .elementAtOrNull(i);
 
             updatedSplits.add(
               TransactionSplitStore(
@@ -732,11 +721,8 @@ class TransactionRepository {
                 date: splitUpdate.date ?? existingSplit?.date ?? now,
                 amount: splitUpdate.amount ?? existingSplit?.amount ?? '0',
                 description:
-                    splitUpdate.description ??
-                    existingSplit?.description ??
-                    '',
-                sourceName:
-                    splitUpdate.sourceName ?? existingSplit?.sourceName,
+                    splitUpdate.description ?? existingSplit?.description ?? '',
+                sourceName: splitUpdate.sourceName ?? existingSplit?.sourceName,
                 sourceId: splitUpdate.sourceId ?? existingSplit?.sourceId,
                 destinationName:
                     splitUpdate.destinationName ??
@@ -760,8 +746,7 @@ class TransactionRepository {
                 foreignCurrencyCode:
                     splitUpdate.foreignCurrencyCode ??
                     existingSplit?.foreignCurrencyCode,
-                reconciled:
-                    splitUpdate.reconciled ?? existingSplit?.reconciled,
+                reconciled: splitUpdate.reconciled ?? existingSplit?.reconciled,
                 order: splitUpdate.order ?? existingSplit?.order ?? i,
               ),
             );
@@ -813,6 +798,16 @@ class TransactionRepository {
     final Transactions? existing =
         await isar.transactions.filter().transactionIdEqualTo(id).findFirst();
 
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = id
+          ..operation = PendingChangeOperation.update.name
+          ..data = jsonEncode(update.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
     if (existing != null) {
       // We store the TransactionUpdate directly - the sync service will handle it
       existing
@@ -821,22 +816,13 @@ class TransactionRepository {
 
       await isar.writeTxn(() async {
         await isar.transactions.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
       });
     }
-
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'transactions'
-          ..entityId = id
-          ..operation = 'UPDATE'
-          ..data = jsonEncode(update.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
-
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
   }
 
   /// Deletes a transaction split (journal) by its ID.
@@ -849,7 +835,7 @@ class TransactionRepository {
         PendingChanges()
           ..entityType = 'transaction_journals'
           ..entityId = journalId
-          ..operation = 'DELETE'
+          ..operation = PendingChangeOperation.delete.name
           ..data = null
           ..createdAt = now
           ..retryCount = 0
@@ -872,6 +858,8 @@ class TransactionRepository {
             .transactionIdEqualTo(transaction.id)
             .findFirst();
 
+    if (existing?.deletedAt != null) return; // locally deleted, keep tombstone
+
     final Transactions row;
     if (existing != null) {
       // Update existing transaction
@@ -880,7 +868,12 @@ class TransactionRepository {
             ..data = jsonEncode(transaction.toJson())
             ..updatedAt = updatedAt
             ..localUpdatedAt = now
-            ..synced = true;
+            ..synced = true
+            ..date = transaction.attributes.transactions.firstOrNull?.date
+            ..sourceAccountId =
+                transaction.attributes.transactions.firstOrNull?.sourceId
+            ..destinationAccountId =
+                transaction.attributes.transactions.firstOrNull?.destinationId;
     } else {
       // Create new transaction
       row =
@@ -889,7 +882,12 @@ class TransactionRepository {
             ..data = jsonEncode(transaction.toJson())
             ..updatedAt = updatedAt
             ..localUpdatedAt = now
-            ..synced = true;
+            ..synced = true
+            ..date = transaction.attributes.transactions.firstOrNull?.date
+            ..sourceAccountId =
+                transaction.attributes.transactions.firstOrNull?.sourceId
+            ..destinationAccountId =
+                transaction.attributes.transactions.firstOrNull?.destinationId;
     }
 
     await isar.writeTxn(() async {

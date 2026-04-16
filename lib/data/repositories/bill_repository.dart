@@ -13,7 +13,9 @@ class BillRepository {
   DateTime _getNow() => DateTime.now().toUtc();
 
   Future<List<BillRead>> getAll() async {
-    final List<Bills> rows = await isar.bills.where().findAll();
+    final List<Bills> allRows = await isar.bills.where().findAll();
+    final List<Bills> rows =
+        allRows.where((Bills r) => r.deletedAt == null).toList();
     rows.sort((Bills a, Bills b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
@@ -33,6 +35,7 @@ class BillRepository {
     if (row == null) {
       return null;
     }
+    if (row.deletedAt != null) return null;
     return BillRead.fromJson(jsonDecode(row.data) as Map<String, dynamic>);
   }
 
@@ -66,21 +69,18 @@ class BillRepository {
           ..localUpdatedAt = now
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.bills.put(row);
-    });
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'bills'
           ..entityId = null
-          ..operation = 'CREATE'
+          ..operation = PendingChangeOperation.create.name
           ..data = jsonEncode(bill.toJson())
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
     await isar.writeTxn(() async {
+      await isar.bills.put(row);
       await isar.pendingChanges.put(pendingChange);
     });
   }
@@ -91,6 +91,16 @@ class BillRepository {
     final Bills? existing =
         await isar.bills.filter().billIdEqualTo(bill.id).findFirst();
 
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'bills'
+          ..entityId = bill.id
+          ..operation = PendingChangeOperation.update.name
+          ..data = jsonEncode(bill.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
     if (existing != null) {
       existing
         ..data = jsonEncode(bill.toJson())
@@ -99,22 +109,13 @@ class BillRepository {
 
       await isar.writeTxn(() async {
         await isar.bills.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
       });
     }
-
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'bills'
-          ..entityId = bill.id
-          ..operation = 'UPDATE'
-          ..data = jsonEncode(bill.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
-
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
   }
 
   Future<void> delete(String id) async {
@@ -123,40 +124,55 @@ class BillRepository {
     final Bills? existing =
         await isar.bills.filter().billIdEqualTo(id).findFirst();
 
-    if (existing != null) {
-      existing.synced = false;
-
-      await isar.writeTxn(() async {
-        await isar.bills.put(existing);
-      });
-    }
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'bills'
           ..entityId = id
-          ..operation = 'DELETE'
+          ..operation = PendingChangeOperation.delete.name
           ..data = null
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
+    if (existing != null) {
+      existing.deletedAt = _getNow();
+      await isar.writeTxn(() async {
+        await isar.bills.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
+      });
+    }
   }
 
   Future<void> upsertFromSync(BillRead bill) async {
     final DateTime? updatedAt = bill.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Bills row =
-        Bills()
-          ..billId = bill.id
-          ..data = jsonEncode(bill.toJson())
-          ..updatedAt = updatedAt
-          ..localUpdatedAt = now
-          ..synced = true;
+    final Bills? existing =
+        await isar.bills.filter().billIdEqualTo(bill.id).findFirst();
+
+    if (existing?.deletedAt != null) return; // locally deleted, keep tombstone
+
+    final Bills row;
+    if (existing != null) {
+      row =
+          existing
+            ..data = jsonEncode(bill.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    } else {
+      row =
+          Bills()
+            ..billId = bill.id
+            ..data = jsonEncode(bill.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    }
 
     await isar.writeTxn(() async {
       await isar.bills.put(row);

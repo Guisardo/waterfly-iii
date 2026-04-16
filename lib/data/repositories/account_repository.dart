@@ -25,7 +25,9 @@ class AccountRepository {
   DateTime _getNow() => DateTime.now().toUtc();
 
   Future<List<AccountRead>> getAll() async {
-    final List<Accounts> rows = await isar.accounts.where().findAll();
+    final List<Accounts> allRows = await isar.accounts.where().findAll();
+    final List<Accounts> rows =
+        allRows.where((Accounts r) => r.deletedAt == null).toList();
     rows.sort((Accounts a, Accounts b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
@@ -46,6 +48,7 @@ class AccountRepository {
     if (row == null) {
       return null;
     }
+    if (row.deletedAt != null) return null;
     return AccountRead.fromJson(jsonDecode(row.data) as Map<String, dynamic>);
   }
 
@@ -332,21 +335,18 @@ class AccountRepository {
           ..localUpdatedAt = now
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.accounts.put(row);
-    });
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'accounts'
           ..entityId = null
-          ..operation = 'CREATE'
+          ..operation = PendingChangeOperation.create.name
           ..data = jsonEncode(account.toJson())
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
     await isar.writeTxn(() async {
+      await isar.accounts.put(row);
       await isar.pendingChanges.put(pendingChange);
     });
   }
@@ -357,6 +357,16 @@ class AccountRepository {
     final Accounts? existing =
         await isar.accounts.filter().accountIdEqualTo(account.id).findFirst();
 
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'accounts'
+          ..entityId = account.id
+          ..operation = PendingChangeOperation.update.name
+          ..data = jsonEncode(account.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
     if (existing != null) {
       existing
         ..data = jsonEncode(account.toJson())
@@ -365,22 +375,13 @@ class AccountRepository {
 
       await isar.writeTxn(() async {
         await isar.accounts.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
       });
     }
-
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'accounts'
-          ..entityId = account.id
-          ..operation = 'UPDATE'
-          ..data = jsonEncode(account.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
-
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
   }
 
   Future<void> delete(String id) async {
@@ -389,27 +390,27 @@ class AccountRepository {
     final Accounts? existing =
         await isar.accounts.filter().accountIdEqualTo(id).findFirst();
 
-    if (existing != null) {
-      existing.synced = false;
-
-      await isar.writeTxn(() async {
-        await isar.accounts.put(existing);
-      });
-    }
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'accounts'
           ..entityId = id
-          ..operation = 'DELETE'
+          ..operation = PendingChangeOperation.delete.name
           ..data = null
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
+    if (existing != null) {
+      existing.deletedAt = _getNow();
+      await isar.writeTxn(() async {
+        await isar.accounts.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
+      });
+    }
   }
 
   Future<void> upsertFromSync(AccountRead account) async {
@@ -419,6 +420,8 @@ class AccountRepository {
     // Check if account already exists
     final Accounts? existing =
         await isar.accounts.filter().accountIdEqualTo(account.id).findFirst();
+
+    if (existing?.deletedAt != null) return; // locally deleted, keep tombstone
 
     final Accounts row;
     if (existing != null) {

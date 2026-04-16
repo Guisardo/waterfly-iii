@@ -17,4 +17,6 @@ class Accounts {
 
   @Index()
   bool synced = false;
+
+  DateTime? deletedAt;
 }

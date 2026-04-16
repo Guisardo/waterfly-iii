@@ -17,4 +17,6 @@ class Budgets {
 
   @Index()
   bool synced = false;
+
+  DateTime? deletedAt;
 }

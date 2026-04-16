@@ -1,21 +1,13 @@
 import 'dart:convert';
 
-import 'package:chopper/chopper.dart';
-import 'package:intl/intl.dart' as intl;
 import 'package:isar_community/isar.dart';
-import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/tables/insights.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 
 class InsightRepository {
   final Isar isar;
-  FireflyService? _fireflyService;
 
   InsightRepository(this.isar);
-
-  void setFireflyService(FireflyService fireflyService) {
-    _fireflyService = fireflyService;
-  }
 
   DateTime _getNow() => DateTime.now().toUtc();
 
@@ -34,7 +26,9 @@ class InsightRepository {
             .findFirst();
 
     if (cached != null) {
-      // Return cached data even if stale
+      if (cached.stale) {
+        return <InsightTotalEntry>[]; // trigger re-fetch by SyncService
+      }
       final List<dynamic> dataList = jsonDecode(cached.data) as List<dynamic>;
       return dataList
           .map(
@@ -44,7 +38,6 @@ class InsightRepository {
           .toList();
     }
 
-    // No cached data - return empty list (will be fetched by sync service)
     return <InsightTotalEntry>[];
   }
 
@@ -64,7 +57,9 @@ class InsightRepository {
             .findFirst();
 
     if (cached != null) {
-      // Return cached data even if stale
+      if (cached.stale) {
+        return <InsightGroupEntry>[]; // trigger re-fetch by SyncService
+      }
       final List<dynamic> dataList = jsonDecode(cached.data) as List<dynamic>;
       return dataList
           .map(
@@ -74,68 +69,6 @@ class InsightRepository {
           .toList();
     }
 
-    // No cached data - fetch from API if available
-    if (_fireflyService != null && _fireflyService!.signedIn) {
-      try {
-        final FireflyIii api = _fireflyService!.api;
-        final Response<List<InsightGroupEntry>> response;
-
-        if (type == 'expense') {
-          if (subtype == 'category') {
-            response = await api.v1InsightExpenseCategoryGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            );
-          } else if (subtype == 'tag') {
-            response = await api.v1InsightExpenseTagGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            );
-          } else {
-            response = await api.v1InsightExpenseBillGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            );
-          }
-        } else if (type == 'income') {
-          if (subtype == 'category') {
-            response = await api.v1InsightIncomeCategoryGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            );
-          } else {
-            response = await api.v1InsightIncomeTagGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            );
-          }
-        } else {
-          // transfer
-          response = await api.v1InsightTransferCategoryGet(
-            start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-            end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-          );
-        }
-
-        if (response.isSuccessful && response.body != null) {
-          final List<InsightGroupEntry> entries = response.body!;
-          // Cache the results
-          await cacheInsight(
-            type,
-            subtype,
-            start,
-            end,
-            entries.map((InsightGroupEntry e) => e.toJson()).toList(),
-          );
-          return entries;
-        }
-      } catch (e) {
-        // If API fetch fails, return empty list
-        // Error will be logged by the caller if needed
-      }
-    }
-
-    // No cached data and API fetch failed or unavailable - return empty list
     return <InsightGroupEntry>[];
   }
 
@@ -156,7 +89,9 @@ class InsightRepository {
             .findFirst();
 
     if (cached != null) {
-      // Return cached data even if stale
+      if (cached.stale) {
+        return <InsightTotalEntry>[]; // trigger re-fetch by SyncService
+      }
       final List<dynamic> dataList = jsonDecode(cached.data) as List<dynamic>;
       return dataList
           .map(
@@ -166,68 +101,6 @@ class InsightRepository {
           .toList();
     }
 
-    // No cached data - fetch from API if available
-    if (_fireflyService != null && _fireflyService!.signedIn) {
-      try {
-        final FireflyIii api = _fireflyService!.api;
-        final Response<List<InsightTotalEntry>> response;
-
-        if (type == 'expense') {
-          if (subtype == 'category') {
-            response = await api.v1InsightExpenseNoCategoryGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            );
-          } else if (subtype == 'tag') {
-            response = await api.v1InsightExpenseNoTagGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            );
-          } else {
-            response = await api.v1InsightExpenseNoBillGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            );
-          }
-        } else if (type == 'income') {
-          if (subtype == 'category') {
-            response = await api.v1InsightIncomeNoCategoryGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            );
-          } else {
-            response = await api.v1InsightIncomeNoTagGet(
-              start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-              end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-            );
-          }
-        } else {
-          // transfer
-          response = await api.v1InsightTransferNoCategoryGet(
-            start: intl.DateFormat('yyyy-MM-dd', 'en_US').format(start),
-            end: intl.DateFormat('yyyy-MM-dd', 'en_US').format(end),
-          );
-        }
-
-        if (response.isSuccessful && response.body != null) {
-          final List<InsightTotalEntry> entries = response.body!;
-          // Cache the results
-          await cacheInsight(
-            type,
-            noSubtype,
-            start,
-            end,
-            entries.map((InsightTotalEntry e) => e.toJson()).toList(),
-          );
-          return entries;
-        }
-      } catch (e) {
-        // If API fetch fails, return empty list
-        // Error will be logged by the caller if needed
-      }
-    }
-
-    // No cached data and API fetch failed or unavailable - return empty list
     return <InsightTotalEntry>[];
   }
 
