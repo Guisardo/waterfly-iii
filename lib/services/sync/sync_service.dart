@@ -190,6 +190,12 @@ class SyncService extends ChangeNotifier {
       // Prefetch common date range insights for dashboard
       await _prefetchCommonInsights();
 
+      // Update lastDownloadSync metadata after successful sync
+      await _updateSyncMetadata(
+        'download',
+        lastDownloadSync: DateTime.now().toUtc(),
+      );
+
       await retryManager.resetRetry('download');
       await notifications.showSyncCompleted();
 
