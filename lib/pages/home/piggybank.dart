@@ -71,8 +71,9 @@ class _HomePiggybankState extends State<HomePiggybank>
     if (_pagingState.isLoading) return;
 
     try {
-      final CurrencyRead defaultCurrency =
-          context.read<FireflyService>().defaultCurrency;
+      final CurrencyRead defaultCurrency = context
+          .read<FireflyService>()
+          .defaultCurrency;
 
       final int pageKey = (_pagingState.keys?.last ?? 0) + 1;
       log.finest(
@@ -758,7 +759,6 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
                   Expanded(
                     child: NumberInput(
                       controller: _amountTextController,
-                      focusNode: _amountFocusNode,
                       hintText: "0.00",
                       decimals: currency.attributes.decimalPlaces ?? 2,
                       prefixText: "${currency.attributes.code} ",
@@ -800,7 +800,9 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
 
                 try {
                   final Isar isar = await AppDatabase.instance;
-                  final PiggyBankRepository piggyRepo = PiggyBankRepository(isar);
+                  final PiggyBankRepository piggyRepo = PiggyBankRepository(
+                    isar,
+                  );
 
                   // Get current piggy bank from repository
                   final PiggyBankRead? currentPiggy = await piggyRepo.getById(
@@ -810,19 +812,18 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
                     if (context.mounted) {
                       await showDialog<void>(
                         context: context,
-                        builder:
-                            (BuildContext context) => AlertDialog(
-                              icon: const Icon(Icons.error),
-                              title: Text(S.of(context).generalError),
-                              clipBehavior: Clip.hardEdge,
-                              actions: <Widget>[
-                                FilledButton(
-                                  child: Text(S.of(context).generalDismiss),
-                                  onPressed: () => Navigator.of(context).pop(),
-                                ),
-                              ],
-                              content: Text(S.of(context).errorUnknown),
+                        builder: (BuildContext context) => AlertDialog(
+                          icon: const Icon(Icons.error),
+                          title: Text(S.of(context).generalError),
+                          clipBehavior: Clip.hardEdge,
+                          actions: <Widget>[
+                            FilledButton(
+                              child: Text(S.of(context).generalDismiss),
+                              onPressed: () => Navigator.of(context).pop(),
                             ),
+                          ],
+                          content: Text(S.of(context).errorUnknown),
+                        ),
                       );
                     }
                     return;
@@ -854,13 +855,11 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
                         PiggyBankAccountRead(
                           accountId: e.accountId,
                           name: e.name,
-                          currentAmount:
-                              selectedAccount == e.accountId
-                                  ? ((double.tryParse(e.currentAmount ?? "") ??
-                                              0) +
-                                          amount)
-                                      .toString()
-                                  : e.currentAmount,
+                          currentAmount: selectedAccount == e.accountId
+                              ? ((double.tryParse(e.currentAmount ?? "") ?? 0) +
+                                        amount)
+                                    .toString()
+                              : e.currentAmount,
                           pcCurrentAmount: e.pcCurrentAmount,
                         ),
                       );
@@ -871,10 +870,9 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
                   final Map<String, dynamic> piggyJson = currentPiggy.toJson();
                   piggyJson['attributes'] =
                       (piggyJson['attributes'] as Map<String, dynamic>)
-                        ..['accounts'] =
-                            updatedAccounts
-                                .map((PiggyBankAccountRead a) => a.toJson())
-                                .toList();
+                        ..['accounts'] = updatedAccounts
+                            .map((PiggyBankAccountRead a) => a.toJson())
+                            .toList();
                   final PiggyBankRead updatedPiggy = PiggyBankRead.fromJson(
                     piggyJson,
                   );
@@ -888,19 +886,18 @@ class _PiggyAdjustBalanceState extends State<PiggyAdjustBalance> {
                   if (context.mounted) {
                     await showDialog<void>(
                       context: context,
-                      builder:
-                          (BuildContext context) => AlertDialog(
-                            icon: const Icon(Icons.error),
-                            title: Text(S.of(context).generalError),
-                            clipBehavior: Clip.hardEdge,
-                            actions: <Widget>[
-                              FilledButton(
-                                child: Text(S.of(context).generalDismiss),
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
-                            ],
-                            content: Text(S.of(context).errorUnknown),
+                      builder: (BuildContext context) => AlertDialog(
+                        icon: const Icon(Icons.error),
+                        title: Text(S.of(context).generalError),
+                        clipBehavior: Clip.hardEdge,
+                        actions: <Widget>[
+                          FilledButton(
+                            child: Text(S.of(context).generalDismiss),
+                            onPressed: () => Navigator.of(context).pop(),
                           ),
+                        ],
+                        content: Text(S.of(context).errorUnknown),
+                      ),
                     );
                   }
                 }

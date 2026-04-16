@@ -72,6 +72,7 @@ class _AutoCompleteTextState<T extends Object>
             focusNode: widget.focusNode,
             onSelected: widget.onSelected,
             displayStringForOption: widget.displayStringForOption,
+            optionsBuilder: widget.optionsBuilder,
             fieldViewBuilder:
                 (
                   BuildContext context,
@@ -121,7 +122,7 @@ class _AutoCompleteTextState<T extends Object>
                     }
                     Actions.invoke(ctx, const DismissIntent());
                   },
-                  textCapitalization: .sentences,
+                  textCapitalization: TextCapitalization.sentences,
                 ),
             optionsViewBuilder:
                 (
@@ -129,9 +130,11 @@ class _AutoCompleteTextState<T extends Object>
                   void Function(T) onOptionSelected,
                   Iterable<T> options,
                 ) => Align(
-                  alignment: .topLeft,
+                  alignment: Alignment.topLeft,
                   child: Padding(
-                    padding: .only(left: widget.labelIcon == null ? 0 : 40),
+                    padding: EdgeInsets.only(
+                      left: widget.labelIcon == null ? 0 : 40,
+                    ),
                     child: Material(
                       elevation: 4.0,
                       child: ConstrainedBox(
@@ -142,7 +145,7 @@ class _AutoCompleteTextState<T extends Object>
                               (widget.labelIcon == null ? 0 : 40),
                         ),
                         child: ListView.builder(
-                          padding: .zero,
+                          padding: EdgeInsets.zero,
                           itemCount: options.length,
                           shrinkWrap: true,
                           itemBuilder: (BuildContext context, int index) {
@@ -169,7 +172,7 @@ class _AutoCompleteTextState<T extends Object>
                                     color: highlight
                                         ? Theme.of(context).focusColor
                                         : null,
-                                    padding: const .all(16.0),
+                                    padding: const EdgeInsets.all(16.0),
                                     child: Text(
                                       widget.displayStringForOption(option),
                                     ),
@@ -181,8 +184,9 @@ class _AutoCompleteTextState<T extends Object>
                         ),
                       ),
                     ),
-                optionsBuilder: widget.optionsBuilder,
-              ),
+                  ),
+                ),
+          ),
     );
   }
 }

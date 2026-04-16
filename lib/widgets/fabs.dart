@@ -1,5 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/layout.dart';
 import 'package:waterflyiii/pages/transaction.dart';
@@ -12,7 +13,7 @@ class NewTransactionFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (context.watch<LayoutProvider>().currentSize >= .expanded) {
+    if (context.watch<LayoutProvider>().currentSize >= ScreenSize.expanded) {
       return FloatingActionButton(
         onPressed: () => showDialog(
           context: context,
@@ -23,7 +24,7 @@ class NewTransactionFab extends StatelessWidget {
                 minWidth: 280,
                 maxWidth: MediaQuery.of(context).size.width * 0.5,
               ),
-              width: .maxFinite,
+              width: double.maxFinite,
               child: TransactionPage(accountId: accountId),
             ),
           ),
@@ -40,7 +41,9 @@ class NewTransactionFab extends StatelessWidget {
         closedColor: Theme.of(context).colorScheme.primaryContainer,
         closedShape:
             Theme.of(context).floatingActionButtonTheme.shape ??
-            const RoundedRectangleBorder(borderRadius: .all(.circular(16.0))),
+            const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16.0)),
+            ),
         closedElevation:
             Theme.of(context).floatingActionButtonTheme.elevation ?? 6,
         closedBuilder: (BuildContext context, Function openContainer) {
