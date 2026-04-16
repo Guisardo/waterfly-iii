@@ -31,8 +31,8 @@ class ConnectivityService extends ChangeNotifier {
   }
 
   Future<void> _checkConnectivity() async {
-    final List<ConnectivityResult> results =
-        await _connectivity.checkConnectivity();
+    final List<ConnectivityResult> results = await _connectivity
+        .checkConnectivity();
     _updateNetworkStatus(results);
   }
 

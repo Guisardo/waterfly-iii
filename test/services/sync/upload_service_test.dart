@@ -47,12 +47,6 @@ class _MockConnectivityService extends ChangeNotifier
     _mockIsOnline = online;
     notifyListeners();
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-    // No-op for mock
-  }
 }
 
 void main() {
@@ -126,13 +120,10 @@ void main() {
     });
 
     test('uploadPendingChanges skips when paused', () async {
-      final SyncMetadata metadata =
-          SyncMetadata()
-            ..entityType = 'upload'
-            ..syncPaused = true
-            ..nextRetryAt = DateTime.now().toUtc().add(
-              const Duration(hours: 1),
-            );
+      final SyncMetadata metadata = SyncMetadata()
+        ..entityType = 'upload'
+        ..syncPaused = true
+        ..nextRetryAt = DateTime.now().toUtc().add(const Duration(hours: 1));
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);
@@ -185,15 +176,14 @@ void main() {
     );
 
     test('uploadPendingChanges processes pending changes', () async {
-      final PendingChanges change =
-          PendingChanges()
-            ..entityType = 'transactions'
-            ..entityId = 'tx-1'
-            ..operation = 'CREATE'
-            ..data = '{"test": "data"}'
-            ..createdAt = DateTime.now().toUtc()
-            ..retryCount = 0
-            ..synced = false;
+      final PendingChanges change = PendingChanges()
+        ..entityType = 'transactions'
+        ..entityId = 'tx-1'
+        ..operation = 'CREATE'
+        ..data = '{"test": "data"}'
+        ..createdAt = DateTime.now().toUtc()
+        ..retryCount = 0
+        ..synced = false;
 
       await isar.writeTxn(() async {
         await isar.pendingChanges.put(change);
@@ -206,15 +196,14 @@ void main() {
     });
 
     test('uploadPendingChanges handles errors gracefully', () async {
-      final PendingChanges change =
-          PendingChanges()
-            ..entityType = 'transactions'
-            ..entityId = 'tx-1'
-            ..operation = 'CREATE'
-            ..data = '{"test": "data"}'
-            ..createdAt = DateTime.now().toUtc()
-            ..retryCount = 0
-            ..synced = false;
+      final PendingChanges change = PendingChanges()
+        ..entityType = 'transactions'
+        ..entityId = 'tx-1'
+        ..operation = 'CREATE'
+        ..data = '{"test": "data"}'
+        ..createdAt = DateTime.now().toUtc()
+        ..retryCount = 0
+        ..synced = false;
 
       await isar.writeTxn(() async {
         await isar.pendingChanges.put(change);
@@ -226,15 +215,14 @@ void main() {
     });
 
     test('uploadPendingChanges increments retry count on error', () async {
-      final PendingChanges change =
-          PendingChanges()
-            ..entityType = 'transactions'
-            ..entityId = 'tx-1'
-            ..operation = 'CREATE'
-            ..data = '{"test": "data"}'
-            ..createdAt = DateTime.now().toUtc()
-            ..retryCount = 0
-            ..synced = false;
+      final PendingChanges change = PendingChanges()
+        ..entityType = 'transactions'
+        ..entityId = 'tx-1'
+        ..operation = 'CREATE'
+        ..data = '{"test": "data"}'
+        ..createdAt = DateTime.now().toUtc()
+        ..retryCount = 0
+        ..synced = false;
 
       await isar.writeTxn(() async {
         await isar.pendingChanges.put(change);
@@ -249,21 +237,20 @@ void main() {
       }
 
       // Verify retry count was incremented (if error was handled)
-      final PendingChanges? updated =
-          await isar.pendingChanges.filter().idEqualTo(change.id).findFirst();
+      final PendingChanges? updated = await isar.pendingChanges
+          .filter()
+          .idEqualTo(change.id)
+          .findFirst();
       // Retry count may or may not be incremented depending on error type
       // This test just verifies the code path exists
       expect(updated, isNotNull);
     });
 
     test('uploadPendingChanges with forceRetry ignores pause', () async {
-      final SyncMetadata metadata =
-          SyncMetadata()
-            ..entityType = 'upload'
-            ..syncPaused = true
-            ..nextRetryAt = DateTime.now().toUtc().add(
-              const Duration(hours: 1),
-            );
+      final SyncMetadata metadata = SyncMetadata()
+        ..entityType = 'upload'
+        ..syncPaused = true
+        ..nextRetryAt = DateTime.now().toUtc().add(const Duration(hours: 1));
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);
@@ -315,7 +302,7 @@ void main() {
     });
 
     test('uploadPendingChanges handles different entity types', () async {
-      final List<PendingChanges> changes = [
+      final List<PendingChanges> changes = <PendingChanges>[
         PendingChanges()
           ..entityType = 'accounts'
           ..entityId = 'acc-1'
@@ -343,7 +330,7 @@ void main() {
       ];
 
       await isar.writeTxn(() async {
-        for (final change in changes) {
+        for (final PendingChanges change in changes) {
           await isar.pendingChanges.put(change);
         }
       });
@@ -353,16 +340,15 @@ void main() {
     });
 
     test('uploadPendingChanges stops after max retries', () async {
-      final PendingChanges change =
-          PendingChanges()
-            ..entityType = 'transactions'
-            ..entityId = 'tx-1'
-            ..operation = 'CREATE'
-            ..data = '{"test": "data"}'
-            ..createdAt = DateTime.now().toUtc()
-            ..retryCount =
-                3 // Already at max
-            ..synced = false;
+      final PendingChanges change = PendingChanges()
+        ..entityType = 'transactions'
+        ..entityId = 'tx-1'
+        ..operation = 'CREATE'
+        ..data = '{"test": "data"}'
+        ..createdAt = DateTime.now().toUtc()
+        ..retryCount =
+            3 // Already at max
+        ..synced = false;
 
       await isar.writeTxn(() async {
         await isar.pendingChanges.put(change);
@@ -374,7 +360,7 @@ void main() {
 
     test('uploadPendingChanges processes changes in order', () async {
       final DateTime now = DateTime.now().toUtc();
-      final List<PendingChanges> changes = [
+      final List<PendingChanges> changes = <PendingChanges>[
         PendingChanges()
           ..entityType = 'transactions'
           ..entityId = 'tx-1'
@@ -394,7 +380,7 @@ void main() {
       ];
 
       await isar.writeTxn(() async {
-        for (final change in changes) {
+        for (final PendingChanges change in changes) {
           await isar.pendingChanges.put(change);
         }
       });
@@ -404,15 +390,14 @@ void main() {
     });
 
     test('uploadPendingChanges handles UPDATE operation', () async {
-      final PendingChanges change =
-          PendingChanges()
-            ..entityType = 'transactions'
-            ..entityId = 'tx-1'
-            ..operation = 'UPDATE'
-            ..data = '{"description": "Updated"}'
-            ..createdAt = DateTime.now().toUtc()
-            ..retryCount = 0
-            ..synced = false;
+      final PendingChanges change = PendingChanges()
+        ..entityType = 'transactions'
+        ..entityId = 'tx-1'
+        ..operation = 'UPDATE'
+        ..data = '{"description": "Updated"}'
+        ..createdAt = DateTime.now().toUtc()
+        ..retryCount = 0
+        ..synced = false;
 
       await isar.writeTxn(() async {
         await isar.pendingChanges.put(change);
@@ -423,15 +408,14 @@ void main() {
     });
 
     test('uploadPendingChanges handles DELETE operation', () async {
-      final PendingChanges change =
-          PendingChanges()
-            ..entityType = 'transactions'
-            ..entityId = 'tx-1'
-            ..operation = 'DELETE'
-            ..data = null
-            ..createdAt = DateTime.now().toUtc()
-            ..retryCount = 0
-            ..synced = false;
+      final PendingChanges change = PendingChanges()
+        ..entityType = 'transactions'
+        ..entityId = 'tx-1'
+        ..operation = 'DELETE'
+        ..data = null
+        ..createdAt = DateTime.now().toUtc()
+        ..retryCount = 0
+        ..synced = false;
 
       await isar.writeTxn(() async {
         await isar.pendingChanges.put(change);
@@ -442,15 +426,14 @@ void main() {
     });
 
     test('uploadPendingChanges handles unknown operation', () async {
-      final PendingChanges change =
-          PendingChanges()
-            ..entityType = 'transactions'
-            ..entityId = 'tx-1'
-            ..operation = 'UNKNOWN'
-            ..data = '{"test": "data"}'
-            ..createdAt = DateTime.now().toUtc()
-            ..retryCount = 0
-            ..synced = false;
+      final PendingChanges change = PendingChanges()
+        ..entityType = 'transactions'
+        ..entityId = 'tx-1'
+        ..operation = 'UNKNOWN'
+        ..data = '{"test": "data"}'
+        ..createdAt = DateTime.now().toUtc()
+        ..retryCount = 0
+        ..synced = false;
 
       await isar.writeTxn(() async {
         await isar.pendingChanges.put(change);
@@ -464,15 +447,14 @@ void main() {
       'uploadPendingChanges marks insights as stale after success',
       () async {
         // This test verifies the insight marking path
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'CREATE'
-              ..data = '{"test": "data"}'
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'CREATE'
+          ..data = '{"test": "data"}'
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
@@ -497,27 +479,23 @@ void main() {
       'uploadPendingChanges with forceRetry processes paused changes',
       () async {
         // Create paused metadata
-        final SyncMetadata uploadMetadata =
-            SyncMetadata()
-              ..entityType = 'upload'
-              ..syncPaused = true
-              ..nextRetryAt = DateTime.now().toUtc().add(
-                const Duration(hours: 1),
-              );
+        final SyncMetadata uploadMetadata = SyncMetadata()
+          ..entityType = 'upload'
+          ..syncPaused = true
+          ..nextRetryAt = DateTime.now().toUtc().add(const Duration(hours: 1));
 
         await isar.writeTxn(() async {
           await isar.syncMetadatas.put(uploadMetadata);
         });
 
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'CREATE'
-              ..data = '{"test": "data"}'
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'CREATE'
+          ..data = '{"test": "data"}'
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
@@ -549,20 +527,19 @@ void main() {
       test(
         'uploadPendingChanges handles CREATE operation for transactions',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({
-                  'type': 'withdrawal',
-                  'description': 'Test transaction',
-                  'amount': '10.00',
-                  'currency_id': '1',
-                })
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{
+              'type': 'withdrawal',
+              'description': 'Test transaction',
+              'amount': '10.00',
+              'currency_id': '1',
+            })
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -570,18 +547,18 @@ void main() {
 
           // Set up successful CREATE response
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
-              jsonEncode({
-                'data': {
+              jsonEncode(<String, Map<String, Object>>{
+                'data': <String, Object>{
                   'type': 'transactions',
                   'id': 'tx-1',
-                  'attributes': {
+                  'attributes': <String, Object>{
                     'created_at': DateTime.now().toUtc().toIso8601String(),
                     'updated_at': DateTime.now().toUtc().toIso8601String(),
-                    'transactions': [
-                      {
+                    'transactions': <Map<String, String>>[
+                      <String, String>{
                         'type': 'withdrawal',
                         'date': DateTime.now().toUtc().toIso8601String(),
                         'amount': '10.00',
@@ -591,13 +568,13 @@ void main() {
                       },
                     ],
                   },
-                  'links': {
+                  'links': <String, String>{
                     'self': 'https://example.com/api/v1/transactions/tx-1',
                   },
                 },
               }),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -607,15 +584,16 @@ void main() {
       );
 
       test('uploadPendingChanges handles UPDATE operation', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'UPDATE'
-              ..data = jsonEncode({'description': 'Updated transaction'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(<String, String>{
+            'description': 'Updated transaction',
+          })
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
@@ -623,18 +601,18 @@ void main() {
 
         // Set up successful UPDATE response
         mockApiHelper.mockHttpClient.setHandler('/v1/transactions/tx-1', (
-          request,
+          http.BaseRequest request,
         ) {
           return http.Response(
-            jsonEncode({
-              'data': {
+            jsonEncode(<String, Map<String, Object>>{
+              'data': <String, Object>{
                 'type': 'transactions',
                 'id': 'tx-1',
-                'attributes': {
+                'attributes': <String, Object>{
                   'created_at': DateTime.now().toUtc().toIso8601String(),
                   'updated_at': DateTime.now().toUtc().toIso8601String(),
-                  'transactions': [
-                    {
+                  'transactions': <Map<String, String>>[
+                    <String, String>{
                       'type': 'withdrawal',
                       'date': DateTime.now().toUtc().toIso8601String(),
                       'amount': '10.00',
@@ -644,13 +622,13 @@ void main() {
                     },
                   ],
                 },
-                'links': {
+                'links': <String, String>{
                   'self': 'https://example.com/api/v1/transactions/tx-1',
                 },
               },
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -659,15 +637,14 @@ void main() {
       });
 
       test('uploadPendingChanges handles DELETE operation', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'DELETE'
-              ..data = null
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
@@ -675,7 +652,7 @@ void main() {
 
         // Set up successful DELETE response
         mockApiHelper.mockHttpClient.setHandler('/v1/transactions/tx-1', (
-          request,
+          http.BaseRequest request,
         ) {
           return http.Response('', 204); // No content for DELETE
         });
@@ -685,30 +662,31 @@ void main() {
       });
 
       test('uploadPendingChanges handles conflict errors (409)', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'CREATE'
-              ..data = jsonEncode({
-                'type': 'withdrawal',
-                'description': 'Test transaction',
-                'amount': '10.00',
-              })
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'CREATE'
+          ..data = jsonEncode(<String, String>{
+            'type': 'withdrawal',
+            'description': 'Test transaction',
+            'amount': '10.00',
+          })
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         // Set up conflict error
-        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
+          http.BaseRequest request,
+        ) {
           return http.Response(
-            jsonEncode({'error': 'Conflict'}),
+            jsonEncode(<String, String>{'error': 'Conflict'}),
             409,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -717,22 +695,23 @@ void main() {
       });
 
       test('uploadPendingChanges handles network errors', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'CREATE'
-              ..data = jsonEncode({'test': 'data'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'CREATE'
+          ..data = jsonEncode(<String, String>{'test': 'data'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         // Set up network error
-        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
+          http.BaseRequest request,
+        ) {
           throw Exception('SocketException: Failed host lookup');
         });
 
@@ -741,22 +720,23 @@ void main() {
       });
 
       test('uploadPendingChanges handles timeout errors', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'CREATE'
-              ..data = jsonEncode({'test': 'data'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'CREATE'
+          ..data = jsonEncode(<String, String>{'test': 'data'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         // Set up timeout error
-        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
+          http.BaseRequest request,
+        ) {
           throw Exception('TimeoutException: Request timed out');
         });
 
@@ -765,26 +745,27 @@ void main() {
       });
 
       test('uploadPendingChanges handles server errors (500)', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'CREATE'
-              ..data = jsonEncode({'test': 'data'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'CREATE'
+          ..data = jsonEncode(<String, String>{'test': 'data'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         // Set up server error
-        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
+          http.BaseRequest request,
+        ) {
           return http.Response(
-            jsonEncode({'error': 'Internal Server Error'}),
+            jsonEncode(<String, String>{'error': 'Internal Server Error'}),
             500,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -795,15 +776,14 @@ void main() {
       test(
         'uploadPendingChanges handles UPDATE with 404 (already deleted)',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'UPDATE'
-                ..data = jsonEncode({'description': 'Updated'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'UPDATE'
+            ..data = jsonEncode(<String, String>{'description': 'Updated'})
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -811,12 +791,12 @@ void main() {
 
           // Set up 404 response (entity already deleted)
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions/tx-1', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
-              jsonEncode({'error': 'Not found'}),
+              jsonEncode(<String, String>{'error': 'Not found'}),
               404,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -826,12 +806,15 @@ void main() {
       );
 
       test('uploadPendingChanges handles multiple pending changes', () async {
-        final List<PendingChanges> changes = [
+        final List<PendingChanges> changes = <PendingChanges>[
           PendingChanges()
             ..entityType = 'transactions'
             ..entityId = 'tx-1'
             ..operation = 'CREATE'
-            ..data = jsonEncode({'type': 'withdrawal', 'amount': '10.00'})
+            ..data = jsonEncode(<String, String>{
+              'type': 'withdrawal',
+              'amount': '10.00',
+            })
             ..createdAt = DateTime.now().toUtc()
             ..retryCount = 0
             ..synced = false,
@@ -839,49 +822,51 @@ void main() {
             ..entityType = 'transactions'
             ..entityId = 'tx-2'
             ..operation = 'UPDATE'
-            ..data = jsonEncode({'description': 'Updated'})
+            ..data = jsonEncode(<String, String>{'description': 'Updated'})
             ..createdAt = DateTime.now().toUtc().add(const Duration(seconds: 1))
             ..retryCount = 0
             ..synced = false,
         ];
 
         await isar.writeTxn(() async {
-          for (final change in changes) {
+          for (final PendingChanges change in changes) {
             await isar.pendingChanges.put(change);
           }
         });
 
         // Set up successful responses
-        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
+          http.BaseRequest request,
+        ) {
           return http.Response(
-            jsonEncode({
-              'data': {
+            jsonEncode(<String, Map<String, Object>>{
+              'data': <String, Object>{
                 'type': 'transactions',
                 'id': 'tx-1',
-                'attributes': {
+                'attributes': <String, String>{
                   'created_at': DateTime.now().toUtc().toIso8601String(),
                 },
               },
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
         mockApiHelper.mockHttpClient.setHandler('/v1/transactions/tx-2', (
-          request,
+          http.BaseRequest request,
         ) {
           return http.Response(
-            jsonEncode({
-              'data': {
+            jsonEncode(<String, Map<String, Object>>{
+              'data': <String, Object>{
                 'type': 'transactions',
                 'id': 'tx-2',
-                'attributes': {
+                'attributes': <String, String>{
                   'updated_at': DateTime.now().toUtc().toIso8601String(),
                 },
               },
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -893,27 +878,31 @@ void main() {
         'uploadPendingChanges handles CREATE for different entity types',
         () async {
           // Test accounts
-          final PendingChanges accountChange =
-              PendingChanges()
-                ..entityType = 'accounts'
-                ..entityId = 'acc-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'name': 'Test Account', 'type': 'asset'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges accountChange = PendingChanges()
+            ..entityType = 'accounts'
+            ..entityId = 'acc-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{
+              'name': 'Test Account',
+              'type': 'asset',
+            })
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(accountChange);
           });
 
-          mockApiHelper.mockHttpClient.setHandler('/v1/accounts', (request) {
+          mockApiHelper.mockHttpClient.setHandler('/v1/accounts', (
+            http.BaseRequest request,
+          ) {
             return http.Response(
-              jsonEncode({
-                'data': {'id': 'acc-1'},
+              jsonEncode(<String, Map<String, String>>{
+                'data': <String, String>{'id': 'acc-1'},
               }),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -926,29 +915,28 @@ void main() {
         'uploadPendingChanges handles UPDATE for different entity types',
         () async {
           // Test categories
-          final PendingChanges categoryChange =
-              PendingChanges()
-                ..entityType = 'categories'
-                ..entityId = 'cat-1'
-                ..operation = 'UPDATE'
-                ..data = jsonEncode({'name': 'Updated Category'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges categoryChange = PendingChanges()
+            ..entityType = 'categories'
+            ..entityId = 'cat-1'
+            ..operation = 'UPDATE'
+            ..data = jsonEncode(<String, String>{'name': 'Updated Category'})
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(categoryChange);
           });
 
           mockApiHelper.mockHttpClient.setHandler('/v1/categories/cat-1', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
-              jsonEncode({
-                'data': {'id': 'cat-1'},
+              jsonEncode(<String, Map<String, String>>{
+                'data': <String, String>{'id': 'cat-1'},
               }),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -961,21 +949,22 @@ void main() {
         'uploadPendingChanges handles DELETE for different entity types',
         () async {
           // Test tags
-          final PendingChanges tagChange =
-              PendingChanges()
-                ..entityType = 'tags'
-                ..entityId = 'tag-1'
-                ..operation = 'DELETE'
-                ..data = null
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges tagChange = PendingChanges()
+            ..entityType = 'tags'
+            ..entityId = 'tag-1'
+            ..operation = 'DELETE'
+            ..data = null
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(tagChange);
           });
 
-          mockApiHelper.mockHttpClient.setHandler('/v1/tags/tag-1', (request) {
+          mockApiHelper.mockHttpClient.setHandler('/v1/tags/tag-1', (
+            http.BaseRequest request,
+          ) {
             return http.Response('', 204);
           });
 
@@ -987,15 +976,14 @@ void main() {
       test(
         'uploadPendingChanges increments retry count on non-network errors',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'test': 'data'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{'test': 'data'})
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1003,12 +991,12 @@ void main() {
 
           // Set up error that's not network/timeout/server
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
-              jsonEncode({'error': 'Validation failed'}),
+              jsonEncode(<String, String>{'error': 'Validation failed'}),
               400,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -1016,11 +1004,10 @@ void main() {
           expect(uploadService.isUploading, false);
 
           // Check that retry count was incremented (may be 0 if error handling path is different)
-          final PendingChanges? updated =
-              await isar.pendingChanges
-                  .filter()
-                  .idEqualTo(change.id)
-                  .findFirst();
+          final PendingChanges? updated = await isar.pendingChanges
+              .filter()
+              .idEqualTo(change.id)
+              .findFirst();
           expect(updated, isNotNull);
           // Retry count should be >= 0 (may not increment for all error types)
           expect(updated!.retryCount, greaterThanOrEqualTo(0));
@@ -1030,15 +1017,17 @@ void main() {
       test(
         'uploadPendingChanges marks insights as stale after success',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'type': 'withdrawal', 'amount': '10.00'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{
+              'type': 'withdrawal',
+              'amount': '10.00',
+            })
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1046,20 +1035,20 @@ void main() {
 
           // Set up successful response
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
-              jsonEncode({
-                'data': {
+              jsonEncode(<String, Map<String, Object>>{
+                'data': <String, Object>{
                   'type': 'transactions',
                   'id': 'tx-1',
-                  'attributes': {
+                  'attributes': <String, String>{
                     'created_at': DateTime.now().toUtc().toIso8601String(),
                   },
                 },
               }),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -1069,30 +1058,31 @@ void main() {
       );
 
       test('uploadPendingChanges handles CREATE for categories', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'categories'
-              ..entityId = 'cat-1'
-              ..operation = 'CREATE'
-              ..data = jsonEncode({'name': 'Test Category'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'categories'
+          ..entityId = 'cat-1'
+          ..operation = 'CREATE'
+          ..data = jsonEncode(<String, String>{'name': 'Test Category'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
-        mockApiHelper.mockHttpClient.setHandler('/v1/categories', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/categories', (
+          http.BaseRequest request,
+        ) {
           return http.Response(
-            jsonEncode({
-              'data': {
+            jsonEncode(<String, Map<String, Object>>{
+              'data': <String, Object>{
                 'id': 'cat-1',
-                'attributes': {'name': 'Test Category'},
+                'attributes': <String, String>{'name': 'Test Category'},
               },
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -1105,7 +1095,7 @@ void main() {
         () async {
           // Create a CategoryStore that will be stored in both PendingChange and pending category
           final DateTime now = DateTime.now().toUtc();
-          final CategoryStore categoryStore = CategoryStore(
+          final CategoryStore categoryStore = const CategoryStore(
             name: 'Test Category',
             notes: 'Test notes',
           );
@@ -1115,15 +1105,14 @@ void main() {
           final String storeJsonString = jsonEncode(storeJson);
 
           // Create PendingChange with CategoryStore data
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'categories'
-                ..entityId = null
-                ..operation = 'CREATE'
-                ..data = storeJsonString
-                ..createdAt = now
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'categories'
+            ..entityId = null
+            ..operation = 'CREATE'
+            ..data = storeJsonString
+            ..createdAt = now
+            ..retryCount = 0
+            ..synced = false;
 
           // Create a matching pending category (simulating offline creation)
           final String pendingCategoryId =
@@ -1139,13 +1128,12 @@ void main() {
               earned: null,
             ),
           );
-          final Categories pendingCategory =
-              Categories()
-                ..categoryId = pendingCategoryId
-                ..data = jsonEncode(tempCategory.toJson())
-                ..updatedAt = null
-                ..localUpdatedAt = now
-                ..synced = false;
+          final Categories pendingCategory = Categories()
+            ..categoryId = pendingCategoryId
+            ..data = jsonEncode(tempCategory.toJson())
+            ..updatedAt = null
+            ..localUpdatedAt = now
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1153,15 +1141,14 @@ void main() {
           });
 
           // Verify pending category exists before upload
-          final Categories? pendingBefore =
-              await isar.categories
-                  .filter()
-                  .categoryIdEqualTo(pendingCategoryId)
-                  .findFirst();
+          final Categories? pendingBefore = await isar.categories
+              .filter()
+              .categoryIdEqualTo(pendingCategoryId)
+              .findFirst();
           expect(pendingBefore, isNotNull);
 
           // Set up successful CREATE response
-          final CategoryRead categoryRead = CategoryRead(
+          final CategoryRead categoryRead = const CategoryRead(
             type: 'categories',
             id: 'cat-created-1',
             attributes: CategoryProperties(
@@ -1176,11 +1163,13 @@ void main() {
           );
           final Map<String, dynamic> categoryResponse = categorySingle.toJson();
 
-          mockApiHelper.mockHttpClient.setHandler('/v1/categories', (request) {
+          mockApiHelper.mockHttpClient.setHandler('/v1/categories', (
+            http.BaseRequest request,
+          ) {
             return http.Response(
               jsonEncode(categoryResponse),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -1196,27 +1185,28 @@ void main() {
       );
 
       test('uploadPendingChanges handles CREATE for tags', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'tags'
-              ..entityId = 'tag-1'
-              ..operation = 'CREATE'
-              ..data = jsonEncode({'tag': 'test-tag'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'tags'
+          ..entityId = 'tag-1'
+          ..operation = 'CREATE'
+          ..data = jsonEncode(<String, String>{'tag': 'test-tag'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
-        mockApiHelper.mockHttpClient.setHandler('/v1/tags', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/tags', (
+          http.BaseRequest request,
+        ) {
           return http.Response(
-            jsonEncode({
-              'data': {'tag': 'test-tag'},
+            jsonEncode(<String, Map<String, String>>{
+              'data': <String, String>{'tag': 'test-tag'},
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -1225,27 +1215,31 @@ void main() {
       });
 
       test('uploadPendingChanges handles CREATE for bills', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'bills'
-              ..entityId = 'bill-1'
-              ..operation = 'CREATE'
-              ..data = jsonEncode({'name': 'Test Bill', 'amount_min': '10.00'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'bills'
+          ..entityId = 'bill-1'
+          ..operation = 'CREATE'
+          ..data = jsonEncode(<String, String>{
+            'name': 'Test Bill',
+            'amount_min': '10.00',
+          })
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
-        mockApiHelper.mockHttpClient.setHandler('/v1/bills', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/bills', (
+          http.BaseRequest request,
+        ) {
           return http.Response(
-            jsonEncode({
-              'data': {'id': 'bill-1'},
+            jsonEncode(<String, Map<String, String>>{
+              'data': <String, String>{'id': 'bill-1'},
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -1254,27 +1248,28 @@ void main() {
       });
 
       test('uploadPendingChanges handles CREATE for budgets', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'budgets'
-              ..entityId = 'budget-1'
-              ..operation = 'CREATE'
-              ..data = jsonEncode({'name': 'Test Budget'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'budgets'
+          ..entityId = 'budget-1'
+          ..operation = 'CREATE'
+          ..data = jsonEncode(<String, String>{'name': 'Test Budget'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
-        mockApiHelper.mockHttpClient.setHandler('/v1/budgets', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/budgets', (
+          http.BaseRequest request,
+        ) {
           return http.Response(
-            jsonEncode({
-              'data': {'id': 'budget-1'},
+            jsonEncode(<String, Map<String, String>>{
+              'data': <String, String>{'id': 'budget-1'},
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -1285,20 +1280,19 @@ void main() {
       test(
         'uploadPendingChanges handles CREATE for budget_limits with budget_id',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'budget_limits'
-                ..entityId = 'limit-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({
-                  'budget_id': 'budget-1',
-                  'amount': '100.00',
-                  'start': '2024-01-01',
-                  'end': '2024-01-31',
-                })
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'budget_limits'
+            ..entityId = 'limit-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{
+              'budget_id': 'budget-1',
+              'amount': '100.00',
+              'start': '2024-01-01',
+              'end': '2024-01-31',
+            })
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1306,13 +1300,13 @@ void main() {
 
           mockApiHelper.mockHttpClient.setHandler(
             '/v1/budgets/budget-1/limits',
-            (request) {
+            (http.BaseRequest request) {
               return http.Response(
-                jsonEncode({
-                  'data': {'id': 'limit-1'},
+                jsonEncode(<String, Map<String, String>>{
+                  'data': <String, String>{'id': 'limit-1'},
                 }),
                 200,
-                headers: {'content-type': 'application/json'},
+                headers: <String, String>{'content-type': 'application/json'},
               );
             },
           );
@@ -1325,15 +1319,17 @@ void main() {
       test(
         'uploadPendingChanges handles CREATE for budget_limits without budget_id',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'budget_limits'
-                ..entityId = 'limit-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'amount': '100.00'}) // Missing budget_id
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'budget_limits'
+            ..entityId = 'limit-1'
+            ..operation = 'CREATE'
+            ..data =
+                jsonEncode(<String, String>{
+                  'amount': '100.00',
+                }) // Missing budget_id
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1345,29 +1341,28 @@ void main() {
       );
 
       test('uploadPendingChanges handles UPDATE for accounts', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'accounts'
-              ..entityId = 'acc-1'
-              ..operation = 'UPDATE'
-              ..data = jsonEncode({'name': 'Updated Account'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'accounts'
+          ..entityId = 'acc-1'
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(<String, String>{'name': 'Updated Account'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         mockApiHelper.mockHttpClient.setHandler('/v1/accounts/acc-1', (
-          request,
+          http.BaseRequest request,
         ) {
           return http.Response(
-            jsonEncode({
-              'data': {'id': 'acc-1'},
+            jsonEncode(<String, Map<String, String>>{
+              'data': <String, String>{'id': 'acc-1'},
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -1376,27 +1371,28 @@ void main() {
       });
 
       test('uploadPendingChanges handles UPDATE for tags', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'tags'
-              ..entityId = 'tag-1'
-              ..operation = 'UPDATE'
-              ..data = jsonEncode({'tag': 'updated-tag'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'tags'
+          ..entityId = 'tag-1'
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(<String, String>{'tag': 'updated-tag'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
-        mockApiHelper.mockHttpClient.setHandler('/v1/tags/tag-1', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/tags/tag-1', (
+          http.BaseRequest request,
+        ) {
           return http.Response(
-            jsonEncode({
-              'data': {'tag': 'updated-tag'},
+            jsonEncode(<String, Map<String, String>>{
+              'data': <String, String>{'tag': 'updated-tag'},
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -1405,27 +1401,28 @@ void main() {
       });
 
       test('uploadPendingChanges handles UPDATE for bills', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'bills'
-              ..entityId = 'bill-1'
-              ..operation = 'UPDATE'
-              ..data = jsonEncode({'name': 'Updated Bill'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'bills'
+          ..entityId = 'bill-1'
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(<String, String>{'name': 'Updated Bill'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
-        mockApiHelper.mockHttpClient.setHandler('/v1/bills/bill-1', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/bills/bill-1', (
+          http.BaseRequest request,
+        ) {
           return http.Response(
-            jsonEncode({
-              'data': {'id': 'bill-1'},
+            jsonEncode(<String, Map<String, String>>{
+              'data': <String, String>{'id': 'bill-1'},
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -1434,29 +1431,28 @@ void main() {
       });
 
       test('uploadPendingChanges handles UPDATE for budgets', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'budgets'
-              ..entityId = 'budget-1'
-              ..operation = 'UPDATE'
-              ..data = jsonEncode({'name': 'Updated Budget'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'budgets'
+          ..entityId = 'budget-1'
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(<String, String>{'name': 'Updated Budget'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         mockApiHelper.mockHttpClient.setHandler('/v1/budgets/budget-1', (
-          request,
+          http.BaseRequest request,
         ) {
           return http.Response(
-            jsonEncode({
-              'data': {'id': 'budget-1'},
+            jsonEncode(<String, Map<String, String>>{
+              'data': <String, String>{'id': 'budget-1'},
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -1465,15 +1461,17 @@ void main() {
       });
 
       test('uploadPendingChanges handles UPDATE for budget_limits', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'budget_limits'
-              ..entityId = 'limit-1'
-              ..operation = 'UPDATE'
-              ..data = jsonEncode({'budget_id': 'budget-1', 'amount': '200.00'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'budget_limits'
+          ..entityId = 'limit-1'
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(<String, String>{
+            'budget_id': 'budget-1',
+            'amount': '200.00',
+          })
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
@@ -1481,13 +1479,13 @@ void main() {
 
         mockApiHelper.mockHttpClient.setHandler(
           '/v1/budgets/budget-1/limits/limit-1',
-          (request) {
+          (http.BaseRequest request) {
             return http.Response(
-              jsonEncode({
-                'data': {'id': 'limit-1'},
+              jsonEncode(<String, Map<String, String>>{
+                'data': <String, String>{'id': 'limit-1'},
               }),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           },
         );
@@ -1499,15 +1497,17 @@ void main() {
       test(
         'uploadPendingChanges handles UPDATE for budget_limits without budget_id',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'budget_limits'
-                ..entityId = 'limit-1'
-                ..operation = 'UPDATE'
-                ..data = jsonEncode({'amount': '200.00'}) // Missing budget_id
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'budget_limits'
+            ..entityId = 'limit-1'
+            ..operation = 'UPDATE'
+            ..data =
+                jsonEncode(<String, String>{
+                  'amount': '200.00',
+                }) // Missing budget_id
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1519,16 +1519,15 @@ void main() {
       );
 
       test('uploadPendingChanges handles UPDATE without entityId', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId =
-                  null // Missing entityId
-              ..operation = 'UPDATE'
-              ..data = jsonEncode({'description': 'Updated'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId =
+              null // Missing entityId
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(<String, String>{'description': 'Updated'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
@@ -1539,22 +1538,21 @@ void main() {
       });
 
       test('uploadPendingChanges handles DELETE for accounts', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'accounts'
-              ..entityId = 'acc-1'
-              ..operation = 'DELETE'
-              ..data = null
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'accounts'
+          ..entityId = 'acc-1'
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         mockApiHelper.mockHttpClient.setHandler('/v1/accounts/acc-1', (
-          request,
+          http.BaseRequest request,
         ) {
           return http.Response('', 204);
         });
@@ -1564,22 +1562,21 @@ void main() {
       });
 
       test('uploadPendingChanges handles DELETE for categories', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'categories'
-              ..entityId = 'cat-1'
-              ..operation = 'DELETE'
-              ..data = null
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'categories'
+          ..entityId = 'cat-1'
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         mockApiHelper.mockHttpClient.setHandler('/v1/categories/cat-1', (
-          request,
+          http.BaseRequest request,
         ) {
           return http.Response('', 204);
         });
@@ -1589,21 +1586,22 @@ void main() {
       });
 
       test('uploadPendingChanges handles DELETE for bills', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'bills'
-              ..entityId = 'bill-1'
-              ..operation = 'DELETE'
-              ..data = null
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'bills'
+          ..entityId = 'bill-1'
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
-        mockApiHelper.mockHttpClient.setHandler('/v1/bills/bill-1', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/bills/bill-1', (
+          http.BaseRequest request,
+        ) {
           return http.Response('', 204);
         });
 
@@ -1612,22 +1610,21 @@ void main() {
       });
 
       test('uploadPendingChanges handles DELETE for budgets', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'budgets'
-              ..entityId = 'budget-1'
-              ..operation = 'DELETE'
-              ..data = null
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'budgets'
+          ..entityId = 'budget-1'
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         mockApiHelper.mockHttpClient.setHandler('/v1/budgets/budget-1', (
-          request,
+          http.BaseRequest request,
         ) {
           return http.Response('', 204);
         });
@@ -1637,16 +1634,15 @@ void main() {
       });
 
       test('uploadPendingChanges handles DELETE without entityId', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId =
-                  null // Missing entityId
-              ..operation = 'DELETE'
-              ..data = null
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId =
+              null // Missing entityId
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
@@ -1659,27 +1655,26 @@ void main() {
       test(
         'uploadPendingChanges handles DELETE with 404 (already deleted)',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'DELETE'
-                ..data = null
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'DELETE'
+            ..data = null
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
           });
 
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions/tx-1', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
-              jsonEncode({'error': 'Not found'}),
+              jsonEncode(<String, String>{'error': 'Not found'}),
               404,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -1691,15 +1686,14 @@ void main() {
       test(
         'uploadPendingChanges handles unsupported entity type for CREATE',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'unsupported'
-                ..entityId = 'id-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'test': 'data'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'unsupported'
+            ..entityId = 'id-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{'test': 'data'})
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1713,15 +1707,14 @@ void main() {
       test(
         'uploadPendingChanges handles unsupported entity type for UPDATE',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'unsupported'
-                ..entityId = 'id-1'
-                ..operation = 'UPDATE'
-                ..data = jsonEncode({'test': 'data'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'unsupported'
+            ..entityId = 'id-1'
+            ..operation = 'UPDATE'
+            ..data = jsonEncode(<String, String>{'test': 'data'})
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1735,15 +1728,14 @@ void main() {
       test(
         'uploadPendingChanges handles unsupported entity type for DELETE',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'unsupported'
-                ..entityId = 'id-1'
-                ..operation = 'DELETE'
-                ..data = null
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'unsupported'
+            ..entityId = 'id-1'
+            ..operation = 'DELETE'
+            ..data = null
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1755,25 +1747,29 @@ void main() {
       );
 
       test('uploadPendingChanges handles failed response for CREATE', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'CREATE'
-              ..data = jsonEncode({'type': 'withdrawal', 'amount': '10.00'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'CREATE'
+          ..data = jsonEncode(<String, String>{
+            'type': 'withdrawal',
+            'amount': '10.00',
+          })
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
-        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
+          http.BaseRequest request,
+        ) {
           return http.Response(
-            jsonEncode({'error': 'Validation failed'}),
+            jsonEncode(<String, String>{'error': 'Validation failed'}),
             400,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -1782,27 +1778,26 @@ void main() {
       });
 
       test('uploadPendingChanges handles failed response for UPDATE', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'UPDATE'
-              ..data = jsonEncode({'description': 'Updated'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'UPDATE'
+          ..data = jsonEncode(<String, String>{'description': 'Updated'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         mockApiHelper.mockHttpClient.setHandler('/v1/transactions/tx-1', (
-          request,
+          http.BaseRequest request,
         ) {
           return http.Response(
-            jsonEncode({'error': 'Validation failed'}),
+            jsonEncode(<String, String>{'error': 'Validation failed'}),
             400,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -1811,27 +1806,26 @@ void main() {
       });
 
       test('uploadPendingChanges handles failed response for DELETE', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'DELETE'
-              ..data = null
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'DELETE'
+          ..data = null
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         mockApiHelper.mockHttpClient.setHandler('/v1/transactions/tx-1', (
-          request,
+          http.BaseRequest request,
         ) {
           return http.Response(
-            jsonEncode({'error': 'Forbidden'}),
+            jsonEncode(<String, String>{'error': 'Forbidden'}),
             403,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -1842,20 +1836,19 @@ void main() {
       test(
         'uploadPendingChanges processes successful CREATE and updates transaction repository',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({
-                  'type': 'withdrawal',
-                  'description': 'Test transaction',
-                  'amount': '10.00',
-                  'currency_id': '1',
-                })
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{
+              'type': 'withdrawal',
+              'description': 'Test transaction',
+              'amount': '10.00',
+              'currency_id': '1',
+            })
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1872,7 +1865,7 @@ void main() {
               createdAt: now,
               updatedAt: now,
               groupTitle: null,
-              transactions: [
+              transactions: <TransactionSplit>[
                 TransactionSplit(
                   transactionJournalId: 'tx-1',
                   type: enums.TransactionTypeProperty.withdrawal,
@@ -1903,16 +1896,16 @@ void main() {
           final TransactionSingle transactionSingle = TransactionSingle(
             data: transactionRead,
           );
-          final Map<String, dynamic> transactionResponse =
-              transactionSingle.toJson();
+          final Map<String, dynamic> transactionResponse = transactionSingle
+              .toJson();
 
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
               jsonEncode(transactionResponse),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -1938,7 +1931,7 @@ void main() {
             now.day,
           );
           final TransactionStore transactionStore = TransactionStore(
-            transactions: [
+            transactions: <TransactionSplitStore>[
               TransactionSplitStore(
                 type: enums.TransactionTypeProperty.withdrawal,
                 date: normalizedDate,
@@ -1959,27 +1952,25 @@ void main() {
           final String storeJsonString = jsonEncode(storeJson);
 
           // Create PendingChange with TransactionStore data
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = null
-                ..operation = 'CREATE'
-                ..data = storeJsonString
-                ..createdAt = now
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = null
+            ..operation = 'CREATE'
+            ..data = storeJsonString
+            ..createdAt = now
+            ..retryCount = 0
+            ..synced = false;
 
           // Create a matching pending transaction (simulating offline creation)
           // Store the same TransactionStore JSON to ensure exact match
           final String pendingTransactionId =
               'pending-${now.millisecondsSinceEpoch}';
-          final Transactions pendingTransaction =
-              Transactions()
-                ..transactionId = pendingTransactionId
-                ..data = storeJsonString
-                ..updatedAt = null
-                ..localUpdatedAt = now
-                ..synced = false;
+          final Transactions pendingTransaction = Transactions()
+            ..transactionId = pendingTransactionId
+            ..data = storeJsonString
+            ..updatedAt = null
+            ..localUpdatedAt = now
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -1987,11 +1978,10 @@ void main() {
           });
 
           // Verify pending transaction exists before upload
-          final Transactions? pendingBefore =
-              await isar.transactions
-                  .filter()
-                  .transactionIdEqualTo(pendingTransactionId)
-                  .findFirst();
+          final Transactions? pendingBefore = await isar.transactions
+              .filter()
+              .transactionIdEqualTo(pendingTransactionId)
+              .findFirst();
           expect(pendingBefore, isNotNull);
 
           // Set up successful CREATE response
@@ -2003,7 +1993,7 @@ void main() {
               createdAt: now,
               updatedAt: now,
               groupTitle: null,
-              transactions: [
+              transactions: <TransactionSplit>[
                 TransactionSplit(
                   transactionJournalId: 'tx-created-1',
                   type: enums.TransactionTypeProperty.withdrawal,
@@ -2034,16 +2024,16 @@ void main() {
           final TransactionSingle transactionSingle = TransactionSingle(
             data: transactionRead,
           );
-          final Map<String, dynamic> transactionResponse =
-              transactionSingle.toJson();
+          final Map<String, dynamic> transactionResponse = transactionSingle
+              .toJson();
 
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
               jsonEncode(transactionResponse),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -2061,15 +2051,16 @@ void main() {
       test(
         'uploadPendingChanges processes successful UPDATE and updates transaction repository',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'UPDATE'
-                ..data = jsonEncode({'description': 'Updated transaction'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'UPDATE'
+            ..data = jsonEncode(<String, String>{
+              'description': 'Updated transaction',
+            })
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -2079,16 +2070,16 @@ void main() {
           final DateTime now = DateTime.now().toUtc();
           final Map<String, dynamic> transactionResponse =
               MockApiResponses.transactionList(
-                transactions: [
-                  {
+                transactions: <Map<String, dynamic>>[
+                  <String, dynamic>{
                     'type': 'transactions',
                     'id': 'tx-1',
-                    'attributes': {
+                    'attributes': <String, Object?>{
                       'created_at': now.toIso8601String(),
                       'updated_at': now.toIso8601String(),
                       'group_title': null,
-                      'transactions': [
-                        {
+                      'transactions': <Map<String, Object>>[
+                        <String, Object>{
                           'transaction_journal_id': 'tx-1',
                           'type': 'withdrawal',
                           'date': now.toIso8601String(),
@@ -2106,12 +2097,12 @@ void main() {
                           'destination_name': 'Destination',
                           'destination_type': 'expense',
                           'reconciled': false,
-                          'tags': [],
-                          'links': [],
+                          'tags': <dynamic>[],
+                          'links': <dynamic>[],
                         },
                       ],
                     },
-                    'links': {
+                    'links': <String, String>{
                       'self': 'https://example.com/api/v1/transactions/tx-1',
                     },
                   },
@@ -2119,12 +2110,12 @@ void main() {
               );
 
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions/tx-1', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
               jsonEncode(transactionResponse),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -2135,27 +2126,28 @@ void main() {
       );
 
       test('uploadPendingChanges handles max retries exceeded', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'CREATE'
-              ..data = jsonEncode({'test': 'data'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount =
-                  3 // Already at max
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'CREATE'
+          ..data = jsonEncode(<String, String>{'test': 'data'})
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount =
+              3 // Already at max
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         // Set up error response
-        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
+          http.BaseRequest request,
+        ) {
           return http.Response(
-            jsonEncode({'error': 'Validation failed'}),
+            jsonEncode(<String, String>{'error': 'Validation failed'}),
             400,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -2166,15 +2158,14 @@ void main() {
       test(
         'uploadPendingChanges handles network error and pauses upload',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'test': 'data'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{'test': 'data'})
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -2182,7 +2173,7 @@ void main() {
 
           // Set up network error
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             throw Exception('SocketException: Failed host lookup');
           });
@@ -2191,11 +2182,10 @@ void main() {
           expect(uploadService.isUploading, false);
 
           // Verify upload was paused (metadata may be created by retryManager)
-          final SyncMetadata? metadata =
-              await isar.syncMetadatas
-                  .filter()
-                  .entityTypeEqualTo('upload')
-                  .findFirst();
+          final SyncMetadata? metadata = await isar.syncMetadatas
+              .filter()
+              .entityTypeEqualTo('upload')
+              .findFirst();
           // Metadata may not exist if pauseWithBackoff didn't create it, or it may be true
           // The important part is that the pause logic was executed
           if (metadata != null) {
@@ -2207,15 +2197,14 @@ void main() {
       test(
         'uploadPendingChanges handles timeout error and pauses upload',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'test': 'data'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{'test': 'data'})
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -2223,7 +2212,7 @@ void main() {
 
           // Set up timeout error
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             throw Exception('TimeoutException: Request timed out');
           });
@@ -2232,11 +2221,10 @@ void main() {
           expect(uploadService.isUploading, false);
 
           // Verify upload was paused (metadata may be created by retryManager)
-          final SyncMetadata? metadata =
-              await isar.syncMetadatas
-                  .filter()
-                  .entityTypeEqualTo('upload')
-                  .findFirst();
+          final SyncMetadata? metadata = await isar.syncMetadatas
+              .filter()
+              .entityTypeEqualTo('upload')
+              .findFirst();
           // Metadata may not exist if pauseWithBackoff didn't create it, or it may be true
           // The important part is that the pause logic was executed
           if (metadata != null) {
@@ -2248,15 +2236,14 @@ void main() {
       test(
         'uploadPendingChanges handles server error (500) and pauses upload',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'test': 'data'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{'test': 'data'})
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -2264,13 +2251,13 @@ void main() {
 
           // Set up server error (Response object with 500 status)
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             // Return a response that will be treated as server error
             return http.Response(
-              jsonEncode({'error': 'Internal Server Error'}),
+              jsonEncode(<String, String>{'error': 'Internal Server Error'}),
               500,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -2282,15 +2269,14 @@ void main() {
       test(
         'uploadPendingChanges increments retry count on non-network errors',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'test': 'data'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{'test': 'data'})
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -2298,12 +2284,12 @@ void main() {
 
           // Set up validation error (not network/timeout/server)
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
-              jsonEncode({'error': 'Validation failed'}),
+              jsonEncode(<String, String>{'error': 'Validation failed'}),
               400,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -2311,11 +2297,10 @@ void main() {
           expect(uploadService.isUploading, false);
 
           // Verify retry count was incremented (if error was not network/timeout/server)
-          final PendingChanges? updated =
-              await isar.pendingChanges
-                  .filter()
-                  .idEqualTo(change.id)
-                  .findFirst();
+          final PendingChanges? updated = await isar.pendingChanges
+              .filter()
+              .idEqualTo(change.id)
+              .findFirst();
           expect(updated, isNotNull);
           // Retry count should be incremented for non-network errors
           // But if it's a network error, the upload is paused instead
@@ -2326,15 +2311,17 @@ void main() {
       test(
         'uploadPendingChanges marks insights as stale after successful upload',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'type': 'withdrawal', 'amount': '10.00'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{
+              'type': 'withdrawal',
+              'amount': '10.00',
+            })
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -2342,20 +2329,20 @@ void main() {
 
           // Set up successful response
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
-              jsonEncode({
-                'data': {
+              jsonEncode(<String, Map<String, Object>>{
+                'data': <String, Object>{
                   'type': 'transactions',
                   'id': 'tx-1',
-                  'attributes': {
+                  'attributes': <String, String>{
                     'created_at': DateTime.now().toUtc().toIso8601String(),
                   },
                 },
               }),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -2367,15 +2354,17 @@ void main() {
       test(
         'uploadPendingChanges updates metadata after successful upload',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'type': 'withdrawal', 'amount': '10.00'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{
+              'type': 'withdrawal',
+              'amount': '10.00',
+            })
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -2383,20 +2372,20 @@ void main() {
 
           // Set up successful response
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             return http.Response(
-              jsonEncode({
-                'data': {
+              jsonEncode(<String, Map<String, Object>>{
+                'data': <String, Object>{
                   'type': 'transactions',
                   'id': 'tx-1',
-                  'attributes': {
+                  'attributes': <String, String>{
                     'created_at': DateTime.now().toUtc().toIso8601String(),
                   },
                 },
               }),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -2404,11 +2393,10 @@ void main() {
           expect(uploadService.isUploading, false);
 
           // Verify metadata was updated (if upload succeeded)
-          final SyncMetadata? metadata =
-              await isar.syncMetadatas
-                  .filter()
-                  .entityTypeEqualTo('upload')
-                  .findFirst();
+          final SyncMetadata? metadata = await isar.syncMetadatas
+              .filter()
+              .entityTypeEqualTo('upload')
+              .findFirst();
           // Metadata may be created/updated if upload succeeded
           // The important part is that the code path was executed
           if (metadata != null) {
@@ -2419,14 +2407,14 @@ void main() {
 
       test('uploadPendingChanges handles multiple successful changes', () async {
         final DateTime now = DateTime.now().toUtc();
-        final List<PendingChanges> changes = [
+        final List<PendingChanges> changes = <PendingChanges>[
           PendingChanges()
             ..entityType = 'transactions'
             ..entityId = 'tx-1'
             ..operation = 'CREATE'
-            ..data = jsonEncode({
-              'transactions': [
-                {
+            ..data = jsonEncode(<String, List<Map<String, String>>>{
+              'transactions': <Map<String, String>>[
+                <String, String>{
                   'type': 'withdrawal',
                   'amount': '10.00',
                   'date': now.toIso8601String(),
@@ -2441,9 +2429,9 @@ void main() {
             ..entityType = 'transactions'
             ..entityId = 'tx-2'
             ..operation = 'CREATE'
-            ..data = jsonEncode({
-              'transactions': [
-                {
+            ..data = jsonEncode(<String, List<Map<String, String>>>{
+              'transactions': <Map<String, String>>[
+                <String, String>{
                   'type': 'withdrawal',
                   'amount': '20.00',
                   'date': now.add(const Duration(seconds: 1)).toIso8601String(),
@@ -2457,7 +2445,7 @@ void main() {
         ];
 
         await isar.writeTxn(() async {
-          for (final change in changes) {
+          for (final PendingChanges change in changes) {
             await isar.pendingChanges.put(change);
           }
         });
@@ -2465,21 +2453,23 @@ void main() {
         // Set up successful responses for both
         // v1TransactionsPost returns TransactionSingle which has a 'data' field
         int callCount = 0;
-        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
+          http.BaseRequest request,
+        ) {
           callCount++;
           final DateTime now = DateTime.now().toUtc();
           // Return TransactionSingle format: { "data": { "type": "transactions", "id": "...", "attributes": {...} } }
           return http.Response(
-            jsonEncode({
-              'data': {
+            jsonEncode(<String, Map<String, Object>>{
+              'data': <String, Object>{
                 'type': 'transactions',
                 'id': 'tx-$callCount',
-                'attributes': {
+                'attributes': <String, Object?>{
                   'created_at': now.toIso8601String(),
                   'updated_at': now.toIso8601String(),
                   'group_title': null,
-                  'transactions': [
-                    {
+                  'transactions': <Map<String, Object>>[
+                    <String, Object>{
                       'transaction_journal_id': 'tx-$callCount',
                       'type': 'withdrawal',
                       'date': now.toIso8601String(),
@@ -2496,7 +2486,7 @@ void main() {
               },
             }),
             200,
-            headers: {'content-type': 'application/json'},
+            headers: <String, String>{'content-type': 'application/json'},
           );
         });
 
@@ -2507,12 +2497,15 @@ void main() {
       });
 
       test('uploadPendingChanges stops processing on network error', () async {
-        final List<PendingChanges> changes = [
+        final List<PendingChanges> changes = <PendingChanges>[
           PendingChanges()
             ..entityType = 'transactions'
             ..entityId = 'tx-1'
             ..operation = 'CREATE'
-            ..data = jsonEncode({'type': 'withdrawal', 'amount': '10.00'})
+            ..data = jsonEncode(<String, String>{
+              'type': 'withdrawal',
+              'amount': '10.00',
+            })
             ..createdAt = DateTime.now().toUtc()
             ..retryCount = 0
             ..synced = false,
@@ -2520,35 +2513,40 @@ void main() {
             ..entityType = 'transactions'
             ..entityId = 'tx-2'
             ..operation = 'CREATE'
-            ..data = jsonEncode({'type': 'withdrawal', 'amount': '20.00'})
+            ..data = jsonEncode(<String, String>{
+              'type': 'withdrawal',
+              'amount': '20.00',
+            })
             ..createdAt = DateTime.now().toUtc().add(const Duration(seconds: 1))
             ..retryCount = 0
             ..synced = false,
         ];
 
         await isar.writeTxn(() async {
-          for (final change in changes) {
+          for (final PendingChanges change in changes) {
             await isar.pendingChanges.put(change);
           }
         });
 
         // First call succeeds, second throws network error
         int callCount = 0;
-        mockApiHelper.mockHttpClient.setHandler('transactions', (request) {
+        mockApiHelper.mockHttpClient.setHandler('transactions', (
+          http.BaseRequest request,
+        ) {
           callCount++;
           if (callCount == 1) {
             return http.Response(
-              jsonEncode({
-                'data': {
+              jsonEncode(<String, Map<String, Object>>{
+                'data': <String, Object>{
                   'type': 'transactions',
                   'id': 'tx-1',
-                  'attributes': {
+                  'attributes': <String, String>{
                     'created_at': DateTime.now().toUtc().toIso8601String(),
                   },
                 },
               }),
               200,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           } else {
             throw Exception('SocketException: Failed host lookup');
@@ -2567,15 +2565,17 @@ void main() {
       test(
         'uploadPendingChanges handles conflict error as Response object',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'type': 'withdrawal', 'amount': '10.00'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{
+              'type': 'withdrawal',
+              'amount': '10.00',
+            })
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -2586,16 +2586,16 @@ void main() {
           // Use a minimal valid JSON structure that Chopper can parse, but with 409 status
           // In reality, a 409 might have an error response, but Chopper should still return a Response object
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             // Return 409 with error response - Chopper should return Response with isSuccessful=false
             return http.Response(
-              jsonEncode({
+              jsonEncode(<String, String>{
                 'message': 'Conflict',
                 'exception': 'ConflictException',
               }),
               409,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           });
 
@@ -2603,11 +2603,10 @@ void main() {
           expect(uploadService.isUploading, false);
 
           // Verify change was marked as synced (conflict resolved)
-          final PendingChanges? updated =
-              await isar.pendingChanges
-                  .filter()
-                  .idEqualTo(change.id)
-                  .findFirst();
+          final PendingChanges? updated = await isar.pendingChanges
+              .filter()
+              .idEqualTo(change.id)
+              .findFirst();
           // Conflict should be resolved and change marked as synced
           expect(updated, isNotNull, reason: 'Change should still exist');
           expect(
@@ -2619,22 +2618,26 @@ void main() {
       );
 
       test('uploadPendingChanges handles conflict error as string', () async {
-        final PendingChanges change =
-            PendingChanges()
-              ..entityType = 'transactions'
-              ..entityId = 'tx-1'
-              ..operation = 'CREATE'
-              ..data = jsonEncode({'type': 'withdrawal', 'amount': '10.00'})
-              ..createdAt = DateTime.now().toUtc()
-              ..retryCount = 0
-              ..synced = false;
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = 'tx-1'
+          ..operation = 'CREATE'
+          ..data = jsonEncode(<String, String>{
+            'type': 'withdrawal',
+            'amount': '10.00',
+          })
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
 
         await isar.writeTxn(() async {
           await isar.pendingChanges.put(change);
         });
 
         // Set up conflict error as string
-        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (request) {
+        mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
+          http.BaseRequest request,
+        ) {
           throw Exception('409 Conflict: Resource already exists');
         });
 
@@ -2642,8 +2645,10 @@ void main() {
         expect(uploadService.isUploading, false);
 
         // Verify change was marked as synced (conflict resolved)
-        final PendingChanges? updated =
-            await isar.pendingChanges.filter().idEqualTo(change.id).findFirst();
+        final PendingChanges? updated = await isar.pendingChanges
+            .filter()
+            .idEqualTo(change.id)
+            .findFirst();
         // Conflict should be resolved and change marked as synced
         expect(updated, isNotNull, reason: 'Change should still exist');
         expect(
@@ -2656,15 +2661,17 @@ void main() {
       test(
         'uploadPendingChanges handles exception in outer catch block',
         () async {
-          final PendingChanges change =
-              PendingChanges()
-                ..entityType = 'transactions'
-                ..entityId = 'tx-1'
-                ..operation = 'CREATE'
-                ..data = jsonEncode({'type': 'withdrawal', 'amount': '10.00'})
-                ..createdAt = DateTime.now().toUtc()
-                ..retryCount = 0
-                ..synced = false;
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = 'CREATE'
+            ..data = jsonEncode(<String, String>{
+              'type': 'withdrawal',
+              'amount': '10.00',
+            })
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
@@ -2672,7 +2679,7 @@ void main() {
 
           // Set up handler that throws before processing
           mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
-            request,
+            http.BaseRequest request,
           ) {
             throw Exception('Unexpected error');
           });

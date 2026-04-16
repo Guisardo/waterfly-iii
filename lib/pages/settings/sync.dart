@@ -67,20 +67,18 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                   ? S.of(context).syncSettingsCredentialsValidated
                   : S.of(context).syncSettingsCredentialsNotValidated,
             ),
-            trailing:
-                syncStatus.authMetadata?.credentialsInvalid ?? false
-                    ? ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<Widget>(
-                            builder: (BuildContext context) =>
-                                const LoginPage(),
-                          ),
-                        );
-                      },
-                      child: Text(S.of(context).syncSettingsReenterButton),
-                    )
-                    : null,
+            trailing: syncStatus.authMetadata?.credentialsInvalid ?? false
+                ? ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<Widget>(
+                          builder: (BuildContext context) => const LoginPage(),
+                        ),
+                      );
+                    },
+                    child: Text(S.of(context).syncSettingsReenterButton),
+                  )
+                : null,
           ),
           const Divider(),
 
@@ -115,24 +113,23 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
           ListTile(
             title: Text(S.of(context).syncSettingsManualSyncTitle),
             subtitle: Text(S.of(context).syncSettingsManualSyncSubtitle),
-            trailing:
-                syncStatus.isSyncing
-                    ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                    : ElevatedButton(
-                      onPressed: () async {
-                        await syncStatus.syncAll(forceRetry: true);
-                        // Force a refresh to ensure UI updates
-                        if (mounted) {
-                          await syncStatus.refreshMetadata();
-                          setState(() {});
-                        }
-                      },
-                      child: Text(S.of(context).syncSettingsSyncNowButton),
-                    ),
+            trailing: syncStatus.isSyncing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : ElevatedButton(
+                    onPressed: () async {
+                      await syncStatus.syncAll(forceRetry: true);
+                      // Force a refresh to ensure UI updates
+                      if (mounted) {
+                        await syncStatus.refreshMetadata();
+                        setState(() {});
+                      }
+                    },
+                    child: Text(S.of(context).syncSettingsSyncNowButton),
+                  ),
           ),
         ],
       ),
@@ -213,13 +210,12 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                 Text(S.of(context).syncSettingsStatusActive),
             ],
           ),
-          trailing:
-              isPaused && !isSyncing
-                  ? ElevatedButton(
-                    onPressed: onResume,
-                    child: Text(S.of(context).syncSettingsResumeButton),
-                  )
-                  : null,
+          trailing: isPaused && !isSyncing
+              ? ElevatedButton(
+                  onPressed: onResume,
+                  child: Text(S.of(context).syncSettingsResumeButton),
+                )
+              : null,
         ),
         const Divider(),
       ],
@@ -262,8 +258,8 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
     final DateTime? nextRetryAt = metadata?.nextRetryAt;
     final SyncProgress? progress =
         isSyncing && syncStatus.currentProgress?.entityType == entityType
-            ? syncStatus.currentProgress
-            : null;
+        ? syncStatus.currentProgress
+        : null;
 
     // Determine status
     String statusText;
@@ -326,17 +322,16 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
     }
 
     return ListTile(
-      leading:
-          isSyncing
-              ? SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(statusColor),
-                ),
-              )
-              : Icon(statusIcon, color: statusColor),
+      leading: isSyncing
+          ? SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+              ),
+            )
+          : Icon(statusIcon, color: statusColor),
       title: Text(entityName),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

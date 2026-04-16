@@ -99,7 +99,7 @@ void main() {
         try {
           await notifications.initialize();
           await notifications.showSyncStarted();
-          await Future.delayed(const Duration(milliseconds: 100));
+          await Future<void>.delayed(const Duration(milliseconds: 100));
           await notifications.showSyncCompleted();
           expect(notifications, isNotNull);
         } catch (e) {
@@ -232,7 +232,7 @@ void main() {
 
         // Start sync
         await notifications.showSyncStarted();
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Show progress for different entities
         await notifications.showSyncProgress(
@@ -241,7 +241,7 @@ void main() {
           total: 5,
           message: 'Syncing accounts...',
         );
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         await notifications.showSyncProgress(
           entityType: 'transactions',
@@ -249,7 +249,7 @@ void main() {
           total: 50,
           message: 'Syncing transactions...',
         );
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Complete
         await notifications.showSyncCompleted();
@@ -272,13 +272,13 @@ void main() {
 
         // Start sync
         await notifications.showSyncStarted();
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Show error and pause
         await notifications.showSyncPaused(
           'Network error: No internet connection',
         );
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         expect(notifications, isNotNull);
       } catch (e) {
@@ -298,7 +298,7 @@ void main() {
 
         // Start sync
         await notifications.showSyncStarted();
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         // Show credential error
         await notifications.showCredentialError();
@@ -327,7 +327,7 @@ void main() {
             total: 100,
             message: 'Progress: ${i * 10}%',
           );
-          await Future.delayed(const Duration(milliseconds: 10));
+          await Future<void>.delayed(const Duration(milliseconds: 10));
         }
 
         await notifications.showSyncCompleted();

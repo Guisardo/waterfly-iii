@@ -125,21 +125,18 @@ class SyncStatusProvider extends ChangeNotifier {
   Future<void> refreshMetadata() async {
     try {
       final Isar isar = _isar ?? await AppDatabase.instance;
-      final SyncMetadata? download =
-          await isar.syncMetadatas
-              .filter()
-              .entityTypeEqualTo('download')
-              .findFirst();
-      final SyncMetadata? upload =
-          await isar.syncMetadatas
-              .filter()
-              .entityTypeEqualTo('upload')
-              .findFirst();
-      final SyncMetadata? auth =
-          await isar.syncMetadatas
-              .filter()
-              .entityTypeEqualTo('auth')
-              .findFirst();
+      final SyncMetadata? download = await isar.syncMetadatas
+          .filter()
+          .entityTypeEqualTo('download')
+          .findFirst();
+      final SyncMetadata? upload = await isar.syncMetadatas
+          .filter()
+          .entityTypeEqualTo('upload')
+          .findFirst();
+      final SyncMetadata? auth = await isar.syncMetadatas
+          .filter()
+          .entityTypeEqualTo('auth')
+          .findFirst();
 
       _downloadMetadata = download;
       _uploadMetadata = upload;
@@ -149,11 +146,10 @@ class SyncStatusProvider extends ChangeNotifier {
       final Map<String, SyncMetadata> entityMetadata = <String, SyncMetadata>{};
       for (final String entityType in entityTypes) {
         try {
-          final SyncMetadata? metadata =
-              await isar.syncMetadatas
-                  .filter()
-                  .entityTypeEqualTo(entityType)
-                  .findFirst();
+          final SyncMetadata? metadata = await isar.syncMetadatas
+              .filter()
+              .entityTypeEqualTo(entityType)
+              .findFirst();
           if (metadata != null) {
             entityMetadata[entityType] = metadata;
           }

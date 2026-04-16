@@ -57,14 +57,12 @@ class NetEarningsChart extends StatelessWidget {
       return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           return SizedBox(
-            width:
-                constraints.maxWidth > 0
-                    ? constraints.maxWidth
-                    : double.infinity,
-            height:
-                constraints.maxHeight.isFinite && constraints.maxHeight > 0
-                    ? constraints.maxHeight
-                    : 150.0,
+            width: constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : double.infinity,
+            height: constraints.maxHeight.isFinite && constraints.maxHeight > 0
+                ? constraints.maxHeight
+                : 150.0,
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),

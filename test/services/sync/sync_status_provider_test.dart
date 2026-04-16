@@ -36,12 +36,6 @@ class _MockConnectivityService extends ChangeNotifier
     _mockIsOnline = online;
     notifyListeners();
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-    // No-op for mock
-  }
 }
 
 void main() {
@@ -135,15 +129,13 @@ void main() {
     );
 
     test('refreshMetadata loads metadata from database', () async {
-      final SyncMetadata downloadMetadata =
-          SyncMetadata()
-            ..entityType = 'download'
-            ..lastDownloadSync = DateTime.now().toUtc();
+      final SyncMetadata downloadMetadata = SyncMetadata()
+        ..entityType = 'download'
+        ..lastDownloadSync = DateTime.now().toUtc();
 
-      final SyncMetadata uploadMetadata =
-          SyncMetadata()
-            ..entityType = 'upload'
-            ..lastUploadSync = DateTime.now().toUtc();
+      final SyncMetadata uploadMetadata = SyncMetadata()
+        ..entityType = 'upload'
+        ..lastUploadSync = DateTime.now().toUtc();
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(downloadMetadata);
@@ -167,10 +159,9 @@ void main() {
     });
 
     test('refreshMetadata loads entity metadata', () async {
-      final SyncMetadata transactionMetadata =
-          SyncMetadata()
-            ..entityType = 'transactions'
-            ..lastDownloadSync = DateTime.now().toUtc();
+      final SyncMetadata transactionMetadata = SyncMetadata()
+        ..entityType = 'transactions'
+        ..lastDownloadSync = DateTime.now().toUtc();
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(transactionMetadata);
@@ -249,10 +240,9 @@ void main() {
     });
 
     test('hasDownloadError returns true when download is paused', () async {
-      final SyncMetadata downloadMetadata =
-          SyncMetadata()
-            ..entityType = 'download'
-            ..syncPaused = true;
+      final SyncMetadata downloadMetadata = SyncMetadata()
+        ..entityType = 'download'
+        ..syncPaused = true;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(downloadMetadata);
@@ -278,10 +268,9 @@ void main() {
     });
 
     test('hasUploadError returns true when upload is paused', () async {
-      final SyncMetadata uploadMetadata =
-          SyncMetadata()
-            ..entityType = 'upload'
-            ..syncPaused = true;
+      final SyncMetadata uploadMetadata = SyncMetadata()
+        ..entityType = 'upload'
+        ..syncPaused = true;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(uploadMetadata);
@@ -307,10 +296,9 @@ void main() {
     test(
       'hasError returns true when either download or upload has error',
       () async {
-        final SyncMetadata downloadMetadata =
-            SyncMetadata()
-              ..entityType = 'download'
-              ..syncPaused = true;
+        final SyncMetadata downloadMetadata = SyncMetadata()
+          ..entityType = 'download'
+          ..syncPaused = true;
 
         await isar.writeTxn(() async {
           await isar.syncMetadatas.put(downloadMetadata);

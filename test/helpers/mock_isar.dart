@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/accounts.dart';
 import 'package:waterflyiii/data/local/database/tables/attachments.dart';
@@ -59,28 +59,27 @@ class _MockQuery<T> implements Query<T> {
     final List<T> rawData = _dataGetter != null ? _dataGetter() : _staticData!;
     // Apply filter if present
     if (_filterField != null && _filterValue != null && rawData.isNotEmpty) {
-      final List<T> filtered =
-          rawData.where((item) {
-            if (_fieldComparators != null) {
-              final comparator = _fieldComparators[_filterField];
-              if (comparator != null) {
-                return comparator(item, _filterValue);
-              }
-            }
-            // Fallback: try to access field via dynamic
-            try {
-              final dynamic itemDynamic = item as dynamic;
-              try {
-                final dynamic itemValue =
-                    (itemDynamic as dynamic)[_filterField];
-                return itemValue == _filterValue;
-              } catch (e) {
-                return false;
-              }
-            } catch (e) {
-              return false;
-            }
-          }).toList();
+      final List<T> filtered = rawData.where((T item) {
+        if (_fieldComparators != null) {
+          final Function(T, dynamic)? comparator =
+              _fieldComparators[_filterField];
+          if (comparator != null) {
+            return comparator(item, _filterValue);
+          }
+        }
+        // Fallback: try to access field via dynamic
+        try {
+          final dynamic itemDynamic = item as dynamic;
+          try {
+            final dynamic itemValue = (itemDynamic as dynamic)[_filterField];
+            return itemValue == _filterValue;
+          } catch (e) {
+            return false;
+          }
+        } catch (e) {
+          return false;
+        }
+      }).toList();
       return filtered;
     }
     return rawData;
@@ -170,19 +169,19 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
        super(
          QueryBuilderInternal<T>(
            collection: collection ?? _MockCollection<T>(),
-           whereClauses: const [],
+           whereClauses: const <WhereClause>[],
            whereDistinct: false,
            whereSort: Sort.asc,
-           filter: const FilterGroup.and([]),
+           filter: const FilterGroup.and(<FilterOperation>[]),
            filterGroupType: FilterGroupType.and,
            filterNot: false,
-           distinctByProperties: const [],
-           sortByProperties: const [],
+           distinctByProperties: const <DistinctProperty>[],
+           sortByProperties: const <SortProperty>[],
            offset: null,
            limit: null,
            propertyName: null,
          ),
-       ) {}
+       );
 
   QueryBuilder<T, T, QWhere> where() {
     // Always use live collection data to see updates made via put()
@@ -248,9 +247,9 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
 
   // Explicit override for staleEqualTo since it's commonly used
   QueryBuilder<T, T, QFilterCondition> staleEqualTo(bool value) {
-    print(
+    debugPrint(
       'STALE_EQUAL_TO CALLED with value=$value',
-    ); // Simple print to verify it's called
+    ); // Debug log to verify it's called
     return _applyFilter('stale', value);
   }
 
@@ -261,7 +260,7 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
 
     if (name.endsWith('EqualTo')) {
       // Extract field name from method name (e.g., "transactionIdEqualTo" -> "transactionId")
-      final fieldName = name.replaceAll('EqualTo', '');
+      final String fieldName = name.replaceAll('EqualTo', '');
       if (invocation.positionalArguments.isNotEmpty) {
         return _applyFilter(fieldName, invocation.positionalArguments.first);
       }
@@ -407,26 +406,26 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
         final dynamic dataProperty = coll.data;
         if (dataProperty is List) {
           final List<T> liveData = dataProperty.cast<T>();
-          final comparator = _fieldComparators[effectiveFilterField];
-          final List<T> filtered =
-              liveData.where((item) {
-                if (comparator != null) {
-                  return comparator(item, effectiveFilterValue);
-                }
-                // Fallback: try to access field via dynamic
-                try {
-                  final dynamic itemDynamic = item as dynamic;
-                  try {
-                    final dynamic itemValue =
-                        (itemDynamic as dynamic)[effectiveFilterField];
-                    return itemValue == effectiveFilterValue;
-                  } catch (e) {
-                    return false;
-                  }
-                } catch (e) {
-                  return false;
-                }
-              }).toList();
+          final Function(T, dynamic)? comparator =
+              _fieldComparators[effectiveFilterField];
+          final List<T> filtered = liveData.where((T item) {
+            if (comparator != null) {
+              return comparator(item, effectiveFilterValue);
+            }
+            // Fallback: try to access field via dynamic
+            try {
+              final dynamic itemDynamic = item as dynamic;
+              try {
+                final dynamic itemValue =
+                    (itemDynamic as dynamic)[effectiveFilterField];
+                return itemValue == effectiveFilterValue;
+              } catch (e) {
+                return false;
+              }
+            } catch (e) {
+              return false;
+            }
+          }).toList();
 
           return filtered;
         }
@@ -446,26 +445,24 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
         _collection is MockIsarCollection<T>) {
       final MockIsarCollection<T> mockCollection = _collection;
       final List<T> liveData = mockCollection.data;
-      final comparator = _fieldComparators[_filterField];
-      final List<T> filtered =
-          liveData.where((item) {
-            if (comparator != null) {
-              return comparator(item, _filterValue);
-            }
-            // Fallback: try to access field via dynamic
-            try {
-              final dynamic itemDynamic = item as dynamic;
-              try {
-                final dynamic itemValue =
-                    (itemDynamic as dynamic)[_filterField];
-                return itemValue == _filterValue;
-              } catch (e) {
-                return false;
-              }
-            } catch (e) {
-              return false;
-            }
-          }).toList();
+      final Function(T, dynamic)? comparator = _fieldComparators[_filterField];
+      final List<T> filtered = liveData.where((T item) {
+        if (comparator != null) {
+          return comparator(item, _filterValue);
+        }
+        // Fallback: try to access field via dynamic
+        try {
+          final dynamic itemDynamic = item as dynamic;
+          try {
+            final dynamic itemValue = (itemDynamic as dynamic)[_filterField];
+            return itemValue == _filterValue;
+          } catch (e) {
+            return false;
+          }
+        } catch (e) {
+          return false;
+        }
+      }).toList();
       return filtered.isNotEmpty ? filtered.first : null;
     }
     List<T> dataToUse = _data;
@@ -491,26 +488,26 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
         final dynamic dataProperty = (coll as dynamic).data;
         if (dataProperty is List) {
           final List<T> liveData = dataProperty.cast<T>();
-          final comparator = _fieldComparators[_filterField];
-          final List<T> filtered =
-              liveData.where((item) {
-                if (comparator != null) {
-                  return comparator(item, _filterValue);
-                }
-                // Fallback: try to access field via dynamic
-                try {
-                  final dynamic itemDynamic = item as dynamic;
-                  try {
-                    final dynamic itemValue =
-                        (itemDynamic as dynamic)[_filterField];
-                    return itemValue == _filterValue;
-                  } catch (e) {
-                    return false;
-                  }
-                } catch (e) {
-                  return false;
-                }
-              }).toList();
+          final Function(T, dynamic)? comparator =
+              _fieldComparators[_filterField];
+          final List<T> filtered = liveData.where((T item) {
+            if (comparator != null) {
+              return comparator(item, _filterValue);
+            }
+            // Fallback: try to access field via dynamic
+            try {
+              final dynamic itemDynamic = item as dynamic;
+              try {
+                final dynamic itemValue =
+                    (itemDynamic as dynamic)[_filterField];
+                return itemValue == _filterValue;
+              } catch (e) {
+                return false;
+              }
+            } catch (e) {
+              return false;
+            }
+          }).toList();
           return filtered;
         }
       } catch (e) {
@@ -542,26 +539,24 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
         _collection is MockIsarCollection<T>) {
       final MockIsarCollection<T> mockCollection = _collection;
       final List<T> liveData = mockCollection.data;
-      final comparator = _fieldComparators[_filterField];
-      final List<T> filtered =
-          liveData.where((item) {
-            if (comparator != null) {
-              return comparator(item, _filterValue);
-            }
-            // Fallback: try to access field via dynamic
-            try {
-              final dynamic itemDynamic = item as dynamic;
-              try {
-                final dynamic itemValue =
-                    (itemDynamic as dynamic)[_filterField];
-                return itemValue == _filterValue;
-              } catch (e) {
-                return false;
-              }
-            } catch (e) {
-              return false;
-            }
-          }).toList();
+      final Function(T, dynamic)? comparator = _fieldComparators[_filterField];
+      final List<T> filtered = liveData.where((T item) {
+        if (comparator != null) {
+          return comparator(item, _filterValue);
+        }
+        // Fallback: try to access field via dynamic
+        try {
+          final dynamic itemDynamic = item as dynamic;
+          try {
+            final dynamic itemValue = (itemDynamic as dynamic)[_filterField];
+            return itemValue == _filterValue;
+          } catch (e) {
+            return false;
+          }
+        } catch (e) {
+          return false;
+        }
+      }).toList();
       return filtered.isNotEmpty ? filtered.first : null;
     }
     List<T> dataToUse = _data;
@@ -583,7 +578,7 @@ class MockQueryBuilder<T, S> extends QueryBuilder<T, T, S> {
 /// Mock Isar collection that implements IsarCollection interface
 class MockIsarCollection<T> implements IsarCollection<T> {
   // Make _data accessible to MockQueryBuilder (remove private to allow access)
-  final List<T> data = [];
+  final List<T> data = <T>[];
   final Map<String, Function(T, dynamic)> _fieldComparators;
   final Isar _isar;
 
@@ -591,7 +586,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
 
   @override
   QueryBuilder<T, T, QWhere> where({
-    List<WhereClause> whereClauses = const [],
+    List<WhereClause> whereClauses = const <WhereClause>[],
     bool distinct = false,
     Sort sort = Sort.asc,
   }) {
@@ -620,7 +615,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
       final dynamic obj = object;
       final int? id = obj.id;
       if (id != null && id != 0) {
-        final int index = data.indexWhere((item) {
+        final int index = data.indexWhere((T item) {
           try {
             return (item as dynamic).id == id;
           } catch (e) {
@@ -653,7 +648,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
       final dynamic obj = object;
       final int? id = obj.id;
       if (id != null && id != 0) {
-        final int index = data.indexWhere((item) {
+        final int index = data.indexWhere((T item) {
           try {
             return (item as dynamic).id == id;
           } catch (e) {
@@ -679,8 +674,8 @@ class MockIsarCollection<T> implements IsarCollection<T> {
 
   @override
   Future<List<Id>> putAll(List<T> objects) async {
-    final List<Id> ids = [];
-    for (final obj in objects) {
+    final List<Id> ids = <Id>[];
+    for (final T obj in objects) {
       final Id id = await put(obj);
       ids.add(id);
     }
@@ -689,8 +684,8 @@ class MockIsarCollection<T> implements IsarCollection<T> {
 
   @override
   List<Id> putAllSync(List<T> objects, {bool saveLinks = true}) {
-    final List<Id> ids = [];
-    for (final obj in objects) {
+    final List<Id> ids = <Id>[];
+    for (final T obj in objects) {
       final Id id = putSync(obj, saveLinks: saveLinks);
       ids.add(id);
     }
@@ -709,7 +704,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
 
   @override
   Future<bool> delete(Id id) async {
-    final int index = data.indexWhere((item) {
+    final int index = data.indexWhere((T item) {
       try {
         return (item as dynamic).id == id;
       } catch (e) {
@@ -725,7 +720,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
 
   @override
   bool deleteSync(Id id) {
-    final int index = data.indexWhere((item) {
+    final int index = data.indexWhere((T item) {
       try {
         return (item as dynamic).id == id;
       } catch (e) {
@@ -742,7 +737,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   @override
   Future<int> deleteAll(List<Id> ids) async {
     int count = 0;
-    for (final id in ids) {
+    for (final Id id in ids) {
       if (await delete(id)) {
         count++;
       }
@@ -753,7 +748,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   @override
   int deleteAllSync(List<Id> ids) {
     int count = 0;
-    for (final id in ids) {
+    for (final Id id in ids) {
       if (deleteSync(id)) {
         count++;
       }
@@ -764,7 +759,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   @override
   Future<T?> get(Id id) async {
     try {
-      return data.firstWhere((item) {
+      return data.firstWhere((T item) {
         try {
           return (item as dynamic).id == id;
         } catch (e) {
@@ -779,7 +774,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   @override
   T? getSync(Id id) {
     try {
-      return data.firstWhere((item) {
+      return data.firstWhere((T item) {
         try {
           return (item as dynamic).id == id;
         } catch (e) {
@@ -793,7 +788,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
 
   @override
   Future<List<T>> getAll(List<Id> ids) async {
-    return data.where((item) {
+    return data.where((T item) {
       try {
         return ids.contains((item as dynamic).id);
       } catch (e) {
@@ -804,7 +799,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
 
   @override
   List<T> getAllSync(List<Id> ids) {
-    return data.where((item) {
+    return data.where((T item) {
       try {
         return ids.contains((item as dynamic).id);
       } catch (e) {
@@ -832,12 +827,12 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   // Stub implementations for unused methods
   @override
   Query<R> buildQuery<R>({
-    List<WhereClause> whereClauses = const [],
+    List<WhereClause> whereClauses = const <WhereClause>[],
     bool whereDistinct = false,
     Sort whereSort = Sort.asc,
     FilterOperation? filter,
-    List<SortProperty> sortBy = const [],
-    List<DistinctProperty> distinctBy = const [],
+    List<SortProperty> sortBy = const <SortProperty>[],
+    List<DistinctProperty> distinctBy = const <DistinctProperty>[],
     int? offset,
     int? limit,
     String? property,
@@ -995,7 +990,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   }
 
   @override
-  Future<bool> deleteByIndex(String indexName, IndexKey key) async {
+  Future<bool> deleteByIndex(String indexName, IndexKey key) {
     throw UnimplementedError('Mock: deleteByIndex not needed for tests');
   }
 
@@ -1005,7 +1000,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   }
 
   @override
-  Future<int> deleteAllByIndex(String indexName, List<IndexKey> keys) async {
+  Future<int> deleteAllByIndex(String indexName, List<IndexKey> keys) {
     throw UnimplementedError('Mock: deleteAllByIndex not needed for tests');
   }
 
@@ -1015,7 +1010,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   }
 
   @override
-  Future<T?> getByIndex(String indexName, IndexKey key) async {
+  Future<T?> getByIndex(String indexName, IndexKey key) {
     throw UnimplementedError('Mock: getByIndex not needed for tests');
   }
 
@@ -1025,7 +1020,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   }
 
   @override
-  Future<List<T>> getAllByIndex(String indexName, List<IndexKey> keys) async {
+  Future<List<T>> getAllByIndex(String indexName, List<IndexKey> keys) {
     throw UnimplementedError('Mock: getAllByIndex not needed for tests');
   }
 
@@ -1035,8 +1030,8 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   }
 
   @override
-  Future<Id> putByIndex(String indexName, T object) async {
-    return await put(object);
+  Future<Id> putByIndex(String indexName, T object) {
+    return put(object);
   }
 
   @override
@@ -1045,8 +1040,8 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   }
 
   @override
-  Future<List<Id>> putAllByIndex(String indexName, List<T> objects) async {
-    return await putAll(objects);
+  Future<List<Id>> putAllByIndex(String indexName, List<T> objects) {
+    return putAll(objects);
   }
 
   @override
@@ -1059,7 +1054,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   }
 
   @override
-  Future<void> importJson(List<Map<String, dynamic>> json) async {
+  Future<void> importJson(List<Map<String, dynamic>> json) {
     throw UnimplementedError('Mock: importJson not needed for tests');
   }
 
@@ -1069,7 +1064,7 @@ class MockIsarCollection<T> implements IsarCollection<T> {
   }
 
   @override
-  Future<void> importJsonRaw(Uint8List json) async {
+  Future<void> importJsonRaw(Uint8List json) {
     throw UnimplementedError('Mock: importJsonRaw not needed for tests');
   }
 
@@ -1134,55 +1129,94 @@ class MockIsar implements Isar {
   final MockIsarCollection<SyncConflicts> syncConflicts;
 
   MockIsar()
-    : transactions = MockIsarCollection<Transactions>({
-        'transactionId': (t, v) => t.transactionId == v,
+    : transactions = MockIsarCollection<Transactions>(
+        <String, dynamic Function(Transactions, dynamic)>{
+          'transactionId': (Transactions t, dynamic v) => t.transactionId == v,
+        },
+        _TempIsar(),
+      ),
+      accounts = MockIsarCollection<Accounts>(
+        <String, dynamic Function(Accounts, dynamic)>{
+          'accountId': (Accounts t, dynamic v) => t.accountId == v,
+        },
+        _TempIsar(),
+      ),
+      categories = MockIsarCollection<Categories>(
+        <String, dynamic Function(Categories, dynamic)>{
+          'categoryId': (Categories t, dynamic v) => t.categoryId == v,
+        },
+        _TempIsar(),
+      ),
+      tags = MockIsarCollection<Tags>(<String, dynamic Function(Tags, dynamic)>{
+        'tagId': (Tags t, dynamic v) => t.tagId == v,
       }, _TempIsar()),
-      accounts = MockIsarCollection<Accounts>({
-        'accountId': (t, v) => t.accountId == v,
-      }, _TempIsar()),
-      categories = MockIsarCollection<Categories>({
-        'categoryId': (t, v) => t.categoryId == v,
-      }, _TempIsar()),
-      tags = MockIsarCollection<Tags>({
-        'tagId': (t, v) => t.tagId == v,
-      }, _TempIsar()),
-      bills = MockIsarCollection<Bills>({
-        'billId': (t, v) => t.billId == v,
-      }, _TempIsar()),
-      budgets = MockIsarCollection<Budgets>({
-        'budgetId': (t, v) => t.budgetId == v,
-      }, _TempIsar()),
-      budgetLimits = MockIsarCollection<BudgetLimits>({
-        'budgetLimitId': (t, v) => t.budgetLimitId == v,
-      }, _TempIsar()),
-      currencies = MockIsarCollection<Currencies>({
-        'currencyId': (t, v) => t.currencyId == v,
-      }, _TempIsar()),
-      piggyBanks = MockIsarCollection<PiggyBanks>({
-        'piggyBankId': (t, v) => t.piggyBankId == v,
-      }, _TempIsar()),
-      attachments = MockIsarCollection<Attachments>({
-        'attachmentId': (t, v) => t.attachmentId == v,
-      }, _TempIsar()),
-      insights = MockIsarCollection<Insights>({
-        'insightType': (t, v) => t.insightType == v,
-        'insightSubtype': (t, v) => t.insightSubtype == v,
-        'startDate': (t, v) => t.startDate == v,
-        'endDate': (t, v) => t.endDate == v,
-        'stale': (t, v) => t.stale == v,
-      }, _TempIsar()),
-      syncMetadatas = MockIsarCollection<SyncMetadata>({
-        'entityType': (t, v) => t.entityType == v,
-      }, _TempIsar()),
-      pendingChanges = MockIsarCollection<PendingChanges>({
-        'entityType': (t, v) => t.entityType == v,
-        'entityId': (t, v) => t.entityId == v,
-        'operation': (t, v) => t.operation == v,
-      }, _TempIsar()),
-      syncConflicts = MockIsarCollection<SyncConflicts>({
-        'entityType': (t, v) => t.entityType == v,
-        'entityId': (t, v) => t.entityId == v,
-      }, _TempIsar());
+      bills = MockIsarCollection<Bills>(
+        <String, dynamic Function(Bills, dynamic)>{
+          'billId': (Bills t, dynamic v) => t.billId == v,
+        },
+        _TempIsar(),
+      ),
+      budgets = MockIsarCollection<Budgets>(
+        <String, dynamic Function(Budgets, dynamic)>{
+          'budgetId': (Budgets t, dynamic v) => t.budgetId == v,
+        },
+        _TempIsar(),
+      ),
+      budgetLimits = MockIsarCollection<BudgetLimits>(
+        <String, dynamic Function(BudgetLimits, dynamic)>{
+          'budgetLimitId': (BudgetLimits t, dynamic v) => t.budgetLimitId == v,
+        },
+        _TempIsar(),
+      ),
+      currencies = MockIsarCollection<Currencies>(
+        <String, dynamic Function(Currencies, dynamic)>{
+          'currencyId': (Currencies t, dynamic v) => t.currencyId == v,
+        },
+        _TempIsar(),
+      ),
+      piggyBanks = MockIsarCollection<PiggyBanks>(
+        <String, dynamic Function(PiggyBanks, dynamic)>{
+          'piggyBankId': (PiggyBanks t, dynamic v) => t.piggyBankId == v,
+        },
+        _TempIsar(),
+      ),
+      attachments = MockIsarCollection<Attachments>(
+        <String, dynamic Function(Attachments, dynamic)>{
+          'attachmentId': (Attachments t, dynamic v) => t.attachmentId == v,
+        },
+        _TempIsar(),
+      ),
+      insights = MockIsarCollection<Insights>(
+        <String, dynamic Function(Insights, dynamic)>{
+          'insightType': (Insights t, dynamic v) => t.insightType == v,
+          'insightSubtype': (Insights t, dynamic v) => t.insightSubtype == v,
+          'startDate': (Insights t, dynamic v) => t.startDate == v,
+          'endDate': (Insights t, dynamic v) => t.endDate == v,
+          'stale': (Insights t, dynamic v) => t.stale == v,
+        },
+        _TempIsar(),
+      ),
+      syncMetadatas = MockIsarCollection<SyncMetadata>(
+        <String, dynamic Function(SyncMetadata, dynamic)>{
+          'entityType': (SyncMetadata t, dynamic v) => t.entityType == v,
+        },
+        _TempIsar(),
+      ),
+      pendingChanges = MockIsarCollection<PendingChanges>(
+        <String, dynamic Function(PendingChanges, dynamic)>{
+          'entityType': (PendingChanges t, dynamic v) => t.entityType == v,
+          'entityId': (PendingChanges t, dynamic v) => t.entityId == v,
+          'operation': (PendingChanges t, dynamic v) => t.operation == v,
+        },
+        _TempIsar(),
+      ),
+      syncConflicts = MockIsarCollection<SyncConflicts>(
+        <String, dynamic Function(SyncConflicts, dynamic)>{
+          'entityType': (SyncConflicts t, dynamic v) => t.entityType == v,
+          'entityId': (SyncConflicts t, dynamic v) => t.entityId == v,
+        },
+        _TempIsar(),
+      );
 
   // Implement all required Isar interface methods
   @override
@@ -1253,7 +1287,7 @@ class MockIsar implements Isar {
   }
 
   @override
-  Future<void> copyToFile(String targetPath) async {
+  Future<void> copyToFile(String targetPath) {
     throw UnimplementedError('Mock: copyToFile not needed for tests');
   }
 
@@ -1295,8 +1329,8 @@ class MockIsar implements Isar {
   }
 
   @override
-  Future<T> txn<T>(Future<T> Function() callback) async {
-    return await callback();
+  Future<T> txn<T>(Future<T> Function() callback) {
+    return callback();
   }
 
   @override
@@ -1310,11 +1344,8 @@ class MockIsar implements Isar {
   }
 
   @override
-  Future<T> writeTxn<T>(
-    Future<T> Function() callback, {
-    bool silent = false,
-  }) async {
-    return await callback();
+  Future<T> writeTxn<T>(Future<T> Function() callback, {bool silent = false}) {
+    return callback();
   }
 
   @override
@@ -1322,7 +1353,7 @@ class MockIsar implements Isar {
     return callback();
   }
 
-  Future<T> readTxn<T>(Future<T> Function() callback) async {
-    return await callback();
+  Future<T> readTxn<T>(Future<T> Function() callback) {
+    return callback();
   }
 }

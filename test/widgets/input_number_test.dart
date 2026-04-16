@@ -11,14 +11,14 @@ void main() {
       String expression, {
       int decimals = 2,
     }) async {
-      final controller = TextEditingController();
-      final focusNode = FocusNode();
+      final TextEditingController controller = TextEditingController();
+      final FocusNode focusNode = FocusNode();
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: Column(
-              children: [
+              children: <Widget>[
                 NumberInput(controller: controller, decimals: decimals),
                 // Another focusable widget to shift focus away
                 TextField(key: const Key('other'), focusNode: focusNode),
@@ -44,34 +44,40 @@ void main() {
       return controller.text;
     }
 
-    testWidgets('- evaluates simple addition', (tester) async {
+    testWidgets('- evaluates simple addition', (WidgetTester tester) async {
       expect(await evaluateInWidget(tester, '1+2'), '3.00');
       expect(await evaluateInWidget(tester, '10+20'), '30.00');
     });
 
-    testWidgets('- evaluates simple subtraction', (tester) async {
+    testWidgets('- evaluates simple subtraction', (WidgetTester tester) async {
       expect(await evaluateInWidget(tester, '5-3'), '2.00');
       expect(await evaluateInWidget(tester, '10-20'), '-10.00');
     });
 
-    testWidgets('- evaluates simple multiplication', (tester) async {
+    testWidgets('- evaluates simple multiplication', (
+      WidgetTester tester,
+    ) async {
       expect(await evaluateInWidget(tester, '2*3'), '6.00');
       expect(await evaluateInWidget(tester, '10*0.5'), '5.00');
     });
 
-    testWidgets('- evaluates simple division', (tester) async {
+    testWidgets('- evaluates simple division', (WidgetTester tester) async {
       expect(await evaluateInWidget(tester, '6/2'), '3.00');
       expect(await evaluateInWidget(tester, '10/4'), '2.50');
       expect(await evaluateInWidget(tester, '1/3'), '0.33');
     });
 
-    testWidgets('- respects operator precedence (direct controller)', (tester) async {
+    testWidgets('- respects operator precedence (direct controller)', (
+      WidgetTester tester,
+    ) async {
       // 1 + (2*3) = 7, not (1+2)*3 = 9
       expect(await evaluateInWidget(tester, '1+2*3'), '7.00');
       expect(await evaluateInWidget(tester, '10-2*3'), '4.00');
     });
 
-    testWidgets('- respects operator precedence when typing (user input)', (tester) async {
+    testWidgets('- respects operator precedence when typing (user input)', (
+      WidgetTester tester,
+    ) async {
       // This test simulates actual user input through the widget
       // to ensure input formatters don't break operator precedence
       final TextEditingController controller = TextEditingController();
@@ -128,7 +134,9 @@ void main() {
       expect(controller.text, '7.00');
     });
 
-    testWidgets('- rounds to 2 decimals correctly', (tester) async {
+    testWidgets('- rounds to 2 decimals correctly', (
+      WidgetTester tester,
+    ) async {
       expect(await evaluateInWidget(tester, '1.004'), '1.00');
       expect(
         await evaluateInWidget(tester, '1.005'),
@@ -137,19 +145,21 @@ void main() {
       expect(await evaluateInWidget(tester, '123.456'), '123.46');
     });
 
-    testWidgets('- handles unary operators', (tester) async {
+    testWidgets('- handles unary operators', (WidgetTester tester) async {
       expect(await evaluateInWidget(tester, '-5'), '-5.00');
       expect(await evaluateInWidget(tester, '1+-2'), '-1.00');
       expect(await evaluateInWidget(tester, '3*-2'), '-6.00');
     });
 
-    testWidgets('- returns 0 for invalid expressions', (tester) async {
+    testWidgets('- returns 0 for invalid expressions', (
+      WidgetTester tester,
+    ) async {
       expect(await evaluateInWidget(tester, ''), '0.00');
       expect(await evaluateInWidget(tester, 'abc'), '0.00');
       expect(await evaluateInWidget(tester, '1+'), '0.00');
     });
 
-    testWidgets('- respects decimals parameter', (tester) async {
+    testWidgets('- respects decimals parameter', (WidgetTester tester) async {
       expect(await evaluateInWidget(tester, '1/3', decimals: 0), '0');
       expect(await evaluateInWidget(tester, '1/3', decimals: 1), '0.3');
       expect(await evaluateInWidget(tester, '1/3', decimals: 2), '0.33');

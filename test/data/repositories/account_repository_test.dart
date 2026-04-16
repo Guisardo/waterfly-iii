@@ -36,7 +36,7 @@ void main() {
     });
 
     test('create stores account and queues pending change', () async {
-      final AccountRead account = AccountRead(
+      final AccountRead account = const AccountRead(
         type: 'accounts',
         id: 'test-1',
         attributes: AccountProperties(
@@ -54,7 +54,7 @@ void main() {
     });
 
     test('search finds accounts by query', () async {
-      final AccountRead account1 = AccountRead(
+      final AccountRead account1 = const AccountRead(
         type: 'accounts',
         id: 'test-2',
         attributes: AccountProperties(
@@ -63,7 +63,7 @@ void main() {
         ),
       );
 
-      final AccountRead account2 = AccountRead(
+      final AccountRead account2 = const AccountRead(
         type: 'accounts',
         id: 'test-3',
         attributes: AccountProperties(
@@ -81,7 +81,7 @@ void main() {
     });
 
     test('upsertFromSync creates new account if not exists', () async {
-      final AccountRead account = AccountRead(
+      final AccountRead account = const AccountRead(
         type: 'accounts',
         id: 'test-4',
         attributes: AccountProperties(
@@ -98,7 +98,7 @@ void main() {
 
     group('getByType', () {
       test('filters by assetAccount type', () async {
-        final AccountRead assetAccount = AccountRead(
+        final AccountRead assetAccount = const AccountRead(
           type: 'accounts',
           id: 'asset-filter-1',
           attributes: AccountProperties(
@@ -109,15 +109,16 @@ void main() {
 
         await repository.upsertFromSync(assetAccount);
 
-        final List<AccountRead> results =
-            await repository.getByType(enums.AccountTypeFilter.assetAccount);
+        final List<AccountRead> results = await repository.getByType(
+          enums.AccountTypeFilter.assetAccount,
+        );
 
         expect(results.length, 1);
         expect(results.first.attributes.name, 'Bank Account');
       });
 
       test('filters by asset type alias', () async {
-        final AccountRead assetAccount = AccountRead(
+        final AccountRead assetAccount = const AccountRead(
           type: 'accounts',
           id: 'asset-alias-1',
           attributes: AccountProperties(
@@ -129,10 +130,12 @@ void main() {
         await repository.upsertFromSync(assetAccount);
 
         // Test both assetAccount and asset filter types
-        final List<AccountRead> results1 =
-            await repository.getByType(enums.AccountTypeFilter.assetAccount);
-        final List<AccountRead> results2 =
-            await repository.getByType(enums.AccountTypeFilter.asset);
+        final List<AccountRead> results1 = await repository.getByType(
+          enums.AccountTypeFilter.assetAccount,
+        );
+        final List<AccountRead> results2 = await repository.getByType(
+          enums.AccountTypeFilter.asset,
+        );
 
         expect(results1.length, 1);
         expect(results2.length, 1);
@@ -140,7 +143,7 @@ void main() {
       });
 
       test('filters by expenseAccount type', () async {
-        final AccountRead expenseAccount = AccountRead(
+        final AccountRead expenseAccount = const AccountRead(
           type: 'accounts',
           id: 'expense-filter-1',
           attributes: AccountProperties(
@@ -151,15 +154,16 @@ void main() {
 
         await repository.upsertFromSync(expenseAccount);
 
-        final List<AccountRead> results =
-            await repository.getByType(enums.AccountTypeFilter.expenseAccount);
+        final List<AccountRead> results = await repository.getByType(
+          enums.AccountTypeFilter.expenseAccount,
+        );
 
         expect(results.length, 1);
         expect(results.first.attributes.name, 'Groceries');
       });
 
       test('filters by revenueAccount type', () async {
-        final AccountRead revenueAccount = AccountRead(
+        final AccountRead revenueAccount = const AccountRead(
           type: 'accounts',
           id: 'revenue-filter-1',
           attributes: AccountProperties(
@@ -170,15 +174,16 @@ void main() {
 
         await repository.upsertFromSync(revenueAccount);
 
-        final List<AccountRead> results =
-            await repository.getByType(enums.AccountTypeFilter.revenueAccount);
+        final List<AccountRead> results = await repository.getByType(
+          enums.AccountTypeFilter.revenueAccount,
+        );
 
         expect(results.length, 1);
         expect(results.first.attributes.name, 'Salary');
       });
 
       test('returns all accounts when type is null', () async {
-        final AccountRead account = AccountRead(
+        final AccountRead account = const AccountRead(
           type: 'accounts',
           id: 'null-type-1',
           attributes: AccountProperties(

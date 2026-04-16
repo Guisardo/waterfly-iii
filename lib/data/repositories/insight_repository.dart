@@ -16,14 +16,13 @@ class InsightRepository {
     DateTime start,
     DateTime end,
   ) async {
-    final Insights? cached =
-        await isar.insights
-            .filter()
-            .insightTypeEqualTo(type)
-            .insightSubtypeEqualTo('total')
-            .startDateEqualTo(start)
-            .endDateEqualTo(end)
-            .findFirst();
+    final Insights? cached = await isar.insights
+        .filter()
+        .insightTypeEqualTo(type)
+        .insightSubtypeEqualTo('total')
+        .startDateEqualTo(start)
+        .endDateEqualTo(end)
+        .findFirst();
 
     if (cached != null) {
       if (cached.stale) {
@@ -47,14 +46,13 @@ class InsightRepository {
     DateTime start,
     DateTime end,
   ) async {
-    final Insights? cached =
-        await isar.insights
-            .filter()
-            .insightTypeEqualTo(type)
-            .insightSubtypeEqualTo(subtype)
-            .startDateEqualTo(start)
-            .endDateEqualTo(end)
-            .findFirst();
+    final Insights? cached = await isar.insights
+        .filter()
+        .insightTypeEqualTo(type)
+        .insightSubtypeEqualTo(subtype)
+        .startDateEqualTo(start)
+        .endDateEqualTo(end)
+        .findFirst();
 
     if (cached != null) {
       if (cached.stale) {
@@ -79,14 +77,13 @@ class InsightRepository {
     DateTime end,
   ) async {
     final String noSubtype = 'no-$subtype';
-    final Insights? cached =
-        await isar.insights
-            .filter()
-            .insightTypeEqualTo(type)
-            .insightSubtypeEqualTo(noSubtype)
-            .startDateEqualTo(start)
-            .endDateEqualTo(end)
-            .findFirst();
+    final Insights? cached = await isar.insights
+        .filter()
+        .insightTypeEqualTo(type)
+        .insightSubtypeEqualTo(noSubtype)
+        .startDateEqualTo(start)
+        .endDateEqualTo(end)
+        .findFirst();
 
     if (cached != null) {
       if (cached.stale) {
@@ -113,15 +110,14 @@ class InsightRepository {
   ) async {
     final DateTime now = _getNow();
 
-    final Insights row =
-        Insights()
-          ..insightType = type
-          ..insightSubtype = subtype
-          ..startDate = start
-          ..endDate = end
-          ..data = jsonEncode(data)
-          ..cachedAt = now
-          ..stale = false;
+    final Insights row = Insights()
+      ..insightType = type
+      ..insightSubtype = subtype
+      ..startDate = start
+      ..endDate = end
+      ..data = jsonEncode(data)
+      ..cachedAt = now
+      ..stale = false;
 
     await isar.writeTxn(() async {
       await isar.insights.put(row);
@@ -149,28 +145,26 @@ class InsightRepository {
     await isar.writeTxn(() async {
       // Fetch all insights fresh within the transaction
       final List<Insights> allInsights = await isar.insights.where().findAll();
-      final List<Insights> insights =
-          allInsights.where((Insights insight) {
-            // Check if insight date range overlaps with the given range
-            // Two ranges [start1, end1] and [start2, end2] overlap if:
-            // start1 <= end2 && end1 >= start2
-            // Using isBefore/isAfter with strict comparison to avoid edge cases
-            return !insight.startDate.isAfter(endDate) &&
-                !insight.endDate.isBefore(startDate);
-          }).toList();
+      final List<Insights> insights = allInsights.where((Insights insight) {
+        // Check if insight date range overlaps with the given range
+        // Two ranges [start1, end1] and [start2, end2] overlap if:
+        // start1 <= end2 && end1 >= start2
+        // Using isBefore/isAfter with strict comparison to avoid edge cases
+        return !insight.startDate.isAfter(endDate) &&
+            !insight.endDate.isBefore(startDate);
+      }).toList();
 
       for (final Insights insight in insights) {
         // Create a new object with updated values to ensure Isar detects the change
-        final Insights updated =
-            Insights()
-              ..id = insight.id
-              ..insightType = insight.insightType
-              ..insightSubtype = insight.insightSubtype
-              ..startDate = insight.startDate
-              ..endDate = insight.endDate
-              ..data = insight.data
-              ..cachedAt = insight.cachedAt
-              ..stale = true;
+        final Insights updated = Insights()
+          ..id = insight.id
+          ..insightType = insight.insightType
+          ..insightSubtype = insight.insightSubtype
+          ..startDate = insight.startDate
+          ..endDate = insight.endDate
+          ..data = insight.data
+          ..cachedAt = insight.cachedAt
+          ..stale = true;
         await isar.insights.put(updated);
       }
     });
@@ -201,24 +195,25 @@ class InsightRepository {
     // Create new objects to ensure MockIsar sees the updates correctly
     await isar.writeTxn(() async {
       // Get all stale insight IDs
-      final List<Insights> staleInsights =
-          await isar.insights.filter().staleEqualTo(true).findAll();
+      final List<Insights> staleInsights = await isar.insights
+          .filter()
+          .staleEqualTo(true)
+          .findAll();
       if (staleInsights.isEmpty) return;
 
       // Create new objects with updated values to ensure MockIsar sees the changes
       for (final Insights insight in staleInsights) {
         if (insight.stale) {
           // Create a new object with updated values
-          final Insights updated =
-              Insights()
-                ..id = insight.id
-                ..insightType = insight.insightType
-                ..insightSubtype = insight.insightSubtype
-                ..startDate = insight.startDate
-                ..endDate = insight.endDate
-                ..data = insight.data
-                ..cachedAt = now
-                ..stale = false;
+          final Insights updated = Insights()
+            ..id = insight.id
+            ..insightType = insight.insightType
+            ..insightSubtype = insight.insightSubtype
+            ..startDate = insight.startDate
+            ..endDate = insight.endDate
+            ..data = insight.data
+            ..cachedAt = now
+            ..stale = false;
           await isar.insights.put(updated);
         }
       }
@@ -240,21 +235,19 @@ class InsightRepository {
 
     await isar.writeTxn(() async {
       // Check if existing row exists
-      final Insights? existing =
-          await isar.insights
-              .filter()
-              .insightTypeEqualTo('chart')
-              .insightSubtypeEqualTo(chartType)
-              .startDateEqualTo(start)
-              .endDateEqualTo(end)
-              .findFirst();
+      final Insights? existing = await isar.insights
+          .filter()
+          .insightTypeEqualTo('chart')
+          .insightSubtypeEqualTo(chartType)
+          .startDateEqualTo(start)
+          .endDateEqualTo(end)
+          .findFirst();
 
-      final Insights row =
-          existing ?? Insights()
-            ..insightType = 'chart'
-            ..insightSubtype = chartType
-            ..startDate = start
-            ..endDate = end;
+      final Insights row = existing ?? Insights()
+        ..insightType = 'chart'
+        ..insightSubtype = chartType
+        ..startDate = start
+        ..endDate = end;
 
       row
         ..data = jsonEncode(data.map((ChartDataSet e) => e.toJson()).toList())
@@ -272,14 +265,13 @@ class InsightRepository {
     DateTime start,
     DateTime end,
   ) async {
-    final Insights? cached =
-        await isar.insights
-            .filter()
-            .insightTypeEqualTo('chart')
-            .insightSubtypeEqualTo(chartType)
-            .startDateEqualTo(start)
-            .endDateEqualTo(end)
-            .findFirst();
+    final Insights? cached = await isar.insights
+        .filter()
+        .insightTypeEqualTo('chart')
+        .insightSubtypeEqualTo(chartType)
+        .startDateEqualTo(start)
+        .endDateEqualTo(end)
+        .findFirst();
 
     if (cached != null) {
       // Return cached data even if stale

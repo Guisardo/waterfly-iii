@@ -169,19 +169,18 @@ class SyncService extends ChangeNotifier {
         await retryManager.resetRetry(syncEntityType);
         // Also clear errors from all entity types to prevent stale error messages in UI
         // This ensures that when network reconnects, all entity-level errors are cleared
-        final List<String> entityTypesToClear =
-            entityType != null
-                ? <String>[entityType]
-                : <String>[
-                  'transactions',
-                  'accounts',
-                  'categories',
-                  'tags',
-                  'bills',
-                  'budgets',
-                  'currencies',
-                  'piggy_banks',
-                ];
+        final List<String> entityTypesToClear = entityType != null
+            ? <String>[entityType]
+            : <String>[
+                'transactions',
+                'accounts',
+                'categories',
+                'tags',
+                'bills',
+                'budgets',
+                'currencies',
+                'piggy_banks',
+              ];
         for (final String type in entityTypesToClear) {
           await _updateSyncMetadata(type, clearError: true);
         }
@@ -228,19 +227,18 @@ class SyncService extends ChangeNotifier {
       await notifications.showSyncStarted();
 
       // Sync entities
-      final List<String> entityTypes =
-          entityType != null
-              ? <String>[entityType]
-              : <String>[
-                'transactions',
-                'accounts',
-                'categories',
-                'tags',
-                'bills',
-                'budgets',
-                'currencies',
-                'piggy_banks',
-              ];
+      final List<String> entityTypes = entityType != null
+          ? <String>[entityType]
+          : <String>[
+              'transactions',
+              'accounts',
+              'categories',
+              'tags',
+              'bills',
+              'budgets',
+              'currencies',
+              'piggy_banks',
+            ];
 
       for (final String type in entityTypes) {
         try {
@@ -279,19 +277,18 @@ class SyncService extends ChangeNotifier {
 
       // Clear errors from all entity types after successful sync
       // This ensures stale errors are cleared only when sync actually succeeds
-      final List<String> entityTypesToClear =
-          entityType != null
-              ? <String>[entityType]
-              : <String>[
-                'transactions',
-                'accounts',
-                'categories',
-                'tags',
-                'bills',
-                'budgets',
-                'currencies',
-                'piggy_banks',
-              ];
+      final List<String> entityTypesToClear = entityType != null
+          ? <String>[entityType]
+          : <String>[
+              'transactions',
+              'accounts',
+              'categories',
+              'tags',
+              'bills',
+              'budgets',
+              'currencies',
+              'piggy_banks',
+            ];
       for (final String type in entityTypesToClear) {
         await _updateSyncMetadata(type, clearError: true);
       }
@@ -349,8 +346,9 @@ class SyncService extends ChangeNotifier {
     );
 
     final SyncMetadata? metadata = await retryManager.getMetadata(entityType);
-    final DateTime? lastSync =
-        forceFullSync ? null : metadata?.lastDownloadSync;
+    final DateTime? lastSync = forceFullSync
+        ? null
+        : metadata?.lastDownloadSync;
 
     bool syncSuccess = false;
     try {
@@ -865,50 +863,49 @@ class SyncService extends ChangeNotifier {
         if (insight.insightSubtype == 'total') {
           final Response<InsightTotal> response =
               insight.insightType == 'expense'
-                  ? await api.v1InsightExpenseTotalGet(
-                    start: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.startDate),
-                    end: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.endDate),
-                  )
-                  : insight.insightType == 'income'
-                  ? await api.v1InsightIncomeTotalGet(
-                    start: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.startDate),
-                    end: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.endDate),
-                  )
-                  : await api.v1InsightTransferTotalGet(
-                    start: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.startDate),
-                    end: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.endDate),
-                  );
+              ? await api.v1InsightExpenseTotalGet(
+                  start: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.startDate),
+                  end: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.endDate),
+                )
+              : insight.insightType == 'income'
+              ? await api.v1InsightIncomeTotalGet(
+                  start: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.startDate),
+                  end: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.endDate),
+                )
+              : await api.v1InsightTransferTotalGet(
+                  start: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.startDate),
+                  end: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.endDate),
+                );
 
           if (response.isSuccessful && response.body != null) {
-            data =
-                response.body!
-                    .map((InsightTotalEntry e) => e.toJson())
-                    .toList();
+            data = response.body!
+                .map((InsightTotalEntry e) => e.toJson())
+                .toList();
           }
         } else if (insight.insightSubtype.startsWith('no-')) {
           final String baseType = insight.insightSubtype.substring(3);
           final Response<InsightTotal> response =
               insight.insightType == 'expense'
-                  ? baseType == 'category'
-                      ? await api.v1InsightExpenseNoCategoryGet(
+              ? baseType == 'category'
+                    ? await api.v1InsightExpenseNoCategoryGet(
                         start: intl.DateFormat(
                           'yyyy-MM-dd',
                           'en_US',
@@ -918,8 +915,8 @@ class SyncService extends ChangeNotifier {
                           'en_US',
                         ).format(insight.endDate),
                       )
-                      : baseType == 'tag'
-                      ? await api.v1InsightExpenseNoTagGet(
+                    : baseType == 'tag'
+                    ? await api.v1InsightExpenseNoTagGet(
                         start: intl.DateFormat(
                           'yyyy-MM-dd',
                           'en_US',
@@ -929,7 +926,7 @@ class SyncService extends ChangeNotifier {
                           'en_US',
                         ).format(insight.endDate),
                       )
-                      : await api.v1InsightExpenseNoBillGet(
+                    : await api.v1InsightExpenseNoBillGet(
                         start: intl.DateFormat(
                           'yyyy-MM-dd',
                           'en_US',
@@ -939,28 +936,27 @@ class SyncService extends ChangeNotifier {
                           'en_US',
                         ).format(insight.endDate),
                       )
-                  : await api.v1InsightIncomeNoCategoryGet(
-                    start: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.startDate),
-                    end: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.endDate),
-                  );
+              : await api.v1InsightIncomeNoCategoryGet(
+                  start: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.startDate),
+                  end: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.endDate),
+                );
 
           if (response.isSuccessful && response.body != null) {
-            data =
-                response.body!
-                    .map((InsightTotalEntry e) => e.toJson())
-                    .toList();
+            data = response.body!
+                .map((InsightTotalEntry e) => e.toJson())
+                .toList();
           }
         } else {
           final Response<InsightGroup> response =
               insight.insightType == 'expense'
-                  ? insight.insightSubtype == 'category'
-                      ? await api.v1InsightExpenseCategoryGet(
+              ? insight.insightSubtype == 'category'
+                    ? await api.v1InsightExpenseCategoryGet(
                         start: intl.DateFormat(
                           'yyyy-MM-dd',
                           'en_US',
@@ -970,8 +966,8 @@ class SyncService extends ChangeNotifier {
                           'en_US',
                         ).format(insight.endDate),
                       )
-                      : insight.insightSubtype == 'tag'
-                      ? await api.v1InsightExpenseTagGet(
+                    : insight.insightSubtype == 'tag'
+                    ? await api.v1InsightExpenseTagGet(
                         start: intl.DateFormat(
                           'yyyy-MM-dd',
                           'en_US',
@@ -981,7 +977,7 @@ class SyncService extends ChangeNotifier {
                           'en_US',
                         ).format(insight.endDate),
                       )
-                      : await api.v1InsightExpenseBillGet(
+                    : await api.v1InsightExpenseBillGet(
                         start: intl.DateFormat(
                           'yyyy-MM-dd',
                           'en_US',
@@ -991,33 +987,32 @@ class SyncService extends ChangeNotifier {
                           'en_US',
                         ).format(insight.endDate),
                       )
-                  : insight.insightSubtype == 'category'
-                  ? await api.v1InsightIncomeCategoryGet(
-                    start: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.startDate),
-                    end: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.endDate),
-                  )
-                  : await api.v1InsightIncomeTagGet(
-                    start: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.startDate),
-                    end: intl.DateFormat(
-                      'yyyy-MM-dd',
-                      'en_US',
-                    ).format(insight.endDate),
-                  );
+              : insight.insightSubtype == 'category'
+              ? await api.v1InsightIncomeCategoryGet(
+                  start: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.startDate),
+                  end: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.endDate),
+                )
+              : await api.v1InsightIncomeTagGet(
+                  start: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.startDate),
+                  end: intl.DateFormat(
+                    'yyyy-MM-dd',
+                    'en_US',
+                  ).format(insight.endDate),
+                );
 
           if (response.isSuccessful && response.body != null) {
-            data =
-                response.body!
-                    .map((InsightGroupEntry e) => e.toJson())
-                    .toList();
+            data = response.body!
+                .map((InsightGroupEntry e) => e.toJson())
+                .toList();
           }
         }
 
@@ -1210,25 +1205,23 @@ class SyncService extends ChangeNotifier {
     bool? credentialsInvalid,
     bool clearError = false,
   }) async {
-    final SyncMetadata? existing =
-        await isar.syncMetadatas
-            .filter()
-            .entityTypeEqualTo(entityType)
-            .findFirst();
+    final SyncMetadata? existing = await isar.syncMetadatas
+        .filter()
+        .entityTypeEqualTo(entityType)
+        .findFirst();
 
     if (existing == null) {
-      final SyncMetadata metadata =
-          SyncMetadata()
-            ..entityType = entityType
-            ..lastDownloadSync = lastDownloadSync
-            ..lastUploadSync = lastUploadSync
-            ..lastFullSync = lastFullSync
-            ..syncPaused = syncPaused ?? false
-            ..retryCount = retryCount ?? 0
-            ..nextRetryAt = nextRetryAt
-            ..lastError = lastError
-            ..credentialsValidated = credentialsValidated ?? false
-            ..credentialsInvalid = credentialsInvalid ?? false;
+      final SyncMetadata metadata = SyncMetadata()
+        ..entityType = entityType
+        ..lastDownloadSync = lastDownloadSync
+        ..lastUploadSync = lastUploadSync
+        ..lastFullSync = lastFullSync
+        ..syncPaused = syncPaused ?? false
+        ..retryCount = retryCount ?? 0
+        ..nextRetryAt = nextRetryAt
+        ..lastError = lastError
+        ..credentialsValidated = credentialsValidated ?? false
+        ..credentialsInvalid = credentialsInvalid ?? false;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);
@@ -1271,13 +1264,12 @@ class SyncService extends ChangeNotifier {
   /// Returns true if there is an unsynced pending change for this entity.
   /// Used to skip download overwrite when a local edit is queued.
   Future<bool> _hasPendingChange(String entityType, String entityId) async {
-    final PendingChanges? pending =
-        await isar.pendingChanges
-            .filter()
-            .entityTypeEqualTo(entityType)
-            .entityIdEqualTo(entityId)
-            .syncedEqualTo(false)
-            .findFirst();
+    final PendingChanges? pending = await isar.pendingChanges
+        .filter()
+        .entityTypeEqualTo(entityType)
+        .entityIdEqualTo(entityId)
+        .syncedEqualTo(false)
+        .findFirst();
     return pending != null;
   }
 

@@ -35,12 +35,12 @@ void main() {
     });
 
     test('create stores transaction and queues pending change', () async {
-      final Map<String, dynamic> transactionJson = {
+      final Map<String, dynamic> transactionJson = <String, dynamic>{
         'type': 'transactions',
         'id': 'test-1',
-        'attributes': {
-          'transactions': [
-            {
+        'attributes': <String, List<Map<String, String>>>{
+          'transactions': <Map<String, String>>[
+            <String, String>{
               'type': 'withdrawal',
               'date': DateTime.now().toIso8601String(),
               'amount': '10.00',
@@ -48,7 +48,9 @@ void main() {
             },
           ],
         },
-        'links': {'self': 'https://example.com/api/v1/transactions/test-1'},
+        'links': <String, String>{
+          'self': 'https://example.com/api/v1/transactions/test-1',
+        },
       };
 
       final TransactionRead transaction = TransactionRead.fromJson(
@@ -72,12 +74,12 @@ void main() {
     });
 
     test('update modifies existing transaction', () async {
-      final Map<String, dynamic> transactionJson = {
+      final Map<String, dynamic> transactionJson = <String, dynamic>{
         'type': 'transactions',
         'id': 'test-2',
-        'attributes': {
-          'transactions': [
-            {
+        'attributes': <String, List<Map<String, String>>>{
+          'transactions': <Map<String, String>>[
+            <String, String>{
               'type': 'withdrawal',
               'date': DateTime.now().toIso8601String(),
               'amount': '10.00',
@@ -85,7 +87,9 @@ void main() {
             },
           ],
         },
-        'links': {'self': 'https://example.com/api/v1/transactions/test-2'},
+        'links': <String, String>{
+          'self': 'https://example.com/api/v1/transactions/test-2',
+        },
       };
 
       final TransactionRead transaction = TransactionRead.fromJson(
@@ -93,12 +97,12 @@ void main() {
       );
       await repository.create(transaction);
 
-      final Map<String, dynamic> updatedJson = {
+      final Map<String, dynamic> updatedJson = <String, dynamic>{
         'type': 'transactions',
         'id': 'test-2',
-        'attributes': {
-          'transactions': [
-            {
+        'attributes': <String, List<Map<String, String>>>{
+          'transactions': <Map<String, String>>[
+            <String, String>{
               'type': 'withdrawal',
               'date': DateTime.now().toIso8601String(),
               'amount': '20.00',
@@ -106,7 +110,9 @@ void main() {
             },
           ],
         },
-        'links': {'self': 'https://example.com/api/v1/transactions/test-2'},
+        'links': <String, String>{
+          'self': 'https://example.com/api/v1/transactions/test-2',
+        },
       };
 
       final TransactionRead updated = TransactionRead.fromJson(updatedJson);
@@ -118,12 +124,12 @@ void main() {
     });
 
     test('delete removes transaction and queues pending change', () async {
-      final Map<String, dynamic> transactionJson = {
+      final Map<String, dynamic> transactionJson = <String, dynamic>{
         'type': 'transactions',
         'id': 'test-3',
-        'attributes': {
-          'transactions': [
-            {
+        'attributes': <String, List<Map<String, String>>>{
+          'transactions': <Map<String, String>>[
+            <String, String>{
               'type': 'withdrawal',
               'date': DateTime.now().toIso8601String(),
               'amount': '10.00',
@@ -131,7 +137,9 @@ void main() {
             },
           ],
         },
-        'links': {'self': 'https://example.com/api/v1/transactions/test-3'},
+        'links': <String, String>{
+          'self': 'https://example.com/api/v1/transactions/test-3',
+        },
       };
 
       final TransactionRead transaction = TransactionRead.fromJson(
@@ -153,12 +161,12 @@ void main() {
     });
 
     test('search finds transactions by query', () async {
-      final Map<String, dynamic> transaction1Json = {
+      final Map<String, dynamic> transaction1Json = <String, dynamic>{
         'type': 'transactions',
         'id': 'test-4',
-        'attributes': {
-          'transactions': [
-            {
+        'attributes': <String, List<Map<String, String>>>{
+          'transactions': <Map<String, String>>[
+            <String, String>{
               'type': 'withdrawal',
               'date': DateTime.now().toIso8601String(),
               'amount': '10.00',
@@ -166,15 +174,17 @@ void main() {
             },
           ],
         },
-        'links': {'self': 'https://example.com/api/v1/transactions/test-4'},
+        'links': <String, String>{
+          'self': 'https://example.com/api/v1/transactions/test-4',
+        },
       };
 
-      final Map<String, dynamic> transaction2Json = {
+      final Map<String, dynamic> transaction2Json = <String, dynamic>{
         'type': 'transactions',
         'id': 'test-5',
-        'attributes': {
-          'transactions': [
-            {
+        'attributes': <String, List<Map<String, String>>>{
+          'transactions': <Map<String, String>>[
+            <String, String>{
               'type': 'withdrawal',
               'date': DateTime.now().toIso8601String(),
               'amount': '20.00',
@@ -182,7 +192,9 @@ void main() {
             },
           ],
         },
-        'links': {'self': 'https://example.com/api/v1/transactions/test-5'},
+        'links': <String, String>{
+          'self': 'https://example.com/api/v1/transactions/test-5',
+        },
       };
 
       await repository.create(TransactionRead.fromJson(transaction1Json));
@@ -194,12 +206,12 @@ void main() {
     });
 
     test('upsertFromSync creates new transaction if not exists', () async {
-      final Map<String, dynamic> transactionJson = {
+      final Map<String, dynamic> transactionJson = <String, dynamic>{
         'type': 'transactions',
         'id': 'test-6',
-        'attributes': {
-          'transactions': [
-            {
+        'attributes': <String, List<Map<String, String>>>{
+          'transactions': <Map<String, String>>[
+            <String, String>{
               'type': 'withdrawal',
               'date': DateTime.now().toIso8601String(),
               'amount': '10.00',
@@ -207,7 +219,9 @@ void main() {
             },
           ],
         },
-        'links': {'self': 'https://example.com/api/v1/transactions/test-6'},
+        'links': <String, String>{
+          'self': 'https://example.com/api/v1/transactions/test-6',
+        },
       };
 
       final TransactionRead transaction = TransactionRead.fromJson(
@@ -220,12 +234,12 @@ void main() {
     });
 
     test('upsertFromSync updates existing transaction', () async {
-      final Map<String, dynamic> transactionJson = {
+      final Map<String, dynamic> transactionJson = <String, dynamic>{
         'type': 'transactions',
         'id': 'test-7',
-        'attributes': {
-          'transactions': [
-            {
+        'attributes': <String, List<Map<String, String>>>{
+          'transactions': <Map<String, String>>[
+            <String, String>{
               'type': 'withdrawal',
               'date': DateTime.now().toIso8601String(),
               'amount': '10.00',
@@ -233,7 +247,9 @@ void main() {
             },
           ],
         },
-        'links': {'self': 'https://example.com/api/v1/transactions/test-7'},
+        'links': <String, String>{
+          'self': 'https://example.com/api/v1/transactions/test-7',
+        },
       };
 
       final TransactionRead transaction = TransactionRead.fromJson(
@@ -241,12 +257,12 @@ void main() {
       );
       await repository.create(transaction);
 
-      final Map<String, dynamic> updatedJson = {
+      final Map<String, dynamic> updatedJson = <String, dynamic>{
         'type': 'transactions',
         'id': 'test-7',
-        'attributes': {
-          'transactions': [
-            {
+        'attributes': <String, List<Map<String, String>>>{
+          'transactions': <Map<String, String>>[
+            <String, String>{
               'type': 'withdrawal',
               'date': DateTime.now().toIso8601String(),
               'amount': '20.00',
@@ -254,7 +270,9 @@ void main() {
             },
           ],
         },
-        'links': {'self': 'https://example.com/api/v1/transactions/test-7'},
+        'links': <String, String>{
+          'self': 'https://example.com/api/v1/transactions/test-7',
+        },
       };
 
       final TransactionRead updated = TransactionRead.fromJson(updatedJson);

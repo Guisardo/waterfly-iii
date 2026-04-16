@@ -14,8 +14,9 @@ class TagRepository {
 
   Future<List<TagRead>> getAll() async {
     final List<Tags> allRows = await isar.tags.where().findAll();
-    final List<Tags> rows =
-        allRows.where((Tags r) => r.deletedAt == null).toList();
+    final List<Tags> rows = allRows
+        .where((Tags r) => r.deletedAt == null)
+        .toList();
     rows.sort((Tags a, Tags b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
@@ -64,23 +65,21 @@ class TagRepository {
     final DateTime now = _getNow();
     final DateTime? updatedAt = tag.attributes.updatedAt;
 
-    final Tags row =
-        Tags()
-          ..tagId = tag.id
-          ..data = jsonEncode(tag.toJson())
-          ..updatedAt = updatedAt
-          ..localUpdatedAt = now
-          ..synced = false;
+    final Tags row = Tags()
+      ..tagId = tag.id
+      ..data = jsonEncode(tag.toJson())
+      ..updatedAt = updatedAt
+      ..localUpdatedAt = now
+      ..synced = false;
 
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'tags'
-          ..entityId = null
-          ..operation = PendingChangeOperation.create.name
-          ..data = jsonEncode(tag.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
+    final PendingChanges pendingChange = PendingChanges()
+      ..entityType = 'tags'
+      ..entityId = null
+      ..operation = PendingChangeOperation.create.name
+      ..data = jsonEncode(tag.toJson())
+      ..createdAt = now
+      ..retryCount = 0
+      ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.tags.put(row);
@@ -91,18 +90,19 @@ class TagRepository {
   Future<void> update(TagRead tag) async {
     final DateTime now = _getNow();
 
-    final Tags? existing =
-        await isar.tags.filter().tagIdEqualTo(tag.id).findFirst();
+    final Tags? existing = await isar.tags
+        .filter()
+        .tagIdEqualTo(tag.id)
+        .findFirst();
 
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'tags'
-          ..entityId = tag.id
-          ..operation = PendingChangeOperation.update.name
-          ..data = jsonEncode(tag.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
+    final PendingChanges pendingChange = PendingChanges()
+      ..entityType = 'tags'
+      ..entityId = tag.id
+      ..operation = PendingChangeOperation.update.name
+      ..data = jsonEncode(tag.toJson())
+      ..createdAt = now
+      ..retryCount = 0
+      ..synced = false;
 
     if (existing != null) {
       existing
@@ -124,18 +124,19 @@ class TagRepository {
   Future<void> delete(String id) async {
     final DateTime now = _getNow();
 
-    final Tags? existing =
-        await isar.tags.filter().tagIdEqualTo(id).findFirst();
+    final Tags? existing = await isar.tags
+        .filter()
+        .tagIdEqualTo(id)
+        .findFirst();
 
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'tags'
-          ..entityId = id
-          ..operation = PendingChangeOperation.delete.name
-          ..data = null
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
+    final PendingChanges pendingChange = PendingChanges()
+      ..entityType = 'tags'
+      ..entityId = id
+      ..operation = PendingChangeOperation.delete.name
+      ..data = null
+      ..createdAt = now
+      ..retryCount = 0
+      ..synced = false;
 
     if (existing != null) {
       existing.deletedAt = _getNow();
@@ -154,27 +155,27 @@ class TagRepository {
     final DateTime? updatedAt = tag.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Tags? existing =
-        await isar.tags.filter().tagIdEqualTo(tag.id).findFirst();
+    final Tags? existing = await isar.tags
+        .filter()
+        .tagIdEqualTo(tag.id)
+        .findFirst();
 
     if (existing?.deletedAt != null) return; // locally deleted, keep tombstone
 
     final Tags row;
     if (existing != null) {
-      row =
-          existing
-            ..data = jsonEncode(tag.toJson())
-            ..updatedAt = updatedAt
-            ..localUpdatedAt = now
-            ..synced = true;
+      row = existing
+        ..data = jsonEncode(tag.toJson())
+        ..updatedAt = updatedAt
+        ..localUpdatedAt = now
+        ..synced = true;
     } else {
-      row =
-          Tags()
-            ..tagId = tag.id
-            ..data = jsonEncode(tag.toJson())
-            ..updatedAt = updatedAt
-            ..localUpdatedAt = now
-            ..synced = true;
+      row = Tags()
+        ..tagId = tag.id
+        ..data = jsonEncode(tag.toJson())
+        ..updatedAt = updatedAt
+        ..localUpdatedAt = now
+        ..synced = true;
     }
 
     await isar.writeTxn(() async {

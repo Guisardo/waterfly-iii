@@ -49,11 +49,10 @@ void main() {
         final DateTime now = DateTime.now().toUtc();
         final DateTime nextRetry = now.add(const Duration(hours: 1));
 
-        final SyncMetadata metadata =
-            SyncMetadata()
-              ..entityType = 'test'
-              ..syncPaused = true
-              ..nextRetryAt = nextRetry;
+        final SyncMetadata metadata = SyncMetadata()
+          ..entityType = 'test'
+          ..syncPaused = true
+          ..nextRetryAt = nextRetry;
 
         await isar.writeTxn(() async {
           await isar.syncMetadatas.put(metadata);
@@ -68,11 +67,10 @@ void main() {
       final DateTime now = DateTime.now().toUtc();
       final DateTime nextRetry = now.subtract(const Duration(hours: 1));
 
-      final SyncMetadata metadata =
-          SyncMetadata()
-            ..entityType = 'test'
-            ..syncPaused = true
-            ..nextRetryAt = nextRetry;
+      final SyncMetadata metadata = SyncMetadata()
+        ..entityType = 'test'
+        ..syncPaused = true
+        ..nextRetryAt = nextRetry;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);
@@ -82,22 +80,20 @@ void main() {
       expect(isPaused, false);
 
       // Verify metadata was updated
-      final SyncMetadata? updated =
-          await isar.syncMetadatas
-              .filter()
-              .entityTypeEqualTo('test')
-              .findFirst();
+      final SyncMetadata? updated = await isar.syncMetadatas
+          .filter()
+          .entityTypeEqualTo('test')
+          .findFirst();
       expect(updated, isNotNull);
       expect(updated!.syncPaused, false);
       expect(updated.nextRetryAt, isNull);
     });
 
     test('isPaused returns true when paused with null nextRetryAt', () async {
-      final SyncMetadata metadata =
-          SyncMetadata()
-            ..entityType = 'test'
-            ..syncPaused = true
-            ..nextRetryAt = null;
+      final SyncMetadata metadata = SyncMetadata()
+        ..entityType = 'test'
+        ..syncPaused = true
+        ..nextRetryAt = null;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);
@@ -110,11 +106,10 @@ void main() {
     test('pauseWithBackoff creates new metadata', () async {
       await retryManager.pauseWithBackoff('test', 'Test error');
 
-      final SyncMetadata? metadata =
-          await isar.syncMetadatas
-              .filter()
-              .entityTypeEqualTo('test')
-              .findFirst();
+      final SyncMetadata? metadata = await isar.syncMetadatas
+          .filter()
+          .entityTypeEqualTo('test')
+          .findFirst();
       expect(metadata, isNotNull);
       expect(metadata!.syncPaused, true);
       expect(metadata.retryCount, 1);
@@ -123,11 +118,10 @@ void main() {
     });
 
     test('pauseWithBackoff updates existing metadata', () async {
-      final SyncMetadata existing =
-          SyncMetadata()
-            ..entityType = 'test'
-            ..syncPaused = false
-            ..retryCount = 2;
+      final SyncMetadata existing = SyncMetadata()
+        ..entityType = 'test'
+        ..syncPaused = false
+        ..retryCount = 2;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(existing);
@@ -135,11 +129,10 @@ void main() {
 
       await retryManager.pauseWithBackoff('test', 'New error');
 
-      final SyncMetadata? metadata =
-          await isar.syncMetadatas
-              .filter()
-              .entityTypeEqualTo('test')
-              .findFirst();
+      final SyncMetadata? metadata = await isar.syncMetadatas
+          .filter()
+          .entityTypeEqualTo('test')
+          .findFirst();
       expect(metadata, isNotNull);
       expect(metadata!.syncPaused, true);
       expect(metadata.retryCount, 3); // Incremented
@@ -147,13 +140,12 @@ void main() {
     });
 
     test('resetRetry clears pause state', () async {
-      final SyncMetadata metadata =
-          SyncMetadata()
-            ..entityType = 'test'
-            ..syncPaused = true
-            ..retryCount = 5
-            ..nextRetryAt = DateTime.now().toUtc()
-            ..lastError = 'Error';
+      final SyncMetadata metadata = SyncMetadata()
+        ..entityType = 'test'
+        ..syncPaused = true
+        ..retryCount = 5
+        ..nextRetryAt = DateTime.now().toUtc()
+        ..lastError = 'Error';
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);
@@ -161,11 +153,10 @@ void main() {
 
       await retryManager.resetRetry('test');
 
-      final SyncMetadata? updated =
-          await isar.syncMetadatas
-              .filter()
-              .entityTypeEqualTo('test')
-              .findFirst();
+      final SyncMetadata? updated = await isar.syncMetadatas
+          .filter()
+          .entityTypeEqualTo('test')
+          .findFirst();
       expect(updated, isNotNull);
       expect(updated!.syncPaused, false);
       expect(updated.retryCount, 0);
@@ -180,11 +171,10 @@ void main() {
     });
 
     test('getMetadata returns metadata when exists', () async {
-      final SyncMetadata metadata =
-          SyncMetadata()
-            ..entityType = 'test'
-            ..syncPaused = true
-            ..retryCount = 3;
+      final SyncMetadata metadata = SyncMetadata()
+        ..entityType = 'test'
+        ..syncPaused = true
+        ..retryCount = 3;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);

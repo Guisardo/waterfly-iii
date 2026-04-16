@@ -4,15 +4,15 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart'
     as enums;
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/client_mapping.dart';
 
 /// Mock HTTP client that returns predefined responses
 class MockHttpClient extends http.BaseClient {
-  final Map<String, http.Response> _responses = {};
-  final Map<String, http.Response Function(http.BaseRequest)> _handlers = {};
+  final Map<String, http.Response> _responses = <String, http.Response>{};
+  final Map<String, http.Response Function(http.BaseRequest)> _handlers =
+      <String, http.Response Function(http.BaseRequest)>{};
 
   void setResponse(String url, http.Response response) {
     _responses[url] = response;
@@ -26,7 +26,7 @@ class MockHttpClient extends http.BaseClient {
     _responses[url] = http.Response(
       jsonEncode(json),
       statusCode,
-      headers: {'content-type': 'application/json'},
+      headers: <String, String>{'content-type': 'application/json'},
     );
   }
 
@@ -40,7 +40,7 @@ class MockHttpClient extends http.BaseClient {
   String _normalizeUrl(String url) {
     // Remove query parameters for matching
     final Uri uri = Uri.parse(url);
-    return uri.replace(queryParameters: {}).toString();
+    return uri.replace(queryParameters: <String, dynamic>{}).toString();
   }
 
   @override
@@ -49,12 +49,12 @@ class MockHttpClient extends http.BaseClient {
     final String normalizedUrl = _normalizeUrl(url);
     final String path = request.url.path;
 
-    // Debug: print URL for troubleshooting (only in test mode)
+    // Debug: log URL for troubleshooting (only in test mode)
     if (kDebugMode) {
-      print(
+      debugPrint(
         'MockHttpClient: Request URL=$url, path=$path, normalized=$normalizedUrl',
       );
-      print('MockHttpClient: Handlers=${_handlers.keys.toList()}');
+      debugPrint('MockHttpClient: Handlers=${_handlers.keys.toList()}');
     }
 
     // Check exact match first
@@ -70,7 +70,7 @@ class MockHttpClient extends http.BaseClient {
             normalizedUrl.contains(entry.key) ||
             path.contains(entry.key);
         if (kDebugMode && matches) {
-          print('MockHttpClient: Handler matched pattern=${entry.key}');
+          debugPrint('MockHttpClient: Handler matched pattern=${entry.key}');
         }
         if (matches) {
           try {
@@ -88,9 +88,9 @@ class MockHttpClient extends http.BaseClient {
               statusCode = errorStr.contains('401') ? 401 : 403;
             }
             response = http.Response(
-              jsonEncode({'error': errorStr}),
+              jsonEncode(<String, String>{'error': errorStr}),
               statusCode,
-              headers: {'content-type': 'application/json'},
+              headers: <String, String>{'content-type': 'application/json'},
             );
           }
           break;
@@ -100,7 +100,7 @@ class MockHttpClient extends http.BaseClient {
 
     if (response != null) {
       return http.StreamedResponse(
-        Stream.value(response.bodyBytes),
+        Stream<List<int>>.value(response.bodyBytes),
         response.statusCode,
         headers: response.headers,
       );
@@ -108,12 +108,12 @@ class MockHttpClient extends http.BaseClient {
 
     // Default 404 response
     if (kDebugMode) {
-      print('MockHttpClient: No handler matched, returning 404');
+      debugPrint('MockHttpClient: No handler matched, returning 404');
     }
     return http.StreamedResponse(
-      Stream.value(utf8.encode('{"error": "Not found"}')),
+      Stream<List<int>>.value(utf8.encode('{"error": "Not found"}')),
       404,
-      headers: {'content-type': 'application/json'},
+      headers: <String, String>{'content-type': 'application/json'},
     );
   }
 
@@ -127,7 +127,8 @@ class MockHttpClient extends http.BaseClient {
 class MockFireflyServiceHelper {
   final MockHttpClient mockHttpClient = MockHttpClient();
   late FireflyIii mockApi;
-  late _MockFireflyService fireflyService;
+  late FireflyService fireflyService;
+  late _MockFireflyService _mockFireflyService;
 
   MockFireflyServiceHelper() {
     // Pre-register all factory mappings to ensure Chopper can deserialize
@@ -139,7 +140,8 @@ class MockFireflyServiceHelper {
     );
     // Don't create a real FireflyService - just provide the mock API
     // Tests will need to handle FireflyService separately
-    fireflyService = _MockFireflyService(mockApi, mockHttpClient);
+    _mockFireflyService = _MockFireflyService(mockApi, mockHttpClient);
+    fireflyService = _mockFireflyService;
   }
 
   /// Pre-register all factory mappings needed for Chopper deserialization
@@ -268,7 +270,7 @@ class MockFireflyServiceHelper {
 
   /// Set the signed in state of the mock service
   void setSignedIn(bool value) {
-    fireflyService.setSignedIn(value);
+    _mockFireflyService.setSignedIn(value);
   }
 
   /// Set up a successful SystemInfo response for validateCredentials
@@ -288,11 +290,11 @@ class MockFireflyServiceHelper {
       transactions: transactions,
     );
     // Handle pagination - set up handler for any page
-    mockHttpClient.setHandler('/v1/transactions', (request) {
+    mockHttpClient.setHandler('/v1/transactions', (http.BaseRequest request) {
       return http.Response(
         jsonEncode(response),
         200,
-        headers: {'content-type': 'application/json'},
+        headers: <String, String>{'content-type': 'application/json'},
       );
     });
   }
@@ -304,7 +306,7 @@ class MockFireflyServiceHelper {
     DateTime? updatedAt,
   }) {
     // Use handler to support pagination
-    mockHttpClient.setHandler('/v1/accounts', (request) {
+    mockHttpClient.setHandler('/v1/accounts', (http.BaseRequest request) {
       final Uri uri = request.url;
       final int page = int.tryParse(uri.queryParameters['page'] ?? '1') ?? 1;
       final Map<String, dynamic> pageResponse = MockApiResponses.accountList(
@@ -316,7 +318,7 @@ class MockFireflyServiceHelper {
       return http.Response(
         jsonEncode(pageResponse),
         200,
-        headers: {'content-type': 'application/json'},
+        headers: <String, String>{'content-type': 'application/json'},
       );
     });
   }
@@ -327,7 +329,7 @@ class MockFireflyServiceHelper {
     int? totalPages,
     DateTime? updatedAt,
   }) {
-    mockHttpClient.setHandler('/v1/categories', (request) {
+    mockHttpClient.setHandler('/v1/categories', (http.BaseRequest request) {
       final Uri uri = request.url;
       final int page = int.tryParse(uri.queryParameters['page'] ?? '1') ?? 1;
       final Map<String, dynamic> pageResponse = MockApiResponses.categoryList(
@@ -339,14 +341,14 @@ class MockFireflyServiceHelper {
       return http.Response(
         jsonEncode(pageResponse),
         200,
-        headers: {'content-type': 'application/json'},
+        headers: <String, String>{'content-type': 'application/json'},
       );
     });
   }
 
   /// Set up tag list response with pagination support
   void setupTags({List<Map<String, dynamic>>? tags, int? totalPages}) {
-    mockHttpClient.setHandler('/v1/tags', (request) {
+    mockHttpClient.setHandler('/v1/tags', (http.BaseRequest request) {
       final Uri uri = request.url;
       final int page = int.tryParse(uri.queryParameters['page'] ?? '1') ?? 1;
       final Map<String, dynamic> pageResponse = MockApiResponses.tagList(
@@ -357,14 +359,14 @@ class MockFireflyServiceHelper {
       return http.Response(
         jsonEncode(pageResponse),
         200,
-        headers: {'content-type': 'application/json'},
+        headers: <String, String>{'content-type': 'application/json'},
       );
     });
   }
 
   /// Set up bill list response with pagination support
   void setupBills({List<Map<String, dynamic>>? bills, int? totalPages}) {
-    mockHttpClient.setHandler('/v1/bills', (request) {
+    mockHttpClient.setHandler('/v1/bills', (http.BaseRequest request) {
       final Uri uri = request.url;
       final int page = int.tryParse(uri.queryParameters['page'] ?? '1') ?? 1;
       final Map<String, dynamic> pageResponse = MockApiResponses.billList(
@@ -375,14 +377,14 @@ class MockFireflyServiceHelper {
       return http.Response(
         jsonEncode(pageResponse),
         200,
-        headers: {'content-type': 'application/json'},
+        headers: <String, String>{'content-type': 'application/json'},
       );
     });
   }
 
   /// Set up budget list response with pagination support
   void setupBudgets({List<Map<String, dynamic>>? budgets, int? totalPages}) {
-    mockHttpClient.setHandler('/v1/budgets', (request) {
+    mockHttpClient.setHandler('/v1/budgets', (http.BaseRequest request) {
       final Uri uri = request.url;
       final int page = int.tryParse(uri.queryParameters['page'] ?? '1') ?? 1;
       final Map<String, dynamic> pageResponse = MockApiResponses.budgetList(
@@ -393,7 +395,7 @@ class MockFireflyServiceHelper {
       return http.Response(
         jsonEncode(pageResponse),
         200,
-        headers: {'content-type': 'application/json'},
+        headers: <String, String>{'content-type': 'application/json'},
       );
     });
   }
@@ -403,7 +405,7 @@ class MockFireflyServiceHelper {
     List<Map<String, dynamic>>? currencies,
     int? totalPages,
   }) {
-    mockHttpClient.setHandler('/v1/currencies', (request) {
+    mockHttpClient.setHandler('/v1/currencies', (http.BaseRequest request) {
       final Uri uri = request.url;
       final int page = int.tryParse(uri.queryParameters['page'] ?? '1') ?? 1;
       final Map<String, dynamic> pageResponse = MockApiResponses.currencyList(
@@ -414,7 +416,7 @@ class MockFireflyServiceHelper {
       return http.Response(
         jsonEncode(pageResponse),
         200,
-        headers: {'content-type': 'application/json'},
+        headers: <String, String>{'content-type': 'application/json'},
       );
     });
   }
@@ -425,7 +427,7 @@ class MockFireflyServiceHelper {
     int? totalPages,
     DateTime? updatedAt,
   }) {
-    mockHttpClient.setHandler('/v1/piggy-banks', (request) {
+    mockHttpClient.setHandler('/v1/piggy-banks', (http.BaseRequest request) {
       final Uri uri = request.url;
       final int page = int.tryParse(uri.queryParameters['page'] ?? '1') ?? 1;
       final Map<String, dynamic> pageResponse = MockApiResponses.piggyBankList(
@@ -437,7 +439,7 @@ class MockFireflyServiceHelper {
       return http.Response(
         jsonEncode(pageResponse),
         200,
-        headers: {'content-type': 'application/json'},
+        headers: <String, String>{'content-type': 'application/json'},
       );
     });
   }
@@ -524,10 +526,11 @@ class MockApiResponses {
     // Create actual model objects to ensure correct structure
     final List<TransactionRead> transactionObjects;
     if (transactions != null) {
-      transactionObjects =
-          transactions.map((json) => TransactionRead.fromJson(json)).toList();
+      transactionObjects = transactions
+          .map((Map<String, dynamic> json) => TransactionRead.fromJson(json))
+          .toList();
     } else {
-      transactionObjects = [
+      transactionObjects = <TransactionRead>[
         TransactionRead(
           type: 'transactions',
           id: 'tx-1',
@@ -535,7 +538,7 @@ class MockApiResponses {
             createdAt: now,
             updatedAt: now,
             groupTitle: null,
-            transactions: [
+            transactions: <TransactionSplit>[
               TransactionSplit(
                 transactionJournalId: 'tx-1',
                 type: enums.TransactionTypeProperty.withdrawal,
@@ -601,10 +604,11 @@ class MockApiResponses {
     // Create actual model objects to ensure correct structure
     final List<AccountRead> accountObjects;
     if (accounts != null) {
-      accountObjects =
-          accounts.map((json) => AccountRead.fromJson(json)).toList();
+      accountObjects = accounts
+          .map((Map<String, dynamic> json) => AccountRead.fromJson(json))
+          .toList();
     } else {
-      accountObjects = [
+      accountObjects = <AccountRead>[
         AccountRead(
           type: 'accounts',
           id: 'acc-1',
@@ -652,10 +656,11 @@ class MockApiResponses {
     // Create actual model objects
     final List<CategoryRead> categoryObjects;
     if (categories != null) {
-      categoryObjects =
-          categories.map((json) => CategoryRead.fromJson(json)).toList();
+      categoryObjects = categories
+          .map((Map<String, dynamic> json) => CategoryRead.fromJson(json))
+          .toList();
     } else {
-      categoryObjects = [
+      categoryObjects = <CategoryRead>[
         CategoryRead(
           type: 'categories',
           id: 'cat-1',
@@ -695,9 +700,11 @@ class MockApiResponses {
     // Create actual model objects
     final List<TagRead> tagObjects;
     if (tags != null) {
-      tagObjects = tags.map((json) => TagRead.fromJson(json)).toList();
+      tagObjects = tags
+          .map((Map<String, dynamic> json) => TagRead.fromJson(json))
+          .toList();
     } else {
-      tagObjects = [
+      tagObjects = <TagRead>[
         TagRead(
           type: 'tags',
           id: 'tag-1',
@@ -742,9 +749,11 @@ class MockApiResponses {
     // Create actual model objects
     final List<BillRead> billObjects;
     if (bills != null) {
-      billObjects = bills.map((json) => BillRead.fromJson(json)).toList();
+      billObjects = bills
+          .map((Map<String, dynamic> json) => BillRead.fromJson(json))
+          .toList();
     } else {
-      billObjects = [
+      billObjects = <BillRead>[
         BillRead(
           type: 'bills',
           id: 'bill-1',
@@ -785,9 +794,11 @@ class MockApiResponses {
     // Create actual model objects
     final List<BudgetRead> budgetObjects;
     if (budgets != null) {
-      budgetObjects = budgets.map((json) => BudgetRead.fromJson(json)).toList();
+      budgetObjects = budgets
+          .map((Map<String, dynamic> json) => BudgetRead.fromJson(json))
+          .toList();
     } else {
-      budgetObjects = [
+      budgetObjects = <BudgetRead>[
         BudgetRead(
           type: 'budgets',
           id: 'budget-1',
@@ -827,10 +838,11 @@ class MockApiResponses {
     // Create actual model objects
     final List<CurrencyRead> currencyObjects;
     if (currencies != null) {
-      currencyObjects =
-          currencies.map((json) => CurrencyRead.fromJson(json)).toList();
+      currencyObjects = currencies
+          .map((Map<String, dynamic> json) => CurrencyRead.fromJson(json))
+          .toList();
     } else {
-      currencyObjects = [
+      currencyObjects = <CurrencyRead>[
         CurrencyRead(
           type: 'currencies',
           id: '1',
@@ -880,10 +892,11 @@ class MockApiResponses {
     // Create actual model objects
     final List<PiggyBankRead> piggyBankObjects;
     if (piggyBanks != null) {
-      piggyBankObjects =
-          piggyBanks.map((json) => PiggyBankRead.fromJson(json)).toList();
+      piggyBankObjects = piggyBanks
+          .map((Map<String, dynamic> json) => PiggyBankRead.fromJson(json))
+          .toList();
     } else {
-      piggyBankObjects = [
+      piggyBankObjects = <PiggyBankRead>[
         PiggyBankRead(
           type: 'piggy_banks',
           id: 'piggy-1',
@@ -929,17 +942,17 @@ class MockApiResponses {
   static Map<String, dynamic> transactionSingle({
     Map<String, dynamic>? transaction,
   }) {
-    return {
+    return <String, dynamic>{
       'data':
           transaction ??
-          {
+          <String, dynamic>{
             'type': 'transactions',
             'id': 'tx-1',
-            'attributes': {
+            'attributes': <String, Object>{
               'created_at': DateTime.now().toUtc().toIso8601String(),
               'updated_at': DateTime.now().toUtc().toIso8601String(),
-              'transactions': [
-                {
+              'transactions': <Map<String, String>>[
+                <String, String>{
                   'type': 'withdrawal',
                   'date': DateTime.now().toUtc().toIso8601String(),
                   'amount': '10.00',
@@ -949,19 +962,21 @@ class MockApiResponses {
                 },
               ],
             },
-            'links': {'self': 'https://example.com/api/v1/transactions/tx-1'},
+            'links': <String, String>{
+              'self': 'https://example.com/api/v1/transactions/tx-1',
+            },
           },
     };
   }
 
   static Map<String, dynamic> accountSingle({Map<String, dynamic>? account}) {
-    return {
+    return <String, dynamic>{
       'data':
           account ??
-          {
+          <String, dynamic>{
             'type': 'accounts',
             'id': 'acc-1',
-            'attributes': {
+            'attributes': <String, String>{
               'name': 'Test Account',
               'type': 'asset',
               'currency_id': '1',
@@ -969,7 +984,9 @@ class MockApiResponses {
               'created_at': DateTime.now().toUtc().toIso8601String(),
               'updated_at': DateTime.now().toUtc().toIso8601String(),
             },
-            'links': {'self': 'https://example.com/api/v1/accounts/acc-1'},
+            'links': <String, String>{
+              'self': 'https://example.com/api/v1/accounts/acc-1',
+            },
           },
     };
   }
@@ -982,10 +999,11 @@ class MockApiResponses {
     // Create actual model objects
     final List<BudgetLimitRead> budgetLimitObjects;
     if (budgetLimits != null) {
-      budgetLimitObjects =
-          budgetLimits.map((json) => BudgetLimitRead.fromJson(json)).toList();
+      budgetLimitObjects = budgetLimits
+          .map((Map<String, dynamic> json) => BudgetLimitRead.fromJson(json))
+          .toList();
     } else {
-      budgetLimitObjects = [
+      budgetLimitObjects = <BudgetLimitRead>[
         BudgetLimitRead(
           type: 'budget_limits',
           id: 'limit-1',

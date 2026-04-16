@@ -39,15 +39,14 @@ class ConflictResolver {
     DateTime? serverUpdatedAt,
     required ConflictResolution resolution,
   }) async {
-    final SyncConflicts conflict =
-        SyncConflicts()
-          ..entityType = entityType
-          ..entityId = entityId
-          ..conflictType = conflictType.name
-          ..localUpdatedAt = localUpdatedAt
-          ..serverUpdatedAt = serverUpdatedAt
-          ..resolution = resolution.name
-          ..timestamp = DateTime.now().toUtc();
+    final SyncConflicts conflict = SyncConflicts()
+      ..entityType = entityType
+      ..entityId = entityId
+      ..conflictType = conflictType.name
+      ..localUpdatedAt = localUpdatedAt
+      ..serverUpdatedAt = serverUpdatedAt
+      ..resolution = resolution.name
+      ..timestamp = DateTime.now().toUtc();
 
     await isar.writeTxn(() async {
       await isar.syncConflicts.put(conflict);
@@ -80,23 +79,19 @@ class ConflictResolver {
     String? entityType,
     int? limit,
   }) async {
-    List<SyncConflicts> conflicts =
-        entityType != null
-            ? await isar.syncConflicts
-                .filter()
-                .entityTypeEqualTo(entityType)
-                .findAll()
-            : await isar.syncConflicts.where().findAll();
+    List<SyncConflicts> conflicts = entityType != null
+        ? await isar.syncConflicts
+              .filter()
+              .entityTypeEqualTo(entityType)
+              .findAll()
+        : await isar.syncConflicts.where().findAll();
 
     // Fallback: filter in memory if MockIsar filter didn't work
     // This handles cases where MockIsar's filter has limitations
     if (entityType != null) {
-      conflicts =
-          conflicts
-              .where(
-                (SyncConflicts conflict) => conflict.entityType == entityType,
-              )
-              .toList();
+      conflicts = conflicts
+          .where((SyncConflicts conflict) => conflict.entityType == entityType)
+          .toList();
     }
 
     conflicts.sort(

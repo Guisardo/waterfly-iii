@@ -34,7 +34,7 @@ void main() {
     });
 
     test('create stores currency', () async {
-      final CurrencyRead currency = CurrencyRead(
+      final CurrencyRead currency = const CurrencyRead(
         type: 'currencies',
         id: '1',
         attributes: CurrencyProperties(
@@ -54,7 +54,7 @@ void main() {
     });
 
     test('search finds currencies by query', () async {
-      final CurrencyRead currency1 = CurrencyRead(
+      final CurrencyRead currency1 = const CurrencyRead(
         type: 'currencies',
         id: '2',
         attributes: CurrencyProperties(
@@ -65,7 +65,7 @@ void main() {
         ),
       );
 
-      final CurrencyRead currency2 = CurrencyRead(
+      final CurrencyRead currency2 = const CurrencyRead(
         type: 'currencies',
         id: '3',
         attributes: CurrencyProperties(
@@ -85,7 +85,7 @@ void main() {
     });
 
     test('upsertFromSync creates new currency if not exists', () async {
-      final CurrencyRead currency = CurrencyRead(
+      final CurrencyRead currency = const CurrencyRead(
         type: 'currencies',
         id: '4',
         attributes: CurrencyProperties(

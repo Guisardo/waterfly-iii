@@ -34,7 +34,7 @@ void main() {
     });
 
     test('create stores budget', () async {
-      final BudgetRead budget = BudgetRead(
+      final BudgetRead budget = const BudgetRead(
         type: 'budgets',
         id: 'test-1',
         attributes: BudgetProperties(name: 'Test Budget'),
@@ -49,13 +49,13 @@ void main() {
     });
 
     test('search finds budgets by query', () async {
-      final BudgetRead budget1 = BudgetRead(
+      final BudgetRead budget1 = const BudgetRead(
         type: 'budgets',
         id: 'test-2',
         attributes: BudgetProperties(name: 'Groceries Budget'),
       );
 
-      final BudgetRead budget2 = BudgetRead(
+      final BudgetRead budget2 = const BudgetRead(
         type: 'budgets',
         id: 'test-3',
         attributes: BudgetProperties(name: 'Entertainment Budget'),
@@ -70,7 +70,7 @@ void main() {
     });
 
     test('autocomplete returns AutocompleteBudget list', () async {
-      final BudgetRead budget = BudgetRead(
+      final BudgetRead budget = const BudgetRead(
         type: 'budgets',
         id: 'test-4',
         attributes: BudgetProperties(name: 'Test Budget'),
@@ -87,7 +87,7 @@ void main() {
     });
 
     test('upsertFromSync creates new budget if not exists', () async {
-      final BudgetRead budget = BudgetRead(
+      final BudgetRead budget = const BudgetRead(
         type: 'budgets',
         id: 'test-5',
         attributes: BudgetProperties(name: 'Synced Budget'),

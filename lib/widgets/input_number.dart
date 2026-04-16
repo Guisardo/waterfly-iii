@@ -62,12 +62,12 @@ class NumberInput extends StatelessWidget {
             }
 
             // Check for operators in newValue (excluding leading minus for negative numbers)
-            final String textWithoutLeadingMinus =
-                newValue.text.startsWith('-')
-                    ? newValue.text.substring(1)
-                    : newValue.text;
-            final int opCount =
-                RegExp(r'[+\-*/]').allMatches(textWithoutLeadingMinus).length;
+            final String textWithoutLeadingMinus = newValue.text.startsWith('-')
+                ? newValue.text.substring(1)
+                : newValue.text;
+            final int opCount = RegExp(
+              r'[+\-*/]',
+            ).allMatches(textWithoutLeadingMinus).length;
 
             // no operators --> normal number validation
             if (opCount == 0) {
@@ -107,18 +107,16 @@ class NumberInput extends StatelessWidget {
           prefixText: prefixText,
           filled: disabled,
         ),
-        style:
-            disabled
-                ? style?.copyWith(color: Theme.of(context).disabledColor)
-                : style,
+        style: disabled
+            ? style?.copyWith(color: Theme.of(context).disabledColor)
+            : style,
       ),
     );
   }
 
-  RegExp _getRegex() =>
-      (decimals > 0)
-          ? RegExp(r'^[0-9]+[,.]{0,1}[0-9]{0,' + decimals.toString() + r'}$')
-          : RegExp(r'^[0-9]+$');
+  RegExp _getRegex() => (decimals > 0)
+      ? RegExp(r'^[0-9]+[,.]{0,1}[0-9]{0,' + decimals.toString() + r'}$')
+      : RegExp(r'^[0-9]+$');
 
   /// Evaluates a math expression and returns the result as a formatted string.
   /// Uses Decimal for proper rounding (avoids floating-point precision issues).

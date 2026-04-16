@@ -34,7 +34,7 @@ void main() {
     });
 
     test('create stores tag', () async {
-      final TagRead tag = TagRead(
+      final TagRead tag = const TagRead(
         type: 'tags',
         id: '1',
         attributes: TagModel(tag: 'test-tag'),
@@ -50,14 +50,14 @@ void main() {
     });
 
     test('search finds tags by query', () async {
-      final TagRead tag1 = TagRead(
+      final TagRead tag1 = const TagRead(
         type: 'tags',
         id: '2',
         attributes: TagModel(tag: 'groceries'),
         links: ObjectLink(self: 'https://example.com/api/v1/tags/2'),
       );
 
-      final TagRead tag2 = TagRead(
+      final TagRead tag2 = const TagRead(
         type: 'tags',
         id: '3',
         attributes: TagModel(tag: 'restaurant'),
@@ -73,7 +73,7 @@ void main() {
     });
 
     test('upsertFromSync creates new tag if not exists', () async {
-      final TagRead tag = TagRead(
+      final TagRead tag = const TagRead(
         type: 'tags',
         id: '4',
         attributes: TagModel(tag: 'synced-tag'),

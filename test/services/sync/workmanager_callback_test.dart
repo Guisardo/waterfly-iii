@@ -3,7 +3,7 @@ import 'package:waterflyiii/services/sync/workmanager_sync.dart';
 
 void main() {
   group('WorkManager callbackDispatcher', () {
-    test('callbackDispatcher can be called directly', () async {
+    test('callbackDispatcher can be called directly', () {
       // Note: callbackDispatcher is a top-level function that WorkManager calls
       // We can't easily test it without mocking WorkManager, but we can verify
       // the function exists and can be referenced

@@ -91,11 +91,11 @@ class UploadService extends ChangeNotifier {
           .syncedEqualTo(false)
           .findAll()
           .then(
-            (List<PendingChanges> list) =>
-                list.toList()..sort(
-                  (PendingChanges a, PendingChanges b) =>
-                      a.createdAt.compareTo(b.createdAt),
-                ),
+            (List<PendingChanges> list) => list.toList()
+              ..sort(
+                (PendingChanges a, PendingChanges b) =>
+                    a.createdAt.compareTo(b.createdAt),
+              ),
           );
 
       if (pending.isEmpty) {
@@ -305,17 +305,16 @@ class UploadService extends ChangeNotifier {
                   Transactions? matchingPending;
 
                   if (change.localPendingId != null) {
-                    matchingPending =
-                        await isar.transactions
-                            .filter()
-                            .transactionIdEqualTo(change.localPendingId!)
-                            .findFirst();
+                    matchingPending = await isar.transactions
+                        .filter()
+                        .transactionIdEqualTo(change.localPendingId!)
+                        .findFirst();
                   } else {
-                    final List<Transactions> allPending =
-                        await isar.transactions
-                            .filter()
-                            .transactionIdStartsWith('pending-')
-                            .findAll();
+                    final List<Transactions> allPending = await isar
+                        .transactions
+                        .filter()
+                        .transactionIdStartsWith('pending-')
+                        .findAll();
 
                     for (final Transactions pendingTx in allPending) {
                       Map<String, dynamic>? pendingData;
@@ -331,8 +330,8 @@ class UploadService extends ChangeNotifier {
                       } catch (e) {
                         if (pendingData != null) {
                           try {
-                            final Map<String, dynamic> storeJson =
-                                store.toJson();
+                            final Map<String, dynamic> storeJson = store
+                                .toJson();
                             if (_jsonTransactionsMatch(
                               storeJson,
                               pendingData,
@@ -414,17 +413,15 @@ class UploadService extends ChangeNotifier {
                   Categories? matchingPending;
 
                   if (change.localPendingId != null) {
-                    matchingPending =
-                        await isar.categories
-                            .filter()
-                            .categoryIdEqualTo(change.localPendingId!)
-                            .findFirst();
+                    matchingPending = await isar.categories
+                        .filter()
+                        .categoryIdEqualTo(change.localPendingId!)
+                        .findFirst();
                   } else {
-                    final List<Categories> allPending =
-                        await isar.categories
-                            .filter()
-                            .categoryIdStartsWith('pending-')
-                            .findAll();
+                    final List<Categories> allPending = await isar.categories
+                        .filter()
+                        .categoryIdStartsWith('pending-')
+                        .findAll();
 
                     for (final Categories pendingCat in allPending) {
                       try {
@@ -805,8 +802,10 @@ class UploadService extends ChangeNotifier {
   }
 
   Future<void> _incrementRetryCount(int changeId, String error) async {
-    final PendingChanges? change =
-        await isar.pendingChanges.filter().idEqualTo(changeId).findFirst();
+    final PendingChanges? change = await isar.pendingChanges
+        .filter()
+        .idEqualTo(changeId)
+        .findFirst();
 
     if (change == null) {
       return;
@@ -959,17 +958,15 @@ class UploadService extends ChangeNotifier {
     String entityType, {
     DateTime? lastUploadSync,
   }) async {
-    final SyncMetadata? existing =
-        await isar.syncMetadatas
-            .filter()
-            .entityTypeEqualTo(entityType)
-            .findFirst();
+    final SyncMetadata? existing = await isar.syncMetadatas
+        .filter()
+        .entityTypeEqualTo(entityType)
+        .findFirst();
 
     if (existing == null) {
-      final SyncMetadata metadata =
-          SyncMetadata()
-            ..entityType = entityType
-            ..lastUploadSync = lastUploadSync;
+      final SyncMetadata metadata = SyncMetadata()
+        ..entityType = entityType
+        ..lastUploadSync = lastUploadSync;
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);

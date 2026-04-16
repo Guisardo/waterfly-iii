@@ -141,9 +141,7 @@ class WorkManagerSync {
       await Workmanager().registerOneOffTask(
         '${syncTaskName}_onetime',
         syncTaskName,
-        constraints: Constraints(
-          networkType: NetworkType.connected,
-        ),
+        constraints: Constraints(networkType: NetworkType.connected),
       );
     }
 
@@ -151,9 +149,7 @@ class WorkManagerSync {
       await Workmanager().registerOneOffTask(
         '${uploadTaskName}_onetime',
         uploadTaskName,
-        constraints: Constraints(
-          networkType: NetworkType.connected,
-        ),
+        constraints: Constraints(networkType: NetworkType.connected),
       );
     }
   }

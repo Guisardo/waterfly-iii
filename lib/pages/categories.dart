@@ -439,7 +439,7 @@ class _CategoriesPageState extends State<CategoriesPage>
           ),
         );
         return RefreshIndicator.adaptive(
-          onRefresh: () => Future<void>(() async {
+          onRefresh: () => Future<void>(() {
             // Repository data refreshed by sync service
             setState(() {});
           }),

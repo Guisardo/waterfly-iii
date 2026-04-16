@@ -14,8 +14,9 @@ class CurrencyRepository {
 
   Future<List<CurrencyRead>> getAll() async {
     final List<Currencies> allRows = await isar.currencies.where().findAll();
-    final List<Currencies> rows =
-        allRows.where((Currencies r) => r.deletedAt == null).toList();
+    final List<Currencies> rows = allRows
+        .where((Currencies r) => r.deletedAt == null)
+        .toList();
     rows.sort((Currencies a, Currencies b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
@@ -33,8 +34,10 @@ class CurrencyRepository {
   }
 
   Future<CurrencyRead?> getById(String id) async {
-    final Currencies? row =
-        await isar.currencies.filter().currencyIdEqualTo(id).findFirst();
+    final Currencies? row = await isar.currencies
+        .filter()
+        .currencyIdEqualTo(id)
+        .findFirst();
     if (row == null) {
       return null;
     }
@@ -70,23 +73,21 @@ class CurrencyRepository {
     final DateTime now = _getNow();
     final DateTime? updatedAt = currency.attributes.updatedAt;
 
-    final Currencies row =
-        Currencies()
-          ..currencyId = currency.id
-          ..data = jsonEncode(currency.toJson())
-          ..updatedAt = updatedAt
-          ..localUpdatedAt = now
-          ..synced = false;
+    final Currencies row = Currencies()
+      ..currencyId = currency.id
+      ..data = jsonEncode(currency.toJson())
+      ..updatedAt = updatedAt
+      ..localUpdatedAt = now
+      ..synced = false;
 
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'currencies'
-          ..entityId = null
-          ..operation = PendingChangeOperation.create.name
-          ..data = jsonEncode(currency.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
+    final PendingChanges pendingChange = PendingChanges()
+      ..entityType = 'currencies'
+      ..entityId = null
+      ..operation = PendingChangeOperation.create.name
+      ..data = jsonEncode(currency.toJson())
+      ..createdAt = now
+      ..retryCount = 0
+      ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.currencies.put(row);
@@ -97,21 +98,19 @@ class CurrencyRepository {
   Future<void> update(CurrencyRead currency) async {
     final DateTime now = _getNow();
 
-    final Currencies? existing =
-        await isar.currencies
-            .filter()
-            .currencyIdEqualTo(currency.id)
-            .findFirst();
+    final Currencies? existing = await isar.currencies
+        .filter()
+        .currencyIdEqualTo(currency.id)
+        .findFirst();
 
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'currencies'
-          ..entityId = currency.id
-          ..operation = PendingChangeOperation.update.name
-          ..data = jsonEncode(currency.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
+    final PendingChanges pendingChange = PendingChanges()
+      ..entityType = 'currencies'
+      ..entityId = currency.id
+      ..operation = PendingChangeOperation.update.name
+      ..data = jsonEncode(currency.toJson())
+      ..createdAt = now
+      ..retryCount = 0
+      ..synced = false;
 
     if (existing != null) {
       existing
@@ -133,18 +132,19 @@ class CurrencyRepository {
   Future<void> delete(String id) async {
     final DateTime now = _getNow();
 
-    final Currencies? existing =
-        await isar.currencies.filter().currencyIdEqualTo(id).findFirst();
+    final Currencies? existing = await isar.currencies
+        .filter()
+        .currencyIdEqualTo(id)
+        .findFirst();
 
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'currencies'
-          ..entityId = id
-          ..operation = PendingChangeOperation.delete.name
-          ..data = null
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
+    final PendingChanges pendingChange = PendingChanges()
+      ..entityType = 'currencies'
+      ..entityId = id
+      ..operation = PendingChangeOperation.delete.name
+      ..data = null
+      ..createdAt = now
+      ..retryCount = 0
+      ..synced = false;
 
     if (existing != null) {
       existing.deletedAt = _getNow();
@@ -164,32 +164,29 @@ class CurrencyRepository {
     final DateTime now = _getNow();
 
     // Check if currency already exists
-    final Currencies? existing =
-        await isar.currencies
-            .filter()
-            .currencyIdEqualTo(currency.id)
-            .findFirst();
+    final Currencies? existing = await isar.currencies
+        .filter()
+        .currencyIdEqualTo(currency.id)
+        .findFirst();
 
     if (existing?.deletedAt != null) return; // locally deleted, keep tombstone
 
     final Currencies row;
     if (existing != null) {
       // Update existing currency
-      row =
-          existing
-            ..data = jsonEncode(currency.toJson())
-            ..updatedAt = updatedAt
-            ..localUpdatedAt = now
-            ..synced = true;
+      row = existing
+        ..data = jsonEncode(currency.toJson())
+        ..updatedAt = updatedAt
+        ..localUpdatedAt = now
+        ..synced = true;
     } else {
       // Create new currency
-      row =
-          Currencies()
-            ..currencyId = currency.id
-            ..data = jsonEncode(currency.toJson())
-            ..updatedAt = updatedAt
-            ..localUpdatedAt = now
-            ..synced = true;
+      row = Currencies()
+        ..currencyId = currency.id
+        ..data = jsonEncode(currency.toJson())
+        ..updatedAt = updatedAt
+        ..localUpdatedAt = now
+        ..synced = true;
     }
 
     await isar.writeTxn(() async {

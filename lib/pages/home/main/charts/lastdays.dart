@@ -70,21 +70,20 @@ class LastDaysChart extends StatelessWidget {
 
     // Check if all values are zero
     final bool allZero =
-        chartData.isEmpty || chartData.every((LabelAmountChart e) => e.amount == 0);
+        chartData.isEmpty ||
+        chartData.every((LabelAmountChart e) => e.amount == 0);
 
     // Show placeholder if no data or all zeros
     if (allZero) {
       return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           return SizedBox(
-            width:
-                constraints.maxWidth > 0
-                    ? constraints.maxWidth
-                    : double.infinity,
-            height:
-                constraints.maxHeight.isFinite && constraints.maxHeight > 0
-                    ? constraints.maxHeight
-                    : 125.0,
+            width: constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : double.infinity,
+            height: constraints.maxHeight.isFinite && constraints.maxHeight > 0
+                ? constraints.maxHeight
+                : 125.0,
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),

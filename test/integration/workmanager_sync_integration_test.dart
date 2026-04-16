@@ -208,7 +208,7 @@ void main() {
             download: true,
             upload: true,
           ).timeout(const Duration(seconds: 5));
-          await Future.delayed(const Duration(milliseconds: 100));
+          await Future<void>.delayed(const Duration(milliseconds: 100));
           await WorkManagerSync.cancelAll().timeout(const Duration(seconds: 5));
           // Full workflow should complete without errors
           expect(true, isTrue);

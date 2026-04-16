@@ -113,59 +113,60 @@ class _HomeBalanceState extends State<HomeBalance>
                       ),
                     ),
                     closedElevation: 0,
-                    closedBuilder: (
-                      BuildContext context,
-                      Function openContainer,
-                    ) => ListTile(
-                      title: Text(account.attributes.name),
-                      subtitle: Text(
-                        account.attributes.accountRole?.friendlyName(
-                              context,
-                            ) ??
-                            S.of(context).generalUnknown,
-                      ),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          bottomLeft: Radius.circular(16),
-                        ),
-                      ),
-                      isThreeLine: false,
-                      trailing: RichText(
-                        textAlign: TextAlign.end,
-                        maxLines: 2,
-                        text: TextSpan(
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          children: <InlineSpan>[
-                            TextSpan(
-                              text: currency.fmt(balance),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium!
-                                  .copyWith(
-                                    color: (balance < 0)
-                                        ? Colors.red
-                                        : Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                    fontFeatures: const <FontFeature>[
-                                      FontFeature.tabularFigures(),
-                                    ],
-                                  ),
+                    closedBuilder:
+                        (
+                          BuildContext context,
+                          Function openContainer,
+                        ) => ListTile(
+                          title: Text(account.attributes.name),
+                          subtitle: Text(
+                            account.attributes.accountRole?.friendlyName(
+                                  context,
+                                ) ??
+                                S.of(context).generalUnknown,
+                          ),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(16),
+                              bottomLeft: Radius.circular(16),
                             ),
-                            const TextSpan(text: "\n"),
-                            TextSpan(
-                              text: account.attributes.lastActivity != null
-                                  ? DateFormat.yMd().add_Hms().format(
-                                      account.attributes.lastActivity!
-                                          .toLocal(),
-                                    )
-                                  : S.of(context).generalNever,
+                          ),
+                          isThreeLine: false,
+                          trailing: RichText(
+                            textAlign: TextAlign.end,
+                            maxLines: 2,
+                            text: TextSpan(
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              children: <InlineSpan>[
+                                TextSpan(
+                                  text: currency.fmt(balance),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium!
+                                      .copyWith(
+                                        color: (balance < 0)
+                                            ? Colors.red
+                                            : Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                        fontFeatures: const <FontFeature>[
+                                          FontFeature.tabularFigures(),
+                                        ],
+                                      ),
+                                ),
+                                const TextSpan(text: "\n"),
+                                TextSpan(
+                                  text: account.attributes.lastActivity != null
+                                      ? DateFormat.yMd().add_Hms().format(
+                                          account.attributes.lastActivity!
+                                              .toLocal(),
+                                        )
+                                      : S.of(context).generalNever,
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
+                          onTap: () => openContainer(),
                         ),
-                      ),
-                      onTap: () => openContainer(),
-                    ),
                   );
                 }),
               ],
