@@ -1006,9 +1006,12 @@ class _HomeTransactionsState extends State<HomeTransactions>
           _lastDate = null;
           _txSum = TransactionSum();
           _txSumUsed.clear();
-          if (context.mounted) {
-            context.read<FireflyService>().transStock!.clear();
-          }
+        }
+        // Clear cache only when user completed a save (refresh is non-null:
+        // true = structural change, false = data-only change like amount edit).
+        // Skip when user cancelled without saving (refresh == null).
+        if (refresh != null && context.mounted) {
+          context.read<FireflyService>().transStock!.clear();
         }
         setState(() {
           _lastCalculatedBalance = null;
