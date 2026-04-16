@@ -466,11 +466,10 @@ class FireflyService with ChangeNotifier {
           // Clear stale credentialsInvalid flag so sync is not blocked
           // after user enters new credentials. At this point signIn() has
           // already verified the credentials are working.
-          final SyncMetadata? staleAuthMeta =
-              await isar.syncMetadatas
-                  .filter()
-                  .entityTypeEqualTo('auth')
-                  .findFirst();
+          final SyncMetadata? staleAuthMeta = await isar.syncMetadatas
+              .filter()
+              .entityTypeEqualTo('auth')
+              .findFirst();
           if (staleAuthMeta != null) {
             staleAuthMeta
               ..credentialsInvalid = false
@@ -482,11 +481,10 @@ class FireflyService with ChangeNotifier {
           }
 
           // Check if this is first-time login (no sync metadata exists)
-          final SyncMetadata? downloadMetadata =
-              await isar.syncMetadatas
-                  .filter()
-                  .entityTypeEqualTo('download')
-                  .findFirst();
+          final SyncMetadata? downloadMetadata = await isar.syncMetadatas
+              .filter()
+              .entityTypeEqualTo('download')
+              .findFirst();
 
           final bool isFirstTime = downloadMetadata == null;
 
@@ -547,15 +545,11 @@ class FireflyService with ChangeNotifier {
       apiKey = apiKey.strip();
 
       _lastTriedHost = host;
-      final Map<String, String> customHeaders = parseCustomHeaders(
+      final Map<String, String> customHeaders = _parseCustomHeaders(
         customHeadersRaw ?? "",
       );
 
-      final AuthUser nextUser = await AuthUser.create(
-        host,
-        apiKey,
-        customHeaders: customHeaders,
-      );
+      final AuthUser nextUser = await AuthUser.create(host, apiKey);
       final Response<CurrencySingle> currencyInfo = await nextUser.api
           .v1CurrenciesPrimaryGet()
           .timeout(const Duration(seconds: 30));
@@ -619,7 +613,6 @@ class FireflyService with ChangeNotifier {
       _apiVersion = nextApiVersion;
       tzHandler = nextTzHandler;
       _signedIn = true;
-      _transStock = TransStock(nextUser.api);
       _isAuthenticating = false;
       log.finest(() => "notify FireflyService->signIn");
       notifyListeners();
@@ -640,7 +633,7 @@ class FireflyService with ChangeNotifier {
               await storage
                   .write(
                     key: 'api_headers',
-                    value: encodeCustomHeaders(customHeaders),
+                    value: _encodeCustomHeaders(customHeaders),
                   )
                   .timeout(const Duration(seconds: 15));
             }
@@ -670,6 +663,65 @@ class FireflyService with ChangeNotifier {
       rethrow;
     }
   }
+
+  /// Parses a raw custom-headers string (one "Key: Value" per line) into a map.
+  static Map<String, String> _parseCustomHeaders(String raw) {
+    final Map<String, String> headers = <String, String>{};
+    if (raw.trim().isEmpty) {
+      return headers;
+    }
+    for (final String line in raw.split('\n')) {
+      final int colonIndex = line.indexOf(':');
+      if (colonIndex < 1) {
+        continue;
+      }
+      final String key = line.substring(0, colonIndex).trim();
+      final String value = line.substring(colonIndex + 1).trim();
+      if (key.isNotEmpty) {
+        headers[key] = value;
+      }
+    }
+    return headers;
+  }
+
+  /// Encodes a header map back to the raw "Key: Value\n" string format.
+  static String _encodeCustomHeaders(Map<String, String> headers) {
+    return headers.entries
+        .map((MapEntry<String, String> e) => '${e.key}: ${e.value}')
+        .join('\n');
+  }
+
+  /// Reads stored credentials from secure storage for display/editing.
+  Future<AuthCredentials> readStoredCredentials() async {
+    try {
+      final String? host = await storage
+          .read(key: 'api_host')
+          .timeout(const Duration(seconds: 15));
+      final String? apiKey = await storage
+          .read(key: 'api_key')
+          .timeout(const Duration(seconds: 15));
+      final String? headersRaw = await storage
+          .read(key: 'api_headers')
+          .timeout(const Duration(seconds: 15));
+      return AuthCredentials(
+        host: host,
+        apiKey: apiKey,
+        customHeadersRaw: headersRaw,
+      );
+    } catch (e) {
+      log.warning('Failed to read stored credentials: $e', e);
+      return const AuthCredentials();
+    }
+  }
+}
+
+/// Holds API connection credentials read from secure storage.
+class AuthCredentials {
+  const AuthCredentials({this.host, this.apiKey, this.customHeadersRaw});
+
+  final String? host;
+  final String? apiKey;
+  final String? customHeadersRaw;
 }
 
 void apiThrowErrorIfEmpty(Response<dynamic> response, BuildContext? context) {

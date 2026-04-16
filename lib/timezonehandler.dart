@@ -67,8 +67,10 @@ class TimeZoneHandler {
   }
 
   tz.TZDateTime getLocalTimeAsServerTime(tz.TZDateTime t) {
-    final Duration offsetMs =
-        sLocation.currentTimeZone.offset - dLocation.currentTimeZone.offset;
+    final Duration offsetMs = Duration(
+      milliseconds:
+          sLocation.currentTimeZone.offset - dLocation.currentTimeZone.offset,
+    );
     return t.subtract(offsetMs);
   }
 

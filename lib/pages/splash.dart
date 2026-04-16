@@ -10,10 +10,11 @@ import 'package:waterflyiii/widgets/logo.dart';
 final Logger log = Logger("Pages.Splash");
 
 class SplashPage extends StatefulWidget {
-  const SplashPage({super.key, this.host, this.apiKey});
+  const SplashPage({super.key, this.host, this.apiKey, this.customHeadersRaw});
 
   final String? host;
   final String? apiKey;
+  final String? customHeadersRaw;
 
   @override
   State<SplashPage> createState() => _SplashPageState();
@@ -45,7 +46,11 @@ class _SplashPageState extends State<SplashPage> {
               "SplashPage->_login() with credentials: $host, apiKey ${apiKey.isEmpty ? "unset" : "set"}",
         );
         // New login with credentials - validate with API calls
-        success = await context.read<FireflyService>().signIn(host, apiKey);
+        success = await context.read<FireflyService>().signIn(
+          host,
+          apiKey,
+          customHeadersRaw: widget.customHeadersRaw,
+        );
       }
     } catch (e, stackTrace) {
       log.warning(
@@ -203,12 +208,11 @@ class _SplashPageState extends State<SplashPage> {
                       context.read<FireflyService>().signOut();
                     }
                   },
-                  child:
-                      Navigator.canPop(context)
-                          ? Text(
-                            MaterialLocalizations.of(context).backButtonTooltip,
-                          )
-                          : Text(S.of(context).formButtonResetLogin),
+                  child: Navigator.canPop(context)
+                      ? Text(
+                          MaterialLocalizations.of(context).backButtonTooltip,
+                        )
+                      : Text(S.of(context).formButtonResetLogin),
                 ),
                 FilledButton(
                   onPressed: () {

@@ -6,6 +6,7 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
+import 'package:waterflyiii/animations.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
@@ -263,18 +264,17 @@ class _HomeTransactionsState extends State<HomeTransactions>
           accountId: _filters.account?.id,
           currencyCode: _filters.currency?.attributes.code,
           categoryId: _filters.category?.id,
-          categoryName:
-              _filters.category?.id != "-1"
-                  ? _filters.category?.attributes.name
-                  : null,
+          categoryName: _filters.category?.id != "-1"
+              ? _filters.category?.attributes.name
+              : null,
           budgetId: _filters.budget?.id,
-          budgetName:
-              _filters.budget?.id != "-1"
-                  ? _filters.budget?.attributes.name
-                  : null,
+          budgetName: _filters.budget?.id != "-1"
+              ? _filters.budget?.attributes.name
+              : null,
           billId: _filters.bill?.id,
-          billName:
-              _filters.bill?.id != "-1" ? _filters.bill?.attributes.name : null,
+          billName: _filters.bill?.id != "-1"
+              ? _filters.bill?.attributes.name
+              : null,
           tags: _filters.tags?.tags,
           startDate: startDate,
           endDate: endDate,
@@ -748,255 +748,238 @@ class _HomeTransactionsState extends State<HomeTransactions>
         borderRadius: .only(topLeft: .circular(16), bottomLeft: .circular(16)),
       ),
       closedElevation: 0,
-      closedBuilder: (BuildContext context, Function openContainer) =>
-          GestureDetector(
-            onLongPressStart: (LongPressStartDetails details) async {
-              final Size screenSize = MediaQuery.of(context).size;
-              final Offset offset = details.globalPosition;
-              unawaited(HapticFeedback.vibrate());
-              final Function? func = await showMenu<Function>(
-                context: context,
-                position: .fromLTRB(
-                  offset.dx,
-                  offset.dy,
-                  screenSize.width - offset.dx,
-                  screenSize.height - offset.dy,
-                ),
-                items: <PopupMenuEntry<Function>>[
-                  PopupMenuItem<Function>(
-                    value: () async {
-                      final bool? ok = await Navigator.push(
-                        context,
-                        MaterialPageRoute<bool>(
-                          builder: (BuildContext context) =>
-                              TransactionPage(transaction: item, clone: true),
-                        ),
-                      );
-                      if (ok ?? false) {
-                        _rowsWithDate = <int>[];
-                        _lastDate = null;
-                        _txSum = TransactionSum();
-                        _txSumUsed.clear();
-                        if (context.mounted) {
-                          // Cache is managed by Isar repository - no manual clearing needed
-                        }
-                      }
-                      setState(() {
-                        _lastCalculatedBalance = null;
-                        _pagingState = _pagingState.reset();
-                      });
-                    },
-                    child: Row(
-                      children: <Widget>[
-                        const Icon(Icons.copy),
-                        const SizedBox(width: 12),
-                        Text(S.of(context).transactionDuplicate),
-                      ],
+      closedBuilder: (BuildContext context, Function openContainer) => GestureDetector(
+        onLongPressStart: (LongPressStartDetails details) async {
+          final Size screenSize = MediaQuery.of(context).size;
+          final Offset offset = details.globalPosition;
+          unawaited(HapticFeedback.vibrate());
+          final Function? func = await showMenu<Function>(
+            context: context,
+            position: .fromLTRB(
+              offset.dx,
+              offset.dy,
+              screenSize.width - offset.dx,
+              screenSize.height - offset.dy,
+            ),
+            items: <PopupMenuEntry<Function>>[
+              PopupMenuItem<Function>(
+                value: () async {
+                  final bool? ok = await Navigator.push(
+                    context,
+                    MaterialPageRoute<bool>(
+                      builder: (BuildContext context) =>
+                          TransactionPage(transaction: item, clone: true),
                     ),
-                  ),
-                  const PopupMenuDivider(),
-                  PopupMenuItem<Function>(
-                    value: () async {
-                      final bool? ok = await showDialog<bool>(
-                        context: context,
-                        builder: (BuildContext context) =>
-                            const DeletionConfirmDialog(),
-                      );
-                      if (!(ok ?? false)) {
-                        return;
-                      }
+                  );
+                  if (ok ?? false) {
+                    _rowsWithDate = <int>[];
+                    _lastDate = null;
+                    _txSum = TransactionSum();
+                    _txSumUsed.clear();
+                    if (context.mounted) {
+                      // Cache is managed by Isar repository - no manual clearing needed
+                    }
+                  }
+                  setState(() {
+                    _lastCalculatedBalance = null;
+                    _pagingState = _pagingState.reset();
+                  });
+                },
+                child: Row(
+                  children: <Widget>[
+                    const Icon(Icons.copy),
+                    const SizedBox(width: 12),
+                    Text(S.of(context).transactionDuplicate),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem<Function>(
+                value: () async {
+                  final bool? ok = await showDialog<bool>(
+                    context: context,
+                    builder: (BuildContext context) =>
+                        const DeletionConfirmDialog(),
+                  );
+                  if (!(ok ?? false)) {
+                    return;
+                  }
 
-                      // Delete via repository (queues for sync)
-                      final Isar isar = await AppDatabase.instance;
-                      final TransactionRepository txRepo =
-                          TransactionRepository(isar);
-                      await txRepo.delete(item.id);
-                      _rowsWithDate = <int>[];
-                      _lastDate = null;
-                      _txSum = TransactionSum();
-                      _txSumUsed.clear();
-                      if (context.mounted) {
-                        // Cache is managed by Isar repository - no manual clearing needed
-                      }
-                      setState(() {
-                        _lastCalculatedBalance = null;
-                        _pagingState = _pagingState.reset();
-                      });
-                    },
-                    child: Row(
-                      children: <Widget>[
-                        const Icon(Icons.delete),
-                        const SizedBox(width: 12),
-                        Text(
-                          MaterialLocalizations.of(context).deleteButtonTooltip,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                clipBehavior: .hardEdge,
-              );
-              if (func == null) {
-                return;
-              }
-              func();
-            },
-            child: ListTile(
-              leading: CircleAvatar(
-                foregroundColor: Colors.white,
-                backgroundColor: transactions.first.type.color,
-                child: Icon(transactions.first.type.icon),
-              ),
-              title: Row(
-                crossAxisAlignment: .start,
-                children: <Widget>[
-                  // Front part
-                  Expanded(
-                    child: Text(title, maxLines: 1, overflow: .ellipsis),
-                  ),
-                  const SizedBox(width: 8),
-                  // Trailing part
-                  RichText(
-                    textAlign: .end,
-                    maxLines: 1,
-                    text: TextSpan(
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      children: <InlineSpan>[
-                        if (foreignText.isNotEmpty)
-                          TextSpan(
-                            text: foreignText,
-                            style: Theme.of(context).textTheme.bodySmall!
-                                .copyWith(
-                                  color: Colors.blue,
-                                  fontFeatures: const <FontFeature>[
-                                    .tabularFigures(),
-                                  ],
-                                ),
-                          ),
-                        TextSpan(
-                          text: currency.fmt(amount),
-                          style: Theme.of(context).textTheme.titleMedium!
-                              .copyWith(
-                                color:
-                                    transactions.first.type != .reconciliation
-                                    ? transactions.first.type.color
-                                    : (transactions.first.sourceType ==
-                                          .reconciliationAccount)
-                                    ? Colors.green
-                                    : Colors.red,
-                                fontFeatures: const <FontFeature>[
-                                  .tabularFigures(),
-                                ],
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              subtitle: Row(
-                crossAxisAlignment: .start,
-                children: <Widget>[
-                  // Front part
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: .start,
-                      children: <Widget>[
-                        RichText(
-                          overflow: .ellipsis,
-                          maxLines: 2,
-                          text: TextSpan(
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            children: subtitle,
-                          ),
-                        ),
-                        if (!context.watch<SettingsProvider>().hideTags &&
-                            tags.isNotEmpty) ...<Widget>[
-                          Wrap(
-                            children: tags
-                                .map(
-                                  (String tag) => Card(
-                                    child: Padding(
-                                      padding: const .all(6.0),
-                                      child: Row(
-                                        mainAxisSize: .min,
-                                        children: <Widget>[
-                                          const Icon(
-                                            Icons.label_outline,
-                                            size: 16,
-                                          ),
-                                          const SizedBox(width: 5),
-                                          Flexible(
-                                            child: RichText(
-                                              overflow: .fade,
-                                              text: TextSpan(
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.bodyMedium,
-                                                text: tag,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  // Trailing part
-                  RichText(
-                    textAlign: .end,
-                    maxLines: 1,
-                    text: TextSpan(
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      children: <InlineSpan>[
-                        if (reconciled)
-                          const WidgetSpan(
-                            baseline: .ideographic,
-                            alignment: .middle,
-                            child: Padding(
-                              padding: .only(right: 2),
-                              child: Icon(Icons.check),
-                            ),
-                          ),
-                        if (_filters.account != null)
-                          TextSpan(
-                            text: currency.fmt(balance),
-                            style: Theme.of(context).textTheme.bodyMedium!
-                                .copyWith(
-                                  fontFeatures: const <FontFeature>[
-                                    .tabularFigures(),
-                                  ],
-                                ),
-                          ),
-                        if (_filters.account == null)
-                          TextSpan(
-                            text: switch (transactions.first.type) {
-                              .deposit => destinationName,
-                              .openingBalance => "",
-                              .reconciliation => "",
-                              _ => sourceName,
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              isThreeLine: true,
-              shape: const RoundedRectangleBorder(
-                borderRadius: .only(
-                  topLeft: .circular(16),
-                  bottomLeft: .circular(16),
+                  // Delete via repository (queues for sync)
+                  final Isar isar = await AppDatabase.instance;
+                  final TransactionRepository txRepo = TransactionRepository(
+                    isar,
+                  );
+                  await txRepo.delete(item.id);
+                  _rowsWithDate = <int>[];
+                  _lastDate = null;
+                  _txSum = TransactionSum();
+                  _txSumUsed.clear();
+                  if (context.mounted) {
+                    // Cache is managed by Isar repository - no manual clearing needed
+                  }
+                  setState(() {
+                    _lastCalculatedBalance = null;
+                    _pagingState = _pagingState.reset();
+                  });
+                },
+                child: Row(
+                  children: <Widget>[
+                    const Icon(Icons.delete),
+                    const SizedBox(width: 12),
+                    Text(MaterialLocalizations.of(context).deleteButtonTooltip),
+                  ],
                 ),
               ),
+            ],
+            clipBehavior: .hardEdge,
+          );
+          if (func == null) {
+            return;
+          }
+          func();
+        },
+        child: ListTile(
+          leading: CircleAvatar(
+            foregroundColor: Colors.white,
+            backgroundColor: transactions.first.type.color,
+            child: Icon(transactions.first.type.icon),
+          ),
+          title: Row(
+            crossAxisAlignment: .start,
+            children: <Widget>[
+              // Front part
+              Expanded(child: Text(title, maxLines: 1, overflow: .ellipsis)),
+              const SizedBox(width: 8),
+              // Trailing part
+              RichText(
+                textAlign: .end,
+                maxLines: 1,
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  children: <InlineSpan>[
+                    if (foreignText.isNotEmpty)
+                      TextSpan(
+                        text: foreignText,
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          color: Colors.blue,
+                          fontFeatures: const <FontFeature>[.tabularFigures()],
+                        ),
+                      ),
+                    TextSpan(
+                      text: currency.fmt(amount),
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                        color: transactions.first.type != .reconciliation
+                            ? transactions.first.type.color
+                            : (transactions.first.sourceType ==
+                                  .reconciliationAccount)
+                            ? Colors.green
+                            : Colors.red,
+                        fontFeatures: const <FontFeature>[.tabularFigures()],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          subtitle: Row(
+            crossAxisAlignment: .start,
+            children: <Widget>[
+              // Front part
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: .start,
+                  children: <Widget>[
+                    RichText(
+                      overflow: .ellipsis,
+                      maxLines: 2,
+                      text: TextSpan(
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        children: subtitle,
+                      ),
+                    ),
+                    if (!context.watch<SettingsProvider>().hideTags &&
+                        tags.isNotEmpty) ...<Widget>[
+                      Wrap(
+                        children: tags
+                            .map(
+                              (String tag) => Card(
+                                child: Padding(
+                                  padding: const .all(6.0),
+                                  child: Row(
+                                    mainAxisSize: .min,
+                                    children: <Widget>[
+                                      const Icon(Icons.label_outline, size: 16),
+                                      const SizedBox(width: 5),
+                                      Flexible(
+                                        child: RichText(
+                                          overflow: .fade,
+                                          text: TextSpan(
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium,
+                                            text: tag,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              // Trailing part
+              RichText(
+                textAlign: .end,
+                maxLines: 1,
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  children: <InlineSpan>[
+                    if (reconciled)
+                      const WidgetSpan(
+                        baseline: .ideographic,
+                        alignment: .middle,
+                        child: Padding(
+                          padding: .only(right: 2),
+                          child: Icon(Icons.check),
+                        ),
+                      ),
+                    if (_filters.account != null)
+                      TextSpan(
+                        text: currency.fmt(balance),
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          fontFeatures: const <FontFeature>[.tabularFigures()],
+                        ),
+                      ),
+                    if (_filters.account == null)
+                      TextSpan(
+                        text: switch (transactions.first.type) {
+                          .deposit => destinationName,
+                          .openingBalance => "",
+                          .reconciliation => "",
+                          _ => sourceName,
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          isThreeLine: true,
+          shape: const RoundedRectangleBorder(
+            borderRadius: .only(
+              topLeft: .circular(16),
+              bottomLeft: .circular(16),
             ),
           ),
+        ),
+      ),
       onClosed: (bool? refresh) async {
         if (_filters.account != null) {
           // Reset last balance calculated
