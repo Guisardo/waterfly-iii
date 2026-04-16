@@ -61,8 +61,6 @@ class _CategoriesPageState extends State<CategoriesPage>
         throw StateError('Widget disposed during initialization');
       }
       _insightRepo = InsightRepository(isar);
-      // Set FireflyService so repository can fetch from API if needed
-      _insightRepo!.setFireflyService(fireflyService);
     }
     final InsightRepository repo = _insightRepo!;
 
@@ -657,7 +655,10 @@ class CategoryLine extends StatelessWidget {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 16,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
