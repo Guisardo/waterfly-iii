@@ -57,10 +57,10 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
 
       if (mounted) {
         setState(() {
-          includeInSum =
-              !context.read<SettingsProvider>().categoriesSumExcluded.contains(
-                widget.category!.id,
-              );
+          includeInSum = !context
+              .read<SettingsProvider>()
+              .categoriesSumExcluded
+              .contains(widget.category!.id);
           notesController.text = category.attributes.notes ?? "";
           loaded = true;
         });
@@ -115,8 +115,8 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
             onPressed: () async {
               final bool? ok = await showDialog(
                 context: context,
-                builder:
-                    (BuildContext context) => const DeletionConfirmDialog(),
+                builder: (BuildContext context) =>
+                    const DeletionConfirmDialog(),
               );
               if (!(ok ?? false)) {
                 return;
@@ -188,24 +188,22 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
                 );
 
                 // Store category locally first
-                final Categories categoryRow =
-                    Categories()
-                      ..categoryId = tempCategoryId
-                      ..data = jsonEncode(tempCategory.toJson())
-                      ..updatedAt = null
-                      ..localUpdatedAt = DateTime.now().toUtc()
-                      ..synced = false;
+                final Categories categoryRow = Categories()
+                  ..categoryId = tempCategoryId
+                  ..data = jsonEncode(tempCategory.toJson())
+                  ..updatedAt = null
+                  ..localUpdatedAt = DateTime.now().toUtc()
+                  ..synced = false;
 
                 // Create PendingChange with CategoryStore (what upload service expects)
-                final PendingChanges pendingChange =
-                    PendingChanges()
-                      ..entityType = 'categories'
-                      ..entityId = null
-                      ..operation = 'CREATE'
-                      ..data = jsonEncode(categoryStore.toJson())
-                      ..createdAt = DateTime.now().toUtc()
-                      ..retryCount = 0
-                      ..synced = false;
+                final PendingChanges pendingChange = PendingChanges()
+                  ..entityType = 'categories'
+                  ..entityId = null
+                  ..operation = 'CREATE'
+                  ..data = jsonEncode(categoryStore.toJson())
+                  ..createdAt = DateTime.now().toUtc()
+                  ..retryCount = 0
+                  ..synced = false;
 
                 await isar.writeTxn(() async {
                   await isar.categories.put(categoryRow);
@@ -317,12 +315,11 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
                   title: Text(S.of(context).categoryFormLabelIncludeInSum),
                   value: includeInSum,
                   isThreeLine: false,
-                  onChanged:
-                      loaded != true
-                          ? null
-                          : (bool value) => setState(() {
-                            includeInSum = value;
-                          }),
+                  onChanged: loaded != true
+                      ? null
+                      : (bool value) => setState(() {
+                          includeInSum = value;
+                        }),
                 ),
               ),
           ],

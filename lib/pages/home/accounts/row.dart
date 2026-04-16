@@ -289,8 +289,8 @@ class _AccountTXpageState extends State<AccountTXpage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: _titleWidget, actions: <Widget>[_editIcon]),
-      floatingActionButton: widget.account.attributes.type ==
-              ShortAccountTypeProperty.asset
+      floatingActionButton:
+          widget.account.attributes.type == ShortAccountTypeProperty.asset
           ? NewTransactionFab(context: context, accountId: widget.account.id)
           : null,
       body: HomeTransactions(

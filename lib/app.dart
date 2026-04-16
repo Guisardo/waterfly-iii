@@ -194,20 +194,18 @@ class _WaterflyAppState extends State<WaterflyApp> {
     log.fine(() => "WaterflyApp() building");
 
     return DynamicColorBuilder(
-      builder: (
-        ColorScheme? cSchemeDynamicLight,
-        ColorScheme? cSchemeDynamicDark,
-      ) {
+      builder: (ColorScheme? cSchemeDynamicLight, ColorScheme? cSchemeDynamicDark) {
         final ColorScheme cSchemeLight = ColorScheme.fromSeed(
           seedColor: Colors.blue,
         );
-        final ColorScheme cSchemeDark = ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
-        ).copyWith(
-          surfaceContainerHighest: Colors.blueGrey.shade900,
-          onSurfaceVariant: Colors.white,
-        );
+        final ColorScheme cSchemeDark =
+            ColorScheme.fromSeed(
+              seedColor: Colors.blue,
+              brightness: Brightness.dark,
+            ).copyWith(
+              surfaceContainerHighest: Colors.blueGrey.shade900,
+              onSurfaceVariant: Colors.white,
+            );
 
         log.finest(
           () =>
@@ -231,18 +229,18 @@ class _WaterflyAppState extends State<WaterflyApp> {
           ],
           builder: (BuildContext context, _) {
             // Listen to connectivity changes and trigger sync when device comes online
-            final ConnectivityService connectivityService =
-                context.watch<ConnectivityService>();
+            final ConnectivityService connectivityService = context
+                .watch<ConnectivityService>();
             final bool isOnline = connectivityService.isOnline;
 
             // Trigger sync when device comes online (was offline, now online)
             if (_wasOffline && isOnline && !_startup) {
-              final FireflyService fireflyService =
-                  context.read<FireflyService>();
+              final FireflyService fireflyService = context
+                  .read<FireflyService>();
               if (fireflyService.signedIn) {
                 // Use sync status provider to trigger sync
-                final SyncStatusProvider syncStatusProvider =
-                    context.read<SyncStatusProvider>();
+                final SyncStatusProvider syncStatusProvider = context
+                    .read<SyncStatusProvider>();
                 Future<void>.microtask(() async {
                   try {
                     await syncStatusProvider.syncAll();
@@ -290,12 +288,12 @@ class _WaterflyAppState extends State<WaterflyApp> {
                 } else {
                   log.finest(() => "signing in");
                   // Capture context values before async gap
-                  final FireflyService fireflyService =
-                      context.read<FireflyService>();
-                  final SyncStatusProvider syncStatusProvider =
-                      context.read<SyncStatusProvider>();
-                  final SettingsProvider settingsProvider =
-                      context.read<SettingsProvider>();
+                  final FireflyService fireflyService = context
+                      .read<FireflyService>();
+                  final SyncStatusProvider syncStatusProvider = context
+                      .read<SyncStatusProvider>();
+                  final SettingsProvider settingsProvider = context
+                      .read<SettingsProvider>();
 
                   // Start authentication in background without blocking UI
                   // The UI will reactively update when authentication completes
@@ -304,8 +302,8 @@ class _WaterflyAppState extends State<WaterflyApp> {
                       try {
                         // Restore credentials from storage without API calls
                         // API validation will happen during sync
-                        final bool signedIn =
-                            await fireflyService.restoreFromStorage();
+                        final bool signedIn = await fireflyService
+                            .restoreFromStorage();
                         if (signedIn) {
                           // Initialize WorkManager for background sync
                           await WorkManagerSync.initialize();
@@ -355,8 +353,8 @@ class _WaterflyAppState extends State<WaterflyApp> {
               }
             } else {
               // Watch for authentication state changes reactively
-              final FireflyService fireflyService =
-                  context.watch<FireflyService>();
+              final FireflyService fireflyService = context
+                  .watch<FireflyService>();
               signedIn = fireflyService.signedIn;
               if (signedIn) {
                 fireflyService.tzHandler.setUseServerTime(
@@ -367,8 +365,8 @@ class _WaterflyAppState extends State<WaterflyApp> {
             }
 
             // Watch for authentication state to reactively update UI
-            final FireflyService fireflyServiceForUI =
-                context.watch<FireflyService>();
+            final FireflyService fireflyServiceForUI = context
+                .watch<FireflyService>();
             final bool isAuthenticating = fireflyServiceForUI.isAuthenticating;
             final bool signedInForUI = fireflyServiceForUI.signedIn;
             final bool hasStorageException =
@@ -412,8 +410,8 @@ class _WaterflyAppState extends State<WaterflyApp> {
                 brightness: Brightness.light,
                 colorScheme:
                     context.select((SettingsProvider s) => s.dynamicColors)
-                        ? cSchemeDynamicLight?.harmonized() ?? cSchemeLight
-                        : cSchemeLight,
+                    ? cSchemeDynamicLight?.harmonized() ?? cSchemeLight
+                    : cSchemeLight,
                 useMaterial3: true,
                 // See https://github.com/flutter/flutter/issues/131042#issuecomment-1690737834
                 appBarTheme: const AppBarTheme(shape: RoundedRectangleBorder()),
@@ -428,8 +426,8 @@ class _WaterflyAppState extends State<WaterflyApp> {
                 brightness: Brightness.dark,
                 colorScheme:
                     context.select((SettingsProvider s) => s.dynamicColors)
-                        ? cSchemeDynamicDark?.harmonized() ?? cSchemeDark
-                        : cSchemeDark,
+                    ? cSchemeDynamicDark?.harmonized() ?? cSchemeDark
+                    : cSchemeDark,
                 useMaterial3: true,
               ),
               themeMode: context.select((SettingsProvider s) => s.theme),
@@ -437,20 +435,19 @@ class _WaterflyAppState extends State<WaterflyApp> {
               supportedLocales: S.supportedLocales,
               locale: context.select((SettingsProvider s) => s.locale),
               navigatorKey: navigatorKey,
-              home:
-                  showSplash
-                      ? const SplashPage()
-                      : signedInForUI
-                      ? (_notificationPayload != null ||
-                              _quickAction == "action_transaction_add" ||
-                              (_filesSharedToApp != null &&
-                                  _filesSharedToApp!.isNotEmpty))
-                          ? TransactionPage(
+              home: showSplash
+                  ? const SplashPage()
+                  : signedInForUI
+                  ? (_notificationPayload != null ||
+                            _quickAction == "action_transaction_add" ||
+                            (_filesSharedToApp != null &&
+                                _filesSharedToApp!.isNotEmpty))
+                        ? TransactionPage(
                             notification: _notificationPayload,
                             files: _filesSharedToApp,
                           )
-                          : const NavPage()
-                      : const LoginPage(),
+                        : const NavPage()
+                  : const LoginPage(),
             );
           },
         );

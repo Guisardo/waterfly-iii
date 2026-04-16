@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:matcher/matcher.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
 import 'package:waterflyiii/data/repositories/attachment_repository.dart';
@@ -69,7 +68,9 @@ void main() {
       expect(result.length, greaterThanOrEqualTo(1));
       // Verify sorting: newer items should come first (if both are returned)
       if (result.length >= 2) {
-        final Set<String> resultIds = result.map((a) => a.id).toSet();
+        final Set<String> resultIds = result
+            .map((AttachmentRead a) => a.id)
+            .toSet();
         expect(resultIds, contains('attach-1'));
         expect(resultIds, contains('attach-2'));
         // Newer should come first
@@ -77,19 +78,19 @@ void main() {
         expect(result.last.id, 'attach-1');
       } else {
         // If only one is returned due to MockIsar limitation, verify it's one of ours
-        expect(result.first.id, isIn(['attach-1', 'attach-2']));
+        expect(result.first.id, isIn(<String>['attach-1', 'attach-2']));
       }
     });
 
     test('getAll handles attachments with null updatedAt', () async {
-      final AttachmentRead attachment1 = AttachmentRead(
+      final AttachmentRead attachment1 = const AttachmentRead(
         type: 'attachments',
         id: 'attach-1',
         attributes: AttachmentProperties(
           filename: 'file1.pdf',
           updatedAt: null,
         ),
-        links: const ObjectLink(),
+        links: ObjectLink(),
       );
 
       final AttachmentRead attachment2 = AttachmentRead(
@@ -157,12 +158,12 @@ void main() {
     test(
       'getByTransactionId returns empty list when transaction has no journal IDs',
       () async {
-        final Map<String, dynamic> transactionJson = {
+        final Map<String, dynamic> transactionJson = <String, dynamic>{
           'type': 'transactions',
           'id': 'tx-1',
-          'attributes': {
-            'transactions': [
-              {
+          'attributes': <String, List<Map<String, String>>>{
+            'transactions': <Map<String, String>>[
+              <String, String>{
                 'type': 'withdrawal',
                 'date': DateTime.now().toIso8601String(),
                 'amount': '10.00',
@@ -170,7 +171,9 @@ void main() {
               },
             ],
           },
-          'links': {'self': 'https://example.com/api/v1/transactions/tx-1'},
+          'links': <String, String>{
+            'self': 'https://example.com/api/v1/transactions/tx-1',
+          },
         };
 
         final TransactionRead transaction = TransactionRead.fromJson(
@@ -188,12 +191,12 @@ void main() {
     test(
       'getByTransactionId returns attachments matching journal IDs',
       () async {
-        final Map<String, dynamic> transactionJson = {
+        final Map<String, dynamic> transactionJson = <String, dynamic>{
           'type': 'transactions',
           'id': 'tx-1',
-          'attributes': {
-            'transactions': [
-              {
+          'attributes': <String, List<Map<String, String>>>{
+            'transactions': <Map<String, String>>[
+              <String, String>{
                 'type': 'withdrawal',
                 'date': DateTime.now().toIso8601String(),
                 'amount': '10.00',
@@ -202,7 +205,9 @@ void main() {
               },
             ],
           },
-          'links': {'self': 'https://example.com/api/v1/transactions/tx-1'},
+          'links': <String, String>{
+            'self': 'https://example.com/api/v1/transactions/tx-1',
+          },
         };
 
         final TransactionRead transaction = TransactionRead.fromJson(
@@ -254,19 +259,19 @@ void main() {
     );
 
     test('getByTransactionId handles multiple journal IDs', () async {
-      final Map<String, dynamic> transactionJson = {
+      final Map<String, dynamic> transactionJson = <String, dynamic>{
         'type': 'transactions',
         'id': 'tx-1',
-        'attributes': {
-          'transactions': [
-            {
+        'attributes': <String, List<Map<String, String>>>{
+          'transactions': <Map<String, String>>[
+            <String, String>{
               'type': 'withdrawal',
               'date': DateTime.now().toIso8601String(),
               'amount': '10.00',
               'description': 'Test',
               'transaction_journal_id': 'journal-1',
             },
-            {
+            <String, String>{
               'type': 'deposit',
               'date': DateTime.now().toIso8601String(),
               'amount': '20.00',
@@ -275,7 +280,9 @@ void main() {
             },
           ],
         },
-        'links': {'self': 'https://example.com/api/v1/transactions/tx-1'},
+        'links': <String, String>{
+          'self': 'https://example.com/api/v1/transactions/tx-1',
+        },
       };
 
       final TransactionRead transaction = TransactionRead.fromJson(
@@ -335,7 +342,9 @@ void main() {
       // Verify the logic: result should only contain attachments matching journal IDs
       expect(result.length, greaterThanOrEqualTo(0));
       if (result.isNotEmpty) {
-        final Set<String> resultIds = result.map((a) => a.id).toSet();
+        final Set<String> resultIds = result
+            .map((AttachmentRead a) => a.id)
+            .toSet();
         expect(resultIds, contains('attach-1'));
         expect(resultIds, contains('attach-2'));
         expect(resultIds, isNot(contains('attach-3')));
@@ -390,7 +399,7 @@ void main() {
     });
 
     test('upsertListFromSync upserts multiple attachments', () async {
-      final List<AttachmentRead> attachments = [
+      final List<AttachmentRead> attachments = <AttachmentRead>[
         AttachmentRead(
           type: 'attachments',
           id: 'attach-1',
@@ -427,10 +436,13 @@ void main() {
       final List<AttachmentRead> result = await repository.getAll();
       expect(result.length, greaterThanOrEqualTo(1));
       if (result.length >= 2) {
-        expect(result.map((a) => a.id).toSet(), {'attach-1', 'attach-2'});
+        expect(result.map((AttachmentRead a) => a.id).toSet(), <String>{
+          'attach-1',
+          'attach-2',
+        });
       } else {
         // If only one is returned, verify it's one of ours
-        expect(result.first.id, isIn(['attach-1', 'attach-2']));
+        expect(result.first.id, isIn(<String>['attach-1', 'attach-2']));
       }
     });
 

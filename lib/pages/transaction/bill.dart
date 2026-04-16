@@ -104,7 +104,9 @@ class _BillDialogState extends State<BillDialog> {
             try {
               final Isar isar = await AppDatabase.instance;
               final BillRepository billRepo = BillRepository(isar);
-              final List<BillRead> bills = await billRepo.search(textEditingValue.text);
+              final List<BillRead> bills = await billRepo.search(
+                textEditingValue.text,
+              );
 
               // Convert BillRead to AutocompleteBill format
               return bills.map((BillRead bill) {

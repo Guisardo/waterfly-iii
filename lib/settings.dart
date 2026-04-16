@@ -193,7 +193,6 @@ class SettingsProvider with ChangeNotifier {
   bool get syncUseMobileData =>
       _loaded ? _boolSettings[BoolSettings.syncUseMobileData] : false;
 
-
   ThemeMode _theme = .system;
   ThemeMode get theme => _theme;
 

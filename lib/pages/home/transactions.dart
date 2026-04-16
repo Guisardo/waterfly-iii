@@ -21,7 +21,6 @@ import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/timezonehandler.dart';
-import 'package:waterflyiii/widgets/listview_pagedchildbuilder.dart';
 
 class TransactionSum {
   double withdrawals = 0;

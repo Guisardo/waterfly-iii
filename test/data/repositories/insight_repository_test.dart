@@ -41,8 +41,8 @@ void main() {
       final DateTime start = DateTime(2024, 1, 1);
       final DateTime end = DateTime(2024, 1, 31);
 
-      final List<Map<String, dynamic>> data = [
-        {
+      final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+        <String, dynamic>{
           'currency_id': '1',
           'currency_code': 'USD',
           'currency_symbol': '\$',
@@ -66,8 +66,8 @@ void main() {
       final DateTime start = DateTime(2024, 1, 1);
       final DateTime end = DateTime(2024, 1, 31);
 
-      final List<Map<String, dynamic>> data = [
-        {
+      final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+        <String, dynamic>{
           'currency_id': '1',
           'currency_code': 'USD',
           'currency_symbol': '\$',
@@ -106,8 +106,12 @@ void main() {
       final DateTime start = DateTime(2024, 1, 1);
       final DateTime end = DateTime(2024, 1, 31);
 
-      final List<Map<String, dynamic>> data = [
-        {'id': '1', 'name': 'Groceries', 'difference': '50.00'},
+      final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+        <String, dynamic>{
+          'id': '1',
+          'name': 'Groceries',
+          'difference': '50.00',
+        },
       ];
 
       await repository.cacheInsight('expense', 'category', start, end, data);
@@ -139,8 +143,8 @@ void main() {
       final DateTime start = DateTime(2024, 1, 1);
       final DateTime end = DateTime(2024, 1, 31);
 
-      final List<Map<String, dynamic>> data = [
-        {
+      final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+        <String, dynamic>{
           'currency_id': '1',
           'currency_code': 'USD',
           'currency_symbol': '\$',
@@ -165,8 +169,8 @@ void main() {
       final DateTime start = DateTime(2024, 1, 1);
       final DateTime end = DateTime(2024, 1, 31);
 
-      final List<Map<String, dynamic>> data = [
-        {
+      final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+        <String, dynamic>{
           'currency_id': '1',
           'currency_code': 'USD',
           'currency_symbol': '\$',
@@ -189,8 +193,12 @@ void main() {
       final DateTime start = DateTime(2024, 1, 1);
       final DateTime end = DateTime(2024, 1, 31);
 
-      final List<Map<String, dynamic>> data = [
-        {'currency_id': '1', 'currency_code': 'USD', 'difference': '100.00'},
+      final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+        <String, dynamic>{
+          'currency_id': '1',
+          'currency_code': 'USD',
+          'difference': '100.00',
+        },
       ];
 
       await repository.cacheInsight('expense', 'total', start, end, data);
@@ -213,8 +221,20 @@ void main() {
         final DateTime start2 = DateTime(2024, 2, 1);
         final DateTime end2 = DateTime(2024, 2, 28);
 
-        await repository.cacheInsight('expense', 'total', start1, end1, []);
-        await repository.cacheInsight('income', 'total', start2, end2, []);
+        await repository.cacheInsight(
+          'expense',
+          'total',
+          start1,
+          end1,
+          <dynamic>[],
+        );
+        await repository.cacheInsight(
+          'income',
+          'total',
+          start2,
+          end2,
+          <dynamic>[],
+        );
 
         await repository.markStale(null, null);
 
@@ -232,9 +252,27 @@ void main() {
       final DateTime start3 = DateTime(2024, 3, 1);
       final DateTime end3 = DateTime(2024, 3, 31);
 
-      await repository.cacheInsight('expense', 'total', start1, end1, []);
-      await repository.cacheInsight('expense', 'total', start2, end2, []);
-      await repository.cacheInsight('expense', 'total', start3, end3, []);
+      await repository.cacheInsight(
+        'expense',
+        'total',
+        start1,
+        end1,
+        <dynamic>[],
+      );
+      await repository.cacheInsight(
+        'expense',
+        'total',
+        start2,
+        end2,
+        <dynamic>[],
+      );
+      await repository.cacheInsight(
+        'expense',
+        'total',
+        start3,
+        end3,
+        <dynamic>[],
+      );
 
       // Mark insights for January 15 to February 15
       final DateTime markStart = DateTime(2024, 1, 15);
@@ -248,7 +286,7 @@ void main() {
       expect(staleInsights.length, greaterThanOrEqualTo(1));
       // Verify at least insight 1 is marked stale (overlaps with markStart/markEnd)
       final bool insight1Stale = staleInsights.any(
-        (i) =>
+        (Insights i) =>
             i.insightType == 'expense' &&
             i.insightSubtype == 'total' &&
             i.startDate == start1 &&
@@ -261,12 +299,12 @@ void main() {
       'markStaleForTransaction marks insights for transaction month',
       () async {
         final DateTime txDate = DateTime(2024, 2, 15);
-        final Map<String, dynamic> transactionJson = {
+        final Map<String, dynamic> transactionJson = <String, dynamic>{
           'type': 'transactions',
           'id': 'tx-1',
-          'attributes': {
-            'transactions': [
-              {
+          'attributes': <String, List<Map<String, String>>>{
+            'transactions': <Map<String, String>>[
+              <String, String>{
                 'type': 'withdrawal',
                 'date': txDate.toIso8601String(),
                 'amount': '10.00',
@@ -274,7 +312,9 @@ void main() {
               },
             ],
           },
-          'links': {'self': 'https://example.com/api/v1/transactions/tx-1'},
+          'links': <String, String>{
+            'self': 'https://example.com/api/v1/transactions/tx-1',
+          },
         };
 
         final TransactionRead transaction = TransactionRead.fromJson(
@@ -289,7 +329,7 @@ void main() {
           'total',
           monthStart,
           monthEnd,
-          [],
+          <dynamic>[],
         );
 
         await repository.markStaleForTransaction(transaction);
@@ -303,11 +343,15 @@ void main() {
     test('markStaleForTransaction handles transaction with null date', () async {
       // Create a transaction with an empty transactions array to simulate null date
       // The markStaleForTransaction method checks firstOrNull?.date, so empty array means no date
-      final Map<String, dynamic> transactionJson = {
+      final Map<String, dynamic> transactionJson = <String, dynamic>{
         'type': 'transactions',
         'id': 'tx-1',
-        'attributes': {'transactions': <Map<String, dynamic>>[]},
-        'links': {'self': 'https://example.com/api/v1/transactions/tx-1'},
+        'attributes': <String, List<Map<String, dynamic>>>{
+          'transactions': <Map<String, dynamic>>[],
+        },
+        'links': <String, String>{
+          'self': 'https://example.com/api/v1/transactions/tx-1',
+        },
       };
 
       final TransactionRead transaction = TransactionRead.fromJson(
@@ -324,7 +368,13 @@ void main() {
       final DateTime start = DateTime(2024, 1, 1);
       final DateTime end = DateTime(2024, 1, 31);
 
-      await repository.cacheInsight('expense', 'total', start, end, []);
+      await repository.cacheInsight(
+        'expense',
+        'total',
+        start,
+        end,
+        <dynamic>[],
+      );
       await repository.markStale(start, end);
 
       List<Insights> staleInsights = await repository.getStaleInsights();
@@ -342,8 +392,20 @@ void main() {
       final DateTime start2 = DateTime(2024, 2, 1);
       final DateTime end2 = DateTime(2024, 2, 28);
 
-      await repository.cacheInsight('expense', 'total', start1, end1, []);
-      await repository.cacheInsight('income', 'total', start2, end2, []);
+      await repository.cacheInsight(
+        'expense',
+        'total',
+        start1,
+        end1,
+        <dynamic>[],
+      );
+      await repository.cacheInsight(
+        'income',
+        'total',
+        start2,
+        end2,
+        <dynamic>[],
+      );
 
       await repository.markStale(start1, end1);
 
@@ -358,7 +420,13 @@ void main() {
         final DateTime start = DateTime(2024, 1, 1);
         final DateTime end = DateTime(2024, 1, 31);
 
-        await repository.cacheInsight('expense', 'total', start, end, []);
+        await repository.cacheInsight(
+          'expense',
+          'total',
+          start,
+          end,
+          <dynamic>[],
+        );
 
         final List<Insights> staleInsights = await repository
             .getStaleInsights();
@@ -398,7 +466,13 @@ void main() {
       final DateTime start = DateTime(2024, 1, 1);
       final DateTime end = DateTime(2024, 1, 31);
 
-      await repository.cacheInsight('expense', 'total', start, end, []);
+      await repository.cacheInsight(
+        'expense',
+        'total',
+        start,
+        end,
+        <dynamic>[],
+      );
       final Insights? original = await isar.insights
           .filter()
           .insightTypeEqualTo('expense')
@@ -430,8 +504,8 @@ void main() {
       final DateTime start = DateTime(2024, 1, 1);
       final DateTime end = DateTime(2024, 1, 31);
 
-      final List<Map<String, dynamic>> data = [
-        {
+      final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+        <String, dynamic>{
           'id': '1',
           'name': 'Category 1',
           'difference': '100.00',
@@ -472,8 +546,8 @@ void main() {
       final DateTime start = DateTime(2024, 1, 1);
       final DateTime end = DateTime(2024, 1, 31);
 
-      final List<Map<String, dynamic>> data = [
-        {
+      final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+        <String, dynamic>{
           'id': '1',
           'name': 'Category 1',
           'difference': '100.00',
@@ -506,8 +580,12 @@ void main() {
       final DateTime start = DateTime(2024, 1, 1);
       final DateTime end = DateTime(2024, 1, 31);
 
-      final List<Map<String, dynamic>> data = [
-        {'currency_id': '1', 'currency_code': 'USD', 'difference': '100.00'},
+      final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+        <String, dynamic>{
+          'currency_id': '1',
+          'currency_code': 'USD',
+          'difference': '100.00',
+        },
       ];
 
       // Test no-category
@@ -545,9 +623,27 @@ void main() {
       final DateTime start3 = DateTime(2024, 3, 1);
       final DateTime end3 = DateTime(2024, 3, 31);
 
-      await repository.cacheInsight('expense', 'total', start1, end1, []);
-      await repository.cacheInsight('expense', 'total', start2, end2, []);
-      await repository.cacheInsight('expense', 'total', start3, end3, []);
+      await repository.cacheInsight(
+        'expense',
+        'total',
+        start1,
+        end1,
+        <dynamic>[],
+      );
+      await repository.cacheInsight(
+        'expense',
+        'total',
+        start2,
+        end2,
+        <dynamic>[],
+      );
+      await repository.cacheInsight(
+        'expense',
+        'total',
+        start3,
+        end3,
+        <dynamic>[],
+      );
 
       // Mark only February as stale
       await repository.markStale(start2, end2);
@@ -556,7 +652,7 @@ void main() {
       // Should mark insight 2 (February)
       expect(staleInsights.length, greaterThanOrEqualTo(1));
       final bool februaryStale = staleInsights.any(
-        (i) =>
+        (Insights i) =>
             i.insightType == 'expense' &&
             i.insightSubtype == 'total' &&
             i.startDate == start2 &&
@@ -582,8 +678,8 @@ void main() {
         final DateTime start = DateTime(2024, 1, 1);
         final DateTime end = DateTime(2024, 1, 31);
 
-        final List<ChartDataSet> chartData = [
-          ChartDataSet(
+        final List<ChartDataSet> chartData = <ChartDataSet>[
+          const ChartDataSet(
             label: 'Account 1',
             currencyId: '1',
             currencyCode: 'USD',
@@ -618,8 +714,8 @@ void main() {
         final DateTime start = DateTime(2024, 1, 1);
         final DateTime end = DateTime(2024, 1, 31);
 
-        final List<ChartDataSet> chartData = [
-          ChartDataSet(
+        final List<ChartDataSet> chartData = <ChartDataSet>[
+          const ChartDataSet(
             label: 'Account 1',
             currencyId: '1',
             currencyCode: 'USD',
@@ -650,8 +746,8 @@ void main() {
         final DateTime start = DateTime(2024, 1, 1);
         final DateTime end = DateTime(2024, 1, 31);
 
-        final List<ChartDataSet> chartData1 = [
-          ChartDataSet(
+        final List<ChartDataSet> chartData1 = <ChartDataSet>[
+          const ChartDataSet(
             label: 'Account 1',
             currencyId: '1',
             currencyCode: 'USD',
@@ -661,8 +757,8 @@ void main() {
           ),
         ];
 
-        final List<ChartDataSet> chartData2 = [
-          ChartDataSet(
+        final List<ChartDataSet> chartData2 = <ChartDataSet>[
+          const ChartDataSet(
             label: 'Account 2',
             currencyId: '2',
             currencyCode: 'EUR',
@@ -700,8 +796,8 @@ void main() {
         final DateTime start = DateTime(2024, 1, 1);
         final DateTime end = DateTime(2024, 1, 31);
 
-        final List<ChartDataSet> chartData = [
-          ChartDataSet(
+        final List<ChartDataSet> chartData = <ChartDataSet>[
+          const ChartDataSet(
             label: 'Account 1',
             currencyId: '1',
             currencyCode: 'USD',
@@ -736,8 +832,8 @@ void main() {
         final DateTime start2 = DateTime(2024, 2, 1);
         final DateTime end2 = DateTime(2024, 2, 28);
 
-        final List<ChartDataSet> chartData = [
-          ChartDataSet(
+        final List<ChartDataSet> chartData = <ChartDataSet>[
+          const ChartDataSet(
             label: 'Account 1',
             currencyId: '1',
             currencyCode: 'USD',

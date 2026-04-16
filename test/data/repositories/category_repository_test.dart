@@ -34,7 +34,7 @@ void main() {
     });
 
     test('create stores category', () async {
-      final CategoryRead category = CategoryRead(
+      final CategoryRead category = const CategoryRead(
         type: 'categories',
         id: 'test-1',
         attributes: CategoryProperties(name: 'Test Category'),
@@ -49,13 +49,13 @@ void main() {
     });
 
     test('search finds categories by query', () async {
-      final CategoryRead category1 = CategoryRead(
+      final CategoryRead category1 = const CategoryRead(
         type: 'categories',
         id: 'test-2',
         attributes: CategoryProperties(name: 'Food'),
       );
 
-      final CategoryRead category2 = CategoryRead(
+      final CategoryRead category2 = const CategoryRead(
         type: 'categories',
         id: 'test-3',
         attributes: CategoryProperties(name: 'Transport'),
@@ -70,13 +70,13 @@ void main() {
     });
 
     test('autocomplete returns matching category names', () async {
-      final CategoryRead category1 = CategoryRead(
+      final CategoryRead category1 = const CategoryRead(
         type: 'categories',
         id: 'test-4',
         attributes: CategoryProperties(name: 'Food & Dining'),
       );
 
-      final CategoryRead category2 = CategoryRead(
+      final CategoryRead category2 = const CategoryRead(
         type: 'categories',
         id: 'test-5',
         attributes: CategoryProperties(name: 'Transportation'),

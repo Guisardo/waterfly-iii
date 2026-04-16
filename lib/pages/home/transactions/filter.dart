@@ -120,12 +120,12 @@ class FilterDialog extends StatelessWidget {
       List<BudgetRead> budgets,
       List<BillRead> bills,
     ) = await (
-          accountRepo.getByType(enums.AccountTypeFilter.assetAccount),
-          currencyRepo.getAll(),
-          categoryRepo.getAll(),
-          budgetRepo.getAll(),
-          billRepo.getAll(),
-        ).wait;
+      accountRepo.getByType(enums.AccountTypeFilter.assetAccount),
+      currencyRepo.getAll(),
+      categoryRepo.getAll(),
+      budgetRepo.getAll(),
+      billRepo.getAll(),
+    ).wait;
 
     return FilterData(accounts, currencies, categories, budgets, bills);
   }

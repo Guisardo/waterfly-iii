@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
-import 'package:matcher/matcher.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_conflicts.dart';
 import 'package:waterflyiii/services/sync/conflict_resolver.dart';
 import '../../helpers/test_database.dart';
@@ -37,8 +36,9 @@ void main() {
         resolution: ConflictResolution.serverWins,
       );
 
-      final List<SyncConflicts> conflicts =
-          await isar.syncConflicts.where().findAll();
+      final List<SyncConflicts> conflicts = await isar.syncConflicts
+          .where()
+          .findAll();
       expect(conflicts.length, 1);
       expect(conflicts.first.entityType, 'transactions');
       expect(conflicts.first.entityId, 'tx-1');
@@ -130,8 +130,8 @@ void main() {
           resolution: ConflictResolution.serverWins,
         );
 
-        final List<SyncConflicts> conflicts =
-            await conflictResolver.getConflicts();
+        final List<SyncConflicts> conflicts = await conflictResolver
+            .getConflicts();
         expect(conflicts.length, 2);
       },
     );
@@ -162,12 +162,12 @@ void main() {
       // MockIsar filter may have limitations - verify at least one transaction conflict exists
       expect(conflicts.length, greaterThanOrEqualTo(0));
       // Verify all returned conflicts match the filter (if any returned)
-      for (final conflict in conflicts) {
+      for (final SyncConflicts conflict in conflicts) {
         expect(conflict.entityType, 'transactions');
       }
       // Verify we can retrieve all conflicts without filter
-      final List<SyncConflicts> allConflicts =
-          await conflictResolver.getConflicts();
+      final List<SyncConflicts> allConflicts = await conflictResolver
+          .getConflicts();
       expect(allConflicts.length, greaterThanOrEqualTo(2));
     });
 
@@ -239,8 +239,8 @@ void main() {
         resolution: ConflictResolution.serverWins,
       );
 
-      final List<SyncConflicts> conflicts =
-          await conflictResolver.getConflicts();
+      final List<SyncConflicts> conflicts = await conflictResolver
+          .getConflicts();
       expect(conflicts.length, 3);
       // Most recent first
       expect(conflicts.first.entityId, 'tx-3');

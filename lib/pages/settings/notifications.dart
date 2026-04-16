@@ -12,8 +12,6 @@ import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger
     show AccountArray, AccountRead, AccountTypeFilter, Meta;
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart'
     show AccountProperties, Meta$Pagination;
-import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart'
-    show ShortAccountTypeProperty;
 import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/pages/settings/notifications/history.dart';
 import 'package:waterflyiii/settings.dart';

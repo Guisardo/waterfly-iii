@@ -26,8 +26,9 @@ class AccountRepository {
 
   Future<List<AccountRead>> getAll() async {
     final List<Accounts> allRows = await isar.accounts.where().findAll();
-    final List<Accounts> rows =
-        allRows.where((Accounts r) => r.deletedAt == null).toList();
+    final List<Accounts> rows = allRows
+        .where((Accounts r) => r.deletedAt == null)
+        .toList();
     rows.sort((Accounts a, Accounts b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
@@ -43,8 +44,10 @@ class AccountRepository {
   }
 
   Future<AccountRead?> getById(String id) async {
-    final Accounts? row =
-        await isar.accounts.filter().accountIdEqualTo(id).findFirst();
+    final Accounts? row = await isar.accounts
+        .filter()
+        .accountIdEqualTo(id)
+        .findFirst();
     if (row == null) {
       return null;
     }
@@ -81,43 +84,40 @@ class AccountRepository {
 
     // Filter by type if provided
     if (type != null) {
-      filtered =
-          all.where((AccountRead account) {
-            final enums.ShortAccountTypeProperty accountType =
-                account.attributes.type;
-            final enums.AccountTypeFilter typeFilter = type;
-            switch (typeFilter) {
-              case enums.AccountTypeFilter.assetAccount:
-              case enums.AccountTypeFilter.asset:
-                return accountType == enums.ShortAccountTypeProperty.asset;
-              case enums.AccountTypeFilter.cashAccount:
-                return accountType == enums.ShortAccountTypeProperty.cash;
-              case enums.AccountTypeFilter.expenseAccount:
-              case enums.AccountTypeFilter.expense:
-                return accountType == enums.ShortAccountTypeProperty.expense;
-              case enums.AccountTypeFilter.revenueAccount:
-              case enums.AccountTypeFilter.revenue:
-                return accountType == enums.ShortAccountTypeProperty.revenue;
-              case enums.AccountTypeFilter.liabilities:
-              case enums.AccountTypeFilter.liability:
-                return accountType ==
-                        enums.ShortAccountTypeProperty.liability ||
-                    accountType == enums.ShortAccountTypeProperty.liabilities;
-              case enums.AccountTypeFilter.loan:
-              case enums.AccountTypeFilter.debt:
-              case enums.AccountTypeFilter.mortgage:
-                return accountType ==
-                        enums.ShortAccountTypeProperty.liability ||
-                    accountType == enums.ShortAccountTypeProperty.liabilities;
-              case enums.AccountTypeFilter.initialBalanceAccount:
-              case enums.AccountTypeFilter.reconciliationAccount:
-                // Internal account types, match to asset
-                return accountType == enums.ShortAccountTypeProperty.asset;
-              case enums.AccountTypeFilter.all:
-              default:
-                return true;
-            }
-          }).toList();
+      filtered = all.where((AccountRead account) {
+        final enums.ShortAccountTypeProperty accountType =
+            account.attributes.type;
+        final enums.AccountTypeFilter typeFilter = type;
+        switch (typeFilter) {
+          case enums.AccountTypeFilter.assetAccount:
+          case enums.AccountTypeFilter.asset:
+            return accountType == enums.ShortAccountTypeProperty.asset;
+          case enums.AccountTypeFilter.cashAccount:
+            return accountType == enums.ShortAccountTypeProperty.cash;
+          case enums.AccountTypeFilter.expenseAccount:
+          case enums.AccountTypeFilter.expense:
+            return accountType == enums.ShortAccountTypeProperty.expense;
+          case enums.AccountTypeFilter.revenueAccount:
+          case enums.AccountTypeFilter.revenue:
+            return accountType == enums.ShortAccountTypeProperty.revenue;
+          case enums.AccountTypeFilter.liabilities:
+          case enums.AccountTypeFilter.liability:
+            return accountType == enums.ShortAccountTypeProperty.liability ||
+                accountType == enums.ShortAccountTypeProperty.liabilities;
+          case enums.AccountTypeFilter.loan:
+          case enums.AccountTypeFilter.debt:
+          case enums.AccountTypeFilter.mortgage:
+            return accountType == enums.ShortAccountTypeProperty.liability ||
+                accountType == enums.ShortAccountTypeProperty.liabilities;
+          case enums.AccountTypeFilter.initialBalanceAccount:
+          case enums.AccountTypeFilter.reconciliationAccount:
+            // Internal account types, match to asset
+            return accountType == enums.ShortAccountTypeProperty.asset;
+          case enums.AccountTypeFilter.all:
+          default:
+            return true;
+        }
+      }).toList();
     }
 
     // Apply pagination
@@ -144,11 +144,10 @@ class AccountRepository {
   }) async {
     final List<AccountRead> filtered = await getByType(type);
     final String queryLower = query.toLowerCase();
-    final List<AccountRead> results =
-        filtered.where((AccountRead account) {
-          final String json = jsonEncode(account.toJson());
-          return json.toLowerCase().contains(queryLower);
-        }).toList();
+    final List<AccountRead> results = filtered.where((AccountRead account) {
+      final String json = jsonEncode(account.toJson());
+      return json.toLowerCase().contains(queryLower);
+    }).toList();
 
     // Apply pagination
     if (page != null && limit != null) {
@@ -171,65 +170,58 @@ class AccountRepository {
     List<enums.AccountTypeFilter>? types,
   }) async {
     // Fetch all accounts if multiple types are provided, otherwise use getByType for efficiency
-    final List<AccountRead> accounts =
-        (types != null && types.length > 1)
-            ? await getAll()
-            : await getByType(
-              (types?.isNotEmpty ?? false) ? types!.first : null,
-            );
+    final List<AccountRead> accounts = (types != null && types.length > 1)
+        ? await getAll()
+        : await getByType((types?.isNotEmpty ?? false) ? types!.first : null);
 
     // Filter by query if provided
     List<AccountRead> filtered = accounts;
     if (query != null && query.isNotEmpty) {
       final String queryLower = query.toLowerCase();
-      filtered =
-          accounts.where((AccountRead account) {
-            return account.attributes.name.toLowerCase().contains(queryLower);
-          }).toList();
+      filtered = accounts.where((AccountRead account) {
+        return account.attributes.name.toLowerCase().contains(queryLower);
+      }).toList();
     }
 
     // Filter by types if provided
     if (types != null && types.isNotEmpty) {
-      filtered =
-          filtered.where((AccountRead account) {
-            final enums.ShortAccountTypeProperty accountType =
-                account.attributes.type;
-            final List<enums.AccountTypeFilter> typesList = types;
-            return typesList.any((enums.AccountTypeFilter type) {
-              switch (type) {
-                case enums.AccountTypeFilter.assetAccount:
-                case enums.AccountTypeFilter.asset:
-                  return accountType == enums.ShortAccountTypeProperty.asset;
-                case enums.AccountTypeFilter.cashAccount:
-                  return accountType == enums.ShortAccountTypeProperty.cash;
-                case enums.AccountTypeFilter.expenseAccount:
-                case enums.AccountTypeFilter.expense:
-                  return accountType == enums.ShortAccountTypeProperty.expense;
-                case enums.AccountTypeFilter.revenueAccount:
-                case enums.AccountTypeFilter.revenue:
-                  return accountType == enums.ShortAccountTypeProperty.revenue;
-                case enums.AccountTypeFilter.liabilities:
-                case enums.AccountTypeFilter.liability:
-                  return accountType ==
-                          enums.ShortAccountTypeProperty.liability ||
-                      accountType == enums.ShortAccountTypeProperty.liabilities;
-                case enums.AccountTypeFilter.loan:
-                case enums.AccountTypeFilter.debt:
-                case enums.AccountTypeFilter.mortgage:
-                  return accountType ==
-                          enums.ShortAccountTypeProperty.liability ||
-                      accountType == enums.ShortAccountTypeProperty.liabilities;
-                case enums.AccountTypeFilter.initialBalanceAccount:
-                case enums.AccountTypeFilter.reconciliationAccount:
-                  // These are internal account types, typically not shown in autocomplete
-                  // but we match them to allow selection if needed
-                  return accountType == enums.ShortAccountTypeProperty.asset;
-                case enums.AccountTypeFilter.all:
-                default:
-                  return true;
-              }
-            });
-          }).toList();
+      filtered = filtered.where((AccountRead account) {
+        final enums.ShortAccountTypeProperty accountType =
+            account.attributes.type;
+        final List<enums.AccountTypeFilter> typesList = types;
+        return typesList.any((enums.AccountTypeFilter type) {
+          switch (type) {
+            case enums.AccountTypeFilter.assetAccount:
+            case enums.AccountTypeFilter.asset:
+              return accountType == enums.ShortAccountTypeProperty.asset;
+            case enums.AccountTypeFilter.cashAccount:
+              return accountType == enums.ShortAccountTypeProperty.cash;
+            case enums.AccountTypeFilter.expenseAccount:
+            case enums.AccountTypeFilter.expense:
+              return accountType == enums.ShortAccountTypeProperty.expense;
+            case enums.AccountTypeFilter.revenueAccount:
+            case enums.AccountTypeFilter.revenue:
+              return accountType == enums.ShortAccountTypeProperty.revenue;
+            case enums.AccountTypeFilter.liabilities:
+            case enums.AccountTypeFilter.liability:
+              return accountType == enums.ShortAccountTypeProperty.liability ||
+                  accountType == enums.ShortAccountTypeProperty.liabilities;
+            case enums.AccountTypeFilter.loan:
+            case enums.AccountTypeFilter.debt:
+            case enums.AccountTypeFilter.mortgage:
+              return accountType == enums.ShortAccountTypeProperty.liability ||
+                  accountType == enums.ShortAccountTypeProperty.liabilities;
+            case enums.AccountTypeFilter.initialBalanceAccount:
+            case enums.AccountTypeFilter.reconciliationAccount:
+              // These are internal account types, typically not shown in autocomplete
+              // but we match them to allow selection if needed
+              return accountType == enums.ShortAccountTypeProperty.asset;
+            case enums.AccountTypeFilter.all:
+            default:
+              return true;
+          }
+        });
+      }).toList();
     }
 
     // Sort filtered accounts: assets first, then by name
@@ -270,56 +262,53 @@ class AccountRepository {
       for (final CurrencyRead currency in currencies) currency.id: currency,
     };
 
-    final List<AutocompleteAccount> result =
-        filtered.map((AccountRead account) {
-          final CurrencyRead? currency =
-              account.attributes.currencyId != null
-                  ? currencyMap[account.attributes.currencyId]
-                  : null;
-          final String nameWithBalance =
-              account.attributes.currentBalance != null
-                  ? '${account.attributes.name} (${account.attributes.currentBalance})'
-                  : account.attributes.name;
+    final List<AutocompleteAccount> result = filtered.map((
+      AccountRead account,
+    ) {
+      final CurrencyRead? currency = account.attributes.currencyId != null
+          ? currencyMap[account.attributes.currencyId]
+          : null;
+      final String nameWithBalance = account.attributes.currentBalance != null
+          ? '${account.attributes.name} (${account.attributes.currentBalance})'
+          : account.attributes.name;
 
-          // Convert ShortAccountTypeProperty to AccountTypeProperty value string
-          String getAccountTypeValue(enums.ShortAccountTypeProperty type) {
-            switch (type) {
-              case enums.ShortAccountTypeProperty.asset:
-                return 'Asset account';
-              case enums.ShortAccountTypeProperty.cash:
-                return 'Cash account';
-              case enums.ShortAccountTypeProperty.expense:
-                return 'Expense account';
-              case enums.ShortAccountTypeProperty.revenue:
-                return 'Revenue account';
-              case enums.ShortAccountTypeProperty.liability:
-              case enums.ShortAccountTypeProperty.liabilities:
-                return 'Debt'; // or 'Loan' or 'Mortgage' - default to Debt
-              default:
-                return 'Asset account';
-            }
-          }
+      // Convert ShortAccountTypeProperty to AccountTypeProperty value string
+      String getAccountTypeValue(enums.ShortAccountTypeProperty type) {
+        switch (type) {
+          case enums.ShortAccountTypeProperty.asset:
+            return 'Asset account';
+          case enums.ShortAccountTypeProperty.cash:
+            return 'Cash account';
+          case enums.ShortAccountTypeProperty.expense:
+            return 'Expense account';
+          case enums.ShortAccountTypeProperty.revenue:
+            return 'Revenue account';
+          case enums.ShortAccountTypeProperty.liability:
+          case enums.ShortAccountTypeProperty.liabilities:
+            return 'Debt'; // or 'Loan' or 'Mortgage' - default to Debt
+          default:
+            return 'Asset account';
+        }
+      }
 
-          return AutocompleteAccount(
-            id: account.id,
-            name: account.attributes.name,
-            nameWithBalance: nameWithBalance,
-            active: account.attributes.active,
-            type: getAccountTypeValue(account.attributes.type),
-            currencyId: account.attributes.currencyId ?? '',
-            currencyName: currency?.attributes.name ?? '',
-            currencyCode: account.attributes.currencyCode ?? '',
-            currencySymbol: account.attributes.currencySymbol ?? '',
-            currencyDecimalPlaces:
-                account.attributes.currencyDecimalPlaces ?? 2,
-            accountCurrencyId: account.attributes.currencyId,
-            accountCurrencyName: currency?.attributes.name,
-            accountCurrencyCode: account.attributes.currencyCode,
-            accountCurrencySymbol: account.attributes.currencySymbol,
-            accountCurrencyDecimalPlaces:
-                account.attributes.currencyDecimalPlaces,
-          );
-        }).toList();
+      return AutocompleteAccount(
+        id: account.id,
+        name: account.attributes.name,
+        nameWithBalance: nameWithBalance,
+        active: account.attributes.active,
+        type: getAccountTypeValue(account.attributes.type),
+        currencyId: account.attributes.currencyId ?? '',
+        currencyName: currency?.attributes.name ?? '',
+        currencyCode: account.attributes.currencyCode ?? '',
+        currencySymbol: account.attributes.currencySymbol ?? '',
+        currencyDecimalPlaces: account.attributes.currencyDecimalPlaces ?? 2,
+        accountCurrencyId: account.attributes.currencyId,
+        accountCurrencyName: currency?.attributes.name,
+        accountCurrencyCode: account.attributes.currencyCode,
+        accountCurrencySymbol: account.attributes.currencySymbol,
+        accountCurrencyDecimalPlaces: account.attributes.currencyDecimalPlaces,
+      );
+    }).toList();
     return result;
   }
 
@@ -327,23 +316,21 @@ class AccountRepository {
     final DateTime now = _getNow();
     final DateTime? updatedAt = account.attributes.updatedAt;
 
-    final Accounts row =
-        Accounts()
-          ..accountId = account.id
-          ..data = jsonEncode(account.toJson())
-          ..updatedAt = updatedAt
-          ..localUpdatedAt = now
-          ..synced = false;
+    final Accounts row = Accounts()
+      ..accountId = account.id
+      ..data = jsonEncode(account.toJson())
+      ..updatedAt = updatedAt
+      ..localUpdatedAt = now
+      ..synced = false;
 
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'accounts'
-          ..entityId = null
-          ..operation = PendingChangeOperation.create.name
-          ..data = jsonEncode(account.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
+    final PendingChanges pendingChange = PendingChanges()
+      ..entityType = 'accounts'
+      ..entityId = null
+      ..operation = PendingChangeOperation.create.name
+      ..data = jsonEncode(account.toJson())
+      ..createdAt = now
+      ..retryCount = 0
+      ..synced = false;
 
     await isar.writeTxn(() async {
       await isar.accounts.put(row);
@@ -354,18 +341,19 @@ class AccountRepository {
   Future<void> update(AccountRead account) async {
     final DateTime now = _getNow();
 
-    final Accounts? existing =
-        await isar.accounts.filter().accountIdEqualTo(account.id).findFirst();
+    final Accounts? existing = await isar.accounts
+        .filter()
+        .accountIdEqualTo(account.id)
+        .findFirst();
 
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'accounts'
-          ..entityId = account.id
-          ..operation = PendingChangeOperation.update.name
-          ..data = jsonEncode(account.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
+    final PendingChanges pendingChange = PendingChanges()
+      ..entityType = 'accounts'
+      ..entityId = account.id
+      ..operation = PendingChangeOperation.update.name
+      ..data = jsonEncode(account.toJson())
+      ..createdAt = now
+      ..retryCount = 0
+      ..synced = false;
 
     if (existing != null) {
       existing
@@ -387,18 +375,19 @@ class AccountRepository {
   Future<void> delete(String id) async {
     final DateTime now = _getNow();
 
-    final Accounts? existing =
-        await isar.accounts.filter().accountIdEqualTo(id).findFirst();
+    final Accounts? existing = await isar.accounts
+        .filter()
+        .accountIdEqualTo(id)
+        .findFirst();
 
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'accounts'
-          ..entityId = id
-          ..operation = PendingChangeOperation.delete.name
-          ..data = null
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
+    final PendingChanges pendingChange = PendingChanges()
+      ..entityType = 'accounts'
+      ..entityId = id
+      ..operation = PendingChangeOperation.delete.name
+      ..data = null
+      ..createdAt = now
+      ..retryCount = 0
+      ..synced = false;
 
     if (existing != null) {
       existing.deletedAt = _getNow();
@@ -418,29 +407,29 @@ class AccountRepository {
     final DateTime now = _getNow();
 
     // Check if account already exists
-    final Accounts? existing =
-        await isar.accounts.filter().accountIdEqualTo(account.id).findFirst();
+    final Accounts? existing = await isar.accounts
+        .filter()
+        .accountIdEqualTo(account.id)
+        .findFirst();
 
     if (existing?.deletedAt != null) return; // locally deleted, keep tombstone
 
     final Accounts row;
     if (existing != null) {
       // Update existing account
-      row =
-          existing
-            ..data = jsonEncode(account.toJson())
-            ..updatedAt = updatedAt
-            ..localUpdatedAt = now
-            ..synced = true;
+      row = existing
+        ..data = jsonEncode(account.toJson())
+        ..updatedAt = updatedAt
+        ..localUpdatedAt = now
+        ..synced = true;
     } else {
       // Create new account
-      row =
-          Accounts()
-            ..accountId = account.id
-            ..data = jsonEncode(account.toJson())
-            ..updatedAt = updatedAt
-            ..localUpdatedAt = now
-            ..synced = true;
+      row = Accounts()
+        ..accountId = account.id
+        ..data = jsonEncode(account.toJson())
+        ..updatedAt = updatedAt
+        ..localUpdatedAt = now
+        ..synced = true;
     }
 
     await isar.writeTxn(() async {

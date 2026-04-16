@@ -34,7 +34,7 @@ void main() {
     });
 
     test('create stores piggy bank', () async {
-      final PiggyBankRead piggyBank = PiggyBankRead(
+      final PiggyBankRead piggyBank = const PiggyBankRead(
         type: 'piggy_banks',
         id: 'test-1',
         attributes: PiggyBankProperties(
@@ -58,7 +58,7 @@ void main() {
     });
 
     test('search finds piggy banks by query', () async {
-      final PiggyBankRead piggyBank1 = PiggyBankRead(
+      final PiggyBankRead piggyBank1 = const PiggyBankRead(
         type: 'piggy_banks',
         id: 'test-2',
         attributes: PiggyBankProperties(
@@ -73,7 +73,7 @@ void main() {
         ),
       );
 
-      final PiggyBankRead piggyBank2 = PiggyBankRead(
+      final PiggyBankRead piggyBank2 = const PiggyBankRead(
         type: 'piggy_banks',
         id: 'test-3',
         attributes: PiggyBankProperties(
@@ -97,7 +97,7 @@ void main() {
     });
 
     test('upsertFromSync creates new piggy bank if not exists', () async {
-      final PiggyBankRead piggyBank = PiggyBankRead(
+      final PiggyBankRead piggyBank = const PiggyBankRead(
         type: 'piggy_banks',
         id: 'test-4',
         attributes: PiggyBankProperties(

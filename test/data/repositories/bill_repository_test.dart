@@ -34,7 +34,7 @@ void main() {
     });
 
     test('create stores bill', () async {
-      final BillRead bill = BillRead(
+      final BillRead bill = const BillRead(
         type: 'bills',
         id: 'test-1',
         attributes: BillProperties(
@@ -55,7 +55,7 @@ void main() {
     });
 
     test('search finds bills by query', () async {
-      final BillRead bill1 = BillRead(
+      final BillRead bill1 = const BillRead(
         type: 'bills',
         id: 'test-2',
         attributes: BillProperties(
@@ -67,7 +67,7 @@ void main() {
         ),
       );
 
-      final BillRead bill2 = BillRead(
+      final BillRead bill2 = const BillRead(
         type: 'bills',
         id: 'test-3',
         attributes: BillProperties(
@@ -88,7 +88,7 @@ void main() {
     });
 
     test('upsertFromSync creates new bill if not exists', () async {
-      final BillRead bill = BillRead(
+      final BillRead bill = const BillRead(
         type: 'bills',
         id: 'test-4',
         attributes: BillProperties(

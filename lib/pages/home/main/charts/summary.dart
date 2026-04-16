@@ -57,7 +57,9 @@ class _SummaryChartState extends State<SummaryChart> {
       }
 
       // Skip series with all zeros to avoid rendering issues
-      final bool hasNonZeroValues = chartPoints.any((TimeSeriesChart p) => p.value != 0.0);
+      final bool hasNonZeroValues = chartPoints.any(
+        (TimeSeriesChart p) => p.value != 0.0,
+      );
       if (!hasNonZeroValues && chartPoints.isNotEmpty) {
         continue;
       }
@@ -81,50 +83,49 @@ class _SummaryChartState extends State<SummaryChart> {
     // Create a unique key based on data version and data hash to force complete recreation
     final int dataHash = data.fold<int>(
       0,
-      (int sum, ChartDataSet e) => sum + (e.label?.hashCode ?? 0) + e.toChart().length,
+      (int sum, ChartDataSet e) =>
+          sum + (e.label?.hashCode ?? 0) + e.toChart().length,
     );
     final int? version = dataVersion;
-    final Key chartKey =
-        version != null
-            ? ValueKey<String>('summary-$version-$dataHash')
-            : ValueKey<int>(dataHash);
+    final Key chartKey = version != null
+        ? ValueKey<String>('summary-$version-$dataHash')
+        : ValueKey<int>(dataHash);
     // Wrap chart in SizedBox with explicit width to ensure proper rendering
     return SizedBox(
       width: double.infinity,
       child: SfCartesianChart(
         key: chartKey,
         primaryXAxis: DateTimeAxis(
-        labelStyle: Theme.of(
-          context,
-        ).textTheme.labelMedium?.copyWith(fontWeight: .normal),
-        dateFormat: DateFormat(DateFormat.ABBR_MONTH_DAY),
-        axisLine: AxisLine(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          labelStyle: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(fontWeight: .normal),
+          dateFormat: DateFormat(DateFormat.ABBR_MONTH_DAY),
+          axisLine: AxisLine(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          minorTicksPerInterval: 1,
         ),
-        minorTicksPerInterval: 1,
+        primaryYAxis: NumericAxis(
+          labelStyle: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(fontWeight: .normal),
+          axisLine: AxisLine(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          axisLabelFormatter: (AxisLabelRenderDetails args) => ChartAxisLabel(
+            NumberFormat().format(double.parse(args.text)),
+            args.textStyle,
+          ),
+          minimum: minValue != double.infinity ? minValue : null,
+          maximum: maxValue != double.negativeInfinity ? maxValue : null,
+        ),
+        series: chartData,
+        palette: possibleChartColorsDart,
+        enableAxisAnimation: true,
       ),
-      primaryYAxis: NumericAxis(
-        labelStyle: Theme.of(
-          context,
-        ).textTheme.labelMedium?.copyWith(fontWeight: .normal),
-        axisLine: AxisLine(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-        axisLabelFormatter: (AxisLabelRenderDetails args) => ChartAxisLabel(
-          NumberFormat().format(double.parse(args.text)),
-          args.textStyle,
-        ),
-        minimum: minValue != double.infinity ? minValue : null,
-        maximum: maxValue != double.negativeInfinity ? maxValue : null,
-      ),
-      series: chartData,
-      palette: possibleChartColorsDart,
-      enableAxisAnimation: true,
-    ),
     );
   }
 }
-
 
 class SummaryChartPopup extends StatefulWidget {
   const SummaryChartPopup({super.key});
