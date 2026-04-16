@@ -452,13 +452,12 @@ void main() {
       expect(retrieved, isNull);
 
       // Verify pending change was created
-      final List<PendingChanges> pending =
-          await isar.pendingChanges
-              .filter()
-              .entityTypeEqualTo('attachments')
-              .findAll();
+      final List<PendingChanges> pending = await isar.pendingChanges
+          .filter()
+          .entityTypeEqualTo('attachments')
+          .findAll();
       expect(pending.length, 1);
-      expect(pending.first.operation, 'DELETE');
+      expect(pending.first.operation, PendingChangeOperation.delete.name);
       expect(pending.first.entityId, 'attach-1');
       expect(pending.first.synced, false);
     });
@@ -468,13 +467,12 @@ void main() {
       () async {
         await repository.delete('nonexistent');
 
-        final List<PendingChanges> pending =
-            await isar.pendingChanges
-                .filter()
-                .entityTypeEqualTo('attachments')
-                .findAll();
+        final List<PendingChanges> pending = await isar.pendingChanges
+            .filter()
+            .entityTypeEqualTo('attachments')
+            .findAll();
         expect(pending.length, 1);
-        expect(pending.first.operation, 'DELETE');
+        expect(pending.first.operation, PendingChangeOperation.delete.name);
         expect(pending.first.entityId, 'nonexistent');
       },
     );

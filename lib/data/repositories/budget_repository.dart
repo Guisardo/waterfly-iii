@@ -15,7 +15,9 @@ class BudgetRepository {
   DateTime _getNow() => DateTime.now().toUtc();
 
   Future<List<BudgetRead>> getAll() async {
-    final List<Budgets> rows = await isar.budgets.where().findAll();
+    final List<Budgets> allRows = await isar.budgets.where().findAll();
+    final List<Budgets> rows =
+        allRows.where((Budgets r) => r.deletedAt == null).toList();
     rows.sort((Budgets a, Budgets b) {
       final DateTime? dateA = a.updatedAt ?? a.localUpdatedAt;
       final DateTime? dateB = b.updatedAt ?? b.localUpdatedAt;
@@ -36,6 +38,7 @@ class BudgetRepository {
     if (row == null) {
       return null;
     }
+    if (row.deletedAt != null) return null;
     final BudgetRead budget = BudgetRead.fromJson(
       jsonDecode(row.data) as Map<String, dynamic>,
     );
@@ -79,21 +82,18 @@ class BudgetRepository {
           ..localUpdatedAt = now
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.budgets.put(row);
-    });
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'budgets'
           ..entityId = null
-          ..operation = 'CREATE'
+          ..operation = PendingChangeOperation.create.name
           ..data = jsonEncode(budget.toJson())
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
     await isar.writeTxn(() async {
+      await isar.budgets.put(row);
       await isar.pendingChanges.put(pendingChange);
     });
   }
@@ -104,6 +104,16 @@ class BudgetRepository {
     final Budgets? existing =
         await isar.budgets.filter().budgetIdEqualTo(budget.id).findFirst();
 
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'budgets'
+          ..entityId = budget.id
+          ..operation = PendingChangeOperation.update.name
+          ..data = jsonEncode(budget.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
     if (existing != null) {
       existing
         ..data = jsonEncode(budget.toJson())
@@ -112,22 +122,13 @@ class BudgetRepository {
 
       await isar.writeTxn(() async {
         await isar.budgets.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
       });
     }
-
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'budgets'
-          ..entityId = budget.id
-          ..operation = 'UPDATE'
-          ..data = jsonEncode(budget.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
-
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
   }
 
   Future<void> delete(String id) async {
@@ -136,40 +137,55 @@ class BudgetRepository {
     final Budgets? existing =
         await isar.budgets.filter().budgetIdEqualTo(id).findFirst();
 
-    if (existing != null) {
-      existing.synced = false;
-
-      await isar.writeTxn(() async {
-        await isar.budgets.put(existing);
-      });
-    }
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'budgets'
           ..entityId = id
-          ..operation = 'DELETE'
+          ..operation = PendingChangeOperation.delete.name
           ..data = null
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
+    if (existing != null) {
+      existing.deletedAt = _getNow();
+      await isar.writeTxn(() async {
+        await isar.budgets.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
+      });
+    }
   }
 
   Future<void> upsertFromSync(BudgetRead budget) async {
     final DateTime? updatedAt = budget.attributes.updatedAt;
     final DateTime now = _getNow();
 
-    final Budgets row =
-        Budgets()
-          ..budgetId = budget.id
-          ..data = jsonEncode(budget.toJson())
-          ..updatedAt = updatedAt
-          ..localUpdatedAt = now
-          ..synced = true;
+    final Budgets? existing =
+        await isar.budgets.filter().budgetIdEqualTo(budget.id).findFirst();
+
+    if (existing?.deletedAt != null) return; // locally deleted, keep tombstone
+
+    final Budgets row;
+    if (existing != null) {
+      row =
+          existing
+            ..data = jsonEncode(budget.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    } else {
+      row =
+          Budgets()
+            ..budgetId = budget.id
+            ..data = jsonEncode(budget.toJson())
+            ..updatedAt = updatedAt
+            ..localUpdatedAt = now
+            ..synced = true;
+    }
 
     await isar.writeTxn(() async {
       await isar.budgets.put(row);
@@ -241,21 +257,18 @@ class BudgetRepository {
           ..localUpdatedAt = now
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.budgetLimits.put(row);
-    });
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'budget_limits'
           ..entityId = null
-          ..operation = 'CREATE'
+          ..operation = PendingChangeOperation.create.name
           ..data = jsonEncode(budgetLimit.toJson())
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
     await isar.writeTxn(() async {
+      await isar.budgetLimits.put(row);
       await isar.pendingChanges.put(pendingChange);
     });
   }
@@ -269,6 +282,16 @@ class BudgetRepository {
             .budgetLimitIdEqualTo(budgetLimit.id)
             .findFirst();
 
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'budget_limits'
+          ..entityId = budgetLimit.id
+          ..operation = PendingChangeOperation.update.name
+          ..data = jsonEncode(budgetLimit.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
     if (existing != null) {
       existing
         ..data = jsonEncode(budgetLimit.toJson())
@@ -277,22 +300,13 @@ class BudgetRepository {
 
       await isar.writeTxn(() async {
         await isar.budgetLimits.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
       });
     }
-
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'budget_limits'
-          ..entityId = budgetLimit.id
-          ..operation = 'UPDATE'
-          ..data = jsonEncode(budgetLimit.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
-
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
   }
 
   Future<void> deleteBudgetLimit(String id) async {
@@ -301,27 +315,28 @@ class BudgetRepository {
     final BudgetLimits? existing =
         await isar.budgetLimits.filter().budgetLimitIdEqualTo(id).findFirst();
 
-    if (existing != null) {
-      existing.synced = false;
-
-      await isar.writeTxn(() async {
-        await isar.budgetLimits.put(existing);
-      });
-    }
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'budget_limits'
           ..entityId = id
-          ..operation = 'DELETE'
+          ..operation = PendingChangeOperation.delete.name
           ..data = null
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
+    if (existing != null) {
+      existing.synced = false;
+
+      await isar.writeTxn(() async {
+        await isar.budgetLimits.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
+      });
+    }
   }
 
   Future<void> upsertBudgetLimitFromSync(BudgetLimitRead budgetLimit) async {

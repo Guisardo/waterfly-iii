@@ -63,13 +63,12 @@ void main() {
       expect(retrieved!.id, 'test-1');
 
       // Verify pending change was created
-      final List<PendingChanges> pending =
-          await isar.pendingChanges
-              .filter()
-              .entityTypeEqualTo('transactions')
-              .findAll();
+      final List<PendingChanges> pending = await isar.pendingChanges
+          .filter()
+          .entityTypeEqualTo('transactions')
+          .findAll();
       expect(pending.length, 1);
-      expect(pending.first.operation, 'CREATE');
+      expect(pending.first.operation, PendingChangeOperation.create.name);
     });
 
     test('update modifies existing transaction', () async {
@@ -145,12 +144,11 @@ void main() {
       expect(retrieved, isNull);
 
       // Verify delete pending change was created
-      final List<PendingChanges> pending =
-          await isar.pendingChanges
-              .filter()
-              .entityTypeEqualTo('transactions')
-              .operationEqualTo('DELETE')
-              .findAll();
+      final List<PendingChanges> pending = await isar.pendingChanges
+          .filter()
+          .entityTypeEqualTo('transactions')
+          .operationEqualTo('DELETE')
+          .findAll();
       expect(pending.length, greaterThan(0));
     });
 

@@ -17,4 +17,6 @@ class Currencies {
 
   @Index()
   bool synced = false;
+
+  DateTime? deletedAt;
 }

@@ -19,10 +19,12 @@ import 'package:waterflyiii/data/repositories/piggy_bank_repository.dart';
 import 'package:waterflyiii/data/repositories/tag_repository.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/sync/conflict_resolver.dart'
     show ConflictResolver, ConflictType, ConflictResolution;
 import 'package:waterflyiii/services/sync/retry_manager.dart';
+import 'package:waterflyiii/services/sync/sync_error_classifier.dart';
 import 'package:waterflyiii/services/sync/sync_notifications.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/timezonehandler.dart';
@@ -253,10 +255,10 @@ class SyncService extends ChangeNotifier {
           );
           // Re-throw network/timeout/server errors so they pause the entire sync
           // Other errors (like auth errors) should also bubble up
-          if (_isNetworkError(e) ||
-              _isTimeoutError(e) ||
-              _isServerError(e) ||
-              _isAuthError(e)) {
+          if (SyncErrorClassifier.isNetworkError(e) ||
+              SyncErrorClassifier.isTimeoutError(e) ||
+              SyncErrorClassifier.isServerError(e) ||
+              SyncErrorClassifier.isAuthError(e)) {
             rethrow;
           }
           // Continue with other entity types for non-critical errors
@@ -303,13 +305,15 @@ class SyncService extends ChangeNotifier {
       log.severe("Sync failed", e, stackTrace);
 
       // Handle errors
-      if (_isNetworkError(e) || _isTimeoutError(e) || _isServerError(e)) {
+      if (SyncErrorClassifier.isNetworkError(e) ||
+          SyncErrorClassifier.isTimeoutError(e) ||
+          SyncErrorClassifier.isServerError(e)) {
         await retryManager.pauseWithBackoff(
           entityType ?? 'download',
           e.toString(),
         );
         await notifications.showSyncPaused(e.toString());
-      } else if (_isAuthError(e)) {
+      } else if (SyncErrorClassifier.isAuthError(e)) {
         // Auth error from an entity endpoint — token is likely expired or revoked.
         // In Firefly III all endpoints share the same Bearer token auth, so a
         // 401 from any entity is a genuine credential failure.
@@ -485,6 +489,7 @@ class SyncService extends ChangeNotifier {
             }
           }
 
+          if (await _hasPendingChange('transactions', transaction.id)) continue;
           await repo.upsertFromSync(transaction);
           totalSynced++;
         }
@@ -540,10 +545,10 @@ class SyncService extends ChangeNotifier {
         if (lastSync != null &&
             updatedAt != null &&
             updatedAt.isBefore(lastSync)) {
-          hasMore = false;
-          break;
+          continue;
         }
 
+        if (await _hasPendingChange('accounts', account.id)) continue;
         await repo.upsertFromSync(account);
       }
 
@@ -583,10 +588,10 @@ class SyncService extends ChangeNotifier {
         if (lastSync != null &&
             updatedAt != null &&
             updatedAt.isBefore(lastSync)) {
-          hasMore = false;
-          break;
+          continue;
         }
 
+        if (await _hasPendingChange('categories', category.id)) continue;
         await repo.upsertFromSync(category);
       }
 
@@ -624,10 +629,10 @@ class SyncService extends ChangeNotifier {
         if (lastSync != null &&
             updatedAt != null &&
             updatedAt.isBefore(lastSync)) {
-          hasMore = false;
-          break;
+          continue;
         }
 
+        if (await _hasPendingChange('tags', tag.id)) continue;
         await repo.upsertFromSync(tag);
       }
 
@@ -665,10 +670,10 @@ class SyncService extends ChangeNotifier {
         if (lastSync != null &&
             updatedAt != null &&
             updatedAt.isBefore(lastSync)) {
-          hasMore = false;
-          break;
+          continue;
         }
 
+        if (await _hasPendingChange('bills', bill.id)) continue;
         await repo.upsertFromSync(bill);
       }
 
@@ -706,10 +711,10 @@ class SyncService extends ChangeNotifier {
         if (lastSync != null &&
             updatedAt != null &&
             updatedAt.isBefore(lastSync)) {
-          hasMore = false;
-          break;
+          continue;
         }
 
+        if (await _hasPendingChange('budgets', budget.id)) continue;
         await repo.upsertFromSync(budget);
       }
 
@@ -795,6 +800,7 @@ class SyncService extends ChangeNotifier {
     }
 
     for (final CurrencyRead currency in response.body!.data) {
+      if (await _hasPendingChange('currencies', currency.id)) continue;
       await repo.upsertFromSync(currency);
     }
   }
@@ -826,10 +832,10 @@ class SyncService extends ChangeNotifier {
         if (lastSync != null &&
             updatedAt != null &&
             updatedAt.isBefore(lastSync)) {
-          hasMore = false;
-          break;
+          continue;
         }
 
+        if (await _hasPendingChange('piggy_banks', piggyBank.id)) continue;
         await repo.upsertFromSync(piggyBank);
       }
 
@@ -1035,7 +1041,6 @@ class SyncService extends ChangeNotifier {
 
   Future<void> _prefetchCommonInsights() async {
     final InsightRepository insightRepo = InsightRepository(isar);
-    insightRepo.setFireflyService(fireflyService);
     final FireflyIii api = fireflyService.api;
     final TimeZoneHandler tzHandler = fireflyService.tzHandler;
 
@@ -1263,75 +1268,17 @@ class SyncService extends ChangeNotifier {
     }
   }
 
-  /// Detects network-related errors that should trigger retry with backoff
-  bool _isNetworkError(dynamic error) {
-    // Check for actual exception types first
-    if (error is Exception) {
-      final String errorStr = error.toString().toLowerCase();
-      return errorStr.contains('socketexception') ||
-          errorStr.contains('networkexception') ||
-          errorStr.contains('failed host lookup') ||
-          errorStr.contains('connection refused') ||
-          errorStr.contains('connection reset') ||
-          errorStr.contains('connection timed out') ||
-          errorStr.contains('no internet connection') ||
-          errorStr.contains('network is unreachable') ||
-          errorStr.contains('err_network_changed') ||
-          errorStr.contains('cronet') ||
-          errorStr.contains('clientexception');
-    }
-    // Fallback to string matching
-    final String errorStr = error.toString().toLowerCase();
-    return errorStr.contains('socketexception') ||
-        errorStr.contains('networkexception') ||
-        errorStr.contains('failed host lookup') ||
-        errorStr.contains('connection refused') ||
-        errorStr.contains('connection reset') ||
-        errorStr.contains('err_network_changed') ||
-        errorStr.contains('cronet') ||
-        errorStr.contains('clientexception');
-  }
-
-  /// Detects timeout errors that should trigger retry with backoff
-  bool _isTimeoutError(dynamic error) {
-    if (error is Response) {
-      // HTTP 408 Request Timeout
-      if (error.statusCode == 408) {
-        return true;
-      }
-    }
-    final String errorStr = error.toString().toLowerCase();
-    return errorStr.contains('timeoutexception') ||
-        errorStr.contains('timeout') ||
-        errorStr.contains('timed out') ||
-        errorStr.contains('deadline exceeded');
-  }
-
-  /// Detects server errors (5xx) that should trigger retry with backoff
-  bool _isServerError(dynamic error) {
-    if (error is Response) {
-      // 5xx server errors and 429 (rate limiting)
-      return (error.statusCode >= 500 && error.statusCode < 600) ||
-          error.statusCode == 429;
-    }
-    final String errorStr = error.toString().toLowerCase();
-    return errorStr.contains('500') ||
-        errorStr.contains('502') ||
-        errorStr.contains('503') ||
-        errorStr.contains('504') ||
-        errorStr.contains('429');
-  }
-
-  /// Detects authentication/authorization errors
-  bool _isAuthError(dynamic error) {
-    if (error is Response) {
-      return error.statusCode == 401 || error.statusCode == 403;
-    }
-    final String errorStr = error.toString().toLowerCase();
-    return errorStr.contains('401') ||
-        errorStr.contains('403') ||
-        errorStr.contains('unauthorized') ||
-        errorStr.contains('forbidden');
+  /// Returns true if there is an unsynced pending change for this entity.
+  /// Used to skip download overwrite when a local edit is queued.
+  Future<bool> _hasPendingChange(String entityType, String entityId) async {
+    final PendingChanges? pending =
+        await isar.pendingChanges
+            .filter()
+            .entityTypeEqualTo(entityType)
+            .entityIdEqualTo(entityId)
+            .syncedEqualTo(false)
+            .findFirst();
+    return pending != null;
   }
 
   bool _disposed = false;

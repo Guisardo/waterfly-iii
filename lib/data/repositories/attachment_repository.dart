@@ -84,21 +84,18 @@ class AttachmentRepository {
           ..localUpdatedAt = now
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.attachments.put(row);
-    });
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'attachments'
           ..entityId = null
-          ..operation = 'CREATE'
+          ..operation = PendingChangeOperation.create.name
           ..data = jsonEncode(attachment.toJson())
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
     await isar.writeTxn(() async {
+      await isar.attachments.put(row);
       await isar.pendingChanges.put(pendingChange);
     });
   }
@@ -112,6 +109,16 @@ class AttachmentRepository {
             .attachmentIdEqualTo(attachment.id)
             .findFirst();
 
+    final PendingChanges pendingChange =
+        PendingChanges()
+          ..entityType = 'attachments'
+          ..entityId = attachment.id
+          ..operation = PendingChangeOperation.update.name
+          ..data = jsonEncode(attachment.toJson())
+          ..createdAt = now
+          ..retryCount = 0
+          ..synced = false;
+
     if (existing != null) {
       existing
         ..data = jsonEncode(attachment.toJson())
@@ -120,22 +127,13 @@ class AttachmentRepository {
 
       await isar.writeTxn(() async {
         await isar.attachments.put(existing);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
       });
     }
-
-    final PendingChanges pendingChange =
-        PendingChanges()
-          ..entityType = 'attachments'
-          ..entityId = attachment.id
-          ..operation = 'UPDATE'
-          ..data = jsonEncode(attachment.toJson())
-          ..createdAt = now
-          ..retryCount = 0
-          ..synced = false;
-
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
   }
 
   Future<void> upsertFromSync(AttachmentRead attachment) async {
@@ -185,24 +183,25 @@ class AttachmentRepository {
     final Attachments? existing =
         await isar.attachments.filter().attachmentIdEqualTo(id).findFirst();
 
-    if (existing != null) {
-      await isar.writeTxn(() async {
-        await isar.attachments.delete(existing.id);
-      });
-    }
-
     final PendingChanges pendingChange =
         PendingChanges()
           ..entityType = 'attachments'
           ..entityId = id
-          ..operation = 'DELETE'
+          ..operation = PendingChangeOperation.delete.name
           ..data = null
           ..createdAt = now
           ..retryCount = 0
           ..synced = false;
 
-    await isar.writeTxn(() async {
-      await isar.pendingChanges.put(pendingChange);
-    });
+    if (existing != null) {
+      await isar.writeTxn(() async {
+        await isar.attachments.delete(existing.id);
+        await isar.pendingChanges.put(pendingChange);
+      });
+    } else {
+      await isar.writeTxn(() async {
+        await isar.pendingChanges.put(pendingChange);
+      });
+    }
   }
 }

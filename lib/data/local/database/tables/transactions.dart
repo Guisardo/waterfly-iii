@@ -17,4 +17,15 @@ class Transactions {
 
   @Index()
   bool synced = false;
+
+  @Index()
+  DateTime? date;
+
+  @Index()
+  String? sourceAccountId;
+
+  @Index()
+  String? destinationAccountId;
+
+  DateTime? deletedAt;
 }

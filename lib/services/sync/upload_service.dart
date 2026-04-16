@@ -8,13 +8,18 @@ import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
 import 'package:waterflyiii/data/local/database/tables/transactions.dart';
 import 'package:waterflyiii/data/local/database/tables/categories.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/bill_repository.dart';
+import 'package:waterflyiii/data/repositories/budget_repository.dart';
 import 'package:waterflyiii/data/repositories/category_repository.dart';
 import 'package:waterflyiii/data/repositories/insight_repository.dart';
+import 'package:waterflyiii/data/repositories/tag_repository.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/sync/conflict_resolver.dart';
 import 'package:waterflyiii/services/sync/retry_manager.dart';
+import 'package:waterflyiii/services/sync/sync_error_classifier.dart';
 import 'package:waterflyiii/services/sync/sync_notifications.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
@@ -129,23 +134,29 @@ class UploadService extends ChangeNotifier {
           failureCount++;
 
           // Check for conflict errors first
-          if (_isConflictError(e)) {
-            // Handle conflict - mark change as synced
+          if (SyncErrorClassifier.isConflictError(e)) {
+            // Conflict: keep the pending change for manual resolution, increment retry
             await conflictResolver.logConflict(
               entityType: change.entityType,
               entityId: change.entityId ?? 'unknown',
               conflictType: ConflictType.upload,
-              serverUpdatedAt: DateTime.now().toUtc(),
-              resolution: ConflictResolution.serverWins,
+              localUpdatedAt: null,
+              serverUpdatedAt: null,
+              resolution: ConflictResolution.localCancelled,
             );
-            await _markChangeAsSynced(change.id);
-            successCount++;
-            failureCount--; // Don't count conflicts as failures
+            change
+              ..retryCount = change.retryCount + 1
+              ..lastError = 'Conflict (409): server version is different';
+            await isar.writeTxn(() async {
+              await isar.pendingChanges.put(change);
+            });
             continue;
           }
 
           // Handle errors
-          if (_isNetworkError(e) || _isTimeoutError(e) || _isServerError(e)) {
+          if (SyncErrorClassifier.isNetworkError(e) ||
+              SyncErrorClassifier.isTimeoutError(e) ||
+              SyncErrorClassifier.isServerError(e)) {
             // Pause entire upload sync
             await retryManager.pauseWithBackoff('upload', e.toString());
             await notifications.showSyncPaused(e.toString());
@@ -185,7 +196,9 @@ class UploadService extends ChangeNotifier {
     } catch (e, stackTrace) {
       log.severe("Upload failed", e, stackTrace);
 
-      if (_isNetworkError(e) || _isTimeoutError(e) || _isServerError(e)) {
+      if (SyncErrorClassifier.isNetworkError(e) ||
+          SyncErrorClassifier.isTimeoutError(e) ||
+          SyncErrorClassifier.isServerError(e)) {
         await retryManager.pauseWithBackoff('upload', e.toString());
         await notifications.showSyncPaused(e.toString());
       }
@@ -200,11 +213,11 @@ class UploadService extends ChangeNotifier {
 
     try {
       switch (change.operation) {
-        case 'CREATE':
+        case final String op when op == PendingChangeOperation.create.name:
           return await _processCreate(change, api);
-        case 'UPDATE':
+        case final String op when op == PendingChangeOperation.update.name:
           return await _processUpdate(change, api);
-        case 'DELETE':
+        case final String op when op == PendingChangeOperation.delete.name:
           return await _processDelete(change, api);
         default:
           log.warning("Unknown operation: ${change.operation}");
@@ -244,101 +257,95 @@ class UploadService extends ChangeNotifier {
             try {
               response = await api.v1TransactionsPost(body: store);
             } catch (e) {
-              // If Chopper throws during the call, check if it's a conflict
-              // before rethrowing
-              if (_isConflictError(e)) {
+              if (SyncErrorClassifier.isConflictError(e)) {
                 await conflictResolver.logConflict(
                   entityType: change.entityType,
                   entityId: change.entityId ?? 'unknown',
                   conflictType: ConflictType.upload,
-                  serverUpdatedAt: DateTime.now().toUtc(),
-                  resolution: ConflictResolution.serverWins,
+                  localUpdatedAt: null,
+                  serverUpdatedAt: null,
+                  resolution: ConflictResolution.localCancelled,
                 );
-                await _markChangeAsSynced(change.id);
-                return true;
-              }
-              // Also check if the error has a Response with 409 status
-              try {
-                final dynamic errorObj = e;
-                final dynamic errorResponse = (errorObj as dynamic).response;
-                if (errorResponse is Response &&
-                    errorResponse.statusCode == 409) {
-                  await conflictResolver.logConflict(
-                    entityType: change.entityType,
-                    entityId: change.entityId ?? 'unknown',
-                    conflictType: ConflictType.upload,
-                    serverUpdatedAt: DateTime.now().toUtc(),
-                    resolution: ConflictResolution.serverWins,
-                  );
-                  await _markChangeAsSynced(change.id);
-                  return true;
-                }
-              } catch (_) {
-                // Response property might not exist
+                change
+                  ..retryCount = change.retryCount + 1
+                  ..lastError = 'Conflict (409): server version is different';
+                await isar.writeTxn(() async {
+                  await isar.pendingChanges.put(change);
+                });
+                return false;
               }
               rethrow;
             }
 
-            // Check for conflict first (before checking isSuccessful)
-            // Chopper returns Response with isSuccessful=false for non-2xx status codes
-            // But Chopper might also throw an exception for 409 during deserialization
             if (response.statusCode == 409) {
               await conflictResolver.logConflict(
                 entityType: change.entityType,
                 entityId: change.entityId ?? 'unknown',
                 conflictType: ConflictType.upload,
-                serverUpdatedAt: DateTime.now().toUtc(),
-                resolution: ConflictResolution.serverWins,
+                localUpdatedAt: null,
+                serverUpdatedAt: null,
+                resolution: ConflictResolution.localCancelled,
               );
-              await _markChangeAsSynced(change.id);
-              return true;
+              change
+                ..retryCount = change.retryCount + 1
+                ..lastError = 'Conflict (409): server version is different';
+              await isar.writeTxn(() async {
+                await isar.pendingChanges.put(change);
+              });
+              return false;
             }
             if (response.isSuccessful && response.body != null) {
               try {
                 final TransactionRead created = response.body!.data;
                 final TransactionRepository repo = TransactionRepository(isar);
 
-                // Find and delete the pending transaction that matches this PendingChange
-                // Match by comparing TransactionStore data
+                // Find and delete the pending transaction using localPendingId (fast path)
+                // or fall back to fuzzy matching for legacy pending changes.
                 try {
-                  final List<Transactions> allPending =
-                      await isar.transactions
-                          .filter()
-                          .transactionIdStartsWith('pending-')
-                          .findAll();
-
                   Transactions? matchingPending;
-                  // First try to match by comparing TransactionStore objects
-                  for (final Transactions pendingTx in allPending) {
-                    Map<String, dynamic>? pendingData;
-                    try {
-                      pendingData =
-                          jsonDecode(pendingTx.data) as Map<String, dynamic>;
-                      final TransactionStore pendingStore =
-                          TransactionStore.fromJson(pendingData);
 
-                      // Compare key fields to match
-                      if (_transactionsMatch(store, pendingStore)) {
-                        matchingPending = pendingTx;
-                        break;
-                      }
-                    } catch (e) {
-                      // If parsing fails, try JSON string comparison as fallback
-                      if (pendingData != null) {
-                        try {
-                          final Map<String, dynamic> storeJson = store.toJson();
-                          // Compare essential fields from JSON directly
-                          if (_jsonTransactionsMatch(storeJson, pendingData)) {
-                            matchingPending = pendingTx;
-                            break;
+                  if (change.localPendingId != null) {
+                    matchingPending =
+                        await isar.transactions
+                            .filter()
+                            .transactionIdEqualTo(change.localPendingId!)
+                            .findFirst();
+                  } else {
+                    final List<Transactions> allPending =
+                        await isar.transactions
+                            .filter()
+                            .transactionIdStartsWith('pending-')
+                            .findAll();
+
+                    for (final Transactions pendingTx in allPending) {
+                      Map<String, dynamic>? pendingData;
+                      try {
+                        pendingData =
+                            jsonDecode(pendingTx.data) as Map<String, dynamic>;
+                        final TransactionStore pendingStore =
+                            TransactionStore.fromJson(pendingData);
+                        if (_transactionsMatch(store, pendingStore)) {
+                          matchingPending = pendingTx;
+                          break;
+                        }
+                      } catch (e) {
+                        if (pendingData != null) {
+                          try {
+                            final Map<String, dynamic> storeJson =
+                                store.toJson();
+                            if (_jsonTransactionsMatch(
+                              storeJson,
+                              pendingData,
+                            )) {
+                              matchingPending = pendingTx;
+                              break;
+                            }
+                          } catch (_) {
+                            continue;
                           }
-                        } catch (_) {
-                          // Skip if both methods fail
+                        } else {
                           continue;
                         }
-                      } else {
-                        // Skip if we couldn't even parse the JSON
-                        continue;
                       }
                     }
                   }
@@ -367,11 +374,17 @@ class UploadService extends ChangeNotifier {
                     entityType: change.entityType,
                     entityId: change.entityId ?? 'unknown',
                     conflictType: ConflictType.upload,
-                    serverUpdatedAt: DateTime.now().toUtc(),
-                    resolution: ConflictResolution.serverWins,
+                    localUpdatedAt: null,
+                    serverUpdatedAt: null,
+                    resolution: ConflictResolution.localCancelled,
                   );
-                  await _markChangeAsSynced(change.id);
-                  return true;
+                  change
+                    ..retryCount = change.retryCount + 1
+                    ..lastError = 'Conflict (409): server version is different';
+                  await isar.writeTxn(() async {
+                    await isar.pendingChanges.put(change);
+                  });
+                  return false;
                 }
                 rethrow;
               }
@@ -380,6 +393,12 @@ class UploadService extends ChangeNotifier {
           case 'accounts':
             final AccountStore store = AccountStore.fromJson(data);
             response = await api.v1AccountsPost(body: store);
+            if (response.isSuccessful && response.body != null) {
+              final AccountRepository accountRepo = AccountRepository(isar);
+              await accountRepo.upsertFromSync(response.body!.data);
+              await _markChangeAsSynced(change.id);
+              return true;
+            }
             break;
           case 'categories':
             final CategoryStore store = CategoryStore.fromJson(data);
@@ -389,34 +408,40 @@ class UploadService extends ChangeNotifier {
                 final CategoryRead created = response.body!.data;
                 final CategoryRepository repo = CategoryRepository(isar);
 
-                // Find and delete the pending category that matches this PendingChange
-                // Match by comparing CategoryStore data (name and notes)
+                // Find and delete the pending category using localPendingId (fast path)
+                // or fall back to name-matching for legacy pending changes.
                 try {
-                  final List<Categories> allPending =
-                      await isar.categories
-                          .filter()
-                          .categoryIdStartsWith('pending-')
-                          .findAll();
-
                   Categories? matchingPending;
-                  for (final Categories pendingCat in allPending) {
-                    try {
-                      final Map<String, dynamic> pendingData =
-                          jsonDecode(pendingCat.data) as Map<String, dynamic>;
-                      final CategoryRead pendingRead = CategoryRead.fromJson(
-                        pendingData,
-                      );
 
-                      // Compare key fields to match
-                      if (pendingRead.attributes.name == store.name &&
-                          (pendingRead.attributes.notes ?? '') ==
-                              (store.notes ?? '')) {
-                        matchingPending = pendingCat;
-                        break;
+                  if (change.localPendingId != null) {
+                    matchingPending =
+                        await isar.categories
+                            .filter()
+                            .categoryIdEqualTo(change.localPendingId!)
+                            .findFirst();
+                  } else {
+                    final List<Categories> allPending =
+                        await isar.categories
+                            .filter()
+                            .categoryIdStartsWith('pending-')
+                            .findAll();
+
+                    for (final Categories pendingCat in allPending) {
+                      try {
+                        final Map<String, dynamic> pendingData =
+                            jsonDecode(pendingCat.data) as Map<String, dynamic>;
+                        final CategoryRead pendingRead = CategoryRead.fromJson(
+                          pendingData,
+                        );
+                        if (pendingRead.attributes.name == store.name &&
+                            (pendingRead.attributes.notes ?? '') ==
+                                (store.notes ?? '')) {
+                          matchingPending = pendingCat;
+                          break;
+                        }
+                      } catch (e) {
+                        continue;
                       }
-                    } catch (e) {
-                      // Skip if parsing fails
-                      continue;
                     }
                   }
 
@@ -444,11 +469,17 @@ class UploadService extends ChangeNotifier {
                     entityType: change.entityType,
                     entityId: change.entityId ?? 'unknown',
                     conflictType: ConflictType.upload,
-                    serverUpdatedAt: DateTime.now().toUtc(),
-                    resolution: ConflictResolution.serverWins,
+                    localUpdatedAt: null,
+                    serverUpdatedAt: null,
+                    resolution: ConflictResolution.localCancelled,
                   );
-                  await _markChangeAsSynced(change.id);
-                  return true;
+                  change
+                    ..retryCount = change.retryCount + 1
+                    ..lastError = 'Conflict (409): server version is different';
+                  await isar.writeTxn(() async {
+                    await isar.pendingChanges.put(change);
+                  });
+                  return false;
                 }
                 rethrow;
               }
@@ -457,14 +488,32 @@ class UploadService extends ChangeNotifier {
           case 'tags':
             final TagModelStore store = TagModelStore.fromJson(data);
             response = await api.v1TagsPost(body: store);
+            if (response.isSuccessful && response.body != null) {
+              final TagRepository tagRepo = TagRepository(isar);
+              await tagRepo.upsertFromSync(response.body!.data);
+              await _markChangeAsSynced(change.id);
+              return true;
+            }
             break;
           case 'bills':
             final BillStore store = BillStore.fromJson(data);
             response = await api.v1BillsPost(body: store);
+            if (response.isSuccessful && response.body != null) {
+              final BillRepository billRepo = BillRepository(isar);
+              await billRepo.upsertFromSync(response.body!.data);
+              await _markChangeAsSynced(change.id);
+              return true;
+            }
             break;
           case 'budgets':
             final BudgetStore store = BudgetStore.fromJson(data);
             response = await api.v1BudgetsPost(body: store);
+            if (response.isSuccessful && response.body != null) {
+              final BudgetRepository budgetRepo = BudgetRepository(isar);
+              await budgetRepo.upsertFromSync(response.body!.data);
+              await _markChangeAsSynced(change.id);
+              return true;
+            }
             break;
           case 'budget_limits':
             // Budget limits require budgetId - extract from data
@@ -479,6 +528,12 @@ class UploadService extends ChangeNotifier {
               id: budgetId,
               body: store,
             );
+            if (response.isSuccessful && response.body != null) {
+              final BudgetRepository budgetRepo = BudgetRepository(isar);
+              await budgetRepo.upsertBudgetLimitFromSync(response.body!.data);
+              await _markChangeAsSynced(change.id);
+              return true;
+            }
             break;
           default:
             log.warning(
@@ -488,101 +543,91 @@ class UploadService extends ChangeNotifier {
         }
       } catch (apiError) {
         // Check if response was set before exception (Chopper might set response then throw)
-        if (response != null && response.statusCode == 409) {
+        final bool isConflict409 =
+            (response != null && response.statusCode == 409) ||
+            SyncErrorClassifier.isConflictError(apiError);
+        if (isConflict409) {
           await conflictResolver.logConflict(
             entityType: change.entityType,
             entityId: change.entityId ?? 'unknown',
             conflictType: ConflictType.upload,
-            serverUpdatedAt: DateTime.now().toUtc(),
-            resolution: ConflictResolution.serverWins,
+            localUpdatedAt: null,
+            serverUpdatedAt: null,
+            resolution: ConflictResolution.localCancelled,
           );
-          await _markChangeAsSynced(change.id);
-          return true;
-        }
-        // Chopper might throw an exception for non-2xx responses or deserialization failures
-        // Check if it's a conflict error first
-        if (_isConflictError(apiError)) {
-          // Handle conflict
-          await conflictResolver.logConflict(
-            entityType: change.entityType,
-            entityId: change.entityId ?? 'unknown',
-            conflictType: ConflictType.upload,
-            serverUpdatedAt: DateTime.now().toUtc(),
-            resolution: ConflictResolution.serverWins,
-          );
-          await _markChangeAsSynced(change.id);
-          return true;
-        }
-        // Also check if the error contains a Response with 409 status
-        try {
-          final dynamic errorObj = apiError;
-          // Try to access response property
-          final dynamic errorResponse = (errorObj as dynamic).response;
-          if (errorResponse is Response && errorResponse.statusCode == 409) {
-            await conflictResolver.logConflict(
-              entityType: change.entityType,
-              entityId: change.entityId ?? 'unknown',
-              conflictType: ConflictType.upload,
-              serverUpdatedAt: DateTime.now().toUtc(),
-              resolution: ConflictResolution.serverWins,
-            );
-            await _markChangeAsSynced(change.id);
-            return true;
-          }
-        } catch (_) {
-          // Response property might not exist
+          change
+            ..retryCount = change.retryCount + 1
+            ..lastError = 'Conflict (409): server version is different';
+          await isar.writeTxn(() async {
+            await isar.pendingChanges.put(change);
+          });
+          return false;
         }
         // Re-throw if not a conflict - this will be caught by outer catch
         rethrow;
       }
 
-      // Check for conflict first (before checking isSuccessful)
-      // Chopper returns Response with isSuccessful=false for non-2xx status codes
       // Check statusCode directly for 409 conflicts
       if (response.statusCode == 409) {
         await conflictResolver.logConflict(
           entityType: change.entityType,
           entityId: change.entityId ?? 'unknown',
           conflictType: ConflictType.upload,
-          serverUpdatedAt: DateTime.now().toUtc(),
-          resolution: ConflictResolution.serverWins,
+          localUpdatedAt: null,
+          serverUpdatedAt: null,
+          resolution: ConflictResolution.localCancelled,
         );
-        await _markChangeAsSynced(change.id);
-        return true;
+        change
+          ..retryCount = change.retryCount + 1
+          ..lastError = 'Conflict (409): server version is different';
+        await isar.writeTxn(() async {
+          await isar.pendingChanges.put(change);
+        });
+        return false;
       }
 
       if (response.isSuccessful) {
         await _markChangeAsSynced(change.id);
         return true;
       } else {
-        // Check for conflict before throwing (fallback check using _isConflictError)
-        if (_isConflictError(response)) {
+        if (SyncErrorClassifier.isConflictError(response)) {
           await conflictResolver.logConflict(
             entityType: change.entityType,
             entityId: change.entityId ?? 'unknown',
             conflictType: ConflictType.upload,
-            serverUpdatedAt: DateTime.now().toUtc(),
-            resolution: ConflictResolution.serverWins,
+            localUpdatedAt: null,
+            serverUpdatedAt: null,
+            resolution: ConflictResolution.localCancelled,
           );
-          await _markChangeAsSynced(change.id);
-          return true;
+          change
+            ..retryCount = change.retryCount + 1
+            ..lastError = 'Conflict (409): server version is different';
+          await isar.writeTxn(() async {
+            await isar.pendingChanges.put(change);
+          });
+          return false;
         }
         throw Exception(
           "Failed to create ${change.entityType}: ${response.error}",
         );
       }
     } catch (e) {
-      if (_isConflictError(e)) {
-        // Handle conflict
+      if (SyncErrorClassifier.isConflictError(e)) {
         await conflictResolver.logConflict(
           entityType: change.entityType,
           entityId: change.entityId ?? 'unknown',
           conflictType: ConflictType.upload,
-          serverUpdatedAt: DateTime.now().toUtc(),
-          resolution: ConflictResolution.serverWins,
+          localUpdatedAt: null,
+          serverUpdatedAt: null,
+          resolution: ConflictResolution.localCancelled,
         );
-        await _markChangeAsSynced(change.id);
-        return true;
+        change
+          ..retryCount = change.retryCount + 1
+          ..lastError = 'Conflict (409): server version is different';
+        await isar.writeTxn(() async {
+          await isar.pendingChanges.put(change);
+        });
+        return false;
       }
       rethrow;
     }
@@ -603,10 +648,7 @@ class UploadService extends ChangeNotifier {
       switch (change.entityType) {
         case 'transactions':
           final TransactionUpdate update = TransactionUpdate.fromJson(data);
-          response = await api.v1TransactionsIdPut(
-            id: entityId,
-            body: update,
-          );
+          response = await api.v1TransactionsIdPut(id: entityId, body: update);
           if (response.isSuccessful && response.body != null) {
             final TransactionRead updated = response.body!.data;
             final TransactionRepository repo = TransactionRepository(isar);
@@ -615,24 +657,15 @@ class UploadService extends ChangeNotifier {
           break;
         case 'accounts':
           final AccountUpdate update = AccountUpdate.fromJson(data);
-          response = await api.v1AccountsIdPut(
-            id: entityId,
-            body: update,
-          );
+          response = await api.v1AccountsIdPut(id: entityId, body: update);
           break;
         case 'categories':
           final CategoryUpdate update = CategoryUpdate.fromJson(data);
-          response = await api.v1CategoriesIdPut(
-            id: entityId,
-            body: update,
-          );
+          response = await api.v1CategoriesIdPut(id: entityId, body: update);
           break;
         case 'tags':
           final TagModelUpdate update = TagModelUpdate.fromJson(data);
-          response = await api.v1TagsTagPut(
-            tag: entityId,
-            body: update,
-          );
+          response = await api.v1TagsTagPut(tag: entityId, body: update);
           break;
         case 'bills':
           final BillUpdate update = BillUpdate.fromJson(data);
@@ -640,10 +673,7 @@ class UploadService extends ChangeNotifier {
           break;
         case 'budgets':
           final BudgetUpdate update = BudgetUpdate.fromJson(data);
-          response = await api.v1BudgetsIdPut(
-            id: entityId,
-            body: update,
-          );
+          response = await api.v1BudgetsIdPut(id: entityId, body: update);
           break;
         case 'budget_limits':
           // Budget limits require budgetId and limitId
@@ -674,34 +704,44 @@ class UploadService extends ChangeNotifier {
         // Entity deleted on server
         await _markChangeAsSynced(change.id);
         return true;
+      } else if (SyncErrorClassifier.isConflictError(response)) {
+        await conflictResolver.logConflict(
+          entityType: change.entityType,
+          entityId: entityId,
+          conflictType: ConflictType.upload,
+          localUpdatedAt: null,
+          serverUpdatedAt: null,
+          resolution: ConflictResolution.localCancelled,
+        );
+        change
+          ..retryCount = change.retryCount + 1
+          ..lastError = 'Conflict (409): server version is different';
+        await isar.writeTxn(() async {
+          await isar.pendingChanges.put(change);
+        });
+        return false;
       } else {
-        // Check for conflict before throwing
-        if (_isConflictError(response)) {
-          await conflictResolver.logConflict(
-            entityType: change.entityType,
-            entityId: entityId,
-            conflictType: ConflictType.upload,
-            serverUpdatedAt: DateTime.now().toUtc(),
-            resolution: ConflictResolution.serverWins,
-          );
-          await _markChangeAsSynced(change.id);
-          return true;
-        }
         throw Exception(
           "Failed to update ${change.entityType}: ${response.error}",
         );
       }
     } catch (e) {
-      if (_isConflictError(e)) {
+      if (SyncErrorClassifier.isConflictError(e)) {
         await conflictResolver.logConflict(
           entityType: change.entityType,
           entityId: entityId,
           conflictType: ConflictType.upload,
-          serverUpdatedAt: DateTime.now().toUtc(),
-          resolution: ConflictResolution.serverWins,
+          localUpdatedAt: null,
+          serverUpdatedAt: null,
+          resolution: ConflictResolution.localCancelled,
         );
-        await _markChangeAsSynced(change.id);
-        return true;
+        change
+          ..retryCount = change.retryCount + 1
+          ..lastError = 'Conflict (409): server version is different';
+        await isar.writeTxn(() async {
+          await isar.pendingChanges.put(change);
+        });
+        return false;
       }
       rethrow;
     }
@@ -759,19 +799,9 @@ class UploadService extends ChangeNotifier {
   }
 
   Future<void> _markChangeAsSynced(int changeId) async {
-    final PendingChanges? change =
-        await isar.pendingChanges.filter().idEqualTo(changeId).findFirst();
-
-    if (change != null) {
-      change
-        ..synced = true
-        ..retryCount = 0
-        ..lastError = null;
-
-      await isar.writeTxn(() async {
-        await isar.pendingChanges.put(change);
-      });
-    }
+    await isar.writeTxn(() async {
+      await isar.pendingChanges.delete(changeId);
+    });
   }
 
   Future<void> _incrementRetryCount(int changeId, String error) async {
@@ -790,59 +820,6 @@ class UploadService extends ChangeNotifier {
     await isar.writeTxn(() async {
       await isar.pendingChanges.put(change);
     });
-  }
-
-  /// Detects network-related errors that should trigger retry with backoff
-  bool _isNetworkError(dynamic error) {
-    // Check for actual exception types first
-    if (error is Exception) {
-      final String errorStr = error.toString().toLowerCase();
-      return errorStr.contains('socketexception') ||
-          errorStr.contains('networkexception') ||
-          errorStr.contains('failed host lookup') ||
-          errorStr.contains('connection refused') ||
-          errorStr.contains('connection reset') ||
-          errorStr.contains('connection timed out') ||
-          errorStr.contains('no internet connection') ||
-          errorStr.contains('network is unreachable');
-    }
-    // Fallback to string matching
-    final String errorStr = error.toString().toLowerCase();
-    return errorStr.contains('socketexception') ||
-        errorStr.contains('networkexception') ||
-        errorStr.contains('failed host lookup') ||
-        errorStr.contains('connection refused') ||
-        errorStr.contains('connection reset');
-  }
-
-  /// Detects timeout errors that should trigger retry with backoff
-  bool _isTimeoutError(dynamic error) {
-    if (error is Response) {
-      // HTTP 408 Request Timeout
-      if (error.statusCode == 408) {
-        return true;
-      }
-    }
-    final String errorStr = error.toString().toLowerCase();
-    return errorStr.contains('timeoutexception') ||
-        errorStr.contains('timeout') ||
-        errorStr.contains('timed out') ||
-        errorStr.contains('deadline exceeded');
-  }
-
-  /// Detects server errors (5xx) and rate limiting (429) that should trigger retry with backoff
-  bool _isServerError(dynamic error) {
-    if (error is Response) {
-      // 5xx server errors and 429 (rate limiting)
-      return (error.statusCode >= 500 && error.statusCode < 600) ||
-          error.statusCode == 429;
-    }
-    final String errorStr = error.toString().toLowerCase();
-    return errorStr.contains('500') ||
-        errorStr.contains('502') ||
-        errorStr.contains('503') ||
-        errorStr.contains('504') ||
-        errorStr.contains('429');
   }
 
   /// Compares two TransactionStore objects to determine if they represent the same transaction
@@ -976,74 +953,6 @@ class UploadService extends ChangeNotifier {
   String _normalizeString(dynamic value) {
     if (value == null) return '';
     return value.toString().trim();
-  }
-
-  bool _isConflictError(dynamic error) {
-    // Check if it's a Chopper Response object
-    if (error is Response) {
-      // Chopper Response has statusCode accessible directly
-      return error.statusCode == 409;
-    }
-
-    // Check if the error has a response with status code
-    // Chopper exceptions might have a 'base' or 'response' property that contains the Response
-    try {
-      if (error is Exception) {
-        final dynamic errorObj = error;
-
-        // Try to access 'base' property (Chopper ResponseException pattern)
-        try {
-          final dynamic base = (errorObj as dynamic).base;
-          if (base is Response && base.statusCode == 409) {
-            return true;
-          }
-        } catch (_) {
-          // 'base' property might not exist or not be accessible
-        }
-
-        // Try to access 'response' property (alternative Chopper exception pattern)
-        try {
-          final dynamic response = (errorObj as dynamic).response;
-          if (response is Response && response.statusCode == 409) {
-            return true;
-          }
-        } catch (_) {
-          // 'response' property might not exist or not be accessible
-        }
-
-        // Try to access 'originalResponse' property (Chopper might store it here)
-        try {
-          final dynamic originalResponse =
-              (errorObj as dynamic).originalResponse;
-          if (originalResponse is Response &&
-              originalResponse.statusCode == 409) {
-            return true;
-          }
-        } catch (_) {
-          // 'originalResponse' property might not exist
-        }
-
-        // Check error string for status code patterns
-        final String errorStr = errorObj.toString();
-
-        // Look for status code in various formats: "409", "statusCode: 409", "HTTP 409", etc.
-        final RegExp statusCodePattern = RegExp(r'\b409\b');
-        if (statusCodePattern.hasMatch(errorStr)) {
-          return true;
-        }
-        if (errorStr.contains('Conflict') || errorStr.contains('conflict')) {
-          return true;
-        }
-      }
-    } catch (_) {
-      // Ignore reflection/access errors
-    }
-
-    // Final fallback: check if it's an Exception with conflict information
-    final String errorStr = error.toString();
-    return errorStr.contains('409') ||
-        errorStr.contains('Conflict') ||
-        errorStr.contains('conflict');
   }
 
   Future<void> _updateSyncMetadata(
