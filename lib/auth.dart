@@ -1,5 +1,6 @@
 import 'dart:async' show FutureOr, unawaited;
 import 'dart:convert';
+
 import 'dart:io';
 
 import 'package:chopper/chopper.dart'
@@ -217,9 +218,9 @@ class AuthUser {
         throw AuthErrorStatusCode(response.statusCode);
       }
 
-      final String stringData = await response.stream
-          .bytesToString()
-          .timeout(const Duration(seconds: 30));
+      final String stringData = await response.stream.bytesToString().timeout(
+        const Duration(seconds: 30),
+      );
 
       try {
         SystemInfo.fromJson(json.decode(stringData));
@@ -555,10 +556,9 @@ class FireflyService with ChangeNotifier {
         apiKey,
         customHeaders: customHeaders,
       );
-      final Response<CurrencySingle> currencyInfo =
-          await nextUser.api.v1CurrenciesPrimaryGet().timeout(
-            const Duration(seconds: 30),
-          );
+      final Response<CurrencySingle> currencyInfo = await nextUser.api
+          .v1CurrenciesPrimaryGet()
+          .timeout(const Duration(seconds: 30));
       final CurrencyRead nextDefaultCurrency = currencyInfo.body!.data;
 
       // Store default currency ID for future restoreFromStorage() calls
@@ -653,10 +653,7 @@ class FireflyService with ChangeNotifier {
           try {
             final SharedPreferences prefs =
                 await SharedPreferences.getInstance();
-            await prefs.setString(
-              'server_timezone',
-              tzHandler.serverTimezone,
-            );
+            await prefs.setString('server_timezone', tzHandler.serverTimezone);
           } catch (e) {
             log.finer(() => "Could not store timezone: $e");
           }
