@@ -671,11 +671,11 @@ class SZh extends S {
 
   @override
   String numPercent(double num) {
-    final intl.NumberFormat numNumberFormat = intl
-        .NumberFormat.decimalPercentPattern(
-      locale: localeName,
-      decimalDigits: 0,
-    );
+    final intl.NumberFormat numNumberFormat =
+        intl.NumberFormat.decimalPercentPattern(
+          locale: localeName,
+          decimalDigits: 0,
+        );
     final String numString = numNumberFormat.format(num);
 
     return '$numString';
@@ -683,11 +683,11 @@ class SZh extends S {
 
   @override
   String numPercentOf(double perc, String of) {
-    final intl.NumberFormat percNumberFormat = intl
-        .NumberFormat.decimalPercentPattern(
-      locale: localeName,
-      decimalDigits: 0,
-    );
+    final intl.NumberFormat percNumberFormat =
+        intl.NumberFormat.decimalPercentPattern(
+          locale: localeName,
+          decimalDigits: 0,
+        );
     final String percString = percNumberFormat.format(perc);
 
     return '$of 中的 $percString';
@@ -1228,7 +1228,7 @@ class SZhTw extends SZh {
   }
 
   @override
-  String get billsChangeLayoutTooltip => '變更版面配置';
+  String get billsChangeLayoutTooltip => '變更版面佈局';
 
   @override
   String get billsChangeSortOrderTooltip => '變更排序順序';
@@ -1803,6 +1803,9 @@ class SZhTw extends SZh {
   String get navigationCategories => '分類';
 
   @override
+  String get navigationMain => '主頁';
+
+  @override
   String get generalSettings => '設定';
 
   @override
@@ -1810,11 +1813,11 @@ class SZhTw extends SZh {
 
   @override
   String numPercent(double num) {
-    final intl.NumberFormat numNumberFormat = intl
-        .NumberFormat.decimalPercentPattern(
-      locale: localeName,
-      decimalDigits: 0,
-    );
+    final intl.NumberFormat numNumberFormat =
+        intl.NumberFormat.decimalPercentPattern(
+          locale: localeName,
+          decimalDigits: 0,
+        );
     final String numString = numNumberFormat.format(num);
 
     return '$numString';
@@ -1822,11 +1825,11 @@ class SZhTw extends SZh {
 
   @override
   String numPercentOf(double perc, String of) {
-    final intl.NumberFormat percNumberFormat = intl
-        .NumberFormat.decimalPercentPattern(
-      locale: localeName,
-      decimalDigits: 0,
-    );
+    final intl.NumberFormat percNumberFormat =
+        intl.NumberFormat.decimalPercentPattern(
+          locale: localeName,
+          decimalDigits: 0,
+        );
     final String percString = percNumberFormat.format(perc);
 
     return '$of 中的 $percString';
@@ -2091,6 +2094,106 @@ class SZhTw extends SZh {
   String get transactionTypeWithdrawal => '提款';
 
   @override
+  String get syncSettingsTitle => '同步設定';
+
+  @override
+  String get syncSettingsMobileDataTitle => '使用行動數據同步';
+
+  @override
+  String get syncSettingsMobileDataSubtitle => '允許使用行動數據時同步（預設停用以節省數據）';
+
+  @override
+  String get syncSettingsCredentialsTitle => '憑證';
+
+  @override
+  String get syncSettingsCredentialsInvalid => '無效 - 請重新輸入憑證';
+
+  @override
+  String get syncSettingsCredentialsValidated => '已驗證';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => '未驗證';
+
+  @override
+  String get syncSettingsReenterButton => '重新輸入';
+
+  @override
+  String get syncSettingsDownloadSync => '下載同步';
+
+  @override
+  String get syncSettingsUploadSync => '上傳同步';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return '最後同步：$date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => '狀態：已暫停';
+
+  @override
+  String get syncSettingsStatusActive => '狀態：活動';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return '重試次數：$count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return '下次重試：$date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return '錯誤：$error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => '立即恢復';
+
+  @override
+  String get syncSettingsManualSyncTitle => '手動同步';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => '立即觸發同步';
+
+  @override
+  String get syncSettingsSyncNowButton => '立即同步';
+
+  @override
+  String get syncNotificationSyncing => '同步中...';
+
+  @override
+  String get syncNotificationSyncingBody => '正在與 Firefly III 同步';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return '正在同步 $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => '同步完成';
+
+  @override
+  String get syncNotificationCompletedBody => '與 Firefly III 的同步已成功完成';
+
+  @override
+  String get syncNotificationPaused => '同步已暫停';
+
+  @override
+  String get syncNotificationPausedBody => '由於錯誤，同步已暫停。將自動重試。';
+
+  @override
+  String get syncNotificationAuthError => '身份驗證錯誤';
+
+  @override
+  String get syncNotificationAuthErrorBody => '請在設定中重新輸入您的憑證';
+
+  @override
+  String get syncNotificationChannelName => '同步';
+
+  @override
   String get notificationListenerCreateTransactionTitle =>
       'Create Transaction?';
 
@@ -2106,6 +2209,9 @@ class SZhTw extends SZh {
   @override
   String get notificationListenerChannelDescription =>
       'Notification asking to create a transaction from another Notification.';
+
+  @override
+  String get syncNotificationChannelDescription => '背景同步狀態';
 
   @override
   String get syncSettingsEntityStatusTitle => '實體同步狀態';
