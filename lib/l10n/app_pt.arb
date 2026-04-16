@@ -71,7 +71,6 @@
     "@generalReset": {
         "description": "Reset something (i.e. set filters)"
     },
-<<<<<<< HEAD
     "syncSettingsTitle": "Configurações de sincronização",
     "@syncSettingsTitle": {
         "description": "Title for sync settings page"
