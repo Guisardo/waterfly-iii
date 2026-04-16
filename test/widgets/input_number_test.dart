@@ -458,10 +458,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: NumberInput(
-                controller: controller,
-                decimals: 0,
-              ),
+              body: NumberInput(controller: controller, decimals: 0),
             ),
           ),
         );

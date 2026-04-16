@@ -67,7 +67,7 @@ class _NumberInputState extends State<NumberInput> {
   void initState() {
     super.initState();
     _previousText = widget.controller?.text ?? widget.value ?? '';
-    
+
     // Listen to focus changes for evaluation on focus loss
     if (widget.focusNode != null && widget.enableMathEvaluation) {
       widget.focusNode!.addListener(_onFocusChange);
@@ -172,11 +172,16 @@ class _NumberInputState extends State<NumberInput> {
       final String addedChar = newText.substring(_previousText.length);
       if (addedChar.length == 1 && _isOperator(addedChar)) {
         // Operator was pressed - check if there's a previous operator
-        final String textBeforeNewOperator = newText.substring(0, newText.length - 1);
+        final String textBeforeNewOperator = newText.substring(
+          0,
+          newText.length - 1,
+        );
         if (textBeforeNewOperator.isNotEmpty &&
             RegExp(r'[+\-*/]').hasMatch(textBeforeNewOperator)) {
           // Previous operator exists - evaluate partial expression
-          final double? partialResult = _evaluator.evaluatePartial(textBeforeNewOperator);
+          final double? partialResult = _evaluator.evaluatePartial(
+            textBeforeNewOperator,
+          );
           if (partialResult != null && widget.controller != null) {
             _isEvaluating = true;
             try {
@@ -193,7 +198,10 @@ class _NumberInputState extends State<NumberInput> {
               widget.onChanged?.call(newExpression);
 
               _previousText = newExpression;
-              _log.fine(() => 'Chained calculation: $textBeforeNewOperator -> $formattedResult, added operator: $addedChar');
+              _log.fine(
+                () =>
+                    'Chained calculation: $textBeforeNewOperator -> $formattedResult, added operator: $addedChar',
+              );
             } finally {
               _isEvaluating = false;
             }
@@ -218,34 +226,34 @@ class _NumberInputState extends State<NumberInput> {
       onEditingComplete: () {
         // Evaluate on Enter key press
         if (widget.enableMathEvaluation && widget.controller != null) {
-          _evaluateExpression(
-            widget.controller!.text,
-            isFullEvaluation: true,
-          );
+          _evaluateExpression(widget.controller!.text, isFullEvaluation: true);
         }
         // Move focus to next field
         widget.focusNode?.unfocus();
       },
       readOnly: widget.disabled,
       enabled: !widget.disabled,
-      keyboardType: TextInputType.numberWithOptions(decimal: (widget.decimals > 0)),
+      keyboardType: TextInputType.numberWithOptions(
+        decimal: (widget.decimals > 0),
+      ),
       inputFormatters: <TextInputFormatter>[
         FilteringTextInputFormatter.allow(RegExp(_getRegexString())),
-        TextInputFormatter.withFunction(
-          (TextEditingValue oldValue, TextEditingValue newValue) {
-            // Replace comma with dot
-            final String normalized = newValue.text.replaceAll(',', '.');
-            
-            // Prevent consecutive operators
-            if (widget.enableMathEvaluation) {
-              if (RegExp(r'[+\-*/]{2,}').hasMatch(normalized)) {
-                return oldValue; // Reject consecutive operators
-              }
+        TextInputFormatter.withFunction((
+          TextEditingValue oldValue,
+          TextEditingValue newValue,
+        ) {
+          // Replace comma with dot
+          final String normalized = newValue.text.replaceAll(',', '.');
+
+          // Prevent consecutive operators
+          if (widget.enableMathEvaluation) {
+            if (RegExp(r'[+\-*/]{2,}').hasMatch(normalized)) {
+              return oldValue; // Reject consecutive operators
             }
-            
-            return newValue.copyWith(text: normalized);
-          },
-        ),
+          }
+
+          return newValue.copyWith(text: normalized);
+        }),
       ],
       decoration: InputDecoration(
         label: (widget.label != null) ? Text(widget.label!) : null,
@@ -256,10 +264,9 @@ class _NumberInputState extends State<NumberInput> {
         prefixText: widget.prefixText,
         filled: widget.disabled,
       ),
-      style:
-          widget.disabled
-              ? widget.style?.copyWith(color: Theme.of(context).disabledColor)
-              : widget.style,
+      style: widget.disabled
+          ? widget.style?.copyWith(color: Theme.of(context).disabledColor)
+          : widget.style,
     );
   }
 
@@ -276,7 +283,8 @@ class _NumberInputState extends State<NumberInput> {
     // Allows trailing operators for partial input (e.g., "10+")
     if (widget.decimals > 0) {
       // Pattern: ^-?[0-9]+([,.]{0,1}[0-9]{0,N})?([+\-*/]([0-9]+([,.]{0,1}[0-9]{0,N})?)?)?)*$
-      final String decimalPart = r'([,.]{0,1}[0-9]{0,' + widget.decimals.toString() + r'})';
+      final String decimalPart =
+          r'([,.]{0,1}[0-9]{0,' + widget.decimals.toString() + r'})';
       final String numberWithDecimal = r'([0-9]+' + decimalPart + r'?)';
       final String operatorWithNumber = r'([+\-*/]' + numberWithDecimal + r'?)';
       return r'^-?[0-9]+' + decimalPart + r'?(' + operatorWithNumber + r')*$';
