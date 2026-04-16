@@ -42,7 +42,7 @@ class NumberInput extends StatefulWidget {
   final TextEditingController? controller;
   final String? value;
   final String? label;
-  final Function? onChanged;
+  final ValueChanged<String>? onChanged;
   final String? error;
   final Widget? icon;
   final String? hintText;
@@ -80,6 +80,27 @@ class _NumberInputState extends State<NumberInput> {
       widget.focusNode!.removeListener(_onFocusChange);
     }
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(NumberInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      if (oldWidget.focusNode != null) {
+        oldWidget.focusNode!.removeListener(_onFocusChange);
+      }
+      if (widget.focusNode != null && widget.enableMathEvaluation) {
+        widget.focusNode!.addListener(_onFocusChange);
+      }
+    }
+    if (oldWidget.enableMathEvaluation != widget.enableMathEvaluation &&
+        widget.focusNode != null) {
+      if (widget.enableMathEvaluation) {
+        widget.focusNode!.addListener(_onFocusChange);
+      } else {
+        widget.focusNode!.removeListener(_onFocusChange);
+      }
+    }
   }
 
   void _onFocusChange() {
@@ -157,23 +178,25 @@ class _NumberInputState extends State<NumberInput> {
           // Previous operator exists - evaluate partial expression
           final double? partialResult = _evaluator.evaluatePartial(textBeforeNewOperator);
           if (partialResult != null && widget.controller != null) {
-            // Set evaluating flag to prevent recursive calls
             _isEvaluating = true;
-            final String formattedResult = _formatResult(partialResult);
-            final String newExpression = formattedResult + addedChar;
-            
-            // Update controller with result + new operator
-            widget.controller!.text = newExpression;
-            widget.controller!.selection = TextSelection.fromPosition(
-              TextPosition(offset: newExpression.length),
-            );
-            
-            // Trigger onChanged with the new expression
-            widget.onChanged?.call(newExpression);
-            
-            _previousText = newExpression;
-            _isEvaluating = false;
-            _log.fine(() => 'Chained calculation: $textBeforeNewOperator -> $formattedResult, added operator: $addedChar');
+            try {
+              final String formattedResult = _formatResult(partialResult);
+              final String newExpression = formattedResult + addedChar;
+
+              // Update controller with result + new operator
+              widget.controller!.text = newExpression;
+              widget.controller!.selection = TextSelection.fromPosition(
+                TextPosition(offset: newExpression.length),
+              );
+
+              // Trigger onChanged with the new expression
+              widget.onChanged?.call(newExpression);
+
+              _previousText = newExpression;
+              _log.fine(() => 'Chained calculation: $textBeforeNewOperator -> $formattedResult, added operator: $addedChar');
+            } finally {
+              _isEvaluating = false;
+            }
             return;
           }
         }

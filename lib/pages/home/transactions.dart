@@ -1007,9 +1007,10 @@ class _HomeTransactionsState extends State<HomeTransactions>
           _txSum = TransactionSum();
           _txSumUsed.clear();
         }
-        // Always clear the transaction cache so the list re-fetches fresh data
-        // from the server after any edit, including amount-only changes.
-        if (context.mounted) {
+        // Clear cache only when user completed a save (refresh is non-null:
+        // true = structural change, false = data-only change like amount edit).
+        // Skip when user cancelled without saving (refresh == null).
+        if (refresh != null && context.mounted) {
           context.read<FireflyService>().transStock!.clear();
         }
         setState(() {
