@@ -50,6 +50,8 @@ class _WaterflyAppState extends State<WaterflyApp> {
   DateTime? _lcLastOpen;
   bool _wasOffline = true; // Track previous connectivity state
   bool _pendingAuthedUpdate = false; // Track if we've scheduled _authed update
+  bool _startupInitiated =
+      false; // Guard: prevent multiple microtask dispatches
 
   @override
   void initState() {
@@ -285,7 +287,8 @@ class _WaterflyAppState extends State<WaterflyApp> {
                       );
                     }
                   });
-                } else {
+                } else if (!_startupInitiated) {
+                  _startupInitiated = true;
                   log.finest(() => "signing in");
                   // Capture context values before async gap
                   final FireflyService fireflyService = context
@@ -316,12 +319,19 @@ class _WaterflyAppState extends State<WaterflyApp> {
                             connectivityService: connectivityService,
                             settingsProvider: settingsProvider,
                           );
+                          // Trigger initial sync if online — the connectivity-transition
+                          // trigger in build() cannot fire during startup because _wasOffline
+                          // is consumed (set to false) while _startup is still true.
+                          if (connectivityService.isOnline) {
+                            unawaited(syncStatusProvider.syncAll());
+                          }
                         }
                         if (!mounted) return;
                         setState(() {
                           log.finest(() => "set _startup = false");
                           _authed = true;
                           _startup = false;
+                          _startupInitiated = false;
                         });
                       } catch (e, stackTrace) {
                         log.warning(
@@ -334,21 +344,11 @@ class _WaterflyAppState extends State<WaterflyApp> {
                           log.finest(() => "set _startup = false");
                           _authed = true;
                           _startup = false;
+                          _startupInitiated = false;
                         });
                       }
                     }),
                   );
-
-                  // Mark startup as complete after build phase completes
-                  // Cannot call setState during build - defer to post-frame callback
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      setState(() {
-                        log.finest(() => "set _startup = false (non-blocking)");
-                        _startup = false;
-                      });
-                    }
-                  });
                 }
               }
             } else {

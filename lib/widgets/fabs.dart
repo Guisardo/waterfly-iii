@@ -1,8 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/layout.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 
 class NewTransactionFab extends StatelessWidget {
@@ -11,9 +9,12 @@ class NewTransactionFab extends StatelessWidget {
   final BuildContext context;
   final String? accountId;
 
+  // Threshold from LayoutProvider.getSize: expanded = width >= 840
+  static const double _expandedBreakpoint = 840;
+
   @override
   Widget build(BuildContext context) {
-    if (context.watch<LayoutProvider>().currentSize >= ScreenSize.expanded) {
+    if (MediaQuery.sizeOf(context).width >= _expandedBreakpoint) {
       return FloatingActionButton(
         onPressed: () => showDialog(
           context: context,
