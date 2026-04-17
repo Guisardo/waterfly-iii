@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/insights.dart';
+import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 
 class InsightRepository {
@@ -16,12 +17,15 @@ class InsightRepository {
     DateTime start,
     DateTime end,
   ) async {
+    final DateTime normalizedStart = start.clearTime();
+    final DateTime normalizedEnd = end.clearTime();
+
     final Insights? cached = await isar.insights
         .filter()
         .insightTypeEqualTo(type)
         .insightSubtypeEqualTo('total')
-        .startDateEqualTo(start)
-        .endDateEqualTo(end)
+        .startDateEqualTo(normalizedStart)
+        .endDateEqualTo(normalizedEnd)
         .findFirst();
 
     if (cached != null) {
@@ -46,12 +50,15 @@ class InsightRepository {
     DateTime start,
     DateTime end,
   ) async {
+    final DateTime normalizedStart = start.clearTime();
+    final DateTime normalizedEnd = end.clearTime();
+
     final Insights? cached = await isar.insights
         .filter()
         .insightTypeEqualTo(type)
         .insightSubtypeEqualTo(subtype)
-        .startDateEqualTo(start)
-        .endDateEqualTo(end)
+        .startDateEqualTo(normalizedStart)
+        .endDateEqualTo(normalizedEnd)
         .findFirst();
 
     if (cached != null) {
@@ -76,13 +83,16 @@ class InsightRepository {
     DateTime start,
     DateTime end,
   ) async {
+    final DateTime normalizedStart = start.clearTime();
+    final DateTime normalizedEnd = end.clearTime();
+
     final String noSubtype = 'no-$subtype';
     final Insights? cached = await isar.insights
         .filter()
         .insightTypeEqualTo(type)
         .insightSubtypeEqualTo(noSubtype)
-        .startDateEqualTo(start)
-        .endDateEqualTo(end)
+        .startDateEqualTo(normalizedStart)
+        .endDateEqualTo(normalizedEnd)
         .findFirst();
 
     if (cached != null) {
@@ -109,12 +119,14 @@ class InsightRepository {
     dynamic data,
   ) async {
     final DateTime now = _getNow();
+    final DateTime normalizedStart = start.clearTime();
+    final DateTime normalizedEnd = end.clearTime();
 
     final Insights row = Insights()
       ..insightType = type
       ..insightSubtype = subtype
-      ..startDate = start
-      ..endDate = end
+      ..startDate = normalizedStart
+      ..endDate = normalizedEnd
       ..data = jsonEncode(data)
       ..cachedAt = now
       ..stale = false;
@@ -232,6 +244,8 @@ class InsightRepository {
     List<ChartDataSet> data,
   ) async {
     final DateTime now = _getNow();
+    final DateTime normalizedStart = start.clearTime();
+    final DateTime normalizedEnd = end.clearTime();
 
     await isar.writeTxn(() async {
       // Check if existing row exists
@@ -239,15 +253,15 @@ class InsightRepository {
           .filter()
           .insightTypeEqualTo('chart')
           .insightSubtypeEqualTo(chartType)
-          .startDateEqualTo(start)
-          .endDateEqualTo(end)
+          .startDateEqualTo(normalizedStart)
+          .endDateEqualTo(normalizedEnd)
           .findFirst();
 
       final Insights row = existing ?? Insights()
         ..insightType = 'chart'
         ..insightSubtype = chartType
-        ..startDate = start
-        ..endDate = end;
+        ..startDate = normalizedStart
+        ..endDate = normalizedEnd;
 
       row
         ..data = jsonEncode(data.map((ChartDataSet e) => e.toJson()).toList())
@@ -265,12 +279,15 @@ class InsightRepository {
     DateTime start,
     DateTime end,
   ) async {
+    final DateTime normalizedStart = start.clearTime();
+    final DateTime normalizedEnd = end.clearTime();
+
     final Insights? cached = await isar.insights
         .filter()
         .insightTypeEqualTo('chart')
         .insightSubtypeEqualTo(chartType)
-        .startDateEqualTo(start)
-        .endDateEqualTo(end)
+        .startDateEqualTo(normalizedStart)
+        .endDateEqualTo(normalizedEnd)
         .findFirst();
 
     if (cached != null) {

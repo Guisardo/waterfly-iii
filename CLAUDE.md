@@ -65,8 +65,9 @@ Use GitHub API directly. Get credentials via `/guisardo-github`.
 
 ## Device testing
 
-Always install with `adb install -r` to preserve user data (credentials, local DB):
+Always build+install release. `debugPrint` suppressed in release — use `print` or logcat tag filtering.
 ```bash
+flutter build apk --release
 adb install -r build/app/outputs/flutter-apk/app-release.apk
 ```
 Never use `flutter install` — it runs `adb uninstall` first, wiping all app data.
