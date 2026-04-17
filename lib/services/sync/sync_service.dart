@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:chopper/chopper.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:logging/logging.dart';
