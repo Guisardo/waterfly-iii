@@ -17,6 +17,7 @@ import 'package:waterflyiii/pages/navigation.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/category_repository.dart';
 import 'package:waterflyiii/data/repositories/insight_repository.dart';
 
 final Logger log = Logger("Pages.Categories");
@@ -34,6 +35,7 @@ class _CategoriesPageState extends State<CategoriesPage>
   late DateTime selectedMonth;
   late DateTime now;
   InsightRepository? _insightRepo;
+  CategoryRepository? _categoryRepo;
 
   @override
   void initState() {
@@ -54,20 +56,38 @@ class _CategoriesPageState extends State<CategoriesPage>
     final FireflyService fireflyService = context.read<FireflyService>();
     final CurrencyRead defaultCurrency = fireflyService.defaultCurrency;
 
-    // Ensure repository is initialized
-    if (_insightRepo == null) {
+    // Ensure repositories are initialized
+    if (_insightRepo == null || _categoryRepo == null) {
       final Isar isar = await AppDatabase.instance;
       if (!mounted) {
         throw StateError('Widget disposed during initialization');
       }
       _insightRepo = InsightRepository(isar);
+      _categoryRepo = CategoryRepository(isar);
     }
     final InsightRepository repo = _insightRepo!;
+    final CategoryRepository categoryRepo = _categoryRepo!;
 
     final DateTime startDate = date.copyWith(day: 1).clearTime();
     final DateTime endDate = date.clearTime();
 
     try {
+      // Pre-populate with ALL synced categories so every category is shown
+      // regardless of whether it has transactions in the selected period.
+      final List<CategoryRead> allCategories = await categoryRepo.getAll();
+      final Map<String, CategoryRead> categories = <String, CategoryRead>{};
+      for (final CategoryRead cat in allCategories) {
+        categories[cat.id] = CategoryRead(
+          id: cat.id,
+          type: cat.type,
+          attributes: CategoryWithSum(
+            name: cat.attributes.name,
+            spent: <ArrayEntryWithCurrencyAndSum>[],
+            earned: <ArrayEntryWithCurrencyAndSum>[],
+          ),
+        );
+      }
+
       final List<InsightGroupEntry> incomeCats = await repo.getGrouped(
         'income',
         'category',
@@ -92,8 +112,6 @@ class _CategoriesPageState extends State<CategoriesPage>
         startDate,
         endDate,
       );
-
-      final Map<String, CategoryRead> categories = <String, CategoryRead>{};
 
       // Process income categories
       for (final InsightGroupEntry cat in incomeCats) {
