@@ -63,6 +63,14 @@ Use GitHub API directly. Get credentials via `/guisardo-github`.
 
 `notification_listener_service`, `appcheck` — non-standard APIs, limited maintenance.
 
+## Device testing
+
+Always install with `adb install -r` to preserve user data (credentials, local DB):
+```bash
+adb install -r build/app/outputs/flutter-apk/app-release.apk
+```
+Never use `flutter install` — it runs `adb uninstall` first, wiping all app data.
+
 ## Entry points
 
 `lib/main.dart`, `lib/app.dart`, `lib/data/repositories/`, `lib/services/sync/`

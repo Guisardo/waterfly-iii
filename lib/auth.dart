@@ -205,7 +205,7 @@ class AuthUser {
       request.maxRedirects = 5;
       final http.StreamedResponse response = await client
           .send(request)
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 120));
 
       // If we get an html page, it's most likely the login page, and auth failed
       if (response.headers[HttpHeaders.contentTypeHeader]?.startsWith(
@@ -219,7 +219,7 @@ class AuthUser {
       }
 
       final String stringData = await response.stream.bytesToString().timeout(
-        const Duration(seconds: 30),
+        const Duration(seconds: 120),
       );
 
       try {
@@ -552,7 +552,7 @@ class FireflyService with ChangeNotifier {
       final AuthUser nextUser = await AuthUser.create(host, apiKey);
       final Response<CurrencySingle> currencyInfo = await nextUser.api
           .v1CurrenciesPrimaryGet()
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 120));
       final CurrencyRead nextDefaultCurrency = currencyInfo.body!.data;
 
       // Store default currency ID for future restoreFromStorage() calls
@@ -565,7 +565,7 @@ class FireflyService with ChangeNotifier {
 
       final Response<SystemInfo> about = await nextUser.api
           .v1AboutGet()
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 120));
       late Version nextApiVersion;
       try {
         String apiVersionStr = about.body?.data?.apiVersion ?? "";
@@ -599,7 +599,7 @@ class FireflyService with ChangeNotifier {
       try {
         final http.Response response = await client
             .get(tzUri, headers: nextUser.headers())
-            .timeout(const Duration(seconds: 30));
+            .timeout(const Duration(seconds: 120));
         final APITZReply reply = APITZReply.fromJson(
           json.decode(response.body),
         );
