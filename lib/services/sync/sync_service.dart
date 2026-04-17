@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:chopper/chopper.dart';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:logging/logging.dart';
 import 'package:isar_community/isar.dart';

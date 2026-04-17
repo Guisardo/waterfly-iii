@@ -64,8 +64,8 @@ class _CategoriesPageState extends State<CategoriesPage>
     }
     final InsightRepository repo = _insightRepo!;
 
-    final DateTime startDate = date.copyWith(day: 1);
-    final DateTime endDate = date;
+    final DateTime startDate = date.copyWith(day: 1).clearTime();
+    final DateTime endDate = date.clearTime();
 
     try {
       final List<InsightGroupEntry> incomeCats = await repo.getGrouped(
