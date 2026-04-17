@@ -862,5 +862,155 @@ void main() {
         expect(result, anyOf(isNull, isA<List<ChartDataSet>>()));
       });
     });
+
+    // Regression tests for datetime normalization bug:
+    // Sync stored cache keys with 00:00:00 (clearTime) while the categories
+    // page queried with 12:00:00 (setTimeOfDay). Isar exact-match caused a
+    // cache miss, resulting in an empty category list. Both sides now call
+    // clearTime() before any cache read or write.
+    group('datetime normalization', () {
+      test(
+        'getGrouped finds data cached with midnight when queried at noon',
+        () async {
+          final DateTime startMidnight = DateTime(2024, 4, 1);
+          final DateTime endMidnight = DateTime(2024, 4, 17);
+          final DateTime startNoon = DateTime(2024, 4, 1, 12);
+          final DateTime endNoon = DateTime(2024, 4, 17, 12);
+
+          final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': '1',
+              'name': 'Groceries',
+              'difference': '50.00',
+            },
+          ];
+
+          await repository.cacheInsight(
+            'expense',
+            'category',
+            startMidnight,
+            endMidnight,
+            data,
+          );
+
+          final List<InsightGroupEntry> result = await repository.getGrouped(
+            'expense',
+            'category',
+            startNoon,
+            endNoon,
+          );
+          expect(result.length, 1);
+          expect(result.first.name, 'Groceries');
+        },
+      );
+
+      test(
+        'getGrouped finds data cached at noon when queried with midnight',
+        () async {
+          final DateTime startNoon = DateTime(2024, 4, 1, 12);
+          final DateTime endNoon = DateTime(2024, 4, 17, 12);
+          final DateTime startMidnight = DateTime(2024, 4, 1);
+          final DateTime endMidnight = DateTime(2024, 4, 17);
+
+          final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': '2',
+              'name': 'Transport',
+              'difference': '30.00',
+            },
+          ];
+
+          await repository.cacheInsight(
+            'expense',
+            'category',
+            startNoon,
+            endNoon,
+            data,
+          );
+
+          final List<InsightGroupEntry> result = await repository.getGrouped(
+            'expense',
+            'category',
+            startMidnight,
+            endMidnight,
+          );
+          expect(result.length, 1);
+          expect(result.first.name, 'Transport');
+        },
+      );
+
+      test(
+        'getNoGroup finds data cached at midnight when queried at noon',
+        () async {
+          final DateTime startMidnight = DateTime(2024, 4, 1);
+          final DateTime endMidnight = DateTime(2024, 4, 17);
+          final DateTime startNoon = DateTime(2024, 4, 1, 12);
+          final DateTime endNoon = DateTime(2024, 4, 17, 12);
+
+          final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+            <String, dynamic>{
+              'currency_id': '1',
+              'currency_code': 'EUR',
+              'currency_symbol': '€',
+              'currency_decimal_places': 2,
+              'amount': '10.00',
+            },
+          ];
+
+          await repository.cacheInsight(
+            'expense',
+            'no-category',
+            startMidnight,
+            endMidnight,
+            data,
+          );
+
+          final List<InsightTotalEntry> result = await repository.getNoGroup(
+            'expense',
+            'category',
+            startNoon,
+            endNoon,
+          );
+          expect(result.length, 1);
+          expect(result.first.currencyCode, 'EUR');
+        },
+      );
+
+      test(
+        'getTotal finds data cached at midnight when queried at noon',
+        () async {
+          final DateTime startMidnight = DateTime(2024, 4, 1);
+          final DateTime endMidnight = DateTime(2024, 4, 17);
+          final DateTime startNoon = DateTime(2024, 4, 1, 12);
+          final DateTime endNoon = DateTime(2024, 4, 17, 12);
+
+          final List<Map<String, dynamic>> data = <Map<String, dynamic>>[
+            <String, dynamic>{
+              'currency_id': '1',
+              'currency_code': 'USD',
+              'currency_symbol': '\$',
+              'currency_decimal_places': 2,
+              'amount': '200.00',
+            },
+          ];
+
+          await repository.cacheInsight(
+            'expense',
+            'total',
+            startMidnight,
+            endMidnight,
+            data,
+          );
+
+          final List<InsightTotalEntry> result = await repository.getTotal(
+            'expense',
+            startNoon,
+            endNoon,
+          );
+          expect(result.length, 1);
+          expect(result.first.currencyCode, 'USD');
+        },
+      );
+    });
   });
 }
