@@ -109,9 +109,11 @@ class _SplashPageState extends State<SplashPage> {
     // Update error from storage sign-in exception if available
     _loginError ??= fireflyService.storageSignInException;
 
-    // Also watch for changes to storage sign-in exception
+    // Also watch for changes to storage sign-in exception, but only update
+    // when a new (non-null) exception appears — never clear a local error
+    // that was set by a signIn() failure.
     final Object? currentException = fireflyService.storageSignInException;
-    if (currentException != _loginError) {
+    if (currentException != null && currentException != _loginError) {
       _loginError = currentException;
     }
 
