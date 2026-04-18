@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
+import 'package:waterflyiii/data/local/database/tables/transactions.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
+import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import '../../helpers/test_database.dart';
 
@@ -281,5 +283,91 @@ void main() {
       final TransactionRead? retrieved = await repository.getById('test-7');
       expect(retrieved, isNotNull);
     });
+
+    test('createNew normalizes stored date to midnight', () async {
+      // A non-midnight date (15:30 local time) — this was the root cause of the
+      // pending-transaction visibility bug: time-of-day caused dateBetween to exclude it.
+      final DateTime nonMidnight = DateTime(2026, 4, 17, 15, 30, 0);
+      final TransactionStore store = TransactionStore(
+        transactions: <TransactionSplitStore>[
+          TransactionSplitStore(
+            type: TransactionTypeProperty.withdrawal,
+            date: nonMidnight,
+            amount: '25.00',
+            description: 'Pending coffee',
+          ),
+        ],
+      );
+
+      final String pendingId = await repository.createNew(store);
+
+      // Read the raw Isar row to verify the stored date field is midnight
+      final Transactions? row = await isar.transactions
+          .filter()
+          .transactionIdEqualTo(pendingId)
+          .findFirst();
+
+      expect(row, isNotNull);
+      final DateTime expectedMidnight = DateTime(2026, 4, 17, 0, 0, 0, 0, 0);
+      expect(row!.date, equals(expectedMidnight));
+    });
+
+    test(
+      'getByDateRange includes pending transaction with non-midnight split date',
+      () async {
+        // Simulate the exact bug scenario: user adds a transaction at 15:30 today.
+        // Before the fix, dateBetween(startOfMonth, todayMidnight) excluded it because
+        // the stored date had a time component that exceeded todayMidnight in UTC.
+        final DateTime today = DateTime.now();
+        final DateTime todayAt1530 = DateTime(
+          today.year,
+          today.month,
+          today.day,
+          15,
+          30,
+          0,
+        );
+
+        final TransactionStore store = TransactionStore(
+          transactions: <TransactionSplitStore>[
+            TransactionSplitStore(
+              type: TransactionTypeProperty.withdrawal,
+              date: todayAt1530,
+              amount: '10.00',
+              description: 'Afternoon coffee',
+            ),
+          ],
+        );
+
+        await repository.createNew(store);
+
+        final DateTime startOfMonth = DateTime(today.year, today.month, 1);
+        final DateTime endOfToday = DateTime(
+          today.year,
+          today.month,
+          today.day,
+          0,
+          0,
+          0,
+          0,
+          0,
+        );
+
+        final List<TransactionRead> results = await repository.getByDateRange(
+          startOfMonth,
+          endOfToday,
+        );
+
+        expect(results, isNotEmpty);
+        expect(
+          results.any(
+            (TransactionRead tx) =>
+                tx.attributes.transactions.firstOrNull?.description ==
+                'Afternoon coffee',
+          ),
+          isTrue,
+        );
+      },
+    );
   });
 }
