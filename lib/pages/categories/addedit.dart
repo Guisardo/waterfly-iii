@@ -1,10 +1,13 @@
 import 'dart:convert';
 
-import 'package:chopper/chopper.dart';
 import 'package:flutter/material.dart';
+import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
-import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/local/database/tables/categories.dart';
+import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
+import 'package:waterflyiii/data/repositories/category_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/settings.dart';
@@ -27,6 +30,49 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
   bool loaded = false;
   bool includeInSum = true;
 
+  Future<void> _loadCategory() async {
+    if (widget.category == null) {
+      setState(() {
+        loaded = true;
+      });
+      return;
+    }
+
+    titleController.text = widget.category!.attributes.name;
+
+    try {
+      final Isar isar = await AppDatabase.instance;
+      final CategoryRepository categoryRepo = CategoryRepository(isar);
+      final CategoryRead? category = await categoryRepo.getById(
+        widget.category!.id,
+      );
+
+      if (category == null) {
+        log.severe("Category not found in repository");
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          includeInSum = !context
+              .read<SettingsProvider>()
+              .categoriesSumExcluded
+              .contains(widget.category!.id);
+          notesController.text = category.attributes.notes ?? "";
+          loaded = true;
+        });
+      }
+    } catch (e, stackTrace) {
+      log.severe("Error fetching category from repository", e, stackTrace);
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -39,26 +85,8 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
 
     titleController.text = widget.category!.attributes.name;
 
-    context
-        .read<FireflyService>()
-        .api
-        .v1CategoriesIdGet(id: widget.category!.id)
-        .then((Response<CategorySingle> resp) {
-          if (!resp.isSuccessful || resp.body == null) {
-            log.severe("Error fetching information", resp.error);
-            if (mounted) {
-              Navigator.of(context).pop();
-            }
-          }
-          setState(() {
-            includeInSum = !context
-                .read<SettingsProvider>()
-                .categoriesSumExcluded
-                .contains(widget.category!.id);
-            notesController.text = resp.body?.data.attributes.notes ?? "";
-            loaded = true;
-          });
-        });
+    // Fetch category from repository
+    _loadCategory();
   }
 
   @override
@@ -73,7 +101,7 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
             ? S.of(context).categoryTitleAdd
             : S.of(context).categoryTitleEdit,
       ),
-      clipBehavior: .hardEdge,
+      clipBehavior: Clip.hardEdge,
       actions: <Widget>[
         if (widget.category != null)
           OutlinedButton(
@@ -85,8 +113,6 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
             ),
             child: Text(MaterialLocalizations.of(context).deleteButtonTooltip),
             onPressed: () async {
-              final FireflyIii api = context.read<FireflyService>().api;
-
               final bool? ok = await showDialog(
                 context: context,
                 builder: (BuildContext context) =>
@@ -96,7 +122,24 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
                 return;
               }
 
-              await api.v1CategoriesIdDelete(id: widget.category!.id);
+              try {
+                final Isar isar = await AppDatabase.instance;
+                final CategoryRepository categoryRepo = CategoryRepository(
+                  isar,
+                );
+                await categoryRepo.delete(widget.category!.id);
+              } catch (e, stackTrace) {
+                log.severe("Error deleting category", e, stackTrace);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(S.of(context).errorUnknown),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+                return;
+              }
 
               if (context.mounted) {
                 Navigator.of(context).pop(true);
@@ -112,73 +155,130 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
         FilledButton(
           child: Text(MaterialLocalizations.of(context).saveButtonLabel),
           onPressed: () async {
+            // Capture context values before async gaps
             final ScaffoldMessengerState msg = ScaffoldMessenger.of(context);
+            final S localizations = S.of(context);
 
-            late Response<CategorySingle> resp;
-            if (widget.category == null) {
-              resp = await context.read<FireflyService>().api.v1CategoriesPost(
-                body: CategoryStore(
+            try {
+              final Isar isar = await AppDatabase.instance;
+              final CategoryRepository categoryRepo = CategoryRepository(isar);
+
+              if (widget.category == null) {
+                // Create new category using local-first architecture
+                // Generate temporary ID for offline support
+                final String tempCategoryId =
+                    'pending-${DateTime.now().millisecondsSinceEpoch}';
+
+                // Create CategoryStore for PendingChange (what API expects)
+                final CategoryStore categoryStore = CategoryStore(
                   name: titleController.text,
                   notes: notesController.text,
-                ),
-              );
-            } else {
-              resp = await context.read<FireflyService>().api.v1CategoriesIdPut(
-                id: widget.category!.id,
-                body: CategoryUpdate(
-                  name: titleController.text,
-                  notes: notesController.text,
-                ),
-              );
-            }
-
-            // Check if insert/update was successful
-            if (!resp.isSuccessful || resp.body == null) {
-              late String error;
-              try {
-                final ValidationErrorResponse valError = .fromJson(
-                  json.decode(resp.error.toString()),
                 );
-                error =
-                    valError.message ??
-                    (context.mounted
-                        ? S.of(context).errorUnknown
-                        : "[nocontext] Unknown error.");
-              } catch (_) {
-                error = context.mounted
-                    ? S.of(context).errorUnknown
-                    : "[nocontext] Unknown error.";
+
+                // Create temporary CategoryRead for local storage (what UI needs)
+                final CategoryRead tempCategory = CategoryRead(
+                  type: "categories",
+                  id: tempCategoryId,
+                  attributes: CategoryProperties(
+                    name: titleController.text,
+                    notes: notesController.text,
+                    spent: null,
+                    earned: null,
+                  ),
+                );
+
+                // Store category locally first
+                final Categories categoryRow = Categories()
+                  ..categoryId = tempCategoryId
+                  ..data = jsonEncode(tempCategory.toJson())
+                  ..updatedAt = null
+                  ..localUpdatedAt = DateTime.now().toUtc()
+                  ..synced = false;
+
+                // Create PendingChange with CategoryStore (what upload service expects)
+                final PendingChanges pendingChange = PendingChanges()
+                  ..entityType = 'categories'
+                  ..entityId = null
+                  ..operation = 'CREATE'
+                  ..data = jsonEncode(categoryStore.toJson())
+                  ..createdAt = DateTime.now().toUtc()
+                  ..retryCount = 0
+                  ..synced = false;
+
+                await isar.writeTxn(() async {
+                  await isar.categories.put(categoryRow);
+                  await isar.pendingChanges.put(pendingChange);
+                });
+
+                // Show success message
+                if (mounted) {
+                  msg.showSnackBar(
+                    SnackBar(
+                      content: Text(localizations.transactionSavedOffline),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              } else {
+                // Update existing category
+                final CategoryRead? existing = await categoryRepo.getById(
+                  widget.category!.id,
+                );
+                if (existing == null) {
+                  if (!mounted) return;
+                  msg.showSnackBar(
+                    SnackBar(
+                      content: Text(localizations.errorUnknown),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  return;
+                }
+
+                // Create updated category
+                final Map<String, dynamic> categoryJson = existing.toJson();
+                categoryJson['attributes'] =
+                    (categoryJson['attributes'] as Map<String, dynamic>)
+                      ..['name'] = titleController.text
+                      ..['notes'] = notesController.text;
+                final CategoryRead updatedCategory = CategoryRead.fromJson(
+                  categoryJson,
+                );
+
+                // Update via repository (queues for sync)
+                await categoryRepo.update(updatedCategory);
               }
 
+              if (context.mounted && widget.category != null) {
+                if (includeInSum) {
+                  await context
+                      .read<SettingsProvider>()
+                      .categoryRemoveSumExcluded(widget.category!.id);
+                } else {
+                  await context.read<SettingsProvider>().categoryAddSumExcluded(
+                    widget.category!.id,
+                  );
+                }
+              }
+              if (context.mounted) {
+                Navigator.of(context).pop(true);
+              }
+            } catch (e, stackTrace) {
+              log.severe("Error saving category", e, stackTrace);
+              if (!mounted) return;
               msg.showSnackBar(
                 SnackBar(
-                  content: Text(error),
+                  content: Text(localizations.errorUnknown),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
-              return;
-            }
-
-            if (context.mounted) {
-              if (includeInSum) {
-                await context
-                    .read<SettingsProvider>()
-                    .categoryRemoveSumExcluded(widget.category!.id);
-              } else {
-                await context.read<SettingsProvider>().categoryAddSumExcluded(
-                  widget.category!.id,
-                );
-              }
-            }
-            if (context.mounted) {
-              Navigator.of(context).pop(true);
             }
           },
         ),
       ],
       content: SingleChildScrollView(
         child: Column(
-          mainAxisSize: .min,
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             SizedBox(
               width: inputWidth,
@@ -211,7 +311,7 @@ class _CategoryAddEditDialogState extends State<CategoryAddEditDialog> {
             if (widget.category != null)
               SizedBox(
                 width: inputWidth,
-                child: SwitchListTile.adaptive(
+                child: SwitchListTile(
                   title: Text(S.of(context).categoryFormLabelIncludeInSum),
                   value: includeInSum,
                   isThreeLine: false,
@@ -237,7 +337,7 @@ class DeletionConfirmDialog extends StatelessWidget {
     return AlertDialog(
       icon: const Icon(Icons.delete),
       title: Text(S.of(context).categoryTitleDelete),
-      clipBehavior: .hardEdge,
+      clipBehavior: Clip.hardEdge,
       actions: <Widget>[
         TextButton(
           child: Text(MaterialLocalizations.of(context).cancelButtonLabel),

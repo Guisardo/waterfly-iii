@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:waterflyiii/services/math_expression_evaluator.dart';
+import 'package:waterflyiii/utils/math_expression_evaluator.dart';
 
 /// Comprehensive test suite for MathExpressionEvaluator.
 ///
@@ -106,6 +106,47 @@ void main() {
       });
     });
 
+    group('Regional configuration with comma decimal separator', () {
+      test('single number with comma decimal separator', () {
+        expect(evaluator.evaluate('10,5'), 10.5);
+        expect(evaluator.evaluate('123,45'), 123.45);
+        expect(evaluator.evaluate('0,5'), 0.5);
+        expect(evaluator.evaluate('0,01'), 0.01);
+      });
+
+      test('arithmetic operations with comma decimal separator', () {
+        expect(evaluator.evaluate('10,5+5,2'), 15.7);
+        expect(evaluator.evaluate('20,75-10,25'), 10.5);
+        expect(evaluator.evaluate('2,5*4'), 10.0);
+        expect(evaluator.evaluate('15,5/2'), 7.75);
+      });
+
+      test('complex expressions with comma decimal separator', () {
+        expect(evaluator.evaluate('10,5+5,2*2'), 20.9); // 10.5 + (5.2*2) = 20.9
+        expect(
+          evaluator.evaluate('20,5-8,5/2'),
+          16.25,
+        ); // 20.5 - (8.5/2) = 16.25
+        expect(evaluator.evaluate('2,5*3+4,5*2'), 16.5); // 7.5 + 9 = 16.5
+      });
+
+      test('partial evaluation with comma decimal separator', () {
+        expect(evaluator.evaluatePartial('10,5+5,2*'), 15.7);
+        expect(evaluator.evaluatePartial('10,5+5,2+'), 15.7);
+        expect(evaluator.evaluatePartial('10,5*2+'), 21.0);
+      });
+
+      test('validation with comma decimal separator', () {
+        expect(evaluator.isValidExpression('10,5'), true);
+        expect(evaluator.isValidExpression('10,5+5,2'), true);
+        expect(
+          evaluator.isValidExpression('10,5/0'),
+          false,
+        ); // Division by zero
+        expect(evaluator.isValidExpression('10,5/0,5'), true); // 0.5 is valid
+      });
+    });
+
     group('Negative numbers', () {
       test('leading minus', () {
         expect(evaluator.evaluate('-10+5'), -5.0);
@@ -159,9 +200,7 @@ void main() {
       test('invalid expressions', () {
         expect(evaluator.isValidExpression(''), false);
         expect(evaluator.isValidExpression('++'), false);
-        // Note: the expressions package supports unary +, so '10++5' evaluates
-        // to 10 + (+5) = 15. The NumberInput widget's input formatter already
-        // blocks consecutive operators at the UI layer.
+        expect(evaluator.isValidExpression('10++5'), false);
         expect(evaluator.isValidExpression('10/0'), false);
         expect(evaluator.isValidExpression('abc'), false);
         expect(evaluator.isValidExpression('10+'), false); // Trailing operator
@@ -181,10 +220,7 @@ void main() {
 
       test('returns null for invalid expressions', () {
         expect(evaluator.evaluate('++'), null);
-        // Note: '10++5' is NOT null — the expressions package interprets the
-        // second '+' as unary plus: 10 + (+5) = 15. Consecutive operators are
-        // blocked at the widget input formatter layer, not the evaluator layer.
-        expect(evaluator.evaluate('10++5'), closeTo(15.0, 0.0001));
+        expect(evaluator.evaluate('10++5'), null);
         expect(evaluator.evaluate('abc'), null);
       });
 
@@ -192,6 +228,7 @@ void main() {
         expect(evaluator.evaluate('10/0'), isNull);
         expect(evaluator.evaluate('5/0'), isNull);
         expect(evaluator.evaluate('1/0'), isNull);
+        expect(evaluator.evaluate('5+10/0'), isNull);
       });
 
       test('returns null for division by zero (decimal divisor)', () {
@@ -215,6 +252,17 @@ void main() {
         expect(evaluator.evaluate('10 + 5'), 15.0);
         expect(evaluator.evaluate(' 10 + 5 '), 15.0);
         expect(evaluator.evaluate('10+ 5*2'), 20.0);
+      });
+
+      test('handles invalid decimals', () {
+        expect(evaluator.evaluate('..'), null);
+        expect(evaluator.evaluate('.5'), 0.5);
+        expect(evaluator.evaluate('.0005'), 0);
+        expect(evaluator.evaluate('.005'), 0.01);
+        expect(evaluator.evaluate('10.5.5'), 10.5);
+        expect(evaluator.evaluate('10.50.5'), 10.5);
+        expect(evaluator.evaluate('10.5005'), 10.5);
+        expect(evaluator.evaluate('10.505'), 10.51);
       });
     });
 

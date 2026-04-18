@@ -29,9 +29,27 @@ jobs:
         with:
           java-version: 17.x
 
+      # Apply patches to code generation dependencies
+      - name: Apply code generation patches
+        run: |
+          chmod +x .dart_tool/patch_isar_generator.sh
+          .dart_tool/patch_isar_generator.sh
+        shell: bash
+
+      # Generate code (Isar database, API clients, etc.)
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+        shell: bash
+
+      # Format generated code
+      - name: Format generated code
+        run: dart format .
+        shell: bash
+
       # Check for any formatting issues in the code.
       - name: Check for any formatting issues
         run: dart format --set-exit-if-changed .
+        shell: bash
 
       # Statically analyze the Dart code for any errors.
       - name: Statically analyze the Dart code

@@ -39,3 +39,9 @@
 -dontwarn com.google.errorprone.annotations.RestrictedApi
 -dontwarn javax.annotation.Nullable
 -dontwarn javax.annotation.concurrent.GuardedBy
+
+# Keep manifest attributes to prevent "DISPLAY_NAME: column is null" error
+-keepattributes *Annotation*
+-keepattributes SourceFile,LineNumberTable
+-keep class android.content.pm.** { *; }
+-keep class * extends android.app.Application

@@ -323,6 +323,30 @@
     "@errorUnknown": {
         "description": "Error without further information occurred."
     },
+    "errorInvalidHost": "Неверный хост",
+    "@errorInvalidHost": {
+        "description": "Error: The provided host URL is invalid"
+    },
+    "errorInvalidApiKey": "Неверный API-ключ",
+    "@errorInvalidApiKey": {
+        "description": "Error: The provided API key is invalid"
+    },
+    "errorInvalidApiVersion": "Неверная версия API Firefly",
+    "@errorInvalidApiVersion": {
+        "description": "Error: The Firefly API version is invalid"
+    },
+    "errorApiVersionTooLow": "Версия API Firefly слишком низкая",
+    "@errorApiVersionTooLow": {
+        "description": "Error: The Firefly API version is too low"
+    },
+    "errorUnexpectedStatusCode": "Неожиданный HTTP-код состояния",
+    "@errorUnexpectedStatusCode": {
+        "description": "Error: Received an unexpected HTTP status code"
+    },
+    "errorNotValidInstance": "Не является действительным экземпляром Firefly III",
+    "@errorNotValidInstance": {
+        "description": "Error: The host is not a valid Firefly III instance"
+    },
     "formButtonHelp": "Помощь",
     "@formButtonHelp": {
         "description": "Button Label: Help"
@@ -1145,5 +1169,259 @@
     "transactionTypeWithdrawal": "Вывод средств",
     "@transactionTypeWithdrawal": {
         "description": "Withdrawal transaction type"
+    },
+    "syncSettingsTitle": "Настройки синхронизации",
+    "@syncSettingsTitle": {
+        "description": "Title for sync settings page"
+    },
+    "syncSettingsMobileDataTitle": "Синхронизация по мобильным данным",
+    "@syncSettingsMobileDataTitle": {
+        "description": "Title for mobile data sync toggle"
+    },
+    "syncSettingsMobileDataSubtitle": "Разрешить синхронизацию при использовании мобильных данных (по умолчанию отключено для экономии данных)",
+    "@syncSettingsMobileDataSubtitle": {
+        "description": "Subtitle for mobile data sync toggle"
+    },
+    "syncSettingsCredentialsTitle": "Учетные данные",
+    "@syncSettingsCredentialsTitle": {
+        "description": "Title for credentials status section"
+    },
+    "syncSettingsCredentialsInvalid": "Недействительно - Пожалуйста, введите учетные данные заново",
+    "@syncSettingsCredentialsInvalid": {
+        "description": "Text shown when credentials are invalid"
+    },
+    "syncSettingsCredentialsValidated": "Проверено",
+    "@syncSettingsCredentialsValidated": {
+        "description": "Text shown when credentials are validated"
+    },
+    "syncSettingsCredentialsNotValidated": "Не проверено",
+    "@syncSettingsCredentialsNotValidated": {
+        "description": "Text shown when credentials are not yet validated"
+    },
+    "syncSettingsReenterButton": "Ввести заново",
+    "@syncSettingsReenterButton": {
+        "description": "Button text to re-enter credentials"
+    },
+    "syncSettingsDownloadSync": "Синхронизация загрузки",
+    "@syncSettingsDownloadSync": {
+        "description": "Title for download sync status section"
+    },
+    "syncSettingsUploadSync": "Синхронизация выгрузки",
+    "@syncSettingsUploadSync": {
+        "description": "Title for upload sync status section"
+    },
+    "syncSettingsLastSync": "Последняя синхронизация: {date}",
+    "@syncSettingsLastSync": {
+        "description": "Text showing last sync time",
+        "placeholders": {
+            "date": {
+                "type": "String",
+                "example": "1 янв. 2024 12:00"
+            }
+        }
+    },
+    "syncSettingsStatusPaused": "Статус: Приостановлено",
+    "@syncSettingsStatusPaused": {
+        "description": "Text shown when sync is paused"
+    },
+    "syncSettingsStatusActive": "Статус: Активно",
+    "@syncSettingsStatusActive": {
+        "description": "Text shown when sync is active"
+    },
+    "syncSettingsRetryCount": "Количество попыток: {count}",
+    "@syncSettingsRetryCount": {
+        "description": "Text showing retry count",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "3"
+            }
+        }
+    },
+    "syncSettingsNextRetry": "Следующая попытка: {date}",
+    "@syncSettingsNextRetry": {
+        "description": "Text showing next retry time",
+        "placeholders": {
+            "date": {
+                "type": "String",
+                "example": "1 янв. 2024 12:00"
+            }
+        }
+    },
+    "syncSettingsError": "Ошибка: {error}",
+    "@syncSettingsError": {
+        "description": "Text showing sync error",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Ошибка сети"
+            }
+        }
+    },
+    "syncSettingsResumeButton": "Возобновить сейчас",
+    "@syncSettingsResumeButton": {
+        "description": "Button text to resume paused sync"
+    },
+    "syncSettingsManualSyncTitle": "Ручная синхронизация",
+    "@syncSettingsManualSyncTitle": {
+        "description": "Title for manual sync section"
+    },
+    "syncSettingsManualSyncSubtitle": "Запустить синхронизацию сейчас",
+    "@syncSettingsManualSyncSubtitle": {
+        "description": "Subtitle for manual sync section"
+    },
+    "syncSettingsSyncNowButton": "Синхронизировать сейчас",
+    "@syncSettingsSyncNowButton": {
+        "description": "Button text to trigger manual sync"
+    },
+    "syncNotificationSyncing": "Синхронизация...",
+    "@syncNotificationSyncing": {
+        "description": "Notification title when sync is in progress"
+    },
+    "syncNotificationSyncingBody": "Синхронизация с Firefly III",
+    "@syncNotificationSyncingBody": {
+        "description": "Notification body when sync is in progress"
+    },
+    "syncNotificationSyncingEntity": "Синхронизация {entityType}...",
+    "@syncNotificationSyncingEntity": {
+        "description": "Notification title when syncing specific entity type",
+        "placeholders": {
+            "entityType": {
+                "type": "String",
+                "example": "транзакции"
+            }
+        }
+    },
+    "syncNotificationCompleted": "Синхронизация завершена",
+    "@syncNotificationCompleted": {
+        "description": "Notification title when sync is completed"
+    },
+    "syncNotificationCompletedBody": "Синхронизация с Firefly III успешно завершена",
+    "@syncNotificationCompletedBody": {
+        "description": "Notification body when sync is completed"
+    },
+    "syncNotificationPaused": "Синхронизация приостановлена",
+    "@syncNotificationPaused": {
+        "description": "Notification title when sync is paused"
+    },
+    "syncNotificationPausedBody": "Синхронизация приостановлена из-за ошибки. Будет автоматически повторена.",
+    "@syncNotificationPausedBody": {
+        "description": "Notification body when sync is paused"
+    },
+    "syncNotificationAuthError": "Ошибка аутентификации",
+    "@syncNotificationAuthError": {
+        "description": "Notification title for authentication error"
+    },
+    "syncNotificationAuthErrorBody": "Пожалуйста, введите учетные данные заново в настройках",
+    "@syncNotificationAuthErrorBody": {
+        "description": "Notification body for authentication error"
+    },
+    "syncNotificationChannelName": "Синхронизация",
+    "@syncNotificationChannelName": {
+        "description": "Name of the sync notification channel"
+    },
+    "syncNotificationChannelDescription": "Статус фоновой синхронизации",
+    "@syncNotificationChannelDescription": {
+        "description": "Description of the sync notification channel"
+    },
+    "syncSettingsEntityStatusTitle": "Статус синхронизации сущностей",
+    "@syncSettingsEntityStatusTitle": {
+        "description": "Title for the per-entity sync status section"
+    },
+    "syncSettingsEntityTransactions": "Транзакции",
+    "@syncSettingsEntityTransactions": {
+        "description": "Entity type name: Transactions"
+    },
+    "syncSettingsEntityAccounts": "Счета",
+    "@syncSettingsEntityAccounts": {
+        "description": "Entity type name: Accounts"
+    },
+    "syncSettingsEntityCategories": "Категории",
+    "@syncSettingsEntityCategories": {
+        "description": "Entity type name: Categories"
+    },
+    "syncSettingsEntityTags": "Теги",
+    "@syncSettingsEntityTags": {
+        "description": "Entity type name: Tags"
+    },
+    "syncSettingsEntityBills": "Счета",
+    "@syncSettingsEntityBills": {
+        "description": "Entity type name: Bills"
+    },
+    "syncSettingsEntityBudgets": "Бюджеты",
+    "@syncSettingsEntityBudgets": {
+        "description": "Entity type name: Budgets"
+    },
+    "syncSettingsEntityCurrencies": "Валюты",
+    "@syncSettingsEntityCurrencies": {
+        "description": "Entity type name: Currencies"
+    },
+    "syncSettingsEntityPiggyBanks": "Копилки",
+    "@syncSettingsEntityPiggyBanks": {
+        "description": "Entity type name: Piggy Banks"
+    },
+    "syncSettingsEntityStatusNeverSynced": "Никогда не синхронизировалось",
+    "@syncSettingsEntityStatusNeverSynced": {
+        "description": "Status text when an entity has never been synced"
+    },
+    "syncSettingsEntityStatusSyncing": "Синхронизация...",
+    "syncSettingsEntityProgress": "{current} of {total}",
+    "@syncSettingsEntityProgress": {
+        "description": "Progress indicator showing current count and total count",
+        "placeholders": {
+            "current": {
+                "type": "int",
+                "example": "42"
+            },
+            "total": {
+                "type": "int",
+                "example": "100"
+            }
+        }
+    },
+    "@syncSettingsEntityStatusSyncing": {
+        "description": "Status text when an entity is currently syncing"
+    },
+    "syncSettingsEntityStatusSuccess": "Успешно",
+    "@syncSettingsEntityStatusSuccess": {
+        "description": "Status text when an entity sync was successful"
+    },
+    "syncSettingsEntityStatusError": "Ошибка",
+    "@syncSettingsEntityStatusError": {
+        "description": "Status text when an entity sync has an error"
+    },
+    "syncSettingsEntityStatusPaused": "Приостановлено",
+    "@syncSettingsEntityStatusPaused": {
+        "description": "Status text when an entity sync is paused"
+    },
+    "settingsSynchronization": "Синхронизация",
+    "@settingsSynchronization": {
+        "description": "Title for synchronization settings option in main settings page"
+    },
+    "settingsSynchronizationSubtitle": "Настройки и статус синхронизации",
+    "@settingsSynchronizationSubtitle": {
+        "description": "Subtitle for synchronization settings option in main settings page"
+    },
+    "notificationListenerCreateTransactionTitle": "Создать транзакцию?",
+    "@notificationListenerCreateTransactionTitle": {
+        "description": "Title of notification asking user to create a transaction from another notification"
+    },
+    "notificationListenerCreateTransactionBody": "Нажмите, чтобы создать транзакцию на основе уведомления {appName}",
+    "@notificationListenerCreateTransactionBody": {
+        "description": "Body of notification asking user to create a transaction from another notification",
+        "placeholders": {
+            "appName": {
+                "type": "String",
+                "example": "Google Pay"
+            }
+        }
+    },
+    "notificationListenerChannelName": "Создать транзакцию из уведомления",
+    "@notificationListenerChannelName": {
+        "description": "Name of the notification listener channel"
+    },
+    "notificationListenerChannelDescription": "Уведомление с запросом на создание транзакции из другого уведомления.",
+    "@notificationListenerChannelDescription": {
+        "description": "Description of the notification listener channel"
     }
 }

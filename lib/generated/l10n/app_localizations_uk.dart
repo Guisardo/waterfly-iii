@@ -284,6 +284,24 @@ class SUk extends S {
   String get errorUnknown => 'Невідома помилка.';
 
   @override
+  String get errorInvalidHost => 'Invalid host';
+
+  @override
+  String get errorInvalidApiKey => 'Invalid API key';
+
+  @override
+  String get errorInvalidApiVersion => 'Invalid Firefly API version';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API version too low';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Unexpected HTTP status code';
+
+  @override
+  String get errorNotValidInstance => 'Not a valid Firefly III instance';
+
+  @override
   String get formButtonHelp => 'Допомога';
 
   @override
@@ -920,6 +938,10 @@ class SUk extends S {
   String get transactionErrorNoAccounts => 'Please fill in the accounts first.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Please select an asset account.';
 
@@ -984,4 +1006,187 @@ class SUk extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Withdrawal';
+
+  @override
+  String get syncSettingsTitle => 'Налаштування синхронізації';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Синхронізація через мобільні дані';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Дозволити синхронізацію при використанні мобільних даних (за замовчуванням вимкнено для економії даних)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Облікові дані';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Недійсні - Будь ласка, введіть облікові дані знову';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Підтверджено';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Не підтверджено';
+
+  @override
+  String get syncSettingsReenterButton => 'Ввести знову';
+
+  @override
+  String get syncSettingsDownloadSync => 'Синхронізація завантаження';
+
+  @override
+  String get syncSettingsUploadSync => 'Синхронізація вивантаження';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Остання синхронізація: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Статус: Призупинено';
+
+  @override
+  String get syncSettingsStatusActive => 'Статус: Активно';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Кількість спроб: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Наступна спроба: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Помилка: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Відновити зараз';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Ручна синхронізація';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Запустити синхронізацію зараз';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Синхронізувати зараз';
+
+  @override
+  String get syncNotificationSyncing => 'Синхронізація...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Синхронізація з Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Синхронізація $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Синхронізація завершена';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Синхронізація з Firefly III успішно завершена';
+
+  @override
+  String get syncNotificationPaused => 'Синхронізація призупинена';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Синхронізація призупинена через помилку. Буде автоматично повторена.';
+
+  @override
+  String get syncNotificationAuthError => 'Помилка автентифікації';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Будь ласка, введіть облікові дані знову в налаштуваннях';
+
+  @override
+  String get syncNotificationChannelName => 'Синхронізація';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Create Transaction?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Click to create a transaction based on the notification $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Create Transaction from Notification';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notification asking to create a transaction from another Notification.';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Статус фонової синхронізації';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Статус синхронізації сутностей';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Транзакції';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Рахунки';
+
+  @override
+  String get syncSettingsEntityCategories => 'Категорії';
+
+  @override
+  String get syncSettingsEntityTags => 'Теги';
+
+  @override
+  String get syncSettingsEntityBills => 'Рахунки';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Бюджети';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Валюти';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Скарбнички';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Ніколи не синхронізовано';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Синхронізація...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Успішно';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Помилка';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Призупинено';
+
+  @override
+  String get settingsSynchronization => 'Синхронізація';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Налаштування та статус синхронізації';
 }

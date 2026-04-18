@@ -1,20 +1,110 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:chopper/chopper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:logging/logging.dart';
 import 'package:notifications_listener_service/notifications_listener_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:waterflyiii/app.dart';
 import 'package:waterflyiii/auth.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_ca.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_cs.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_da.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_de.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_en.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_es.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_fa.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_fr.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_hu.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_id.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_it.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_ko.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_nl.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_pl.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_pt.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_ro.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_ru.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_sl.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_sv.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_tr.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_uk.dart';
+import 'package:waterflyiii/generated/l10n/app_localizations_zh.dart';
+import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/settings.dart';
 
 final Logger log = Logger("NotificationListener");
+
+/// Get localized string based on current locale from SharedPreferences
+Future<String> _getLocalizedString(String Function(S) getter) async {
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String localeStr = prefs.getString('LOCALE') ?? 'en';
+    final Locale locale = LocaleExt.fromLanguageTag(localeStr);
+    final String langCode = locale.languageCode.toLowerCase();
+
+    switch (langCode) {
+      case 'ca':
+        return getter(SCa('ca'));
+      case 'cs':
+        return getter(SCs('cs'));
+      case 'da':
+        return getter(SDa('da'));
+      case 'de':
+        return getter(SDe('de'));
+      case 'es':
+        return getter(SEs('es'));
+      case 'fa':
+        return getter(SFa('fa'));
+      case 'fr':
+        return getter(SFr('fr'));
+      case 'hu':
+        return getter(SHu('hu'));
+      case 'id':
+        return getter(SId('id'));
+      case 'it':
+        return getter(SIt('it'));
+      case 'ko':
+        return getter(SKo('ko'));
+      case 'nl':
+        return getter(SNl('nl'));
+      case 'pl':
+        return getter(SPl('pl'));
+      case 'pt':
+        if (locale.countryCode?.toLowerCase() == 'br') {
+          return getter(SPtBr());
+        }
+        return getter(SPt('pt'));
+      case 'ro':
+        return getter(SRo('ro'));
+      case 'ru':
+        return getter(SRu('ru'));
+      case 'sl':
+        return getter(SSl('sl'));
+      case 'sv':
+        return getter(SSv('sv'));
+      case 'tr':
+        return getter(STr('tr'));
+      case 'uk':
+        return getter(SUk('uk'));
+      case 'zh':
+        if (locale.countryCode?.toLowerCase() == 'tw') {
+          return getter(SZhTw());
+        }
+        return getter(SZh('zh'));
+      default:
+        return getter(SEn('en'));
+    }
+  } catch (e) {
+    log.warning("Failed to get localized string, using English", e);
+    return getter(SEn('en'));
+  }
+}
 
 class NotificationTransaction {
   NotificationTransaction(this.appName, this.title, this.body, this.date);
@@ -55,27 +145,20 @@ final RegExp rFindMoney = RegExp(
 );
 
 Future<NotificationListenerStatus> nlStatus() async {
-  if (Platform.isAndroid) {
-    return NotificationListenerStatus(
-      await NotificationServicePlugin.instance.isServicePermissionGranted(),
-      await NotificationServicePlugin.instance.isServiceRunning(),
-      await FlutterLocalNotificationsPlugin()
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >()!
-              .areNotificationsEnabled() ??
-          false,
-    );
-  } else {
-    return NotificationListenerStatus(false, false, false);
-  }
+  return NotificationListenerStatus(
+    await NotificationServicePlugin.instance.isServicePermissionGranted(),
+    await NotificationServicePlugin.instance.isServiceRunning(),
+    await FlutterLocalNotificationsPlugin()
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >()!
+            .areNotificationsEnabled() ??
+        false,
+  );
 }
 
 @pragma('vm:entry-point')
 void nlCallback() {
-  if (!Platform.isAndroid) {
-    return;
-  }
   log.finest(() => "nlCallback()");
   NotificationServicePlugin.instance.executeNotificationListener((
     NotificationEvent? evt,
@@ -89,21 +172,8 @@ void nlCallback() {
     if (evt.state == NotificationState.remove) {
       return;
     }
-
-    // Passed initial checks
-    final SettingsProvider settings = SettingsProvider();
-    final PastNotification notif = PastNotification(
-      evt.packageName!,
-      evt.title ?? "",
-      evt.text ?? "",
-      DateTime.now(),
-      null,
-    );
-
     final Iterable<RegExpMatch> matches = rFindMoney.allMatches(evt.text ?? "");
     if (matches.isEmpty) {
-      notif.reason = PastNotificationMissedReasons.noMoney;
-      await settings.notificationHistoryAdd(notif);
       log.finer(() => "nlCallback(${evt.packageName}): no money found");
       return;
     }
@@ -117,26 +187,20 @@ void nlCallback() {
       }
     }
     if (!validMatch) {
-      notif.reason = PastNotificationMissedReasons.noCurrency;
-      await settings.notificationHistoryAdd(notif);
       log.finer(
         () => "nlCallback(${evt.packageName}): no money with currency found",
       );
       return;
     }
 
-    // Valid notification
+    final SettingsProvider settings = SettingsProvider();
     await settings.notificationAddKnownApp(evt.packageName!);
 
     if (!(await settings.notificationUsedApps()).contains(evt.packageName)) {
-      notif.reason = PastNotificationMissedReasons.appNotUsed;
-      await settings.notificationHistoryAdd(notif);
       log.finer(() => "nlCallback(${evt.packageName}): app not used");
       return;
     }
 
-    // Passed, add tx/show add notification
-    await settings.notificationHistoryAdd(notif);
     final NotificationAppSettings appSettings = await settings
         .notificationGetAppSettings(evt.packageName!);
     bool showNotification = true;
@@ -148,7 +212,7 @@ void nlCallback() {
       );
       try {
         final FireflyService ffService = FireflyService();
-        if (!await ffService.signInFromStorage()) {
+        if (!await ffService.restoreFromStorage()) {
           throw UnauthenticatedResponse;
         }
         final FireflyIii api = ffService.api;
@@ -187,7 +251,7 @@ void nlCallback() {
           groupTitle: null,
           transactions: <TransactionSplitStore>[
             TransactionSplitStore(
-              type: .withdrawal,
+              type: TransactionTypeProperty.withdrawal,
               date: date,
               amount: amount.toString(),
               description: evt.title!,
@@ -207,9 +271,10 @@ void nlCallback() {
         );
         if (!resp.isSuccessful || resp.body == null) {
           try {
-            final ValidationErrorResponse valError = .fromJson(
-              json.decode(resp.error.toString()),
-            );
+            final ValidationErrorResponse valError =
+                ValidationErrorResponse.fromJson(
+                  json.decode(resp.error.toString()),
+                );
             throw Exception("nlCallBack PostTransaction: ${valError.message}");
           } catch (_) {
             throw Exception("nlCallBack PostTransaction: unknown");
@@ -218,17 +283,17 @@ void nlCallback() {
 
         unawaited(
           FlutterLocalNotificationsPlugin().show(
-            id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            title: "Transaction created",
-            body: "Transaction created based on notification ${evt.title}",
-            notificationDetails: const NotificationDetails(
+            DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            "Transaction created",
+            "Transaction created based on notification ${evt.title}",
+            const NotificationDetails(
               android: AndroidNotificationDetails(
                 'extract_transaction_created',
                 'Transaction from Notification Created',
                 channelDescription:
                     'Notification that a Transaction has been created from another Notification.',
-                importance: .low, // Android 8.0 and higher
-                priority: .low, // Android 7.1 and lower
+                importance: Importance.low, // Android 8.0 and higher
+                priority: Priority.low, // Android 7.1 and lower
               ),
             ),
             payload: "",
@@ -243,42 +308,51 @@ void nlCallback() {
     }
 
     if (showNotification) {
-      // :TODO: l10n
       unawaited(
-        FlutterLocalNotificationsPlugin().show(
-          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          title: "Create Transaction?",
-          // :TODO: once we l10n this, a better switch can be implemented...
-          body:
-              "Click to create a transaction based on the notification ${evt.title ?? evt.packageName ?? ""}",
-          notificationDetails: const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'extract_transaction',
-              'Create Transaction from Notification',
-              channelDescription:
-                  'Notification asking to create a transaction from another Notification.',
-              importance: .low, // Android 8.0 and higher
-              priority: .low, // Android 7.1 and lower
+        _getLocalizedString(
+          (S s) => s.notificationListenerCreateTransactionTitle,
+        ).then((String title) async {
+          final String body = await _getLocalizedString(
+            (S s) => s.notificationListenerCreateTransactionBody(
+              evt.title ?? evt.packageName ?? "",
             ),
-          ),
-          payload: jsonEncode(
-            NotificationTransaction(
-              evt.packageName ?? "",
-              evt.title ?? "",
-              evt.text ?? "",
-              DateTime.tryParse(evt.postTime ?? "") ?? DateTime.now(),
+          );
+          final String channelName = await _getLocalizedString(
+            (S s) => s.notificationListenerChannelName,
+          );
+          final String channelDescription = await _getLocalizedString(
+            (S s) => s.notificationListenerChannelDescription,
+          );
+
+          await FlutterLocalNotificationsPlugin().show(
+            DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            title,
+            body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                'extract_transaction',
+                channelName,
+                channelDescription: channelDescription,
+                importance: Importance.low, // Android 8.0 and higher
+                priority: Priority.low, // Android 7.1 and lower
+              ),
             ),
-          ),
-        ),
+            payload: jsonEncode(
+              NotificationTransaction(
+                evt.packageName ?? "",
+                evt.title ?? "",
+                evt.text ?? "",
+                DateTime.tryParse(evt.postTime ?? "") ?? DateTime.now(),
+              ),
+            ),
+          );
+        }),
       );
     }
   });
 }
 
 Future<void> nlInit() async {
-  if (!Platform.isAndroid) {
-    return;
-  }
   log.finest(() => "nlInit()");
   await NotificationServicePlugin.instance.initialize(nlCallback);
   nlCallback();
@@ -294,7 +368,9 @@ Future<void> nlNotificationTap(
   await showDialog(
     context: navigatorKey.currentState!.context,
     builder: (BuildContext context) => TransactionPage(
-      notification: .fromJson(jsonDecode(notificationResponse.payload!)),
+      notification: NotificationTransaction.fromJson(
+        jsonDecode(notificationResponse.payload!),
+      ),
     ),
   );
 }
@@ -351,33 +427,31 @@ Future<(CurrencyRead?, double)> parseNotificationText(
       }
     }
 
-    if (bestMatchIndex == -1) {
-      bestMatchIndex = 0;
-    }
+    if (bestMatchIndex != -1) {
+      final RegExpMatch bestMatch = matches.elementAt(bestMatchIndex);
 
-    final RegExpMatch bestMatch = matches.elementAt(bestMatchIndex);
+      String amountStr = (bestMatch.namedGroup("amount") ?? "").replaceAll(
+        RegExp(r"\s+"),
+        "",
+      );
 
-    String amountStr = (bestMatch.namedGroup("amount") ?? "").replaceAll(
-      RegExp(r"\s+"),
-      "",
-    );
-
-    if (amountStr.isNotEmpty) {
-      // Find the first non-digit character at the end of the string
-      String separator = amountStr[0];
-      for (int i = amountStr.length - 1; i >= 0; i--) {
-        separator = amountStr[i];
-        if (!RegExp(r'\d').hasMatch(separator)) {
-          break;
+      if (amountStr.isNotEmpty) {
+        // Find the first non-digit character at the end of the string
+        String separator = amountStr[0];
+        for (int i = amountStr.length - 1; i >= 0; i--) {
+          separator = amountStr[i];
+          if (!RegExp(r'\d').hasMatch(separator)) {
+            break;
+          }
         }
-      }
 
-      // Strip all non-digit characters that are not decimal separators
-      if (separator == "." || separator == ",") {
-        amountStr = amountStr.replaceAll(RegExp('[^0-9$separator]'), '');
-      }
+        // Strip all non-digit characters that are not decimal separators
+        if (separator == "." || separator == ",") {
+          amountStr = amountStr.replaceAll(RegExp('[^0-9$separator]'), '');
+        }
 
-      amount = double.tryParse(amountStr.replaceAll(",", "."))!;
+        amount = double.tryParse(amountStr.replaceAll(",", "."))!;
+      }
     }
   }
 

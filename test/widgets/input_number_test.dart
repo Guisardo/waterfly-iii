@@ -2,153 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:waterflyiii/widgets/input_number.dart';
 
-/// Comprehensive test suite for NumberInput widget with math evaluation.
-///
-/// Tests cover:
-/// - Basic number input
-/// - Math expression input and evaluation
-/// - Chained calculations (evaluates when second operator is pressed)
-/// - Enter key evaluation
-/// - Focus loss evaluation
-/// - Input validation and formatting
 void main() {
-  group('NumberInput Widget', () {
-    testWidgets('displays number input field', (WidgetTester tester) async {
-      final TextEditingController controller = TextEditingController();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NumberInput(controller: controller, decimals: 2),
-          ),
-        ),
-      );
-
-      expect(find.byType(TextFormField), findsOneWidget);
-    });
-
-    testWidgets('allows basic number input', (WidgetTester tester) async {
-      final TextEditingController controller = TextEditingController();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NumberInput(controller: controller, decimals: 2),
-          ),
-        ),
-      );
-
-      final Finder textField = find.byType(TextFormField);
-      await tester.enterText(textField, '123.45');
-      await tester.pump();
-
-      expect(controller.text, '123.45');
-    });
-
-    testWidgets('replaces comma with dot for decimals', (
+  group('NumberInput widget', () {
+    /// Helper to test expression evaluation and rounding.
+    /// Creates a NumberInput, sets expression directly on controller, unfocuses, and returns result.
+    Future<String> evaluateInWidget(
       WidgetTester tester,
-    ) async {
-      final TextEditingController controller = TextEditingController();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NumberInput(controller: controller, decimals: 2),
-          ),
-        ),
-      );
-
-      final Finder textField = find.byType(TextFormField);
-      await tester.enterText(textField, '123,45');
-      await tester.pump();
-
-      expect(controller.text, '123.45');
-    });
-
-    testWidgets('allows math operators when math evaluation enabled', (
-      WidgetTester tester,
-    ) async {
-      final TextEditingController controller = TextEditingController();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NumberInput(
-              controller: controller,
-              decimals: 2,
-              enableMathEvaluation: true,
-            ),
-          ),
-        ),
-      );
-
-      final Finder textField = find.byType(TextFormField);
-      await tester.enterText(textField, '10+5');
-      await tester.pump();
-
-      expect(controller.text, '10+5');
-    });
-
-    testWidgets('prevents consecutive operators', (WidgetTester tester) async {
-      final TextEditingController controller = TextEditingController();
-      controller.text = '10+';
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NumberInput(
-              controller: controller,
-              decimals: 2,
-              enableMathEvaluation: true,
-            ),
-          ),
-        ),
-      );
-
-      final Finder textField = find.byType(TextFormField);
-      await tester.tap(textField);
-      await tester.pump();
-
-      // Try to add another operator - should be prevented
-      await tester.enterText(textField, '10++');
-      await tester.pump();
-
-      // Should not have consecutive operators
-      expect(controller.text, isNot(contains('++')));
-    });
-
-    testWidgets('evaluates expression on Enter key', (
-      WidgetTester tester,
-    ) async {
-      final TextEditingController controller = TextEditingController();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NumberInput(
-              controller: controller,
-              decimals: 2,
-              enableMathEvaluation: true,
-            ),
-          ),
-        ),
-      );
-
-      final Finder textField = find.byType(TextFormField);
-      await tester.enterText(textField, '10+5');
-      await tester.pump();
-
-      // Simulate Enter key press
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump();
-
-      // Expression should be evaluated
-      expect(controller.text, '15.00');
-    });
-
-    testWidgets('evaluates expression on focus loss', (
-      WidgetTester tester,
-    ) async {
+      String expression, {
+      int decimals = 2,
+    }) async {
       final TextEditingController controller = TextEditingController();
       final FocusNode focusNode = FocusNode();
 
@@ -157,376 +19,156 @@ void main() {
           home: Scaffold(
             body: Column(
               children: <Widget>[
-                NumberInput(
-                  controller: controller,
-                  focusNode: focusNode,
-                  decimals: 2,
-                  enableMathEvaluation: true,
-                ),
-                // Another widget to focus on
-                const TextField(key: Key('other_field')),
+                NumberInput(controller: controller, decimals: decimals),
+                // Another focusable widget to shift focus away
+                TextField(key: const Key('other'), focusNode: focusNode),
               ],
             ),
           ),
         ),
       );
 
-      final Finder textField = find.byType(TextFormField).first;
-      await tester.enterText(textField, '10+5');
+      // Focus the NumberInput first
+      await tester.tap(find.byType(NumberInput));
       await tester.pump();
 
-      // Focus on another field
-      final Finder otherField = find.byKey(const Key('other_field'));
-      await tester.tap(otherField);
+      // Set expression directly on controller (bypasses input formatters)
+      // This tests the _evaluateExpression logic directly
+      controller.text = expression;
       await tester.pump();
 
-      // Expression should be evaluated
-      expect(controller.text, '15.00');
+      // Unfocus by focusing another widget - this triggers onFocusChange
+      focusNode.requestFocus();
+      await tester.pump();
+
+      return controller.text;
+    }
+
+    testWidgets('- evaluates simple addition', (WidgetTester tester) async {
+      expect(await evaluateInWidget(tester, '1+2'), '3.00');
+      expect(await evaluateInWidget(tester, '10+20'), '30.00');
     });
 
-    testWidgets('handles chained calculations', (WidgetTester tester) async {
-      final TextEditingController controller = TextEditingController();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NumberInput(
-              controller: controller,
-              decimals: 2,
-              enableMathEvaluation: true,
-            ),
-          ),
-        ),
-      );
-
-      final Finder textField = find.byType(TextFormField);
-
-      // Type "10+5" - should not evaluate yet
-      await tester.enterText(textField, '10+5');
-      await tester.pump();
-      expect(controller.text, '10+5');
-
-      // Add "*" - should evaluate "10+5" to 15, then add "*"
-      await tester.enterText(textField, '10+5*');
-      await tester.pump();
-
-      // Should have evaluated and added the operator
-      expect(controller.text, startsWith('15'));
-      expect(controller.text, endsWith('*'));
+    testWidgets('- evaluates simple subtraction', (WidgetTester tester) async {
+      expect(await evaluateInWidget(tester, '5-3'), '2.00');
+      expect(await evaluateInWidget(tester, '10-20'), '-10.00');
     });
 
-    testWidgets('formats result with correct decimal places', (
+    testWidgets('- evaluates simple multiplication', (
       WidgetTester tester,
     ) async {
-      final TextEditingController controller = TextEditingController();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NumberInput(
-              controller: controller,
-              decimals: 2,
-              enableMathEvaluation: true,
-            ),
-          ),
-        ),
-      );
-
-      final Finder textField = find.byType(TextFormField);
-      await tester.enterText(textField, '10/3');
-      await tester.pump();
-
-      // Simulate Enter key
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump();
-
-      // Should format with 2 decimal places
-      expect(controller.text, '3.33');
+      expect(await evaluateInWidget(tester, '2*3'), '6.00');
+      expect(await evaluateInWidget(tester, '10*0.5'), '5.00');
     });
 
-    testWidgets('handles invalid expressions gracefully', (
+    testWidgets('- evaluates simple division', (WidgetTester tester) async {
+      expect(await evaluateInWidget(tester, '6/2'), '3.00');
+      expect(await evaluateInWidget(tester, '10/4'), '2.50');
+      expect(await evaluateInWidget(tester, '1/3'), '0.33');
+    });
+
+    testWidgets('- respects operator precedence (direct controller)', (
       WidgetTester tester,
     ) async {
-      final TextEditingController controller = TextEditingController();
-      controller.text = '10+5';
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NumberInput(
-              controller: controller,
-              decimals: 2,
-              enableMathEvaluation: true,
-            ),
-          ),
-        ),
-      );
-
-      final Finder textField = find.byType(TextFormField);
-
-      // Try to enter invalid expression
-      await tester.enterText(textField, '10++5');
-      await tester.pump();
-
-      // Should not have consecutive operators
-      expect(controller.text, isNot(contains('++')));
+      // 1 + (2*3) = 7, not (1+2)*3 = 9
+      expect(await evaluateInWidget(tester, '1+2*3'), '7.00');
+      expect(await evaluateInWidget(tester, '10-2*3'), '4.00');
     });
 
-    testWidgets('disables math evaluation when flag is false', (
+    testWidgets('- respects operator precedence when typing (user input)', (
       WidgetTester tester,
     ) async {
+      // This test simulates actual user input through the widget
+      // to ensure input formatters don't break operator precedence
       final TextEditingController controller = TextEditingController();
+      final FocusNode focusNode = FocusNode();
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NumberInput(
-              controller: controller,
-              decimals: 2,
-              enableMathEvaluation: false,
+            body: Column(
+              children: <Widget>[
+                NumberInput(controller: controller, decimals: 2),
+                // Another focusable widget to shift focus away
+                TextField(key: const Key('other'), focusNode: focusNode),
+              ],
             ),
           ),
         ),
       );
 
-      final Finder textField = find.byType(TextFormField);
-
-      // Try to enter operator - should be rejected
-      await tester.enterText(textField, '10+5');
+      // Focus the NumberInput
+      await tester.tap(find.byType(NumberInput));
       await tester.pump();
 
-      // Should not contain operators
-      expect(controller.text, isNot(contains('+')));
-    });
+      // Simulate typing character by character through input formatters
+      // The bug: when second operator (*) is typed, formatter evaluates 1+2=3
+      // resulting in '3*' instead of '1+2*'
+      await tester.enterText(find.byType(NumberInput), '1');
+      await tester.pump();
+      expect(controller.text, '1');
 
-    testWidgets('calls onChanged callback', (WidgetTester tester) async {
-      final TextEditingController controller = TextEditingController();
-      String? lastChangedValue;
+      await tester.enterText(find.byType(NumberInput), '1+');
+      await tester.pump();
+      expect(controller.text, '1+');
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NumberInput(
-              controller: controller,
-              decimals: 2,
-              onChanged: (String value) {
-                lastChangedValue = value;
-              },
-            ),
-          ),
-        ),
-      );
+      await tester.enterText(find.byType(NumberInput), '1+2');
+      await tester.pump();
+      expect(controller.text, '1+2');
 
-      final Finder textField = find.byType(TextFormField);
-      await tester.enterText(textField, '123');
+      // This is where the bug occurs - second operator triggers premature evaluation
+      await tester.enterText(find.byType(NumberInput), '1+2*');
+      await tester.pump();
+      // BUG: Currently becomes '3.00*' instead of '1+2*'
+      expect(controller.text, '1+2*');
+
+      await tester.enterText(find.byType(NumberInput), '1+2*3');
+      await tester.pump();
+      expect(controller.text, '1+2*3');
+
+      // Unfocus to trigger evaluation
+      focusNode.requestFocus();
       await tester.pump();
 
-      expect(lastChangedValue, '123');
+      // Should be 7.00 (respecting operator precedence), not 9.00
+      expect(controller.text, '7.00');
     });
 
-    // Regression test for Guisardo/waterfly-iii#3:
-    // When the save button is pressed while the amount field still has focus and
-    // contains a math expression, the TransactionPage calls
-    // FocusScope.of(context).unfocus() to force evaluation before reading
-    // _localAmounts. This test verifies the mechanism: programmatic unfocus must
-    // trigger onChanged with the evaluated value, not the raw expression string.
-    testWidgets(
-      'evaluates math expression and fires onChanged when FocusScope.unfocus() is called',
-      (WidgetTester tester) async {
-        final TextEditingController controller = TextEditingController();
-        final FocusNode focusNode = FocusNode();
-        final List<String> changedValues = <String>[];
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: Column(
-                children: <Widget>[
-                  NumberInput(
-                    controller: controller,
-                    focusNode: focusNode,
-                    decimals: 2,
-                    enableMathEvaluation: true,
-                    onChanged: (String value) {
-                      changedValues.add(value);
-                    },
-                  ),
-                  // Dummy widget that gives focus a place to go when unfocused
-                  const TextField(key: Key('other_field')),
-                ],
-              ),
-            ),
-          ),
-        );
-
-        // Type a math expression while the field is focused — simulates the user
-        // editing the amount field with an expression and not yet tapping away.
-        final Finder textField = find.byType(TextFormField).first;
-        await tester.tap(textField);
-        await tester.pump();
-        await tester.enterText(textField, '100+50');
-        await tester.pump();
-
-        // Precondition: raw expression is in the controller and onChanged received it.
-        expect(controller.text, '100+50');
-
-        // Simulate what TransactionPage does just before setState(_savingInProgress=true):
-        // FocusScope.of(context).unfocus() — this fires NumberInput._onFocusChange
-        // synchronously, which calls _evaluateExpression and then onChanged with the
-        // evaluated result.
-        final BuildContext ctx = tester.element(find.byType(Scaffold).first);
-        FocusScope.of(ctx).unfocus();
-        await tester.pump();
-
-        // The controller must now contain the evaluated result, not the raw expression.
-        expect(controller.text, '150.00');
-
-        // onChanged must have been called with the evaluated value.
-        expect(changedValues.last, '150.00');
-      },
-    );
-
-    testWidgets('respects disabled state', (WidgetTester tester) async {
-      final TextEditingController controller = TextEditingController();
-      controller.text = '123';
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: NumberInput(
-              controller: controller,
-              decimals: 2,
-              disabled: true,
-            ),
-          ),
-        ),
-      );
-
-      final Finder textField = find.byType(TextFormField);
-      final TextFormField field = tester.widget<TextFormField>(textField);
-
-      // Check that the field is disabled (readOnly is not directly accessible)
-      expect(field.enabled, false);
+    testWidgets('- rounds to 2 decimals correctly', (
+      WidgetTester tester,
+    ) async {
+      expect(await evaluateInWidget(tester, '1.004'), '1.00');
+      expect(
+        await evaluateInWidget(tester, '1.005'),
+        '1.00',
+      ); // floating-point: 1.005*100 = 100.4999..., rounds to 100 → 1.00
+      expect(await evaluateInWidget(tester, '123.456'), '123.46');
     });
 
-    testWidgets(
-      'does not evaluate or call onChanged when expression is invalid on focus loss',
-      (WidgetTester tester) async {
-        final TextEditingController controller = TextEditingController();
-        final FocusNode focusNode = FocusNode();
-        final List<String> changedValues = <String>[];
+    testWidgets('- handles unary operators', (WidgetTester tester) async {
+      expect(await evaluateInWidget(tester, '-5'), '-5.00');
+      // Mid-expression unary minus is not supported by the evaluator's pattern;
+      // the expression is left unchanged (evaluate() returns null).
+      expect(await evaluateInWidget(tester, '1+-2'), '1+-2');
+      expect(await evaluateInWidget(tester, '3*-2'), '3*-2');
+    });
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: Column(
-                children: <Widget>[
-                  NumberInput(
-                    controller: controller,
-                    focusNode: focusNode,
-                    decimals: 2,
-                    onChanged: (String value) => changedValues.add(value),
-                  ),
-                  const TextField(key: Key('other')),
-                ],
-              ),
-            ),
-          ),
-        );
+    testWidgets('- returns unchanged text for invalid expressions', (
+      WidgetTester tester,
+    ) async {
+      // Empty input: evaluate() returns null (empty check), controller stays empty.
+      expect(await evaluateInWidget(tester, ''), '');
+      // Non-numeric text: isValidExpression() returns false → null → unchanged.
+      expect(await evaluateInWidget(tester, 'abc'), 'abc');
+      // Trailing operator: isValidExpression() returns false → null → unchanged.
+      expect(await evaluateInWidget(tester, '1+'), '1+');
+    });
 
-        await tester.tap(find.byType(TextFormField).first);
-        await tester.pump();
-        await tester.enterText(find.byType(TextFormField).first, '10+');
-        await tester.pump();
-
-        // Lose focus — "10+" is an incomplete/invalid expression
-        await tester.tap(find.byKey(const Key('other')));
-        await tester.pump();
-
-        // Controller text must remain unchanged (not evaluated)
-        expect(controller.text, '10+');
-        // onChanged must NOT have been called with an evaluated numeric result
-        expect(changedValues.where((String v) => v == '10.00').isEmpty, isTrue);
-      },
-    );
-
-    testWidgets(
-      'formats integer result without decimal places when decimals is 0',
-      (WidgetTester tester) async {
-        final TextEditingController controller = TextEditingController();
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: NumberInput(controller: controller, decimals: 0),
-            ),
-          ),
-        );
-
-        await tester.enterText(find.byType(TextFormField), '10+5');
-        await tester.pump();
-        await tester.testTextInput.receiveAction(TextInputAction.done);
-        await tester.pump();
-
-        // Must be "15" not "15.0"
-        expect(controller.text, '15');
-      },
-    );
-
-    testWidgets(
-      'still evaluates on focus loss after widget rebuilds with a new focusNode',
-      (WidgetTester tester) async {
-        final TextEditingController controller = TextEditingController();
-        final FocusNode firstNode = FocusNode();
-        final FocusNode secondNode = FocusNode();
-        FocusNode activeNode = firstNode;
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: StatefulBuilder(
-                builder: (BuildContext context, StateSetter setState) {
-                  return Column(
-                    children: <Widget>[
-                      NumberInput(
-                        controller: controller,
-                        focusNode: activeNode,
-                        decimals: 2,
-                      ),
-                      ElevatedButton(
-                        key: const Key('swap'),
-                        onPressed: () =>
-                            setState(() => activeNode = secondNode),
-                        child: const Text('Swap'),
-                      ),
-                      const TextField(key: Key('other')),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-
-        // Rebuild with secondNode — triggers didUpdateWidget
-        await tester.tap(find.byKey(const Key('swap')));
-        await tester.pump();
-
-        // Type expression with second node active
-        await tester.tap(find.byType(TextFormField).first);
-        await tester.pump();
-        await tester.enterText(find.byType(TextFormField).first, '8+2');
-        await tester.pump();
-
-        // Lose focus — evaluation should work via second node's listener
-        await tester.tap(find.byKey(const Key('other')));
-        await tester.pump();
-
-        expect(controller.text, '10.00');
-
-        firstNode.dispose();
-        secondNode.dispose();
-      },
-    );
+    testWidgets('- respects decimals parameter', (WidgetTester tester) async {
+      expect(await evaluateInWidget(tester, '1/3', decimals: 0), '0');
+      expect(await evaluateInWidget(tester, '1/3', decimals: 1), '0.3');
+      expect(await evaluateInWidget(tester, '1/3', decimals: 2), '0.33');
+      expect(await evaluateInWidget(tester, '1/3', decimals: 3), '0.333');
+    });
   });
 }

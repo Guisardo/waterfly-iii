@@ -1,5 +1,5 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +14,6 @@ import 'package:provider/single_child_widget.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/layout.dart';
 import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/pages/login.dart';
 import 'package:waterflyiii/pages/navigation.dart';
@@ -22,6 +21,9 @@ import 'package:waterflyiii/pages/splash.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/widgets/logo.dart';
+import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
+import 'package:waterflyiii/services/sync/workmanager_sync.dart';
+import 'package:waterflyiii/services/sync/sync_status_provider.dart';
 
 final Logger log = Logger("App");
 
@@ -46,37 +48,37 @@ class _WaterflyAppState extends State<WaterflyApp> {
   List<SharedFile>? _filesSharedToApp;
   bool _requiresAuth = false;
   DateTime? _lcLastOpen;
-
-  final LayoutProvider _layoutProvider = LayoutProvider();
+  bool _wasOffline = true; // Track previous connectivity state
+  bool _pendingAuthedUpdate = false; // Track if we've scheduled _authed update
+  bool _startupInitiated =
+      false; // Guard: prevent multiple microtask dispatches
 
   @override
   void initState() {
     super.initState();
 
-    // Notifications (Android only)
-    if (Platform.isAndroid) {
-      FlutterLocalNotificationsPlugin().initialize(
-        settings: const InitializationSettings(
-          android: AndroidInitializationSettings('ic_stat_notification'),
-        ),
-        onDidReceiveNotificationResponse: nlNotificationTap,
-      );
+    // Notifications
+    FlutterLocalNotificationsPlugin().initialize(
+      const InitializationSettings(
+        android: AndroidInitializationSettings('ic_stat_notification'),
+      ),
+      onDidReceiveNotificationResponse: nlNotificationTap,
+    );
 
-      FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails().then((
-        NotificationAppLaunchDetails? details,
-      ) {
-        log.config("checking NotificationAppLaunchDetails");
-        if ((details?.didNotificationLaunchApp ?? false) &&
-            (details?.notificationResponse?.payload?.isNotEmpty ?? false)) {
-          log.info("Was launched from notification!");
-          _notificationPayload = .fromJson(
-            jsonDecode(details!.notificationResponse!.payload!),
-          );
-        }
-      });
-    }
+    FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails().then((
+      NotificationAppLaunchDetails? details,
+    ) {
+      log.config("checking NotificationAppLaunchDetails");
+      if ((details?.didNotificationLaunchApp ?? false) &&
+          (details?.notificationResponse?.payload?.isNotEmpty ?? false)) {
+        log.info("Was launched from notification!");
+        _notificationPayload = NotificationTransaction.fromJson(
+          jsonDecode(details!.notificationResponse!.payload!),
+        );
+      }
+    });
 
-    // Quick Actions (Android + iOS)
+    // Quick Actions
     const QuickActions quickActions = QuickActions();
     quickActions.initialize((String shortcutType) {
       log.info("Was launched from QuickAction $shortcutType");
@@ -181,17 +183,6 @@ class _WaterflyAppState extends State<WaterflyApp> {
     super.dispose();
   }*/
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // Always called after initState() --> can be used to init _layoutProvider.
-    // No separate init needed inside initState()
-    if (mounted) {
-      _layoutProvider.updateSize(context);
-    }
-  }
-
   Future<bool> auth() {
     final LocalAuthentication auth = LocalAuthentication();
     return auth.authenticate(
@@ -206,9 +197,11 @@ class _WaterflyAppState extends State<WaterflyApp> {
 
     return DynamicColorBuilder(
       builder: (ColorScheme? cSchemeDynamicLight, ColorScheme? cSchemeDynamicDark) {
-        final ColorScheme cSchemeLight = .fromSeed(seedColor: Colors.blue);
+        final ColorScheme cSchemeLight = ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+        );
         final ColorScheme cSchemeDark =
-            .fromSeed(
+            ColorScheme.fromSeed(
               seedColor: Colors.blue,
               brightness: Brightness.dark,
             ).copyWith(
@@ -229,11 +222,40 @@ class _WaterflyAppState extends State<WaterflyApp> {
             ChangeNotifierProvider<SettingsProvider>(
               create: (_) => SettingsProvider(),
             ),
-            ChangeNotifierProvider<LayoutProvider>.value(
-              value: _layoutProvider,
+            ChangeNotifierProvider<ConnectivityService>(
+              create: (_) => ConnectivityService(),
+            ),
+            ChangeNotifierProvider<SyncStatusProvider>(
+              create: (_) => SyncStatusProvider(),
             ),
           ],
           builder: (BuildContext context, _) {
+            // Listen to connectivity changes and trigger sync when device comes online
+            final ConnectivityService connectivityService = context
+                .watch<ConnectivityService>();
+            final bool isOnline = connectivityService.isOnline;
+
+            // Trigger sync when device comes online (was offline, now online)
+            if (_wasOffline && isOnline && !_startup) {
+              final FireflyService fireflyService = context
+                  .read<FireflyService>();
+              if (fireflyService.signedIn) {
+                // Use sync status provider to trigger sync
+                final SyncStatusProvider syncStatusProvider = context
+                    .read<SyncStatusProvider>();
+                Future<void>.microtask(() async {
+                  try {
+                    await syncStatusProvider.syncAll();
+                  } catch (e) {
+                    log.warning(
+                      "Failed to trigger sync on connectivity change",
+                      e,
+                    );
+                  }
+                });
+              }
+            }
+            _wasOffline = !isOnline;
             late bool signedIn;
             log.finest(() => "_startup = $_startup");
             _requiresAuth = context.watch<SettingsProvider>().lock;
@@ -265,31 +287,127 @@ class _WaterflyAppState extends State<WaterflyApp> {
                       );
                     }
                   });
-                } else {
+                } else if (!_startupInitiated) {
+                  _startupInitiated = true;
                   log.finest(() => "signing in");
-                  context.read<FireflyService>().signInFromStorage().then(
-                    (bool _) => setState(() {
-                      log.finest(() => "set _startup = false");
-                      _authed = true;
-                      _startup = false;
+                  // Capture context values before async gap
+                  final FireflyService fireflyService = context
+                      .read<FireflyService>();
+                  final SyncStatusProvider syncStatusProvider = context
+                      .read<SyncStatusProvider>();
+                  final SettingsProvider settingsProvider = context
+                      .read<SettingsProvider>();
+
+                  // Start authentication in background without blocking UI
+                  // The UI will reactively update when authentication completes
+                  unawaited(
+                    Future<void>.microtask(() async {
+                      try {
+                        // Restore credentials from storage without API calls
+                        // API validation will happen during sync
+                        final bool signedIn = await fireflyService
+                            .restoreFromStorage();
+                        if (signedIn) {
+                          // Initialize WorkManager for background sync
+                          await WorkManagerSync.initialize();
+                          await WorkManagerSync.registerPeriodicSync();
+
+                          // Initialize sync status provider
+                          if (!mounted) return;
+                          await syncStatusProvider.initialize(
+                            fireflyService: fireflyService,
+                            connectivityService: connectivityService,
+                            settingsProvider: settingsProvider,
+                          );
+                          // Trigger initial sync if online — the connectivity-transition
+                          // trigger in build() cannot fire during startup because _wasOffline
+                          // is consumed (set to false) while _startup is still true.
+                          if (connectivityService.isOnline) {
+                            unawaited(syncStatusProvider.syncAll());
+                          }
+                        }
+                        if (!mounted) return;
+                        setState(() {
+                          log.finest(() => "set _startup = false");
+                          _authed = true;
+                          _startup = false;
+                          _startupInitiated = false;
+                        });
+                      } catch (e, stackTrace) {
+                        log.warning(
+                          "Error during background authentication",
+                          e,
+                          stackTrace,
+                        );
+                        if (!mounted) return;
+                        setState(() {
+                          log.finest(() => "set _startup = false");
+                          _authed = true;
+                          _startup = false;
+                          _startupInitiated = false;
+                        });
+                      }
                     }),
                   );
                 }
               }
             } else {
-              signedIn = context.select((FireflyService f) => f.signedIn);
+              // Watch for authentication state changes reactively
+              final FireflyService fireflyService = context
+                  .watch<FireflyService>();
+              signedIn = fireflyService.signedIn;
               if (signedIn) {
-                context.read<FireflyService>().tzHandler.setUseServerTime(
+                fireflyService.tzHandler.setUseServerTime(
                   context.read<SettingsProvider>().useServerTime,
                 );
               }
               log.config("signedIn: $signedIn");
             }
 
+            // Watch for authentication state to reactively update UI
+            final FireflyService fireflyServiceForUI = context
+                .watch<FireflyService>();
+            final bool isAuthenticating = fireflyServiceForUI.isAuthenticating;
+            final bool signedInForUI = fireflyServiceForUI.signedIn;
+            final bool hasStorageException =
+                fireflyServiceForUI.storageSignInException != null;
+
+            log.config(
+              "signedIn: $signedInForUI, isAuthenticating: $isAuthenticating",
+            );
+
+            // Update _authed flag when signedIn state changes (e.g., after login from SplashPage)
+            // This ensures the home widget switches from SplashPage to NavPage after successful login
+            if (!_startup &&
+                signedInForUI &&
+                !_authed &&
+                !_pendingAuthedUpdate) {
+              _pendingAuthedUpdate = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    _authed = true;
+                    _pendingAuthedUpdate = false;
+                  });
+                }
+              });
+            } else if (_authed && _pendingAuthedUpdate) {
+              // Reset flag if _authed is already true (e.g., set by another path)
+              _pendingAuthedUpdate = false;
+            }
+
+            // Determine home widget: if signedInForUI is true, we can show NavPage even if _authed is false
+            // (this handles the case where login completes from SplashPage)
+            final bool showSplash =
+                !signedInForUI &&
+                ((_startup || !_authed) ||
+                    isAuthenticating ||
+                    hasStorageException);
+
             return MaterialApp(
               title: 'Waterfly III',
               theme: ThemeData(
-                brightness: .light,
+                brightness: Brightness.light,
                 colorScheme:
                     context.select((SettingsProvider s) => s.dynamicColors)
                     ? cSchemeDynamicLight?.harmonized() ?? cSchemeLight
@@ -305,7 +423,7 @@ class _WaterflyAppState extends State<WaterflyApp> {
                 ),
               ),
               darkTheme: ThemeData(
-                brightness: .dark,
+                brightness: Brightness.dark,
                 colorScheme:
                     context.select((SettingsProvider s) => s.dynamicColors)
                     ? cSchemeDynamicDark?.harmonized() ?? cSchemeDark
@@ -317,13 +435,9 @@ class _WaterflyAppState extends State<WaterflyApp> {
               supportedLocales: S.supportedLocales,
               locale: context.select((SettingsProvider s) => s.locale),
               navigatorKey: navigatorKey,
-              home:
-                  ((_startup || !_authed) ||
-                      context.select(
-                        (FireflyService f) => f.storageSignInException != null,
-                      ))
+              home: showSplash
                   ? const SplashPage()
-                  : signedIn
+                  : signedInForUI
                   ? (_notificationPayload != null ||
                             _quickAction == "action_transaction_add" ||
                             (_filesSharedToApp != null &&

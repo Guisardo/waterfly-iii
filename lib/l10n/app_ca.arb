@@ -323,6 +323,30 @@
     "@errorUnknown": {
         "description": "Error without further information occurred."
     },
+    "errorInvalidHost": "Invalid host",
+    "@errorInvalidHost": {
+        "description": "Error: The provided host URL is invalid"
+    },
+    "errorInvalidApiKey": "Invalid API key",
+    "@errorInvalidApiKey": {
+        "description": "Error: The provided API key is invalid"
+    },
+    "errorInvalidApiVersion": "Invalid Firefly API version",
+    "@errorInvalidApiVersion": {
+        "description": "Error: The Firefly API version is invalid"
+    },
+    "errorApiVersionTooLow": "Firefly API version too low",
+    "@errorApiVersionTooLow": {
+        "description": "Error: The Firefly API version is too low"
+    },
+    "errorUnexpectedStatusCode": "Unexpected HTTP status code",
+    "@errorUnexpectedStatusCode": {
+        "description": "Error: Received an unexpected HTTP status code"
+    },
+    "errorNotValidInstance": "Not a valid Firefly III instance",
+    "@errorNotValidInstance": {
+        "description": "Error: The host is not a valid Firefly III instance"
+    },
     "formButtonHelp": "Ajuda",
     "@formButtonHelp": {
         "description": "Button Label: Help"
@@ -1204,5 +1228,259 @@
     "transactionTypeWithdrawal": "Retirada",
     "@transactionTypeWithdrawal": {
         "description": "Withdrawal transaction type"
+    },
+    "syncSettingsTitle": "Configuració de sincronització",
+    "@syncSettingsTitle": {
+        "description": "Title for sync settings page"
+    },
+    "syncSettingsMobileDataTitle": "Sincronitzar amb dades mòbils",
+    "@syncSettingsMobileDataTitle": {
+        "description": "Title for mobile data sync toggle"
+    },
+    "syncSettingsMobileDataSubtitle": "Permetre la sincronització quan s'utilitzen dades mòbils (desactivat per defecte per estalviar dades)",
+    "@syncSettingsMobileDataSubtitle": {
+        "description": "Subtitle for mobile data sync toggle"
+    },
+    "syncSettingsCredentialsTitle": "Credencials",
+    "@syncSettingsCredentialsTitle": {
+        "description": "Title for credentials status section"
+    },
+    "syncSettingsCredentialsInvalid": "Invàlid - Si us plau, torneu a introduir les credencials",
+    "@syncSettingsCredentialsInvalid": {
+        "description": "Text shown when credentials are invalid"
+    },
+    "syncSettingsCredentialsValidated": "Validat",
+    "@syncSettingsCredentialsValidated": {
+        "description": "Text shown when credentials are validated"
+    },
+    "syncSettingsCredentialsNotValidated": "No validat",
+    "@syncSettingsCredentialsNotValidated": {
+        "description": "Text shown when credentials are not yet validated"
+    },
+    "syncSettingsReenterButton": "Tornar a introduir",
+    "@syncSettingsReenterButton": {
+        "description": "Button text to re-enter credentials"
+    },
+    "syncSettingsDownloadSync": "Sincronització de descàrrega",
+    "@syncSettingsDownloadSync": {
+        "description": "Title for download sync status section"
+    },
+    "syncSettingsUploadSync": "Sincronització de càrrega",
+    "@syncSettingsUploadSync": {
+        "description": "Title for upload sync status section"
+    },
+    "syncSettingsLastSync": "Última sincronització: {date}",
+    "@syncSettingsLastSync": {
+        "description": "Text showing last sync time",
+        "placeholders": {
+            "date": {
+                "type": "String",
+                "example": "1 gen. 2024 12:00"
+            }
+        }
+    },
+    "syncSettingsStatusPaused": "Estat: Pausat",
+    "@syncSettingsStatusPaused": {
+        "description": "Text shown when sync is paused"
+    },
+    "syncSettingsStatusActive": "Estat: Actiu",
+    "@syncSettingsStatusActive": {
+        "description": "Text shown when sync is active"
+    },
+    "syncSettingsRetryCount": "Nombre d'intents: {count}",
+    "@syncSettingsRetryCount": {
+        "description": "Text showing retry count",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "3"
+            }
+        }
+    },
+    "syncSettingsNextRetry": "Següent intent: {date}",
+    "@syncSettingsNextRetry": {
+        "description": "Text showing next retry time",
+        "placeholders": {
+            "date": {
+                "type": "String",
+                "example": "1 gen. 2024 12:00"
+            }
+        }
+    },
+    "syncSettingsError": "Error: {error}",
+    "@syncSettingsError": {
+        "description": "Text showing sync error",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Error de xarxa"
+            }
+        }
+    },
+    "syncSettingsResumeButton": "Reprendre ara",
+    "@syncSettingsResumeButton": {
+        "description": "Button text to resume paused sync"
+    },
+    "syncSettingsManualSyncTitle": "Sincronització manual",
+    "@syncSettingsManualSyncTitle": {
+        "description": "Title for manual sync section"
+    },
+    "syncSettingsManualSyncSubtitle": "Activar sincronització ara",
+    "@syncSettingsManualSyncSubtitle": {
+        "description": "Subtitle for manual sync section"
+    },
+    "syncSettingsSyncNowButton": "Sincronitzar ara",
+    "@syncSettingsSyncNowButton": {
+        "description": "Button text to trigger manual sync"
+    },
+    "syncNotificationSyncing": "Sincronitzant...",
+    "@syncNotificationSyncing": {
+        "description": "Notification title when sync is in progress"
+    },
+    "syncNotificationSyncingBody": "Sincronitzant amb Firefly III",
+    "@syncNotificationSyncingBody": {
+        "description": "Notification body when sync is in progress"
+    },
+    "syncNotificationSyncingEntity": "Sincronitzant {entityType}...",
+    "@syncNotificationSyncingEntity": {
+        "description": "Notification title when syncing specific entity type",
+        "placeholders": {
+            "entityType": {
+                "type": "String",
+                "example": "transaccions"
+            }
+        }
+    },
+    "syncNotificationCompleted": "Sincronització completada",
+    "@syncNotificationCompleted": {
+        "description": "Notification title when sync is completed"
+    },
+    "syncNotificationCompletedBody": "Sincronització amb Firefly III completada amb èxit",
+    "@syncNotificationCompletedBody": {
+        "description": "Notification body when sync is completed"
+    },
+    "syncNotificationPaused": "Sincronització pausada",
+    "@syncNotificationPaused": {
+        "description": "Notification title when sync is paused"
+    },
+    "syncNotificationPausedBody": "Sincronització pausada a causa d'un error. Es tornarà a intentar automàticament.",
+    "@syncNotificationPausedBody": {
+        "description": "Notification body when sync is paused"
+    },
+    "syncNotificationAuthError": "Error d'autenticació",
+    "@syncNotificationAuthError": {
+        "description": "Notification title for authentication error"
+    },
+    "syncNotificationAuthErrorBody": "Si us plau, torneu a introduir les vostres credencials a la configuració",
+    "@syncNotificationAuthErrorBody": {
+        "description": "Notification body for authentication error"
+    },
+    "syncNotificationChannelName": "Sincronització",
+    "@syncNotificationChannelName": {
+        "description": "Name of the sync notification channel"
+    },
+    "syncNotificationChannelDescription": "Estat de la sincronització en segon pla",
+    "@syncNotificationChannelDescription": {
+        "description": "Description of the sync notification channel"
+    },
+    "syncSettingsEntityStatusTitle": "Estat de sincronització d'entitats",
+    "@syncSettingsEntityStatusTitle": {
+        "description": "Title for the per-entity sync status section"
+    },
+    "syncSettingsEntityTransactions": "Transaccions",
+    "@syncSettingsEntityTransactions": {
+        "description": "Entity type name: Transactions"
+    },
+    "syncSettingsEntityAccounts": "Comptes",
+    "@syncSettingsEntityAccounts": {
+        "description": "Entity type name: Accounts"
+    },
+    "syncSettingsEntityCategories": "Categories",
+    "@syncSettingsEntityCategories": {
+        "description": "Entity type name: Categories"
+    },
+    "syncSettingsEntityTags": "Etiquetes",
+    "@syncSettingsEntityTags": {
+        "description": "Entity type name: Tags"
+    },
+    "syncSettingsEntityBills": "Factures",
+    "@syncSettingsEntityBills": {
+        "description": "Entity type name: Bills"
+    },
+    "syncSettingsEntityBudgets": "Pressupostos",
+    "@syncSettingsEntityBudgets": {
+        "description": "Entity type name: Budgets"
+    },
+    "syncSettingsEntityCurrencies": "Monedes",
+    "@syncSettingsEntityCurrencies": {
+        "description": "Entity type name: Currencies"
+    },
+    "syncSettingsEntityPiggyBanks": "Guardioles",
+    "@syncSettingsEntityPiggyBanks": {
+        "description": "Entity type name: Piggy Banks"
+    },
+    "syncSettingsEntityStatusNeverSynced": "Mai sincronitzat",
+    "@syncSettingsEntityStatusNeverSynced": {
+        "description": "Status text when an entity has never been synced"
+    },
+    "syncSettingsEntityStatusSyncing": "Sincronitzant...",
+    "syncSettingsEntityProgress": "{current} of {total}",
+    "@syncSettingsEntityProgress": {
+        "description": "Progress indicator showing current count and total count",
+        "placeholders": {
+            "current": {
+                "type": "int",
+                "example": "42"
+            },
+            "total": {
+                "type": "int",
+                "example": "100"
+            }
+        }
+    },
+    "@syncSettingsEntityStatusSyncing": {
+        "description": "Status text when an entity is currently syncing"
+    },
+    "syncSettingsEntityStatusSuccess": "Èxit",
+    "@syncSettingsEntityStatusSuccess": {
+        "description": "Status text when an entity sync was successful"
+    },
+    "syncSettingsEntityStatusError": "Error",
+    "@syncSettingsEntityStatusError": {
+        "description": "Status text when an entity sync has an error"
+    },
+    "syncSettingsEntityStatusPaused": "Pausat",
+    "@syncSettingsEntityStatusPaused": {
+        "description": "Status text when an entity sync is paused"
+    },
+    "settingsSynchronization": "Sincronització",
+    "@settingsSynchronization": {
+        "description": "Title for synchronization settings option in main settings page"
+    },
+    "settingsSynchronizationSubtitle": "Configuració i estat de sincronització",
+    "@settingsSynchronizationSubtitle": {
+        "description": "Subtitle for synchronization settings option in main settings page"
+    },
+    "notificationListenerCreateTransactionTitle": "Create Transaction?",
+    "@notificationListenerCreateTransactionTitle": {
+        "description": "Title of notification asking user to create a transaction from another notification"
+    },
+    "notificationListenerCreateTransactionBody": "Click to create a transaction based on the notification {appName}",
+    "@notificationListenerCreateTransactionBody": {
+        "description": "Body of notification asking user to create a transaction from another notification",
+        "placeholders": {
+            "appName": {
+                "type": "String",
+                "example": "Google Pay"
+            }
+        }
+    },
+    "notificationListenerChannelName": "Create Transaction from Notification",
+    "@notificationListenerChannelName": {
+        "description": "Name of the notification listener channel"
+    },
+    "notificationListenerChannelDescription": "Notification asking to create a transaction from another Notification.",
+    "@notificationListenerChannelDescription": {
+        "description": "Description of the notification listener channel"
     }
 }

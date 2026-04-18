@@ -323,6 +323,30 @@
     "@errorUnknown": {
         "description": "Error without further information occurred."
     },
+    "errorInvalidHost": "Invalid host",
+    "@errorInvalidHost": {
+        "description": "Error: The provided host URL is invalid"
+    },
+    "errorInvalidApiKey": "Invalid API key",
+    "@errorInvalidApiKey": {
+        "description": "Error: The provided API key is invalid"
+    },
+    "errorInvalidApiVersion": "Invalid Firefly API version",
+    "@errorInvalidApiVersion": {
+        "description": "Error: The Firefly API version is invalid"
+    },
+    "errorApiVersionTooLow": "Firefly API version too low",
+    "@errorApiVersionTooLow": {
+        "description": "Error: The Firefly API version is too low"
+    },
+    "errorUnexpectedStatusCode": "Unexpected HTTP status code",
+    "@errorUnexpectedStatusCode": {
+        "description": "Error: Received an unexpected HTTP status code"
+    },
+    "errorNotValidInstance": "Not a valid Firefly III instance",
+    "@errorNotValidInstance": {
+        "description": "Error: The host is not a valid Firefly III instance"
+    },
     "formButtonHelp": "Súgó",
     "@formButtonHelp": {
         "description": "Button Label: Help"
@@ -1204,5 +1228,259 @@
     "transactionTypeWithdrawal": "Költség",
     "@transactionTypeWithdrawal": {
         "description": "Withdrawal transaction type"
+    },
+    "syncSettingsTitle": "Szinkronizálási beállítások",
+    "@syncSettingsTitle": {
+        "description": "Title for sync settings page"
+    },
+    "syncSettingsMobileDataTitle": "Szinkronizálás mobiladatokkal",
+    "@syncSettingsMobileDataTitle": {
+        "description": "Title for mobile data sync toggle"
+    },
+    "syncSettingsMobileDataSubtitle": "Szinkronizálás engedélyezése mobiladatok használatakor (alapértelmezetten kikapcsolva az adatmegtakarítás érdekében)",
+    "@syncSettingsMobileDataSubtitle": {
+        "description": "Subtitle for mobile data sync toggle"
+    },
+    "syncSettingsCredentialsTitle": "Hitelesítő adatok",
+    "@syncSettingsCredentialsTitle": {
+        "description": "Title for credentials status section"
+    },
+    "syncSettingsCredentialsInvalid": "Érvénytelen - Kérjük, adja meg újra a hitelesítő adatokat",
+    "@syncSettingsCredentialsInvalid": {
+        "description": "Text shown when credentials are invalid"
+    },
+    "syncSettingsCredentialsValidated": "Ellenőrizve",
+    "@syncSettingsCredentialsValidated": {
+        "description": "Text shown when credentials are validated"
+    },
+    "syncSettingsCredentialsNotValidated": "Nem ellenőrizve",
+    "@syncSettingsCredentialsNotValidated": {
+        "description": "Text shown when credentials are not yet validated"
+    },
+    "syncSettingsReenterButton": "Újra megadás",
+    "@syncSettingsReenterButton": {
+        "description": "Button text to re-enter credentials"
+    },
+    "syncSettingsDownloadSync": "Letöltési szinkronizálás",
+    "@syncSettingsDownloadSync": {
+        "description": "Title for download sync status section"
+    },
+    "syncSettingsUploadSync": "Feltöltési szinkronizálás",
+    "@syncSettingsUploadSync": {
+        "description": "Title for upload sync status section"
+    },
+    "syncSettingsLastSync": "Utolsó szinkronizálás: {date}",
+    "@syncSettingsLastSync": {
+        "description": "Text showing last sync time",
+        "placeholders": {
+            "date": {
+                "type": "String",
+                "example": "2024. jan. 1. 12:00"
+            }
+        }
+    },
+    "syncSettingsStatusPaused": "Állapot: Szüneteltetve",
+    "@syncSettingsStatusPaused": {
+        "description": "Text shown when sync is paused"
+    },
+    "syncSettingsStatusActive": "Állapot: Aktív",
+    "@syncSettingsStatusActive": {
+        "description": "Text shown when sync is active"
+    },
+    "syncSettingsRetryCount": "Újrapróbálások száma: {count}",
+    "@syncSettingsRetryCount": {
+        "description": "Text showing retry count",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "3"
+            }
+        }
+    },
+    "syncSettingsNextRetry": "Következő újrapróbálás: {date}",
+    "@syncSettingsNextRetry": {
+        "description": "Text showing next retry time",
+        "placeholders": {
+            "date": {
+                "type": "String",
+                "example": "2024. jan. 1. 12:00"
+            }
+        }
+    },
+    "syncSettingsError": "Hiba: {error}",
+    "@syncSettingsError": {
+        "description": "Text showing sync error",
+        "placeholders": {
+            "error": {
+                "type": "String",
+                "example": "Hálózati hiba"
+            }
+        }
+    },
+    "syncSettingsResumeButton": "Folytatás most",
+    "@syncSettingsResumeButton": {
+        "description": "Button text to resume paused sync"
+    },
+    "syncSettingsManualSyncTitle": "Manuális szinkronizálás",
+    "@syncSettingsManualSyncTitle": {
+        "description": "Title for manual sync section"
+    },
+    "syncSettingsManualSyncSubtitle": "Szinkronizálás indítása most",
+    "@syncSettingsManualSyncSubtitle": {
+        "description": "Subtitle for manual sync section"
+    },
+    "syncSettingsSyncNowButton": "Szinkronizálás most",
+    "@syncSettingsSyncNowButton": {
+        "description": "Button text to trigger manual sync"
+    },
+    "syncNotificationSyncing": "Szinkronizálás...",
+    "@syncNotificationSyncing": {
+        "description": "Notification title when sync is in progress"
+    },
+    "syncNotificationSyncingBody": "Szinkronizálás Firefly III-mal",
+    "@syncNotificationSyncingBody": {
+        "description": "Notification body when sync is in progress"
+    },
+    "syncNotificationSyncingEntity": "Szinkronizálás {entityType}...",
+    "@syncNotificationSyncingEntity": {
+        "description": "Notification title when syncing specific entity type",
+        "placeholders": {
+            "entityType": {
+                "type": "String",
+                "example": "tranzakciók"
+            }
+        }
+    },
+    "syncNotificationCompleted": "Szinkronizálás befejezve",
+    "@syncNotificationCompleted": {
+        "description": "Notification title when sync is completed"
+    },
+    "syncNotificationCompletedBody": "A Firefly III-mal való szinkronizálás sikeresen befejeződött",
+    "@syncNotificationCompletedBody": {
+        "description": "Notification body when sync is completed"
+    },
+    "syncNotificationPaused": "Szinkronizálás szüneteltetve",
+    "@syncNotificationPaused": {
+        "description": "Notification title when sync is paused"
+    },
+    "syncNotificationPausedBody": "Szinkronizálás hiba miatt szüneteltetve. Automatikusan újra megpróbálja.",
+    "@syncNotificationPausedBody": {
+        "description": "Notification body when sync is paused"
+    },
+    "syncNotificationAuthError": "Hitelesítési hiba",
+    "@syncNotificationAuthError": {
+        "description": "Notification title for authentication error"
+    },
+    "syncNotificationAuthErrorBody": "Kérjük, adja meg újra a hitelesítő adatait a beállításokban",
+    "@syncNotificationAuthErrorBody": {
+        "description": "Notification body for authentication error"
+    },
+    "syncNotificationChannelName": "Szinkronizálás",
+    "@syncNotificationChannelName": {
+        "description": "Name of the sync notification channel"
+    },
+    "syncNotificationChannelDescription": "Háttérszinkronizálás állapota",
+    "@syncNotificationChannelDescription": {
+        "description": "Description of the sync notification channel"
+    },
+    "syncSettingsEntityStatusTitle": "Entitás szinkronizálási állapot",
+    "@syncSettingsEntityStatusTitle": {
+        "description": "Title for the per-entity sync status section"
+    },
+    "syncSettingsEntityTransactions": "Tranzakciók",
+    "@syncSettingsEntityTransactions": {
+        "description": "Entity type name: Transactions"
+    },
+    "syncSettingsEntityAccounts": "Számlák",
+    "@syncSettingsEntityAccounts": {
+        "description": "Entity type name: Accounts"
+    },
+    "syncSettingsEntityCategories": "Kategóriák",
+    "@syncSettingsEntityCategories": {
+        "description": "Entity type name: Categories"
+    },
+    "syncSettingsEntityTags": "Címkék",
+    "@syncSettingsEntityTags": {
+        "description": "Entity type name: Tags"
+    },
+    "syncSettingsEntityBills": "Számlák",
+    "@syncSettingsEntityBills": {
+        "description": "Entity type name: Bills"
+    },
+    "syncSettingsEntityBudgets": "Költségvetések",
+    "@syncSettingsEntityBudgets": {
+        "description": "Entity type name: Budgets"
+    },
+    "syncSettingsEntityCurrencies": "Pénznemek",
+    "@syncSettingsEntityCurrencies": {
+        "description": "Entity type name: Currencies"
+    },
+    "syncSettingsEntityPiggyBanks": "Malacperselyek",
+    "@syncSettingsEntityPiggyBanks": {
+        "description": "Entity type name: Piggy Banks"
+    },
+    "syncSettingsEntityStatusNeverSynced": "Soha nem szinkronizálva",
+    "@syncSettingsEntityStatusNeverSynced": {
+        "description": "Status text when an entity has never been synced"
+    },
+    "syncSettingsEntityStatusSyncing": "Szinkronizálás...",
+    "syncSettingsEntityProgress": "{current} of {total}",
+    "@syncSettingsEntityProgress": {
+        "description": "Progress indicator showing current count and total count",
+        "placeholders": {
+            "current": {
+                "type": "int",
+                "example": "42"
+            },
+            "total": {
+                "type": "int",
+                "example": "100"
+            }
+        }
+    },
+    "@syncSettingsEntityStatusSyncing": {
+        "description": "Status text when an entity is currently syncing"
+    },
+    "syncSettingsEntityStatusSuccess": "Sikeres",
+    "@syncSettingsEntityStatusSuccess": {
+        "description": "Status text when an entity sync was successful"
+    },
+    "syncSettingsEntityStatusError": "Hiba",
+    "@syncSettingsEntityStatusError": {
+        "description": "Status text when an entity sync has an error"
+    },
+    "syncSettingsEntityStatusPaused": "Szüneteltetve",
+    "@syncSettingsEntityStatusPaused": {
+        "description": "Status text when an entity sync is paused"
+    },
+    "settingsSynchronization": "Szinkronizálás",
+    "@settingsSynchronization": {
+        "description": "Title for synchronization settings option in main settings page"
+    },
+    "settingsSynchronizationSubtitle": "Szinkronizálási beállítások és állapot",
+    "@settingsSynchronizationSubtitle": {
+        "description": "Subtitle for synchronization settings option in main settings page"
+    },
+    "notificationListenerCreateTransactionTitle": "Create Transaction?",
+    "@notificationListenerCreateTransactionTitle": {
+        "description": "Title of notification asking user to create a transaction from another notification"
+    },
+    "notificationListenerCreateTransactionBody": "Click to create a transaction based on the notification {appName}",
+    "@notificationListenerCreateTransactionBody": {
+        "description": "Body of notification asking user to create a transaction from another notification",
+        "placeholders": {
+            "appName": {
+                "type": "String",
+                "example": "Google Pay"
+            }
+        }
+    },
+    "notificationListenerChannelName": "Create Transaction from Notification",
+    "@notificationListenerChannelName": {
+        "description": "Name of the notification listener channel"
+    },
+    "notificationListenerChannelDescription": "Notification asking to create a transaction from another Notification.",
+    "@notificationListenerChannelDescription": {
+        "description": "Description of the notification listener channel"
     }
 }

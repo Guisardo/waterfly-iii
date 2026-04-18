@@ -468,18 +468,18 @@ Map<String, dynamic> _$AutocompleteAccountToJson(
   'id': instance.id,
   'name': instance.name,
   'name_with_balance': instance.nameWithBalance,
-  'active': ?instance.active,
+  'active': instance.active,
   'type': instance.type,
   'currency_id': instance.currencyId,
   'currency_name': instance.currencyName,
   'currency_code': instance.currencyCode,
   'currency_symbol': instance.currencySymbol,
   'currency_decimal_places': instance.currencyDecimalPlaces,
-  'account_currency_id': ?instance.accountCurrencyId,
-  'account_currency_name': ?instance.accountCurrencyName,
-  'account_currency_code': ?instance.accountCurrencyCode,
-  'account_currency_symbol': ?instance.accountCurrencySymbol,
-  'account_currency_decimal_places': ?instance.accountCurrencyDecimalPlaces,
+  'account_currency_id': instance.accountCurrencyId,
+  'account_currency_name': instance.accountCurrencyName,
+  'account_currency_code': instance.accountCurrencyCode,
+  'account_currency_symbol': instance.accountCurrencySymbol,
+  'account_currency_decimal_places': instance.accountCurrencyDecimalPlaces,
 };
 
 AutocompleteBill _$AutocompleteBillFromJson(Map<String, dynamic> json) =>
@@ -493,7 +493,7 @@ Map<String, dynamic> _$AutocompleteBillToJson(AutocompleteBill instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'active': ?instance.active,
+      'active': instance.active,
     };
 
 AutocompleteBudget _$AutocompleteBudgetFromJson(Map<String, dynamic> json) =>
@@ -507,7 +507,7 @@ Map<String, dynamic> _$AutocompleteBudgetToJson(AutocompleteBudget instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'active': ?instance.active,
+      'active': instance.active,
     };
 
 AutocompleteCategory _$AutocompleteCategoryFromJson(
@@ -594,13 +594,13 @@ Map<String, dynamic> _$AutocompletePiggyToJson(AutocompletePiggy instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'currency_id': ?instance.currencyId,
-      'currency_code': ?instance.currencyCode,
-      'currency_symbol': ?instance.currencySymbol,
-      'currency_name': ?instance.currencyName,
-      'currency_decimal_places': ?instance.currencyDecimalPlaces,
-      'object_group_id': ?instance.objectGroupId,
-      'object_group_title': ?instance.objectGroupTitle,
+      'currency_id': instance.currencyId,
+      'currency_code': instance.currencyCode,
+      'currency_symbol': instance.currencySymbol,
+      'currency_name': instance.currencyName,
+      'currency_decimal_places': instance.currencyDecimalPlaces,
+      'object_group_id': instance.objectGroupId,
+      'object_group_title': instance.objectGroupTitle,
     };
 
 AutocompletePiggyBalance _$AutocompletePiggyBalanceFromJson(
@@ -622,13 +622,13 @@ Map<String, dynamic> _$AutocompletePiggyBalanceToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
-  'name_with_balance': ?instance.nameWithBalance,
-  'currency_id': ?instance.currencyId,
-  'currency_code': ?instance.currencyCode,
-  'currency_symbol': ?instance.currencySymbol,
-  'currency_decimal_places': ?instance.currencyDecimalPlaces,
-  'object_group_id': ?instance.objectGroupId,
-  'object_group_title': ?instance.objectGroupTitle,
+  'name_with_balance': instance.nameWithBalance,
+  'currency_id': instance.currencyId,
+  'currency_code': instance.currencyCode,
+  'currency_symbol': instance.currencySymbol,
+  'currency_decimal_places': instance.currencyDecimalPlaces,
+  'object_group_id': instance.objectGroupId,
+  'object_group_title': instance.objectGroupTitle,
 };
 
 AutocompleteRecurrence _$AutocompleteRecurrenceFromJson(
@@ -645,8 +645,8 @@ Map<String, dynamic> _$AutocompleteRecurrenceToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
-  'description': ?instance.description,
-  'active': ?instance.active,
+  'description': instance.description,
+  'active': instance.active,
 };
 
 AutocompleteRule _$AutocompleteRuleFromJson(Map<String, dynamic> json) =>
@@ -661,8 +661,8 @@ Map<String, dynamic> _$AutocompleteRuleToJson(AutocompleteRule instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'description': ?instance.description,
-      'active': ?instance.active,
+      'description': instance.description,
+      'active': instance.active,
     };
 
 AutocompleteRuleGroup _$AutocompleteRuleGroupFromJson(
@@ -679,8 +679,8 @@ Map<String, dynamic> _$AutocompleteRuleGroupToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
-  'description': ?instance.description,
-  'active': ?instance.active,
+  'description': instance.description,
+  'active': instance.active,
 };
 
 AutocompleteTag _$AutocompleteTagFromJson(Map<String, dynamic> json) =>
@@ -710,7 +710,7 @@ Map<String, dynamic> _$AutocompleteTransactionToJson(
   AutocompleteTransaction instance,
 ) => <String, dynamic>{
   'id': instance.id,
-  'transaction_group_id': ?instance.transactionGroupId,
+  'transaction_group_id': instance.transactionGroupId,
   'name': instance.name,
   'description': instance.description,
 };
@@ -728,7 +728,7 @@ Map<String, dynamic> _$AutocompleteTransactionIDToJson(
   AutocompleteTransactionID instance,
 ) => <String, dynamic>{
   'id': instance.id,
-  'transaction_group_id': ?instance.transactionGroupId,
+  'transaction_group_id': instance.transactionGroupId,
   'name': instance.name,
   'description': instance.description,
 };
@@ -753,7 +753,7 @@ ChartDataPoint _$ChartDataPointFromJson(Map<String, dynamic> json) =>
     ChartDataPoint(key: json['key'] as String?);
 
 Map<String, dynamic> _$ChartDataPointToJson(ChartDataPoint instance) =>
-    <String, dynamic>{'key': ?instance.key};
+    <String, dynamic>{'key': instance.key};
 
 ChartDataSet _$ChartDataSetFromJson(Map<String, dynamic> json) => ChartDataSet(
   label: json['label'] as String?,
@@ -784,25 +784,25 @@ ChartDataSet _$ChartDataSetFromJson(Map<String, dynamic> json) => ChartDataSet(
 
 Map<String, dynamic> _$ChartDataSetToJson(ChartDataSet instance) =>
     <String, dynamic>{
-      'label': ?instance.label,
-      'currency_id': ?instance.currencyId,
-      'currency_name': ?instance.currencyName,
-      'currency_code': ?instance.currencyCode,
-      'currency_symbol': ?instance.currencySymbol,
-      'currency_decimal_places': ?instance.currencyDecimalPlaces,
-      'primary_currency_id': ?instance.primaryCurrencyId,
-      'primary_currency_name': ?instance.primaryCurrencyName,
-      'primary_currency_code': ?instance.primaryCurrencyCode,
-      'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-      'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-      'date': ?instance.date?.toIso8601String(),
-      'start_date': ?instance.startDate?.toIso8601String(),
-      'end_date': ?instance.endDate?.toIso8601String(),
-      'type': ?instance.type,
-      'period': ?chartDatasetPeriodPropertyNullableToJson(instance.period),
-      'yAxisID': ?instance.yAxisID,
-      'entries': ?instance.entries,
-      'pc_entries': ?instance.pcEntries,
+      'label': instance.label,
+      'currency_id': instance.currencyId,
+      'currency_name': instance.currencyName,
+      'currency_code': instance.currencyCode,
+      'currency_symbol': instance.currencySymbol,
+      'currency_decimal_places': instance.currencyDecimalPlaces,
+      'primary_currency_id': instance.primaryCurrencyId,
+      'primary_currency_name': instance.primaryCurrencyName,
+      'primary_currency_code': instance.primaryCurrencyCode,
+      'primary_currency_symbol': instance.primaryCurrencySymbol,
+      'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+      'date': instance.date?.toIso8601String(),
+      'start_date': instance.startDate?.toIso8601String(),
+      'end_date': instance.endDate?.toIso8601String(),
+      'type': instance.type,
+      'period': chartDatasetPeriodPropertyNullableToJson(instance.period),
+      'yAxisID': instance.yAxisID,
+      'entries': instance.entries,
+      'pc_entries': instance.pcEntries,
     };
 
 InsightGroupEntry _$InsightGroupEntryFromJson(Map<String, dynamic> json) =>
@@ -817,12 +817,12 @@ InsightGroupEntry _$InsightGroupEntryFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$InsightGroupEntryToJson(InsightGroupEntry instance) =>
     <String, dynamic>{
-      'id': ?instance.id,
-      'name': ?instance.name,
-      'difference': ?instance.difference,
-      'difference_float': ?instance.differenceFloat,
-      'currency_id': ?instance.currencyId,
-      'currency_code': ?instance.currencyCode,
+      'id': instance.id,
+      'name': instance.name,
+      'difference': instance.difference,
+      'difference_float': instance.differenceFloat,
+      'currency_id': instance.currencyId,
+      'currency_code': instance.currencyCode,
     };
 
 InsightTotalEntry _$InsightTotalEntryFromJson(Map<String, dynamic> json) =>
@@ -835,10 +835,10 @@ InsightTotalEntry _$InsightTotalEntryFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$InsightTotalEntryToJson(InsightTotalEntry instance) =>
     <String, dynamic>{
-      'difference': ?instance.difference,
-      'difference_float': ?instance.differenceFloat,
-      'currency_id': ?instance.currencyId,
-      'currency_code': ?instance.currencyCode,
+      'difference': instance.difference,
+      'difference_float': instance.differenceFloat,
+      'currency_id': instance.currencyId,
+      'currency_code': instance.currencyCode,
     };
 
 InsightTransferEntry _$InsightTransferEntryFromJson(
@@ -859,16 +859,16 @@ InsightTransferEntry _$InsightTransferEntryFromJson(
 Map<String, dynamic> _$InsightTransferEntryToJson(
   InsightTransferEntry instance,
 ) => <String, dynamic>{
-  'id': ?instance.id,
-  'name': ?instance.name,
-  'difference': ?instance.difference,
-  'difference_float': ?instance.differenceFloat,
-  'in': ?instance.$in,
-  'in_float': ?instance.inFloat,
-  'out': ?instance.out,
-  'out_float': ?instance.outFloat,
-  'currency_id': ?instance.currencyId,
-  'currency_code': ?instance.currencyCode,
+  'id': instance.id,
+  'name': instance.name,
+  'difference': instance.difference,
+  'difference_float': instance.differenceFloat,
+  'in': instance.$in,
+  'in_float': instance.inFloat,
+  'out': instance.out,
+  'out_float': instance.outFloat,
+  'currency_id': instance.currencyId,
+  'currency_code': instance.currencyCode,
 };
 
 CategoryRead _$CategoryReadFromJson(Map<String, dynamic> json) => CategoryRead(
@@ -1353,65 +1353,64 @@ AccountProperties _$AccountPropertiesFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['last_activity'] as String),
     );
 
-Map<String, dynamic> _$AccountPropertiesToJson(AccountProperties instance) =>
-    <String, dynamic>{
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
-      'active': ?instance.active,
-      'order': ?instance.order,
-      'name': instance.name,
-      'type': ?shortAccountTypePropertyToJson(instance.type),
-      'account_role': ?accountRolePropertyNullableToJson(instance.accountRole),
-      'object_group_id': ?instance.objectGroupId,
-      'object_group_order': ?instance.objectGroupOrder,
-      'object_group_title': ?instance.objectGroupTitle,
-      'object_has_currency_setting': ?instance.objectHasCurrencySetting,
-      'currency_id': ?instance.currencyId,
-      'currency_name': ?instance.currencyName,
-      'currency_code': ?instance.currencyCode,
-      'currency_symbol': ?instance.currencySymbol,
-      'currency_decimal_places': ?instance.currencyDecimalPlaces,
-      'primary_currency_id': ?instance.primaryCurrencyId,
-      'primary_currency_name': ?instance.primaryCurrencyName,
-      'primary_currency_code': ?instance.primaryCurrencyCode,
-      'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-      'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-      'current_balance': ?instance.currentBalance,
-      'pc_current_balance': ?instance.pcCurrentBalance,
-      'balance_difference': ?instance.balanceDifference,
-      'pc_balance_difference': ?instance.pcBalanceDifference,
-      'opening_balance': ?instance.openingBalance,
-      'pc_opening_balance': ?instance.pcOpeningBalance,
-      'virtual_balance': ?instance.virtualBalance,
-      'pc_virtual_balance': ?instance.pcVirtualBalance,
-      'debt_amount': ?instance.debtAmount,
-      'pc_debt_amount': ?instance.pcDebtAmount,
-      'current_balance_date': ?instance.currentBalanceDate?.toIso8601String(),
-      'notes': ?instance.notes,
-      'monthly_payment_date': ?instance.monthlyPaymentDate?.toIso8601String(),
-      'credit_card_type': ?creditCardTypePropertyNullableToJson(
-        instance.creditCardType,
-      ),
-      'account_number': ?instance.accountNumber,
-      'iban': ?instance.iban,
-      'bic': ?instance.bic,
-      'opening_balance_date': ?instance.openingBalanceDate?.toIso8601String(),
-      'liability_type': ?liabilityTypePropertyNullableToJson(
-        instance.liabilityType,
-      ),
-      'liability_direction': ?liabilityDirectionPropertyNullableToJson(
-        instance.liabilityDirection,
-      ),
-      'interest': ?instance.interest,
-      'interest_period': ?interestPeriodPropertyNullableToJson(
-        instance.interestPeriod,
-      ),
-      'include_net_worth': ?instance.includeNetWorth,
-      'longitude': ?instance.longitude,
-      'latitude': ?instance.latitude,
-      'zoom_level': ?instance.zoomLevel,
-      'last_activity': ?instance.lastActivity?.toIso8601String(),
-    };
+Map<String, dynamic> _$AccountPropertiesToJson(
+  AccountProperties instance,
+) => <String, dynamic>{
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+  'active': instance.active,
+  'order': instance.order,
+  'name': instance.name,
+  'type': shortAccountTypePropertyToJson(instance.type),
+  'account_role': accountRolePropertyNullableToJson(instance.accountRole),
+  'object_group_id': instance.objectGroupId,
+  'object_group_order': instance.objectGroupOrder,
+  'object_group_title': instance.objectGroupTitle,
+  'object_has_currency_setting': instance.objectHasCurrencySetting,
+  'currency_id': instance.currencyId,
+  'currency_name': instance.currencyName,
+  'currency_code': instance.currencyCode,
+  'currency_symbol': instance.currencySymbol,
+  'currency_decimal_places': instance.currencyDecimalPlaces,
+  'primary_currency_id': instance.primaryCurrencyId,
+  'primary_currency_name': instance.primaryCurrencyName,
+  'primary_currency_code': instance.primaryCurrencyCode,
+  'primary_currency_symbol': instance.primaryCurrencySymbol,
+  'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+  'current_balance': instance.currentBalance,
+  'pc_current_balance': instance.pcCurrentBalance,
+  'balance_difference': instance.balanceDifference,
+  'pc_balance_difference': instance.pcBalanceDifference,
+  'opening_balance': instance.openingBalance,
+  'pc_opening_balance': instance.pcOpeningBalance,
+  'virtual_balance': instance.virtualBalance,
+  'pc_virtual_balance': instance.pcVirtualBalance,
+  'debt_amount': instance.debtAmount,
+  'pc_debt_amount': instance.pcDebtAmount,
+  'current_balance_date': instance.currentBalanceDate?.toIso8601String(),
+  'notes': instance.notes,
+  'monthly_payment_date': instance.monthlyPaymentDate?.toIso8601String(),
+  'credit_card_type': creditCardTypePropertyNullableToJson(
+    instance.creditCardType,
+  ),
+  'account_number': instance.accountNumber,
+  'iban': instance.iban,
+  'bic': instance.bic,
+  'opening_balance_date': instance.openingBalanceDate?.toIso8601String(),
+  'liability_type': liabilityTypePropertyNullableToJson(instance.liabilityType),
+  'liability_direction': liabilityDirectionPropertyNullableToJson(
+    instance.liabilityDirection,
+  ),
+  'interest': instance.interest,
+  'interest_period': interestPeriodPropertyNullableToJson(
+    instance.interestPeriod,
+  ),
+  'include_net_worth': instance.includeNetWorth,
+  'longitude': instance.longitude,
+  'latitude': instance.latitude,
+  'zoom_level': instance.zoomLevel,
+  'last_activity': instance.lastActivity?.toIso8601String(),
+};
 
 AccountRead _$AccountReadFromJson(Map<String, dynamic> json) => AccountRead(
   type: json['type'] as String,
@@ -1473,41 +1472,40 @@ AccountStore _$AccountStoreFromJson(Map<String, dynamic> json) => AccountStore(
   zoomLevel: (json['zoom_level'] as num?)?.toInt(),
 );
 
-Map<String, dynamic> _$AccountStoreToJson(AccountStore instance) =>
-    <String, dynamic>{
-      'name': instance.name,
-      'type': ?shortAccountTypePropertyToJson(instance.type),
-      'iban': ?instance.iban,
-      'bic': ?instance.bic,
-      'account_number': ?instance.accountNumber,
-      'opening_balance': ?instance.openingBalance,
-      'opening_balance_date': ?instance.openingBalanceDate?.toIso8601String(),
-      'virtual_balance': ?instance.virtualBalance,
-      'currency_id': ?instance.currencyId,
-      'currency_code': ?instance.currencyCode,
-      'active': ?instance.active,
-      'order': ?instance.order,
-      'include_net_worth': ?instance.includeNetWorth,
-      'account_role': ?accountRolePropertyNullableToJson(instance.accountRole),
-      'credit_card_type': ?creditCardTypePropertyNullableToJson(
-        instance.creditCardType,
-      ),
-      'monthly_payment_date': ?instance.monthlyPaymentDate?.toIso8601String(),
-      'liability_type': ?liabilityTypePropertyNullableToJson(
-        instance.liabilityType,
-      ),
-      'liability_direction': ?liabilityDirectionPropertyNullableToJson(
-        instance.liabilityDirection,
-      ),
-      'interest': ?instance.interest,
-      'interest_period': ?interestPeriodPropertyNullableToJson(
-        instance.interestPeriod,
-      ),
-      'notes': ?instance.notes,
-      'latitude': ?instance.latitude,
-      'longitude': ?instance.longitude,
-      'zoom_level': ?instance.zoomLevel,
-    };
+Map<String, dynamic> _$AccountStoreToJson(
+  AccountStore instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'type': shortAccountTypePropertyToJson(instance.type),
+  'iban': instance.iban,
+  'bic': instance.bic,
+  'account_number': instance.accountNumber,
+  'opening_balance': instance.openingBalance,
+  'opening_balance_date': instance.openingBalanceDate?.toIso8601String(),
+  'virtual_balance': instance.virtualBalance,
+  'currency_id': instance.currencyId,
+  'currency_code': instance.currencyCode,
+  'active': instance.active,
+  'order': instance.order,
+  'include_net_worth': instance.includeNetWorth,
+  'account_role': accountRolePropertyNullableToJson(instance.accountRole),
+  'credit_card_type': creditCardTypePropertyNullableToJson(
+    instance.creditCardType,
+  ),
+  'monthly_payment_date': instance.monthlyPaymentDate?.toIso8601String(),
+  'liability_type': liabilityTypePropertyNullableToJson(instance.liabilityType),
+  'liability_direction': liabilityDirectionPropertyNullableToJson(
+    instance.liabilityDirection,
+  ),
+  'interest': instance.interest,
+  'interest_period': interestPeriodPropertyNullableToJson(
+    instance.interestPeriod,
+  ),
+  'notes': instance.notes,
+  'latitude': instance.latitude,
+  'longitude': instance.longitude,
+  'zoom_level': instance.zoomLevel,
+};
 
 AccountUpdate _$AccountUpdateFromJson(Map<String, dynamic> json) =>
     AccountUpdate(
@@ -1545,37 +1543,36 @@ AccountUpdate _$AccountUpdateFromJson(Map<String, dynamic> json) =>
       zoomLevel: (json['zoom_level'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$AccountUpdateToJson(AccountUpdate instance) =>
-    <String, dynamic>{
-      'name': instance.name,
-      'iban': ?instance.iban,
-      'bic': ?instance.bic,
-      'account_number': ?instance.accountNumber,
-      'opening_balance': ?instance.openingBalance,
-      'opening_balance_date': ?instance.openingBalanceDate?.toIso8601String(),
-      'virtual_balance': ?instance.virtualBalance,
-      'currency_id': ?instance.currencyId,
-      'currency_code': ?instance.currencyCode,
-      'active': ?instance.active,
-      'order': ?instance.order,
-      'include_net_worth': ?instance.includeNetWorth,
-      'account_role': ?accountRolePropertyNullableToJson(instance.accountRole),
-      'credit_card_type': ?creditCardTypePropertyNullableToJson(
-        instance.creditCardType,
-      ),
-      'monthly_payment_date': ?instance.monthlyPaymentDate?.toIso8601String(),
-      'liability_type': ?liabilityTypePropertyNullableToJson(
-        instance.liabilityType,
-      ),
-      'interest': ?instance.interest,
-      'interest_period': ?interestPeriodPropertyNullableToJson(
-        instance.interestPeriod,
-      ),
-      'notes': ?instance.notes,
-      'latitude': ?instance.latitude,
-      'longitude': ?instance.longitude,
-      'zoom_level': ?instance.zoomLevel,
-    };
+Map<String, dynamic> _$AccountUpdateToJson(
+  AccountUpdate instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'iban': instance.iban,
+  'bic': instance.bic,
+  'account_number': instance.accountNumber,
+  'opening_balance': instance.openingBalance,
+  'opening_balance_date': instance.openingBalanceDate?.toIso8601String(),
+  'virtual_balance': instance.virtualBalance,
+  'currency_id': instance.currencyId,
+  'currency_code': instance.currencyCode,
+  'active': instance.active,
+  'order': instance.order,
+  'include_net_worth': instance.includeNetWorth,
+  'account_role': accountRolePropertyNullableToJson(instance.accountRole),
+  'credit_card_type': creditCardTypePropertyNullableToJson(
+    instance.creditCardType,
+  ),
+  'monthly_payment_date': instance.monthlyPaymentDate?.toIso8601String(),
+  'liability_type': liabilityTypePropertyNullableToJson(instance.liabilityType),
+  'interest': instance.interest,
+  'interest_period': interestPeriodPropertyNullableToJson(
+    instance.interestPeriod,
+  ),
+  'notes': instance.notes,
+  'latitude': instance.latitude,
+  'longitude': instance.longitude,
+  'zoom_level': instance.zoomLevel,
+};
 
 ArrayEntryWithCurrencyAndSum _$ArrayEntryWithCurrencyAndSumFromJson(
   Map<String, dynamic> json,
@@ -1590,11 +1587,11 @@ ArrayEntryWithCurrencyAndSum _$ArrayEntryWithCurrencyAndSumFromJson(
 Map<String, dynamic> _$ArrayEntryWithCurrencyAndSumToJson(
   ArrayEntryWithCurrencyAndSum instance,
 ) => <String, dynamic>{
-  'currency_id': ?instance.currencyId,
-  'currency_code': ?instance.currencyCode,
-  'currency_symbol': ?instance.currencySymbol,
-  'currency_decimal_places': ?instance.currencyDecimalPlaces,
-  'sum': ?instance.sum,
+  'currency_id': instance.currencyId,
+  'currency_code': instance.currencyCode,
+  'currency_symbol': instance.currencySymbol,
+  'currency_decimal_places': instance.currencyDecimalPlaces,
+  'sum': instance.sum,
 };
 
 AttachmentProperties _$AttachmentPropertiesFromJson(
@@ -1621,18 +1618,18 @@ AttachmentProperties _$AttachmentPropertiesFromJson(
 Map<String, dynamic> _$AttachmentPropertiesToJson(
   AttachmentProperties instance,
 ) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
-  'attachable_type': ?attachableTypeNullableToJson(instance.attachableType),
-  'attachable_id': ?instance.attachableId,
-  'hash': ?instance.hash,
-  'filename': ?instance.filename,
-  'download_url': ?instance.downloadUrl,
-  'upload_url': ?instance.uploadUrl,
-  'title': ?instance.title,
-  'notes': ?instance.notes,
-  'mime': ?instance.mime,
-  'size': ?instance.size,
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+  'attachable_type': attachableTypeNullableToJson(instance.attachableType),
+  'attachable_id': instance.attachableId,
+  'hash': instance.hash,
+  'filename': instance.filename,
+  'download_url': instance.downloadUrl,
+  'upload_url': instance.uploadUrl,
+  'title': instance.title,
+  'notes': instance.notes,
+  'mime': instance.mime,
+  'size': instance.size,
 };
 
 AttachmentRead _$AttachmentReadFromJson(Map<String, dynamic> json) =>
@@ -1673,10 +1670,10 @@ AttachmentStore _$AttachmentStoreFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$AttachmentStoreToJson(AttachmentStore instance) =>
     <String, dynamic>{
       'filename': instance.filename,
-      'attachable_type': ?attachableTypeToJson(instance.attachableType),
+      'attachable_type': attachableTypeToJson(instance.attachableType),
       'attachable_id': instance.attachableId,
-      'title': ?instance.title,
-      'notes': ?instance.notes,
+      'title': instance.title,
+      'notes': instance.notes,
     };
 
 AttachmentUpdate _$AttachmentUpdateFromJson(Map<String, dynamic> json) =>
@@ -1688,9 +1685,9 @@ AttachmentUpdate _$AttachmentUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$AttachmentUpdateToJson(AttachmentUpdate instance) =>
     <String, dynamic>{
-      'filename': ?instance.filename,
-      'title': ?instance.title,
-      'notes': ?instance.notes,
+      'filename': instance.filename,
+      'title': instance.title,
+      'notes': instance.notes,
     };
 
 AvailableBudgetProperties _$AvailableBudgetPropertiesFromJson(
@@ -1759,31 +1756,31 @@ AvailableBudgetProperties _$AvailableBudgetPropertiesFromJson(
 Map<String, dynamic> _$AvailableBudgetPropertiesToJson(
   AvailableBudgetProperties instance,
 ) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
-  'object_has_currency_setting': ?instance.objectHasCurrencySetting,
-  'currency_id': ?instance.currencyId,
-  'currency_name': ?instance.currencyName,
-  'currency_code': ?instance.currencyCode,
-  'currency_symbol': ?instance.currencySymbol,
-  'currency_decimal_places': ?instance.currencyDecimalPlaces,
-  'primary_currency_id': ?instance.primaryCurrencyId,
-  'primary_currency_name': ?instance.primaryCurrencyName,
-  'primary_currency_code': ?instance.primaryCurrencyCode,
-  'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-  'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-  'amount': ?instance.amount,
-  'pc_amount': ?instance.pcAmount,
-  'start': ?instance.start?.toIso8601String(),
-  'end': ?instance.end?.toIso8601String(),
-  'spent_in_budgets': ?instance.spentInBudgets?.map((e) => e.toJson()).toList(),
-  'pc_spent_in_budgets': ?instance.pcSpentInBudgets
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+  'object_has_currency_setting': instance.objectHasCurrencySetting,
+  'currency_id': instance.currencyId,
+  'currency_name': instance.currencyName,
+  'currency_code': instance.currencyCode,
+  'currency_symbol': instance.currencySymbol,
+  'currency_decimal_places': instance.currencyDecimalPlaces,
+  'primary_currency_id': instance.primaryCurrencyId,
+  'primary_currency_name': instance.primaryCurrencyName,
+  'primary_currency_code': instance.primaryCurrencyCode,
+  'primary_currency_symbol': instance.primaryCurrencySymbol,
+  'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+  'amount': instance.amount,
+  'pc_amount': instance.pcAmount,
+  'start': instance.start?.toIso8601String(),
+  'end': instance.end?.toIso8601String(),
+  'spent_in_budgets': instance.spentInBudgets?.map((e) => e.toJson()).toList(),
+  'pc_spent_in_budgets': instance.pcSpentInBudgets
       ?.map((e) => e.toJson())
       .toList(),
-  'spent_outside_budgets': ?instance.spentOutsideBudgets
+  'spent_outside_budgets': instance.spentOutsideBudgets
       ?.map((e) => e.toJson())
       .toList(),
-  'pc_spent_outside_budgets': ?instance.pcSpentOutsideBudgets
+  'pc_spent_outside_budgets': instance.pcSpentOutsideBudgets
       ?.map((e) => e.toJson())
       .toList(),
 };
@@ -1877,41 +1874,41 @@ BillProperties _$BillPropertiesFromJson(
 
 Map<String, dynamic> _$BillPropertiesToJson(BillProperties instance) =>
     <String, dynamic>{
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
-      'name': ?instance.name,
-      'object_has_currency_setting': ?instance.objectHasCurrencySetting,
-      'currency_id': ?instance.currencyId,
-      'currency_name': ?instance.currencyName,
-      'currency_code': ?instance.currencyCode,
-      'currency_symbol': ?instance.currencySymbol,
-      'currency_decimal_places': ?instance.currencyDecimalPlaces,
-      'primary_currency_id': ?instance.primaryCurrencyId,
-      'primary_currency_name': ?instance.primaryCurrencyName,
-      'primary_currency_code': ?instance.primaryCurrencyCode,
-      'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-      'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-      'amount_min': ?instance.amountMin,
-      'pc_amount_min': ?instance.pcAmountMin,
-      'amount_max': ?instance.amountMax,
-      'pc_amount_max': ?instance.pcAmountMax,
-      'amount_avg': ?instance.amountAvg,
-      'pc_amount_avg': ?instance.pcAmountAvg,
-      'date': ?instance.date?.toIso8601String(),
-      'end_date': ?instance.endDate?.toIso8601String(),
-      'extension_date': ?instance.extensionDate?.toIso8601String(),
-      'repeat_freq': ?billRepeatFrequencyNullableToJson(instance.repeatFreq),
-      'skip': ?instance.skip,
-      'active': ?instance.active,
-      'order': ?instance.order,
-      'notes': ?instance.notes,
-      'object_group_id': ?instance.objectGroupId,
-      'object_group_order': ?instance.objectGroupOrder,
-      'object_group_title': ?instance.objectGroupTitle,
-      'paid_dates': ?instance.paidDates?.map((e) => e.toJson()).toList(),
-      'pay_dates': ?instance.payDates?.map((e) => e.toIso8601String()).toList(),
-      'next_expected_match': ?instance.nextExpectedMatch?.toIso8601String(),
-      'next_expected_match_diff': ?instance.nextExpectedMatchDiff,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'name': instance.name,
+      'object_has_currency_setting': instance.objectHasCurrencySetting,
+      'currency_id': instance.currencyId,
+      'currency_name': instance.currencyName,
+      'currency_code': instance.currencyCode,
+      'currency_symbol': instance.currencySymbol,
+      'currency_decimal_places': instance.currencyDecimalPlaces,
+      'primary_currency_id': instance.primaryCurrencyId,
+      'primary_currency_name': instance.primaryCurrencyName,
+      'primary_currency_code': instance.primaryCurrencyCode,
+      'primary_currency_symbol': instance.primaryCurrencySymbol,
+      'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+      'amount_min': instance.amountMin,
+      'pc_amount_min': instance.pcAmountMin,
+      'amount_max': instance.amountMax,
+      'pc_amount_max': instance.pcAmountMax,
+      'amount_avg': instance.amountAvg,
+      'pc_amount_avg': instance.pcAmountAvg,
+      'date': instance.date?.toIso8601String(),
+      'end_date': instance.endDate?.toIso8601String(),
+      'extension_date': instance.extensionDate?.toIso8601String(),
+      'repeat_freq': billRepeatFrequencyNullableToJson(instance.repeatFreq),
+      'skip': instance.skip,
+      'active': instance.active,
+      'order': instance.order,
+      'notes': instance.notes,
+      'object_group_id': instance.objectGroupId,
+      'object_group_order': instance.objectGroupOrder,
+      'object_group_title': instance.objectGroupTitle,
+      'paid_dates': instance.paidDates?.map((e) => e.toJson()).toList(),
+      'pay_dates': instance.payDates?.map((e) => e.toIso8601String()).toList(),
+      'next_expected_match': instance.nextExpectedMatch?.toIso8601String(),
+      'next_expected_match_diff': instance.nextExpectedMatchDiff,
     };
 
 BillRead _$BillReadFromJson(Map<String, dynamic> json) => BillRead(
@@ -1956,20 +1953,20 @@ BillStore _$BillStoreFromJson(Map<String, dynamic> json) => BillStore(
 );
 
 Map<String, dynamic> _$BillStoreToJson(BillStore instance) => <String, dynamic>{
-  'currency_id': ?instance.currencyId,
-  'currency_code': ?instance.currencyCode,
+  'currency_id': instance.currencyId,
+  'currency_code': instance.currencyCode,
   'name': instance.name,
   'amount_min': instance.amountMin,
   'amount_max': instance.amountMax,
   'date': instance.date.toIso8601String(),
-  'end_date': ?instance.endDate?.toIso8601String(),
-  'extension_date': ?instance.extensionDate?.toIso8601String(),
-  'repeat_freq': ?billRepeatFrequencyToJson(instance.repeatFreq),
-  'skip': ?instance.skip,
-  'active': ?instance.active,
-  'notes': ?instance.notes,
-  'object_group_id': ?instance.objectGroupId,
-  'object_group_title': ?instance.objectGroupTitle,
+  'end_date': instance.endDate?.toIso8601String(),
+  'extension_date': instance.extensionDate?.toIso8601String(),
+  'repeat_freq': billRepeatFrequencyToJson(instance.repeatFreq),
+  'skip': instance.skip,
+  'active': instance.active,
+  'notes': instance.notes,
+  'object_group_id': instance.objectGroupId,
+  'object_group_title': instance.objectGroupTitle,
 };
 
 BillUpdate _$BillUpdateFromJson(Map<String, dynamic> json) => BillUpdate(
@@ -1995,20 +1992,20 @@ BillUpdate _$BillUpdateFromJson(Map<String, dynamic> json) => BillUpdate(
 
 Map<String, dynamic> _$BillUpdateToJson(BillUpdate instance) =>
     <String, dynamic>{
-      'currency_id': ?instance.currencyId,
-      'currency_code': ?instance.currencyCode,
+      'currency_id': instance.currencyId,
+      'currency_code': instance.currencyCode,
       'name': instance.name,
-      'amount_min': ?instance.amountMin,
-      'amount_max': ?instance.amountMax,
-      'date': ?instance.date?.toIso8601String(),
-      'end_date': ?instance.endDate?.toIso8601String(),
-      'extension_date': ?instance.extensionDate?.toIso8601String(),
-      'repeat_freq': ?billRepeatFrequencyNullableToJson(instance.repeatFreq),
-      'skip': ?instance.skip,
-      'active': ?instance.active,
-      'notes': ?instance.notes,
-      'object_group_id': ?instance.objectGroupId,
-      'object_group_title': ?instance.objectGroupTitle,
+      'amount_min': instance.amountMin,
+      'amount_max': instance.amountMax,
+      'date': instance.date?.toIso8601String(),
+      'end_date': instance.endDate?.toIso8601String(),
+      'extension_date': instance.extensionDate?.toIso8601String(),
+      'repeat_freq': billRepeatFrequencyNullableToJson(instance.repeatFreq),
+      'skip': instance.skip,
+      'active': instance.active,
+      'notes': instance.notes,
+      'object_group_id': instance.objectGroupId,
+      'object_group_title': instance.objectGroupTitle,
     };
 
 BudgetProperties _$BudgetPropertiesFromJson(Map<String, dynamic> json) =>
@@ -2064,38 +2061,37 @@ BudgetProperties _$BudgetPropertiesFromJson(Map<String, dynamic> json) =>
           [],
     );
 
-Map<String, dynamic> _$BudgetPropertiesToJson(
-  BudgetProperties instance,
-) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
-  'active': ?instance.active,
-  'name': instance.name,
-  'order': ?instance.order,
-  'notes': ?instance.notes,
-  'auto_budget_type': ?autoBudgetTypeNullableToJson(instance.autoBudgetType),
-  'auto_budget_period': ?autoBudgetPeriodNullableToJson(
-    instance.autoBudgetPeriod,
-  ),
-  'object_group_id': ?instance.objectGroupId,
-  'object_group_order': ?instance.objectGroupOrder,
-  'object_group_title': ?instance.objectGroupTitle,
-  'object_has_currency_setting': ?instance.objectHasCurrencySetting,
-  'currency_id': ?instance.currencyId,
-  'currency_name': ?instance.currencyName,
-  'currency_code': ?instance.currencyCode,
-  'currency_symbol': ?instance.currencySymbol,
-  'currency_decimal_places': ?instance.currencyDecimalPlaces,
-  'primary_currency_id': ?instance.primaryCurrencyId,
-  'primary_currency_name': ?instance.primaryCurrencyName,
-  'primary_currency_code': ?instance.primaryCurrencyCode,
-  'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-  'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-  'auto_budget_amount': ?instance.autoBudgetAmount,
-  'pc_auto_budget_amount': ?instance.pcAutoBudgetAmount,
-  'spent': ?instance.spent?.map((e) => e.toJson()).toList(),
-  'pc_spent': ?instance.pcSpent?.map((e) => e.toJson()).toList(),
-};
+Map<String, dynamic> _$BudgetPropertiesToJson(BudgetProperties instance) =>
+    <String, dynamic>{
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'active': instance.active,
+      'name': instance.name,
+      'order': instance.order,
+      'notes': instance.notes,
+      'auto_budget_type': autoBudgetTypeNullableToJson(instance.autoBudgetType),
+      'auto_budget_period': autoBudgetPeriodNullableToJson(
+        instance.autoBudgetPeriod,
+      ),
+      'object_group_id': instance.objectGroupId,
+      'object_group_order': instance.objectGroupOrder,
+      'object_group_title': instance.objectGroupTitle,
+      'object_has_currency_setting': instance.objectHasCurrencySetting,
+      'currency_id': instance.currencyId,
+      'currency_name': instance.currencyName,
+      'currency_code': instance.currencyCode,
+      'currency_symbol': instance.currencySymbol,
+      'currency_decimal_places': instance.currencyDecimalPlaces,
+      'primary_currency_id': instance.primaryCurrencyId,
+      'primary_currency_name': instance.primaryCurrencyName,
+      'primary_currency_code': instance.primaryCurrencyCode,
+      'primary_currency_symbol': instance.primaryCurrencySymbol,
+      'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+      'auto_budget_amount': instance.autoBudgetAmount,
+      'pc_auto_budget_amount': instance.pcAutoBudgetAmount,
+      'spent': instance.spent?.map((e) => e.toJson()).toList(),
+      'pc_spent': instance.pcSpent?.map((e) => e.toJson()).toList(),
+    };
 
 BudgetRead _$BudgetReadFromJson(Map<String, dynamic> json) => BudgetRead(
   type: json['type'] as String,
@@ -2134,22 +2130,21 @@ BudgetStore _$BudgetStoreFromJson(Map<String, dynamic> json) => BudgetStore(
   ),
 );
 
-Map<String, dynamic> _$BudgetStoreToJson(
-  BudgetStore instance,
-) => <String, dynamic>{
-  'name': instance.name,
-  'active': ?instance.active,
-  'order': ?instance.order,
-  'notes': ?instance.notes,
-  'fire_webhooks': ?instance.fireWebhooks,
-  'auto_budget_type': ?autoBudgetTypeNullableToJson(instance.autoBudgetType),
-  'auto_budget_currency_id': ?instance.autoBudgetCurrencyId,
-  'auto_budget_currency_code': ?instance.autoBudgetCurrencyCode,
-  'auto_budget_amount': ?instance.autoBudgetAmount,
-  'auto_budget_period': ?autoBudgetPeriodNullableToJson(
-    instance.autoBudgetPeriod,
-  ),
-};
+Map<String, dynamic> _$BudgetStoreToJson(BudgetStore instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'active': instance.active,
+      'order': instance.order,
+      'notes': instance.notes,
+      'fire_webhooks': instance.fireWebhooks,
+      'auto_budget_type': autoBudgetTypeNullableToJson(instance.autoBudgetType),
+      'auto_budget_currency_id': instance.autoBudgetCurrencyId,
+      'auto_budget_currency_code': instance.autoBudgetCurrencyCode,
+      'auto_budget_amount': instance.autoBudgetAmount,
+      'auto_budget_period': autoBudgetPeriodNullableToJson(
+        instance.autoBudgetPeriod,
+      ),
+    };
 
 BudgetUpdate _$BudgetUpdateFromJson(Map<String, dynamic> json) => BudgetUpdate(
   name: json['name'] as String,
@@ -2166,22 +2161,21 @@ BudgetUpdate _$BudgetUpdateFromJson(Map<String, dynamic> json) => BudgetUpdate(
   ),
 );
 
-Map<String, dynamic> _$BudgetUpdateToJson(
-  BudgetUpdate instance,
-) => <String, dynamic>{
-  'name': instance.name,
-  'active': ?instance.active,
-  'order': ?instance.order,
-  'notes': ?instance.notes,
-  'fire_webhooks': ?instance.fireWebhooks,
-  'auto_budget_type': ?autoBudgetTypeNullableToJson(instance.autoBudgetType),
-  'auto_budget_currency_id': ?instance.autoBudgetCurrencyId,
-  'auto_budget_currency_code': ?instance.autoBudgetCurrencyCode,
-  'auto_budget_amount': ?instance.autoBudgetAmount,
-  'auto_budget_period': ?autoBudgetPeriodNullableToJson(
-    instance.autoBudgetPeriod,
-  ),
-};
+Map<String, dynamic> _$BudgetUpdateToJson(BudgetUpdate instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'active': instance.active,
+      'order': instance.order,
+      'notes': instance.notes,
+      'fire_webhooks': instance.fireWebhooks,
+      'auto_budget_type': autoBudgetTypeNullableToJson(instance.autoBudgetType),
+      'auto_budget_currency_id': instance.autoBudgetCurrencyId,
+      'auto_budget_currency_code': instance.autoBudgetCurrencyCode,
+      'auto_budget_amount': instance.autoBudgetAmount,
+      'auto_budget_period': autoBudgetPeriodNullableToJson(
+        instance.autoBudgetPeriod,
+      ),
+    };
 
 BudgetLimitProperties _$BudgetLimitPropertiesFromJson(
   Map<String, dynamic> json,
@@ -2234,28 +2228,28 @@ BudgetLimitProperties _$BudgetLimitPropertiesFromJson(
 Map<String, dynamic> _$BudgetLimitPropertiesToJson(
   BudgetLimitProperties instance,
 ) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
-  'start': ?instance.start?.toIso8601String(),
-  'end': ?instance.end?.toIso8601String(),
-  'budget_id': ?instance.budgetId,
-  'object_has_currency_setting': ?instance.objectHasCurrencySetting,
-  'currency_id': ?instance.currencyId,
-  'currency_name': ?instance.currencyName,
-  'currency_code': ?instance.currencyCode,
-  'currency_symbol': ?instance.currencySymbol,
-  'currency_decimal_places': ?instance.currencyDecimalPlaces,
-  'primary_currency_id': ?instance.primaryCurrencyId,
-  'primary_currency_name': ?instance.primaryCurrencyName,
-  'primary_currency_code': ?instance.primaryCurrencyCode,
-  'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-  'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-  'amount': ?instance.amount,
-  'pc_amount': ?instance.pcAmount,
-  'period': ?instance.period,
-  'spent': ?instance.spent?.map((e) => e.toJson()).toList(),
-  'pc_spent': ?instance.pcSpent?.map((e) => e.toJson()).toList(),
-  'notes': ?instance.notes,
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+  'start': instance.start?.toIso8601String(),
+  'end': instance.end?.toIso8601String(),
+  'budget_id': instance.budgetId,
+  'object_has_currency_setting': instance.objectHasCurrencySetting,
+  'currency_id': instance.currencyId,
+  'currency_name': instance.currencyName,
+  'currency_code': instance.currencyCode,
+  'currency_symbol': instance.currencySymbol,
+  'currency_decimal_places': instance.currencyDecimalPlaces,
+  'primary_currency_id': instance.primaryCurrencyId,
+  'primary_currency_name': instance.primaryCurrencyName,
+  'primary_currency_code': instance.primaryCurrencyCode,
+  'primary_currency_symbol': instance.primaryCurrencySymbol,
+  'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+  'amount': instance.amount,
+  'pc_amount': instance.pcAmount,
+  'period': instance.period,
+  'spent': instance.spent?.map((e) => e.toJson()).toList(),
+  'pc_spent': instance.pcSpent?.map((e) => e.toJson()).toList(),
+  'notes': instance.notes,
 };
 
 BudgetLimitRead _$BudgetLimitReadFromJson(Map<String, dynamic> json) =>
@@ -2297,15 +2291,15 @@ BudgetLimitStore _$BudgetLimitStoreFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$BudgetLimitStoreToJson(BudgetLimitStore instance) =>
     <String, dynamic>{
-      'currency_id': ?instance.currencyId,
-      'currency_code': ?instance.currencyCode,
-      'budget_id': ?instance.budgetId,
-      'start': ?_dateToJson(instance.start),
-      'period': ?instance.period,
-      'end': ?_dateToJson(instance.end),
+      'currency_id': instance.currencyId,
+      'currency_code': instance.currencyCode,
+      'budget_id': instance.budgetId,
+      'start': _dateToJson(instance.start),
+      'period': instance.period,
+      'end': _dateToJson(instance.end),
       'amount': instance.amount,
-      'notes': ?instance.notes,
-      'fire_webhooks': ?instance.fireWebhooks,
+      'notes': instance.notes,
+      'fire_webhooks': instance.fireWebhooks,
     };
 
 BudgetLimitUpdate _$BudgetLimitUpdateFromJson(Map<String, dynamic> json) =>
@@ -2343,28 +2337,28 @@ BudgetLimitUpdate _$BudgetLimitUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$BudgetLimitUpdateToJson(BudgetLimitUpdate instance) =>
     <String, dynamic>{
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
-      'start': ?instance.start?.toIso8601String(),
-      'end': ?instance.end?.toIso8601String(),
-      'budget_id': ?instance.budgetId,
-      'object_has_currency_setting': ?instance.objectHasCurrencySetting,
-      'currency_id': ?instance.currencyId,
-      'currency_name': ?instance.currencyName,
-      'currency_code': ?instance.currencyCode,
-      'currency_symbol': ?instance.currencySymbol,
-      'currency_decimal_places': ?instance.currencyDecimalPlaces,
-      'primary_currency_id': ?instance.primaryCurrencyId,
-      'primary_currency_name': ?instance.primaryCurrencyName,
-      'primary_currency_code': ?instance.primaryCurrencyCode,
-      'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-      'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-      'period': ?instance.period,
-      'amount': ?instance.amount,
-      'pc_amount': ?instance.pcAmount,
-      'spent': ?instance.spent,
-      'notes': ?instance.notes,
-      'fire_webhooks': ?instance.fireWebhooks,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'start': instance.start?.toIso8601String(),
+      'end': instance.end?.toIso8601String(),
+      'budget_id': instance.budgetId,
+      'object_has_currency_setting': instance.objectHasCurrencySetting,
+      'currency_id': instance.currencyId,
+      'currency_name': instance.currencyName,
+      'currency_code': instance.currencyCode,
+      'currency_symbol': instance.currencySymbol,
+      'currency_decimal_places': instance.currencyDecimalPlaces,
+      'primary_currency_id': instance.primaryCurrencyId,
+      'primary_currency_name': instance.primaryCurrencyName,
+      'primary_currency_code': instance.primaryCurrencyCode,
+      'primary_currency_symbol': instance.primaryCurrencySymbol,
+      'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+      'period': instance.period,
+      'amount': instance.amount,
+      'pc_amount': instance.pcAmount,
+      'spent': instance.spent,
+      'notes': instance.notes,
+      'fire_webhooks': instance.fireWebhooks,
     };
 
 CategoryProperties _$CategoryPropertiesFromJson(Map<String, dynamic> json) =>
@@ -2440,26 +2434,25 @@ CategoryProperties _$CategoryPropertiesFromJson(Map<String, dynamic> json) =>
           [],
     );
 
-Map<String, dynamic> _$CategoryPropertiesToJson(
-  CategoryProperties instance,
-) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
-  'name': instance.name,
-  'notes': ?instance.notes,
-  'object_has_currency_setting': ?instance.objectHasCurrencySetting,
-  'primary_currency_id': ?instance.primaryCurrencyId,
-  'primary_currency_name': ?instance.primaryCurrencyName,
-  'primary_currency_code': ?instance.primaryCurrencyCode,
-  'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-  'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-  'spent': ?instance.spent?.map((e) => e.toJson()).toList(),
-  'pc_spent': ?instance.pcSpent?.map((e) => e.toJson()).toList(),
-  'earned': ?instance.earned?.map((e) => e.toJson()).toList(),
-  'pc_earned': ?instance.pcEarned?.map((e) => e.toJson()).toList(),
-  'transferred': ?instance.transferred?.map((e) => e.toJson()).toList(),
-  'pc_transferred': ?instance.pcTransferred?.map((e) => e.toJson()).toList(),
-};
+Map<String, dynamic> _$CategoryPropertiesToJson(CategoryProperties instance) =>
+    <String, dynamic>{
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'name': instance.name,
+      'notes': instance.notes,
+      'object_has_currency_setting': instance.objectHasCurrencySetting,
+      'primary_currency_id': instance.primaryCurrencyId,
+      'primary_currency_name': instance.primaryCurrencyName,
+      'primary_currency_code': instance.primaryCurrencyCode,
+      'primary_currency_symbol': instance.primaryCurrencySymbol,
+      'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+      'spent': instance.spent?.map((e) => e.toJson()).toList(),
+      'pc_spent': instance.pcSpent?.map((e) => e.toJson()).toList(),
+      'earned': instance.earned?.map((e) => e.toJson()).toList(),
+      'pc_earned': instance.pcEarned?.map((e) => e.toJson()).toList(),
+      'transferred': instance.transferred?.map((e) => e.toJson()).toList(),
+      'pc_transferred': instance.pcTransferred?.map((e) => e.toJson()).toList(),
+    };
 
 CategoryStore _$CategoryStoreFromJson(Map<String, dynamic> json) =>
     CategoryStore(
@@ -2468,7 +2461,7 @@ CategoryStore _$CategoryStoreFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$CategoryStoreToJson(CategoryStore instance) =>
-    <String, dynamic>{'name': instance.name, 'notes': ?instance.notes};
+    <String, dynamic>{'name': instance.name, 'notes': instance.notes};
 
 CategoryUpdate _$CategoryUpdateFromJson(Map<String, dynamic> json) =>
     CategoryUpdate(
@@ -2477,7 +2470,7 @@ CategoryUpdate _$CategoryUpdateFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$CategoryUpdateToJson(CategoryUpdate instance) =>
-    <String, dynamic>{'name': instance.name, 'notes': ?instance.notes};
+    <String, dynamic>{'name': instance.name, 'notes': instance.notes};
 
 CurrencyExchangeProperties _$CurrencyExchangePropertiesFromJson(
   Map<String, dynamic> json,
@@ -2507,20 +2500,20 @@ CurrencyExchangeProperties _$CurrencyExchangePropertiesFromJson(
 Map<String, dynamic> _$CurrencyExchangePropertiesToJson(
   CurrencyExchangeProperties instance,
 ) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
-  'from_currency_id': ?instance.fromCurrencyId,
-  'from_currency_name': ?instance.fromCurrencyName,
-  'from_currency_code': ?instance.fromCurrencyCode,
-  'from_currency_symbol': ?instance.fromCurrencySymbol,
-  'from_currency_decimal_places': ?instance.fromCurrencyDecimalPlaces,
-  'to_currency_id': ?instance.toCurrencyId,
-  'to_currency_name': ?instance.toCurrencyName,
-  'to_currency_code': ?instance.toCurrencyCode,
-  'to_currency_symbol': ?instance.toCurrencySymbol,
-  'to_currency_decimal_places': ?instance.toCurrencyDecimalPlaces,
-  'rate': ?instance.rate,
-  'date': ?instance.date?.toIso8601String(),
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+  'from_currency_id': instance.fromCurrencyId,
+  'from_currency_name': instance.fromCurrencyName,
+  'from_currency_code': instance.fromCurrencyCode,
+  'from_currency_symbol': instance.fromCurrencySymbol,
+  'from_currency_decimal_places': instance.fromCurrencyDecimalPlaces,
+  'to_currency_id': instance.toCurrencyId,
+  'to_currency_name': instance.toCurrencyName,
+  'to_currency_code': instance.toCurrencyCode,
+  'to_currency_symbol': instance.toCurrencySymbol,
+  'to_currency_decimal_places': instance.toCurrencyDecimalPlaces,
+  'rate': instance.rate,
+  'date': instance.date?.toIso8601String(),
 };
 
 CurrencyExchangeRateRead _$CurrencyExchangeRateReadFromJson(
@@ -2541,10 +2534,10 @@ CurrencyExchangeRateRead _$CurrencyExchangeRateReadFromJson(
 Map<String, dynamic> _$CurrencyExchangeRateReadToJson(
   CurrencyExchangeRateRead instance,
 ) => <String, dynamic>{
-  'type': ?instance.type,
-  'id': ?instance.id,
-  'attributes': ?instance.attributes?.toJson(),
-  'links': ?instance.links?.toJson(),
+  'type': instance.type,
+  'id': instance.id,
+  'attributes': instance.attributes?.toJson(),
+  'links': instance.links?.toJson(),
 };
 
 CurrencyExchangeRateSingle _$CurrencyExchangeRateSingleFromJson(
@@ -2569,10 +2562,10 @@ CurrencyExchangeRateStore _$CurrencyExchangeRateStoreFromJson(
 Map<String, dynamic> _$CurrencyExchangeRateStoreToJson(
   CurrencyExchangeRateStore instance,
 ) => <String, dynamic>{
-  'date': ?_dateToJson(instance.date),
+  'date': _dateToJson(instance.date),
   'from': instance.from,
   'to': instance.to,
-  'rate': ?instance.rate,
+  'rate': instance.rate,
 };
 
 CurrencyExchangeRateStoreByDate _$CurrencyExchangeRateStoreByDateFromJson(
@@ -2606,10 +2599,10 @@ CurrencyExchangeRateUpdate _$CurrencyExchangeRateUpdateFromJson(
 Map<String, dynamic> _$CurrencyExchangeRateUpdateToJson(
   CurrencyExchangeRateUpdate instance,
 ) => <String, dynamic>{
-  'date': ?_dateToJson(instance.date),
+  'date': _dateToJson(instance.date),
   'rate': instance.rate,
-  'from': ?instance.from,
-  'to': ?instance.to,
+  'from': instance.from,
+  'to': instance.to,
 };
 
 CurrencyExchangeRateUpdateNoDate _$CurrencyExchangeRateUpdateNoDateFromJson(
@@ -2633,8 +2626,8 @@ ObjectGroup _$ObjectGroupFromJson(Map<String, dynamic> json) => ObjectGroup(
 
 Map<String, dynamic> _$ObjectGroupToJson(ObjectGroup instance) =>
     <String, dynamic>{
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
       'title': instance.title,
       'order': instance.order,
     };
@@ -2646,13 +2639,13 @@ ObjectGroupUpdate _$ObjectGroupUpdateFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$ObjectGroupUpdateToJson(ObjectGroupUpdate instance) =>
-    <String, dynamic>{'title': instance.title, 'order': ?instance.order};
+    <String, dynamic>{'title': instance.title, 'order': instance.order};
 
 ObjectLink _$ObjectLinkFromJson(Map<String, dynamic> json) =>
     ObjectLink(self: json['self'] as String?);
 
 Map<String, dynamic> _$ObjectLinkToJson(ObjectLink instance) =>
-    <String, dynamic>{'self': ?instance.self};
+    <String, dynamic>{'self': instance.self};
 
 PageLink _$PageLinkFromJson(Map<String, dynamic> json) => PageLink(
   self: json['self'] as String?,
@@ -2663,11 +2656,11 @@ PageLink _$PageLinkFromJson(Map<String, dynamic> json) => PageLink(
 );
 
 Map<String, dynamic> _$PageLinkToJson(PageLink instance) => <String, dynamic>{
-  'self': ?instance.self,
-  'first': ?instance.first,
-  'next': ?instance.next,
-  'prev': ?instance.prev,
-  'last': ?instance.last,
+  'self': instance.self,
+  'first': instance.first,
+  'next': instance.next,
+  'prev': instance.prev,
+  'last': instance.last,
 };
 
 PiggyBankAccountRead _$PiggyBankAccountReadFromJson(
@@ -2682,10 +2675,10 @@ PiggyBankAccountRead _$PiggyBankAccountReadFromJson(
 Map<String, dynamic> _$PiggyBankAccountReadToJson(
   PiggyBankAccountRead instance,
 ) => <String, dynamic>{
-  'account_id': ?instance.accountId,
-  'name': ?instance.name,
-  'current_amount': ?instance.currentAmount,
-  'pc_current_amount': ?instance.pcCurrentAmount,
+  'account_id': instance.accountId,
+  'name': instance.name,
+  'current_amount': instance.currentAmount,
+  'pc_current_amount': instance.pcCurrentAmount,
 };
 
 PiggyBankAccountStore _$PiggyBankAccountStoreFromJson(
@@ -2699,9 +2692,9 @@ PiggyBankAccountStore _$PiggyBankAccountStoreFromJson(
 Map<String, dynamic> _$PiggyBankAccountStoreToJson(
   PiggyBankAccountStore instance,
 ) => <String, dynamic>{
-  'id': ?instance.id,
-  'name': ?instance.name,
-  'current_amount': ?instance.currentAmount,
+  'id': instance.id,
+  'name': instance.name,
+  'current_amount': instance.currentAmount,
 };
 
 PiggyBankAccountUpdate _$PiggyBankAccountUpdateFromJson(
@@ -2715,9 +2708,9 @@ PiggyBankAccountUpdate _$PiggyBankAccountUpdateFromJson(
 Map<String, dynamic> _$PiggyBankAccountUpdateToJson(
   PiggyBankAccountUpdate instance,
 ) => <String, dynamic>{
-  'account_id': ?instance.accountId,
-  'name': ?instance.name,
-  'current_amount': ?instance.currentAmount,
+  'account_id': instance.accountId,
+  'name': instance.name,
+  'current_amount': instance.currentAmount,
 };
 
 PiggyBankProperties _$PiggyBankPropertiesFromJson(Map<String, dynamic> json) =>
@@ -2774,38 +2767,38 @@ PiggyBankProperties _$PiggyBankPropertiesFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$PiggyBankPropertiesToJson(
   PiggyBankProperties instance,
 ) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
   'name': instance.name,
-  'percentage': ?instance.percentage,
-  'start_date': ?instance.startDate?.toIso8601String(),
-  'target_date': ?instance.targetDate?.toIso8601String(),
-  'order': ?instance.order,
-  'active': ?instance.active,
-  'notes': ?instance.notes,
-  'object_group_id': ?instance.objectGroupId,
-  'object_group_order': ?instance.objectGroupOrder,
-  'object_group_title': ?instance.objectGroupTitle,
-  'accounts': ?instance.accounts?.map((e) => e.toJson()).toList(),
-  'object_has_currency_setting': ?instance.objectHasCurrencySetting,
-  'currency_id': ?instance.currencyId,
-  'currency_name': ?instance.currencyName,
-  'currency_code': ?instance.currencyCode,
-  'currency_symbol': ?instance.currencySymbol,
-  'currency_decimal_places': ?instance.currencyDecimalPlaces,
-  'primary_currency_id': ?instance.primaryCurrencyId,
-  'primary_currency_name': ?instance.primaryCurrencyName,
-  'primary_currency_code': ?instance.primaryCurrencyCode,
-  'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-  'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-  'target_amount': ?instance.targetAmount,
-  'pc_target_amount': ?instance.pcTargetAmount,
-  'current_amount': ?instance.currentAmount,
-  'pc_current_amount': ?instance.pcCurrentAmount,
-  'left_to_save': ?instance.leftToSave,
-  'pc_left_to_save': ?instance.pcLeftToSave,
-  'save_per_month': ?instance.savePerMonth,
-  'pc_save_per_month': ?instance.pcSavePerMonth,
+  'percentage': instance.percentage,
+  'start_date': instance.startDate?.toIso8601String(),
+  'target_date': instance.targetDate?.toIso8601String(),
+  'order': instance.order,
+  'active': instance.active,
+  'notes': instance.notes,
+  'object_group_id': instance.objectGroupId,
+  'object_group_order': instance.objectGroupOrder,
+  'object_group_title': instance.objectGroupTitle,
+  'accounts': instance.accounts?.map((e) => e.toJson()).toList(),
+  'object_has_currency_setting': instance.objectHasCurrencySetting,
+  'currency_id': instance.currencyId,
+  'currency_name': instance.currencyName,
+  'currency_code': instance.currencyCode,
+  'currency_symbol': instance.currencySymbol,
+  'currency_decimal_places': instance.currencyDecimalPlaces,
+  'primary_currency_id': instance.primaryCurrencyId,
+  'primary_currency_name': instance.primaryCurrencyName,
+  'primary_currency_code': instance.primaryCurrencyCode,
+  'primary_currency_symbol': instance.primaryCurrencySymbol,
+  'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+  'target_amount': instance.targetAmount,
+  'pc_target_amount': instance.pcTargetAmount,
+  'current_amount': instance.currentAmount,
+  'pc_current_amount': instance.pcCurrentAmount,
+  'left_to_save': instance.leftToSave,
+  'pc_left_to_save': instance.pcLeftToSave,
+  'save_per_month': instance.savePerMonth,
+  'pc_save_per_month': instance.pcSavePerMonth,
 };
 
 PiggyBankStore _$PiggyBankStoreFromJson(Map<String, dynamic> json) =>
@@ -2835,16 +2828,16 @@ PiggyBankStore _$PiggyBankStoreFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$PiggyBankStoreToJson(PiggyBankStore instance) =>
     <String, dynamic>{
       'name': instance.name,
-      'accounts': ?instance.accounts?.map((e) => e.toJson()).toList(),
-      'target_amount': ?instance.targetAmount,
-      'current_amount': ?instance.currentAmount,
-      'start_date': ?_dateToJson(instance.startDate),
-      'target_date': ?_dateToJson(instance.targetDate),
-      'order': ?instance.order,
-      'active': ?instance.active,
-      'notes': ?instance.notes,
-      'object_group_id': ?instance.objectGroupId,
-      'object_group_title': ?instance.objectGroupTitle,
+      'accounts': instance.accounts?.map((e) => e.toJson()).toList(),
+      'target_amount': instance.targetAmount,
+      'current_amount': instance.currentAmount,
+      'start_date': _dateToJson(instance.startDate),
+      'target_date': _dateToJson(instance.targetDate),
+      'order': instance.order,
+      'active': instance.active,
+      'notes': instance.notes,
+      'object_group_id': instance.objectGroupId,
+      'object_group_title': instance.objectGroupTitle,
     };
 
 PiggyBankUpdate _$PiggyBankUpdateFromJson(Map<String, dynamic> json) =>
@@ -2876,18 +2869,18 @@ PiggyBankUpdate _$PiggyBankUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$PiggyBankUpdateToJson(PiggyBankUpdate instance) =>
     <String, dynamic>{
-      'name': ?instance.name,
-      'accounts': ?instance.accounts?.map((e) => e.toJson()).toList(),
-      'currency_id': ?instance.currencyId,
-      'currency_code': ?instance.currencyCode,
-      'target_amount': ?instance.targetAmount,
-      'start_date': ?_dateToJson(instance.startDate),
-      'target_date': ?_dateToJson(instance.targetDate),
-      'order': ?instance.order,
-      'active': ?instance.active,
-      'notes': ?instance.notes,
-      'object_group_id': ?instance.objectGroupId,
-      'object_group_title': ?instance.objectGroupTitle,
+      'name': instance.name,
+      'accounts': instance.accounts?.map((e) => e.toJson()).toList(),
+      'currency_id': instance.currencyId,
+      'currency_code': instance.currencyCode,
+      'target_amount': instance.targetAmount,
+      'start_date': _dateToJson(instance.startDate),
+      'target_date': _dateToJson(instance.targetDate),
+      'order': instance.order,
+      'active': instance.active,
+      'notes': instance.notes,
+      'object_group_id': instance.objectGroupId,
+      'object_group_title': instance.objectGroupTitle,
     };
 
 PiggyBankEventProperties _$PiggyBankEventPropertiesFromJson(
@@ -2920,23 +2913,23 @@ PiggyBankEventProperties _$PiggyBankEventPropertiesFromJson(
 Map<String, dynamic> _$PiggyBankEventPropertiesToJson(
   PiggyBankEventProperties instance,
 ) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
-  'amount': ?instance.amount,
-  'pc_amount': ?instance.pcAmount,
-  'object_has_currency_setting': ?instance.objectHasCurrencySetting,
-  'currency_id': ?instance.currencyId,
-  'currency_name': ?instance.currencyName,
-  'currency_code': ?instance.currencyCode,
-  'currency_symbol': ?instance.currencySymbol,
-  'currency_decimal_places': ?instance.currencyDecimalPlaces,
-  'primary_currency_id': ?instance.primaryCurrencyId,
-  'primary_currency_name': ?instance.primaryCurrencyName,
-  'primary_currency_code': ?instance.primaryCurrencyCode,
-  'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-  'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-  'transaction_journal_id': ?instance.transactionJournalId,
-  'transaction_group_id': ?instance.transactionGroupId,
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+  'amount': instance.amount,
+  'pc_amount': instance.pcAmount,
+  'object_has_currency_setting': instance.objectHasCurrencySetting,
+  'currency_id': instance.currencyId,
+  'currency_name': instance.currencyName,
+  'currency_code': instance.currencyCode,
+  'currency_symbol': instance.currencySymbol,
+  'currency_decimal_places': instance.currencyDecimalPlaces,
+  'primary_currency_id': instance.primaryCurrencyId,
+  'primary_currency_name': instance.primaryCurrencyName,
+  'primary_currency_code': instance.primaryCurrencyCode,
+  'primary_currency_symbol': instance.primaryCurrencySymbol,
+  'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+  'transaction_journal_id': instance.transactionJournalId,
+  'transaction_group_id': instance.transactionGroupId,
 };
 
 Preference _$PreferenceFromJson(Map<String, dynamic> json) => Preference(
@@ -2952,8 +2945,8 @@ Preference _$PreferenceFromJson(Map<String, dynamic> json) => Preference(
 
 Map<String, dynamic> _$PreferenceToJson(Preference instance) =>
     <String, dynamic>{
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
       'name': instance.name,
       'data': instance.data.toJson(),
     };
@@ -3008,20 +3001,20 @@ RecurrenceProperties _$RecurrencePropertiesFromJson(
 Map<String, dynamic> _$RecurrencePropertiesToJson(
   RecurrenceProperties instance,
 ) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
-  'type': ?recurrenceTransactionTypeNullableToJson(instance.type),
-  'title': ?instance.title,
-  'description': ?instance.description,
-  'first_date': ?_dateToJson(instance.firstDate),
-  'latest_date': ?_dateToJson(instance.latestDate),
-  'repeat_until': ?_dateToJson(instance.repeatUntil),
-  'apply_rules': ?instance.applyRules,
-  'active': ?instance.active,
-  'nr_of_repetitions': ?instance.nrOfRepetitions,
-  'notes': ?instance.notes,
-  'repetitions': ?instance.repetitions?.map((e) => e.toJson()).toList(),
-  'transactions': ?instance.transactions?.map((e) => e.toJson()).toList(),
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+  'type': recurrenceTransactionTypeNullableToJson(instance.type),
+  'title': instance.title,
+  'description': instance.description,
+  'first_date': _dateToJson(instance.firstDate),
+  'latest_date': _dateToJson(instance.latestDate),
+  'repeat_until': _dateToJson(instance.repeatUntil),
+  'apply_rules': instance.applyRules,
+  'active': instance.active,
+  'nr_of_repetitions': instance.nrOfRepetitions,
+  'notes': instance.notes,
+  'repetitions': instance.repetitions?.map((e) => e.toJson()).toList(),
+  'transactions': instance.transactions?.map((e) => e.toJson()).toList(),
 };
 
 RecurrenceStore _$RecurrenceStoreFromJson(
@@ -3058,15 +3051,15 @@ RecurrenceStore _$RecurrenceStoreFromJson(
 
 Map<String, dynamic> _$RecurrenceStoreToJson(RecurrenceStore instance) =>
     <String, dynamic>{
-      'type': ?recurrenceTransactionTypeToJson(instance.type),
+      'type': recurrenceTransactionTypeToJson(instance.type),
       'title': instance.title,
-      'description': ?instance.description,
-      'first_date': ?_dateToJson(instance.firstDate),
-      'repeat_until': ?_dateToJson(instance.repeatUntil),
-      'nr_of_repetitions': ?instance.nrOfRepetitions,
-      'apply_rules': ?instance.applyRules,
-      'active': ?instance.active,
-      'notes': ?instance.notes,
+      'description': instance.description,
+      'first_date': _dateToJson(instance.firstDate),
+      'repeat_until': _dateToJson(instance.repeatUntil),
+      'nr_of_repetitions': instance.nrOfRepetitions,
+      'apply_rules': instance.applyRules,
+      'active': instance.active,
+      'notes': instance.notes,
       'repetitions': instance.repetitions.map((e) => e.toJson()).toList(),
       'transactions': instance.transactions.map((e) => e.toJson()).toList(),
     };
@@ -3106,16 +3099,16 @@ RecurrenceUpdate _$RecurrenceUpdateFromJson(
 
 Map<String, dynamic> _$RecurrenceUpdateToJson(RecurrenceUpdate instance) =>
     <String, dynamic>{
-      'title': ?instance.title,
-      'description': ?instance.description,
-      'first_date': ?_dateToJson(instance.firstDate),
-      'repeat_until': ?_dateToJson(instance.repeatUntil),
-      'nr_of_repetitions': ?instance.nrOfRepetitions,
-      'apply_rules': ?instance.applyRules,
-      'active': ?instance.active,
-      'notes': ?instance.notes,
-      'repetitions': ?instance.repetitions?.map((e) => e.toJson()).toList(),
-      'transactions': ?instance.transactions?.map((e) => e.toJson()).toList(),
+      'title': instance.title,
+      'description': instance.description,
+      'first_date': _dateToJson(instance.firstDate),
+      'repeat_until': _dateToJson(instance.repeatUntil),
+      'nr_of_repetitions': instance.nrOfRepetitions,
+      'apply_rules': instance.applyRules,
+      'active': instance.active,
+      'notes': instance.notes,
+      'repetitions': instance.repetitions?.map((e) => e.toJson()).toList(),
+      'transactions': instance.transactions?.map((e) => e.toJson()).toList(),
     };
 
 RecurrenceRepetition _$RecurrenceRepetitionFromJson(
@@ -3143,17 +3136,15 @@ RecurrenceRepetition _$RecurrenceRepetitionFromJson(
 Map<String, dynamic> _$RecurrenceRepetitionToJson(
   RecurrenceRepetition instance,
 ) => <String, dynamic>{
-  'id': ?instance.id,
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
-  'type': ?recurrenceRepetitionTypeToJson(instance.type),
+  'id': instance.id,
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+  'type': recurrenceRepetitionTypeToJson(instance.type),
   'moment': instance.moment,
-  'skip': ?instance.skip,
-  'weekend': ?instance.weekend,
-  'description': ?instance.description,
-  'occurrences': ?instance.occurrences
-      ?.map((e) => e.toIso8601String())
-      .toList(),
+  'skip': instance.skip,
+  'weekend': instance.weekend,
+  'description': instance.description,
+  'occurrences': instance.occurrences?.map((e) => e.toIso8601String()).toList(),
 };
 
 RecurrenceRepetitionStore _$RecurrenceRepetitionStoreFromJson(
@@ -3168,10 +3159,10 @@ RecurrenceRepetitionStore _$RecurrenceRepetitionStoreFromJson(
 Map<String, dynamic> _$RecurrenceRepetitionStoreToJson(
   RecurrenceRepetitionStore instance,
 ) => <String, dynamic>{
-  'type': ?recurrenceRepetitionTypeToJson(instance.type),
+  'type': recurrenceRepetitionTypeToJson(instance.type),
   'moment': instance.moment,
-  'skip': ?instance.skip,
-  'weekend': ?instance.weekend,
+  'skip': instance.skip,
+  'weekend': instance.weekend,
 };
 
 RecurrenceRepetitionUpdate _$RecurrenceRepetitionUpdateFromJson(
@@ -3186,10 +3177,10 @@ RecurrenceRepetitionUpdate _$RecurrenceRepetitionUpdateFromJson(
 Map<String, dynamic> _$RecurrenceRepetitionUpdateToJson(
   RecurrenceRepetitionUpdate instance,
 ) => <String, dynamic>{
-  'type': ?recurrenceRepetitionTypeNullableToJson(instance.type),
-  'moment': ?instance.moment,
-  'skip': ?instance.skip,
-  'weekend': ?instance.weekend,
+  'type': recurrenceRepetitionTypeNullableToJson(instance.type),
+  'moment': instance.moment,
+  'skip': instance.skip,
+  'weekend': instance.weekend,
 };
 
 RecurrenceTransaction _$RecurrenceTransactionFromJson(
@@ -3244,47 +3235,47 @@ RecurrenceTransaction _$RecurrenceTransactionFromJson(
 Map<String, dynamic> _$RecurrenceTransactionToJson(
   RecurrenceTransaction instance,
 ) => <String, dynamic>{
-  'id': ?instance.id,
+  'id': instance.id,
   'description': instance.description,
-  'object_has_currency_setting': ?instance.objectHasCurrencySetting,
-  'currency_id': ?instance.currencyId,
-  'currency_name': ?instance.currencyName,
-  'currency_code': ?instance.currencyCode,
-  'currency_symbol': ?instance.currencySymbol,
-  'currency_decimal_places': ?instance.currencyDecimalPlaces,
-  'primary_currency_id': ?instance.primaryCurrencyId,
-  'primary_currency_name': ?instance.primaryCurrencyName,
-  'primary_currency_code': ?instance.primaryCurrencyCode,
-  'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-  'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
+  'object_has_currency_setting': instance.objectHasCurrencySetting,
+  'currency_id': instance.currencyId,
+  'currency_name': instance.currencyName,
+  'currency_code': instance.currencyCode,
+  'currency_symbol': instance.currencySymbol,
+  'currency_decimal_places': instance.currencyDecimalPlaces,
+  'primary_currency_id': instance.primaryCurrencyId,
+  'primary_currency_name': instance.primaryCurrencyName,
+  'primary_currency_code': instance.primaryCurrencyCode,
+  'primary_currency_symbol': instance.primaryCurrencySymbol,
+  'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
   'amount': instance.amount,
-  'pc_amount': ?instance.pcAmount,
-  'foreign_amount': ?instance.foreignAmount,
-  'pc_foreign_amount': ?instance.pcForeignAmount,
-  'foreign_currency_id': ?instance.foreignCurrencyId,
-  'foreign_currency_name': ?instance.foreignCurrencyName,
-  'foreign_currency_code': ?instance.foreignCurrencyCode,
-  'foreign_currency_symbol': ?instance.foreignCurrencySymbol,
-  'foreign_currency_decimal_places': ?instance.foreignCurrencyDecimalPlaces,
-  'budget_id': ?instance.budgetId,
-  'budget_name': ?instance.budgetName,
-  'category_id': ?instance.categoryId,
-  'category_name': ?instance.categoryName,
-  'source_id': ?instance.sourceId,
-  'source_name': ?instance.sourceName,
-  'source_iban': ?instance.sourceIban,
-  'source_type': ?accountTypePropertyNullableToJson(instance.sourceType),
-  'destination_id': ?instance.destinationId,
-  'destination_name': ?instance.destinationName,
-  'destination_iban': ?instance.destinationIban,
-  'destination_type': ?accountTypePropertyNullableToJson(
+  'pc_amount': instance.pcAmount,
+  'foreign_amount': instance.foreignAmount,
+  'pc_foreign_amount': instance.pcForeignAmount,
+  'foreign_currency_id': instance.foreignCurrencyId,
+  'foreign_currency_name': instance.foreignCurrencyName,
+  'foreign_currency_code': instance.foreignCurrencyCode,
+  'foreign_currency_symbol': instance.foreignCurrencySymbol,
+  'foreign_currency_decimal_places': instance.foreignCurrencyDecimalPlaces,
+  'budget_id': instance.budgetId,
+  'budget_name': instance.budgetName,
+  'category_id': instance.categoryId,
+  'category_name': instance.categoryName,
+  'source_id': instance.sourceId,
+  'source_name': instance.sourceName,
+  'source_iban': instance.sourceIban,
+  'source_type': accountTypePropertyNullableToJson(instance.sourceType),
+  'destination_id': instance.destinationId,
+  'destination_name': instance.destinationName,
+  'destination_iban': instance.destinationIban,
+  'destination_type': accountTypePropertyNullableToJson(
     instance.destinationType,
   ),
-  'tags': ?instance.tags,
-  'piggy_bank_id': ?instance.piggyBankId,
-  'piggy_bank_name': ?instance.piggyBankName,
-  'subscription_id': ?instance.subscriptionId,
-  'subscription_name': ?instance.subscriptionName,
+  'tags': instance.tags,
+  'piggy_bank_id': instance.piggyBankId,
+  'piggy_bank_name': instance.piggyBankName,
+  'subscription_id': instance.subscriptionId,
+  'subscription_name': instance.subscriptionName,
 };
 
 RecurrenceTransactionStore _$RecurrenceTransactionStoreFromJson(
@@ -3312,18 +3303,18 @@ Map<String, dynamic> _$RecurrenceTransactionStoreToJson(
 ) => <String, dynamic>{
   'description': instance.description,
   'amount': instance.amount,
-  'foreign_amount': ?instance.foreignAmount,
-  'currency_id': ?instance.currencyId,
-  'currency_code': ?instance.currencyCode,
-  'foreign_currency_id': ?instance.foreignCurrencyId,
-  'foreign_currency_code': ?instance.foreignCurrencyCode,
-  'budget_id': ?instance.budgetId,
-  'category_id': ?instance.categoryId,
+  'foreign_amount': instance.foreignAmount,
+  'currency_id': instance.currencyId,
+  'currency_code': instance.currencyCode,
+  'foreign_currency_id': instance.foreignCurrencyId,
+  'foreign_currency_code': instance.foreignCurrencyCode,
+  'budget_id': instance.budgetId,
+  'category_id': instance.categoryId,
   'source_id': instance.sourceId,
   'destination_id': instance.destinationId,
-  'tags': ?instance.tags,
-  'piggy_bank_id': ?instance.piggyBankId,
-  'bill_id': ?instance.billId,
+  'tags': instance.tags,
+  'piggy_bank_id': instance.piggyBankId,
+  'bill_id': instance.billId,
 };
 
 RecurrenceTransactionUpdate _$RecurrenceTransactionUpdateFromJson(
@@ -3350,19 +3341,19 @@ Map<String, dynamic> _$RecurrenceTransactionUpdateToJson(
   RecurrenceTransactionUpdate instance,
 ) => <String, dynamic>{
   'id': instance.id,
-  'description': ?instance.description,
-  'amount': ?instance.amount,
-  'foreign_amount': ?instance.foreignAmount,
-  'currency_id': ?instance.currencyId,
-  'currency_code': ?instance.currencyCode,
-  'foreign_currency_id': ?instance.foreignCurrencyId,
-  'budget_id': ?instance.budgetId,
-  'category_id': ?instance.categoryId,
-  'source_id': ?instance.sourceId,
-  'destination_id': ?instance.destinationId,
-  'tags': ?instance.tags,
-  'piggy_bank_id': ?instance.piggyBankId,
-  'bill_id': ?instance.billId,
+  'description': instance.description,
+  'amount': instance.amount,
+  'foreign_amount': instance.foreignAmount,
+  'currency_id': instance.currencyId,
+  'currency_code': instance.currencyCode,
+  'foreign_currency_id': instance.foreignCurrencyId,
+  'budget_id': instance.budgetId,
+  'category_id': instance.categoryId,
+  'source_id': instance.sourceId,
+  'destination_id': instance.destinationId,
+  'tags': instance.tags,
+  'piggy_bank_id': instance.piggyBankId,
+  'bill_id': instance.billId,
 };
 
 Rule _$RuleFromJson(Map<String, dynamic> json) => Rule(
@@ -3394,17 +3385,17 @@ Rule _$RuleFromJson(Map<String, dynamic> json) => Rule(
 );
 
 Map<String, dynamic> _$RuleToJson(Rule instance) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
   'title': instance.title,
-  'description': ?instance.description,
+  'description': instance.description,
   'rule_group_id': instance.ruleGroupId,
-  'rule_group_title': ?instance.ruleGroupTitle,
-  'order': ?instance.order,
-  'trigger': ?ruleTriggerTypeToJson(instance.trigger),
-  'active': ?instance.active,
-  'strict': ?instance.strict,
-  'stop_processing': ?instance.stopProcessing,
+  'rule_group_title': instance.ruleGroupTitle,
+  'order': instance.order,
+  'trigger': ruleTriggerTypeToJson(instance.trigger),
+  'active': instance.active,
+  'strict': instance.strict,
+  'stop_processing': instance.stopProcessing,
   'triggers': instance.triggers.map((e) => e.toJson()).toList(),
   'actions': instance.actions.map((e) => e.toJson()).toList(),
 };
@@ -3433,14 +3424,14 @@ RuleStore _$RuleStoreFromJson(Map<String, dynamic> json) => RuleStore(
 
 Map<String, dynamic> _$RuleStoreToJson(RuleStore instance) => <String, dynamic>{
   'title': instance.title,
-  'description': ?instance.description,
+  'description': instance.description,
   'rule_group_id': instance.ruleGroupId,
-  'rule_group_title': ?instance.ruleGroupTitle,
-  'order': ?instance.order,
-  'trigger': ?ruleTriggerTypeToJson(instance.trigger),
-  'active': ?instance.active,
-  'strict': ?instance.strict,
-  'stop_processing': ?instance.stopProcessing,
+  'rule_group_title': instance.ruleGroupTitle,
+  'order': instance.order,
+  'trigger': ruleTriggerTypeToJson(instance.trigger),
+  'active': instance.active,
+  'strict': instance.strict,
+  'stop_processing': instance.stopProcessing,
   'triggers': instance.triggers.map((e) => e.toJson()).toList(),
   'actions': instance.actions.map((e) => e.toJson()).toList(),
 };
@@ -3468,16 +3459,16 @@ RuleUpdate _$RuleUpdateFromJson(Map<String, dynamic> json) => RuleUpdate(
 
 Map<String, dynamic> _$RuleUpdateToJson(RuleUpdate instance) =>
     <String, dynamic>{
-      'title': ?instance.title,
-      'description': ?instance.description,
-      'rule_group_id': ?instance.ruleGroupId,
-      'order': ?instance.order,
-      'trigger': ?ruleTriggerTypeNullableToJson(instance.trigger),
-      'active': ?instance.active,
-      'strict': ?instance.strict,
-      'stop_processing': ?instance.stopProcessing,
-      'triggers': ?instance.triggers?.map((e) => e.toJson()).toList(),
-      'actions': ?instance.actions?.map((e) => e.toJson()).toList(),
+      'title': instance.title,
+      'description': instance.description,
+      'rule_group_id': instance.ruleGroupId,
+      'order': instance.order,
+      'trigger': ruleTriggerTypeNullableToJson(instance.trigger),
+      'active': instance.active,
+      'strict': instance.strict,
+      'stop_processing': instance.stopProcessing,
+      'triggers': instance.triggers?.map((e) => e.toJson()).toList(),
+      'actions': instance.actions?.map((e) => e.toJson()).toList(),
     };
 
 RuleAction _$RuleActionFromJson(Map<String, dynamic> json) => RuleAction(
@@ -3497,14 +3488,14 @@ RuleAction _$RuleActionFromJson(Map<String, dynamic> json) => RuleAction(
 
 Map<String, dynamic> _$RuleActionToJson(RuleAction instance) =>
     <String, dynamic>{
-      'id': ?instance.id,
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
-      'type': ?ruleActionKeywordToJson(instance.type),
-      'value': ?instance.value,
-      'order': ?instance.order,
-      'active': ?instance.active,
-      'stop_processing': ?instance.stopProcessing,
+      'id': instance.id,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'type': ruleActionKeywordToJson(instance.type),
+      'value': instance.value,
+      'order': instance.order,
+      'active': instance.active,
+      'stop_processing': instance.stopProcessing,
     };
 
 RuleActionStore _$RuleActionStoreFromJson(Map<String, dynamic> json) =>
@@ -3518,11 +3509,11 @@ RuleActionStore _$RuleActionStoreFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$RuleActionStoreToJson(RuleActionStore instance) =>
     <String, dynamic>{
-      'type': ?ruleActionKeywordToJson(instance.type),
-      'value': ?instance.value,
-      'order': ?instance.order,
-      'active': ?instance.active,
-      'stop_processing': ?instance.stopProcessing,
+      'type': ruleActionKeywordToJson(instance.type),
+      'value': instance.value,
+      'order': instance.order,
+      'active': instance.active,
+      'stop_processing': instance.stopProcessing,
     };
 
 RuleActionUpdate _$RuleActionUpdateFromJson(Map<String, dynamic> json) =>
@@ -3536,11 +3527,11 @@ RuleActionUpdate _$RuleActionUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$RuleActionUpdateToJson(RuleActionUpdate instance) =>
     <String, dynamic>{
-      'type': ?ruleActionKeywordNullableToJson(instance.type),
-      'value': ?instance.value,
-      'order': ?instance.order,
-      'active': ?instance.active,
-      'stop_processing': ?instance.stopProcessing,
+      'type': ruleActionKeywordNullableToJson(instance.type),
+      'value': instance.value,
+      'order': instance.order,
+      'active': instance.active,
+      'stop_processing': instance.stopProcessing,
     };
 
 RuleGroup _$RuleGroupFromJson(Map<String, dynamic> json) => RuleGroup(
@@ -3557,12 +3548,12 @@ RuleGroup _$RuleGroupFromJson(Map<String, dynamic> json) => RuleGroup(
 );
 
 Map<String, dynamic> _$RuleGroupToJson(RuleGroup instance) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
   'title': instance.title,
-  'description': ?instance.description,
-  'order': ?instance.order,
-  'active': ?instance.active,
+  'description': instance.description,
+  'order': instance.order,
+  'active': instance.active,
 };
 
 RuleGroupStore _$RuleGroupStoreFromJson(Map<String, dynamic> json) =>
@@ -3576,9 +3567,9 @@ RuleGroupStore _$RuleGroupStoreFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$RuleGroupStoreToJson(RuleGroupStore instance) =>
     <String, dynamic>{
       'title': instance.title,
-      'description': ?instance.description,
-      'order': ?instance.order,
-      'active': ?instance.active,
+      'description': instance.description,
+      'order': instance.order,
+      'active': instance.active,
     };
 
 RuleGroupUpdate _$RuleGroupUpdateFromJson(Map<String, dynamic> json) =>
@@ -3591,10 +3582,10 @@ RuleGroupUpdate _$RuleGroupUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$RuleGroupUpdateToJson(RuleGroupUpdate instance) =>
     <String, dynamic>{
-      'title': ?instance.title,
-      'description': ?instance.description,
-      'order': ?instance.order,
-      'active': ?instance.active,
+      'title': instance.title,
+      'description': instance.description,
+      'order': instance.order,
+      'active': instance.active,
     };
 
 RuleTrigger _$RuleTriggerFromJson(Map<String, dynamic> json) => RuleTrigger(
@@ -3615,15 +3606,15 @@ RuleTrigger _$RuleTriggerFromJson(Map<String, dynamic> json) => RuleTrigger(
 
 Map<String, dynamic> _$RuleTriggerToJson(RuleTrigger instance) =>
     <String, dynamic>{
-      'id': ?instance.id,
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
-      'type': ?ruleTriggerKeywordToJson(instance.type),
+      'id': instance.id,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'type': ruleTriggerKeywordToJson(instance.type),
       'value': instance.value,
-      'prohibited': ?instance.prohibited,
-      'order': ?instance.order,
-      'active': ?instance.active,
-      'stop_processing': ?instance.stopProcessing,
+      'prohibited': instance.prohibited,
+      'order': instance.order,
+      'active': instance.active,
+      'stop_processing': instance.stopProcessing,
     };
 
 RuleTriggerStore _$RuleTriggerStoreFromJson(Map<String, dynamic> json) =>
@@ -3638,12 +3629,12 @@ RuleTriggerStore _$RuleTriggerStoreFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$RuleTriggerStoreToJson(RuleTriggerStore instance) =>
     <String, dynamic>{
-      'type': ?ruleTriggerKeywordToJson(instance.type),
+      'type': ruleTriggerKeywordToJson(instance.type),
       'value': instance.value,
-      'order': ?instance.order,
-      'active': ?instance.active,
-      'prohibited': ?instance.prohibited,
-      'stop_processing': ?instance.stopProcessing,
+      'order': instance.order,
+      'active': instance.active,
+      'prohibited': instance.prohibited,
+      'stop_processing': instance.stopProcessing,
     };
 
 RuleTriggerUpdate _$RuleTriggerUpdateFromJson(Map<String, dynamic> json) =>
@@ -3657,11 +3648,11 @@ RuleTriggerUpdate _$RuleTriggerUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$RuleTriggerUpdateToJson(RuleTriggerUpdate instance) =>
     <String, dynamic>{
-      'type': ?ruleTriggerKeywordNullableToJson(instance.type),
-      'value': ?instance.value,
-      'order': ?instance.order,
-      'active': ?instance.active,
-      'stop_processing': ?instance.stopProcessing,
+      'type': ruleTriggerKeywordNullableToJson(instance.type),
+      'value': instance.value,
+      'order': instance.order,
+      'active': instance.active,
+      'stop_processing': instance.stopProcessing,
     };
 
 TagModel _$TagModelFromJson(Map<String, dynamic> json) => TagModel(
@@ -3680,14 +3671,14 @@ TagModel _$TagModelFromJson(Map<String, dynamic> json) => TagModel(
 );
 
 Map<String, dynamic> _$TagModelToJson(TagModel instance) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
   'tag': instance.tag,
-  'date': ?_dateToJson(instance.date),
-  'description': ?instance.description,
-  'latitude': ?instance.latitude,
-  'longitude': ?instance.longitude,
-  'zoom_level': ?instance.zoomLevel,
+  'date': _dateToJson(instance.date),
+  'description': instance.description,
+  'latitude': instance.latitude,
+  'longitude': instance.longitude,
+  'zoom_level': instance.zoomLevel,
 };
 
 TagModelStore _$TagModelStoreFromJson(Map<String, dynamic> json) =>
@@ -3705,11 +3696,11 @@ TagModelStore _$TagModelStoreFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$TagModelStoreToJson(TagModelStore instance) =>
     <String, dynamic>{
       'tag': instance.tag,
-      'date': ?_dateToJson(instance.date),
-      'description': ?instance.description,
-      'latitude': ?instance.latitude,
-      'longitude': ?instance.longitude,
-      'zoom_level': ?instance.zoomLevel,
+      'date': _dateToJson(instance.date),
+      'description': instance.description,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'zoom_level': instance.zoomLevel,
     };
 
 TagModelUpdate _$TagModelUpdateFromJson(Map<String, dynamic> json) =>
@@ -3726,12 +3717,12 @@ TagModelUpdate _$TagModelUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$TagModelUpdateToJson(TagModelUpdate instance) =>
     <String, dynamic>{
-      'tag': ?instance.tag,
-      'date': ?_dateToJson(instance.date),
-      'description': ?instance.description,
-      'latitude': ?instance.latitude,
-      'longitude': ?instance.longitude,
-      'zoom_level': ?instance.zoomLevel,
+      'tag': instance.tag,
+      'date': _dateToJson(instance.date),
+      'description': instance.description,
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'zoom_level': instance.zoomLevel,
     };
 
 CurrencyProperties _$CurrencyPropertiesFromJson(Map<String, dynamic> json) =>
@@ -3752,14 +3743,14 @@ CurrencyProperties _$CurrencyPropertiesFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$CurrencyPropertiesToJson(CurrencyProperties instance) =>
     <String, dynamic>{
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
-      'enabled': ?instance.enabled,
-      'primary': ?instance.primary,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'enabled': instance.enabled,
+      'primary': instance.primary,
       'code': instance.code,
       'name': instance.name,
       'symbol': instance.symbol,
-      'decimal_places': ?instance.decimalPlaces,
+      'decimal_places': instance.decimalPlaces,
     };
 
 CurrencyStore _$CurrencyStoreFromJson(Map<String, dynamic> json) =>
@@ -3774,12 +3765,12 @@ CurrencyStore _$CurrencyStoreFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$CurrencyStoreToJson(CurrencyStore instance) =>
     <String, dynamic>{
-      'enabled': ?instance.enabled,
-      'primary': ?instance.primary,
+      'enabled': instance.enabled,
+      'primary': instance.primary,
       'code': instance.code,
       'name': instance.name,
       'symbol': instance.symbol,
-      'decimal_places': ?instance.decimalPlaces,
+      'decimal_places': instance.decimalPlaces,
     };
 
 CurrencyUpdate _$CurrencyUpdateFromJson(Map<String, dynamic> json) =>
@@ -3794,12 +3785,12 @@ CurrencyUpdate _$CurrencyUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$CurrencyUpdateToJson(CurrencyUpdate instance) =>
     <String, dynamic>{
-      'enabled': ?instance.enabled,
-      'primary': ?instance.primary,
-      'code': ?instance.code,
-      'name': ?instance.name,
-      'symbol': ?instance.symbol,
-      'decimal_places': ?instance.decimalPlaces,
+      'enabled': instance.enabled,
+      'primary': instance.primary,
+      'code': instance.code,
+      'name': instance.name,
+      'symbol': instance.symbol,
+      'decimal_places': instance.decimalPlaces,
     };
 
 Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
@@ -3820,10 +3811,10 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
 
 Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
     <String, dynamic>{
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
-      'user': ?instance.user,
-      'group_title': ?instance.groupTitle,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'user': instance.user,
+      'group_title': instance.groupTitle,
       'transactions': instance.transactions.map((e) => e.toJson()).toList(),
     };
 
@@ -3845,10 +3836,10 @@ TransactionStore _$TransactionStoreFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$TransactionStoreToJson(TransactionStore instance) =>
     <String, dynamic>{
-      'error_if_duplicate_hash': ?instance.errorIfDuplicateHash,
-      'apply_rules': ?instance.applyRules,
-      'fire_webhooks': ?instance.fireWebhooks,
-      'group_title': ?instance.groupTitle,
+      'error_if_duplicate_hash': instance.errorIfDuplicateHash,
+      'apply_rules': instance.applyRules,
+      'fire_webhooks': instance.fireWebhooks,
+      'group_title': instance.groupTitle,
       'transactions': instance.transactions.map((e) => e.toJson()).toList(),
     };
 
@@ -3869,10 +3860,10 @@ TransactionUpdate _$TransactionUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$TransactionUpdateToJson(TransactionUpdate instance) =>
     <String, dynamic>{
-      'apply_rules': ?instance.applyRules,
-      'fire_webhooks': ?instance.fireWebhooks,
-      'group_title': ?instance.groupTitle,
-      'transactions': ?instance.transactions?.map((e) => e.toJson()).toList(),
+      'apply_rules': instance.applyRules,
+      'fire_webhooks': instance.fireWebhooks,
+      'group_title': instance.groupTitle,
+      'transactions': instance.transactions?.map((e) => e.toJson()).toList(),
     };
 
 TransactionLink _$TransactionLinkFromJson(Map<String, dynamic> json) =>
@@ -3892,13 +3883,13 @@ TransactionLink _$TransactionLinkFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$TransactionLinkToJson(TransactionLink instance) =>
     <String, dynamic>{
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
-      'link_type_id': ?instance.linkTypeId,
-      'link_type_name': ?instance.linkTypeName,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'link_type_id': instance.linkTypeId,
+      'link_type_name': instance.linkTypeName,
       'inward_id': instance.inwardId,
       'outward_id': instance.outwardId,
-      'notes': ?instance.notes,
+      'notes': instance.notes,
     };
 
 TransactionLinkStore _$TransactionLinkStoreFromJson(
@@ -3914,11 +3905,11 @@ TransactionLinkStore _$TransactionLinkStoreFromJson(
 Map<String, dynamic> _$TransactionLinkStoreToJson(
   TransactionLinkStore instance,
 ) => <String, dynamic>{
-  'link_type_id': ?instance.linkTypeId,
-  'link_type_name': ?instance.linkTypeName,
+  'link_type_id': instance.linkTypeId,
+  'link_type_name': instance.linkTypeName,
   'inward_id': instance.inwardId,
   'outward_id': instance.outwardId,
-  'notes': ?instance.notes,
+  'notes': instance.notes,
 };
 
 TransactionLinkUpdate _$TransactionLinkUpdateFromJson(
@@ -3934,11 +3925,11 @@ TransactionLinkUpdate _$TransactionLinkUpdateFromJson(
 Map<String, dynamic> _$TransactionLinkUpdateToJson(
   TransactionLinkUpdate instance,
 ) => <String, dynamic>{
-  'link_type_id': ?instance.linkTypeId,
-  'link_type_name': ?instance.linkTypeName,
-  'inward_id': ?instance.inwardId,
-  'outward_id': ?instance.outwardId,
-  'notes': ?instance.notes,
+  'link_type_id': instance.linkTypeId,
+  'link_type_name': instance.linkTypeName,
+  'inward_id': instance.inwardId,
+  'outward_id': instance.outwardId,
+  'notes': instance.notes,
 };
 
 LinkType _$LinkTypeFromJson(Map<String, dynamic> json) => LinkType(
@@ -3952,7 +3943,7 @@ Map<String, dynamic> _$LinkTypeToJson(LinkType instance) => <String, dynamic>{
   'name': instance.name,
   'inward': instance.inward,
   'outward': instance.outward,
-  'editable': ?instance.editable,
+  'editable': instance.editable,
 };
 
 LinkTypeUpdate _$LinkTypeUpdateFromJson(Map<String, dynamic> json) =>
@@ -3964,9 +3955,9 @@ LinkTypeUpdate _$LinkTypeUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$LinkTypeUpdateToJson(LinkTypeUpdate instance) =>
     <String, dynamic>{
-      'name': ?instance.name,
-      'inward': ?instance.inward,
-      'outward': ?instance.outward,
+      'name': instance.name,
+      'inward': instance.inward,
+      'outward': instance.outward,
     };
 
 TransactionSplit _$TransactionSplitFromJson(
@@ -4066,81 +4057,81 @@ TransactionSplit _$TransactionSplitFromJson(
 
 Map<String, dynamic> _$TransactionSplitToJson(TransactionSplit instance) =>
     <String, dynamic>{
-      'user': ?instance.user,
-      'transaction_journal_id': ?instance.transactionJournalId,
-      'type': ?transactionTypePropertyToJson(instance.type),
+      'user': instance.user,
+      'transaction_journal_id': instance.transactionJournalId,
+      'type': transactionTypePropertyToJson(instance.type),
       'date': instance.date.toIso8601String(),
-      'order': ?instance.order,
-      'object_has_currency_setting': ?instance.objectHasCurrencySetting,
-      'currency_id': ?instance.currencyId,
-      'currency_code': ?instance.currencyCode,
-      'currency_symbol': ?instance.currencySymbol,
-      'currency_name': ?instance.currencyName,
-      'currency_decimal_places': ?instance.currencyDecimalPlaces,
-      'foreign_currency_id': ?instance.foreignCurrencyId,
-      'foreign_currency_code': ?instance.foreignCurrencyCode,
-      'foreign_currency_symbol': ?instance.foreignCurrencySymbol,
-      'foreign_currency_decimal_places': ?instance.foreignCurrencyDecimalPlaces,
-      'primary_currency_id': ?instance.primaryCurrencyId,
-      'primary_currency_code': ?instance.primaryCurrencyCode,
-      'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-      'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
+      'order': instance.order,
+      'object_has_currency_setting': instance.objectHasCurrencySetting,
+      'currency_id': instance.currencyId,
+      'currency_code': instance.currencyCode,
+      'currency_symbol': instance.currencySymbol,
+      'currency_name': instance.currencyName,
+      'currency_decimal_places': instance.currencyDecimalPlaces,
+      'foreign_currency_id': instance.foreignCurrencyId,
+      'foreign_currency_code': instance.foreignCurrencyCode,
+      'foreign_currency_symbol': instance.foreignCurrencySymbol,
+      'foreign_currency_decimal_places': instance.foreignCurrencyDecimalPlaces,
+      'primary_currency_id': instance.primaryCurrencyId,
+      'primary_currency_code': instance.primaryCurrencyCode,
+      'primary_currency_symbol': instance.primaryCurrencySymbol,
+      'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
       'amount': instance.amount,
-      'pc_amount': ?instance.pcAmount,
-      'foreign_amount': ?instance.foreignAmount,
-      'pc_foreign_amount': ?instance.pcForeignAmount,
-      'source_balance_after': ?instance.sourceBalanceAfter,
-      'pc_source_balance_after': ?instance.pcSourceBalanceAfter,
-      'destination_balance_after': ?instance.destinationBalanceAfter,
-      'pc_destination_balance_after': ?instance.pcDestinationBalanceAfter,
+      'pc_amount': instance.pcAmount,
+      'foreign_amount': instance.foreignAmount,
+      'pc_foreign_amount': instance.pcForeignAmount,
+      'source_balance_after': instance.sourceBalanceAfter,
+      'pc_source_balance_after': instance.pcSourceBalanceAfter,
+      'destination_balance_after': instance.destinationBalanceAfter,
+      'pc_destination_balance_after': instance.pcDestinationBalanceAfter,
       'description': instance.description,
-      'source_id': ?instance.sourceId,
-      'source_name': ?instance.sourceName,
-      'source_iban': ?instance.sourceIban,
-      'source_type': ?accountTypePropertyNullableToJson(instance.sourceType),
-      'destination_id': ?instance.destinationId,
-      'destination_name': ?instance.destinationName,
-      'destination_iban': ?instance.destinationIban,
-      'destination_type': ?accountTypePropertyNullableToJson(
+      'source_id': instance.sourceId,
+      'source_name': instance.sourceName,
+      'source_iban': instance.sourceIban,
+      'source_type': accountTypePropertyNullableToJson(instance.sourceType),
+      'destination_id': instance.destinationId,
+      'destination_name': instance.destinationName,
+      'destination_iban': instance.destinationIban,
+      'destination_type': accountTypePropertyNullableToJson(
         instance.destinationType,
       ),
-      'budget_id': ?instance.budgetId,
-      'budget_name': ?instance.budgetName,
-      'category_id': ?instance.categoryId,
-      'category_name': ?instance.categoryName,
-      'bill_id': ?instance.billId,
-      'bill_name': ?instance.billName,
-      'subscription_id': ?instance.subscriptionId,
-      'subscription_name': ?instance.subscriptionName,
-      'reconciled': ?instance.reconciled,
-      'notes': ?instance.notes,
-      'tags': ?instance.tags,
-      'internal_reference': ?instance.internalReference,
-      'external_id': ?instance.externalId,
-      'external_url': ?instance.externalUrl,
-      'original_source': ?instance.originalSource,
-      'recurrence_id': ?instance.recurrenceId,
-      'recurrence_total': ?instance.recurrenceTotal,
-      'recurrence_count': ?instance.recurrenceCount,
-      'import_hash_v2': ?instance.importHashV2,
-      'sepa_cc': ?instance.sepaCc,
-      'sepa_ct_op': ?instance.sepaCtOp,
-      'sepa_ct_id': ?instance.sepaCtId,
-      'sepa_db': ?instance.sepaDb,
-      'sepa_country': ?instance.sepaCountry,
-      'sepa_ep': ?instance.sepaEp,
-      'sepa_ci': ?instance.sepaCi,
-      'sepa_batch_id': ?instance.sepaBatchId,
-      'interest_date': ?instance.interestDate?.toIso8601String(),
-      'book_date': ?instance.bookDate?.toIso8601String(),
-      'process_date': ?instance.processDate?.toIso8601String(),
-      'due_date': ?instance.dueDate?.toIso8601String(),
-      'payment_date': ?instance.paymentDate?.toIso8601String(),
-      'invoice_date': ?instance.invoiceDate?.toIso8601String(),
-      'latitude': ?instance.latitude,
-      'longitude': ?instance.longitude,
-      'zoom_level': ?instance.zoomLevel,
-      'has_attachments': ?instance.hasAttachments,
+      'budget_id': instance.budgetId,
+      'budget_name': instance.budgetName,
+      'category_id': instance.categoryId,
+      'category_name': instance.categoryName,
+      'bill_id': instance.billId,
+      'bill_name': instance.billName,
+      'subscription_id': instance.subscriptionId,
+      'subscription_name': instance.subscriptionName,
+      'reconciled': instance.reconciled,
+      'notes': instance.notes,
+      'tags': instance.tags,
+      'internal_reference': instance.internalReference,
+      'external_id': instance.externalId,
+      'external_url': instance.externalUrl,
+      'original_source': instance.originalSource,
+      'recurrence_id': instance.recurrenceId,
+      'recurrence_total': instance.recurrenceTotal,
+      'recurrence_count': instance.recurrenceCount,
+      'import_hash_v2': instance.importHashV2,
+      'sepa_cc': instance.sepaCc,
+      'sepa_ct_op': instance.sepaCtOp,
+      'sepa_ct_id': instance.sepaCtId,
+      'sepa_db': instance.sepaDb,
+      'sepa_country': instance.sepaCountry,
+      'sepa_ep': instance.sepaEp,
+      'sepa_ci': instance.sepaCi,
+      'sepa_batch_id': instance.sepaBatchId,
+      'interest_date': instance.interestDate?.toIso8601String(),
+      'book_date': instance.bookDate?.toIso8601String(),
+      'process_date': instance.processDate?.toIso8601String(),
+      'due_date': instance.dueDate?.toIso8601String(),
+      'payment_date': instance.paymentDate?.toIso8601String(),
+      'invoice_date': instance.invoiceDate?.toIso8601String(),
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+      'zoom_level': instance.zoomLevel,
+      'has_attachments': instance.hasAttachments,
     };
 
 TransactionSplitStore _$TransactionSplitStoreFromJson(
@@ -4206,48 +4197,48 @@ TransactionSplitStore _$TransactionSplitStoreFromJson(
 Map<String, dynamic> _$TransactionSplitStoreToJson(
   TransactionSplitStore instance,
 ) => <String, dynamic>{
-  'type': ?transactionTypePropertyToJson(instance.type),
+  'type': transactionTypePropertyToJson(instance.type),
   'date': instance.date.toIso8601String(),
   'amount': instance.amount,
   'description': instance.description,
-  'order': ?instance.order,
-  'currency_id': ?instance.currencyId,
-  'currency_code': ?instance.currencyCode,
-  'foreign_amount': ?instance.foreignAmount,
-  'foreign_currency_id': ?instance.foreignCurrencyId,
-  'foreign_currency_code': ?instance.foreignCurrencyCode,
-  'budget_id': ?instance.budgetId,
-  'budget_name': ?instance.budgetName,
-  'category_id': ?instance.categoryId,
-  'category_name': ?instance.categoryName,
-  'source_id': ?instance.sourceId,
-  'source_name': ?instance.sourceName,
-  'destination_id': ?instance.destinationId,
-  'destination_name': ?instance.destinationName,
-  'reconciled': ?instance.reconciled,
-  'piggy_bank_id': ?instance.piggyBankId,
-  'piggy_bank_name': ?instance.piggyBankName,
-  'bill_id': ?instance.billId,
-  'bill_name': ?instance.billName,
-  'tags': ?instance.tags,
-  'notes': ?instance.notes,
-  'internal_reference': ?instance.internalReference,
-  'external_id': ?instance.externalId,
-  'external_url': ?instance.externalUrl,
-  'sepa_cc': ?instance.sepaCc,
-  'sepa_ct_op': ?instance.sepaCtOp,
-  'sepa_ct_id': ?instance.sepaCtId,
-  'sepa_db': ?instance.sepaDb,
-  'sepa_country': ?instance.sepaCountry,
-  'sepa_ep': ?instance.sepaEp,
-  'sepa_ci': ?instance.sepaCi,
-  'sepa_batch_id': ?instance.sepaBatchId,
-  'interest_date': ?instance.interestDate?.toIso8601String(),
-  'book_date': ?instance.bookDate?.toIso8601String(),
-  'process_date': ?instance.processDate?.toIso8601String(),
-  'due_date': ?instance.dueDate?.toIso8601String(),
-  'payment_date': ?instance.paymentDate?.toIso8601String(),
-  'invoice_date': ?instance.invoiceDate?.toIso8601String(),
+  'order': instance.order,
+  'currency_id': instance.currencyId,
+  'currency_code': instance.currencyCode,
+  'foreign_amount': instance.foreignAmount,
+  'foreign_currency_id': instance.foreignCurrencyId,
+  'foreign_currency_code': instance.foreignCurrencyCode,
+  'budget_id': instance.budgetId,
+  'budget_name': instance.budgetName,
+  'category_id': instance.categoryId,
+  'category_name': instance.categoryName,
+  'source_id': instance.sourceId,
+  'source_name': instance.sourceName,
+  'destination_id': instance.destinationId,
+  'destination_name': instance.destinationName,
+  'reconciled': instance.reconciled,
+  'piggy_bank_id': instance.piggyBankId,
+  'piggy_bank_name': instance.piggyBankName,
+  'bill_id': instance.billId,
+  'bill_name': instance.billName,
+  'tags': instance.tags,
+  'notes': instance.notes,
+  'internal_reference': instance.internalReference,
+  'external_id': instance.externalId,
+  'external_url': instance.externalUrl,
+  'sepa_cc': instance.sepaCc,
+  'sepa_ct_op': instance.sepaCtOp,
+  'sepa_ct_id': instance.sepaCtId,
+  'sepa_db': instance.sepaDb,
+  'sepa_country': instance.sepaCountry,
+  'sepa_ep': instance.sepaEp,
+  'sepa_ci': instance.sepaCi,
+  'sepa_batch_id': instance.sepaBatchId,
+  'interest_date': instance.interestDate?.toIso8601String(),
+  'book_date': instance.bookDate?.toIso8601String(),
+  'process_date': instance.processDate?.toIso8601String(),
+  'due_date': instance.dueDate?.toIso8601String(),
+  'payment_date': instance.paymentDate?.toIso8601String(),
+  'invoice_date': instance.invoiceDate?.toIso8601String(),
 };
 
 TransactionSplitUpdate _$TransactionSplitUpdateFromJson(
@@ -4320,54 +4311,54 @@ TransactionSplitUpdate _$TransactionSplitUpdateFromJson(
 Map<String, dynamic> _$TransactionSplitUpdateToJson(
   TransactionSplitUpdate instance,
 ) => <String, dynamic>{
-  'transaction_journal_id': ?instance.transactionJournalId,
-  'type': ?transactionTypePropertyNullableToJson(instance.type),
-  'date': ?instance.date?.toIso8601String(),
-  'amount': ?instance.amount,
-  'description': ?instance.description,
-  'order': ?instance.order,
-  'currency_id': ?instance.currencyId,
-  'currency_code': ?instance.currencyCode,
-  'currency_symbol': ?instance.currencySymbol,
-  'currency_name': ?instance.currencyName,
-  'currency_decimal_places': ?instance.currencyDecimalPlaces,
-  'foreign_amount': ?instance.foreignAmount,
-  'foreign_currency_id': ?instance.foreignCurrencyId,
-  'foreign_currency_code': ?instance.foreignCurrencyCode,
-  'foreign_currency_symbol': ?instance.foreignCurrencySymbol,
-  'foreign_currency_decimal_places': ?instance.foreignCurrencyDecimalPlaces,
-  'budget_id': ?instance.budgetId,
-  'budget_name': ?instance.budgetName,
-  'category_id': ?instance.categoryId,
-  'category_name': ?instance.categoryName,
-  'source_id': ?instance.sourceId,
-  'source_name': ?instance.sourceName,
-  'source_iban': ?instance.sourceIban,
-  'destination_id': ?instance.destinationId,
-  'destination_name': ?instance.destinationName,
-  'destination_iban': ?instance.destinationIban,
-  'reconciled': ?instance.reconciled,
-  'bill_id': ?instance.billId,
-  'bill_name': ?instance.billName,
-  'tags': ?instance.tags,
-  'notes': ?instance.notes,
-  'internal_reference': ?instance.internalReference,
-  'external_id': ?instance.externalId,
-  'external_url': ?instance.externalUrl,
-  'sepa_cc': ?instance.sepaCc,
-  'sepa_ct_op': ?instance.sepaCtOp,
-  'sepa_ct_id': ?instance.sepaCtId,
-  'sepa_db': ?instance.sepaDb,
-  'sepa_country': ?instance.sepaCountry,
-  'sepa_ep': ?instance.sepaEp,
-  'sepa_ci': ?instance.sepaCi,
-  'sepa_batch_id': ?instance.sepaBatchId,
-  'interest_date': ?instance.interestDate?.toIso8601String(),
-  'book_date': ?instance.bookDate?.toIso8601String(),
-  'process_date': ?instance.processDate?.toIso8601String(),
-  'due_date': ?instance.dueDate?.toIso8601String(),
-  'payment_date': ?instance.paymentDate?.toIso8601String(),
-  'invoice_date': ?instance.invoiceDate?.toIso8601String(),
+  'transaction_journal_id': instance.transactionJournalId,
+  'type': transactionTypePropertyNullableToJson(instance.type),
+  'date': instance.date?.toIso8601String(),
+  'amount': instance.amount,
+  'description': instance.description,
+  'order': instance.order,
+  'currency_id': instance.currencyId,
+  'currency_code': instance.currencyCode,
+  'currency_symbol': instance.currencySymbol,
+  'currency_name': instance.currencyName,
+  'currency_decimal_places': instance.currencyDecimalPlaces,
+  'foreign_amount': instance.foreignAmount,
+  'foreign_currency_id': instance.foreignCurrencyId,
+  'foreign_currency_code': instance.foreignCurrencyCode,
+  'foreign_currency_symbol': instance.foreignCurrencySymbol,
+  'foreign_currency_decimal_places': instance.foreignCurrencyDecimalPlaces,
+  'budget_id': instance.budgetId,
+  'budget_name': instance.budgetName,
+  'category_id': instance.categoryId,
+  'category_name': instance.categoryName,
+  'source_id': instance.sourceId,
+  'source_name': instance.sourceName,
+  'source_iban': instance.sourceIban,
+  'destination_id': instance.destinationId,
+  'destination_name': instance.destinationName,
+  'destination_iban': instance.destinationIban,
+  'reconciled': instance.reconciled,
+  'bill_id': instance.billId,
+  'bill_name': instance.billName,
+  'tags': instance.tags,
+  'notes': instance.notes,
+  'internal_reference': instance.internalReference,
+  'external_id': instance.externalId,
+  'external_url': instance.externalUrl,
+  'sepa_cc': instance.sepaCc,
+  'sepa_ct_op': instance.sepaCtOp,
+  'sepa_ct_id': instance.sepaCtId,
+  'sepa_db': instance.sepaDb,
+  'sepa_country': instance.sepaCountry,
+  'sepa_ep': instance.sepaEp,
+  'sepa_ci': instance.sepaCi,
+  'sepa_batch_id': instance.sepaBatchId,
+  'interest_date': instance.interestDate?.toIso8601String(),
+  'book_date': instance.bookDate?.toIso8601String(),
+  'process_date': instance.processDate?.toIso8601String(),
+  'due_date': instance.dueDate?.toIso8601String(),
+  'payment_date': instance.paymentDate?.toIso8601String(),
+  'invoice_date': instance.invoiceDate?.toIso8601String(),
 };
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
@@ -4384,12 +4375,12 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
 );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
   'email': instance.email,
-  'blocked': ?instance.blocked,
-  'blocked_code': ?userBlockedCodePropertyNullableToJson(instance.blockedCode),
-  'role': ?userRolePropertyNullableToJson(instance.role),
+  'blocked': instance.blocked,
+  'blocked_code': userBlockedCodePropertyNullableToJson(instance.blockedCode),
+  'role': userRolePropertyNullableToJson(instance.role),
 };
 
 UserGroupRead _$UserGroupReadFromJson(Map<String, dynamic> json) =>
@@ -4437,16 +4428,16 @@ UserGroupReadAttributes _$UserGroupReadAttributesFromJson(
 Map<String, dynamic> _$UserGroupReadAttributesToJson(
   UserGroupReadAttributes instance,
 ) => <String, dynamic>{
-  'created_at': ?instance.createdAt?.toIso8601String(),
-  'updated_at': ?instance.updatedAt?.toIso8601String(),
-  'in_use': ?instance.inUse,
-  'can_see_members': ?instance.canSeeMembers,
-  'title': ?instance.title,
-  'primary_currency_id': ?instance.primaryCurrencyId,
-  'primary_currency_code': ?instance.primaryCurrencyCode,
-  'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-  'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-  'members': ?instance.members?.map((e) => e.toJson()).toList(),
+  'created_at': instance.createdAt?.toIso8601String(),
+  'updated_at': instance.updatedAt?.toIso8601String(),
+  'in_use': instance.inUse,
+  'can_see_members': instance.canSeeMembers,
+  'title': instance.title,
+  'primary_currency_id': instance.primaryCurrencyId,
+  'primary_currency_code': instance.primaryCurrencyCode,
+  'primary_currency_symbol': instance.primaryCurrencySymbol,
+  'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+  'members': instance.members?.map((e) => e.toJson()).toList(),
 };
 
 UserGroupReadMembers _$UserGroupReadMembersFromJson(
@@ -4461,9 +4452,9 @@ UserGroupReadMembers _$UserGroupReadMembersFromJson(
 Map<String, dynamic> _$UserGroupReadMembersToJson(
   UserGroupReadMembers instance,
 ) => <String, dynamic>{
-  'user_id': ?instance.userId,
-  'user_email': ?instance.userEmail,
-  'you': ?instance.you,
+  'user_id': instance.userId,
+  'user_email': instance.userEmail,
+  'you': instance.you,
   'roles': userGroupReadRoleListToJson(instance.roles),
 };
 
@@ -4485,8 +4476,8 @@ UserGroupUpdate _$UserGroupUpdateFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$UserGroupUpdateToJson(UserGroupUpdate instance) =>
     <String, dynamic>{
       'title': instance.title,
-      'primary_currency_id': ?instance.primaryCurrencyId,
-      'primary_currency_code': ?instance.primaryCurrencyCode,
+      'primary_currency_id': instance.primaryCurrencyId,
+      'primary_currency_code': instance.primaryCurrencyCode,
     };
 
 WebhookProperties _$WebhookPropertiesFromJson(Map<String, dynamic> json) =>
@@ -4514,14 +4505,14 @@ WebhookProperties _$WebhookPropertiesFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$WebhookPropertiesToJson(WebhookProperties instance) =>
     <String, dynamic>{
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
-      'active': ?instance.active,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'active': instance.active,
       'title': instance.title,
-      'secret': ?instance.secret,
-      'triggers': ?instance.triggers,
-      'responses': ?instance.responses,
-      'deliveries': ?instance.deliveries,
+      'secret': instance.secret,
+      'triggers': instance.triggers,
+      'responses': instance.responses,
+      'deliveries': instance.deliveries,
       'url': instance.url,
     };
 
@@ -4542,11 +4533,11 @@ WebhookStore _$WebhookStoreFromJson(Map<String, dynamic> json) => WebhookStore(
 
 Map<String, dynamic> _$WebhookStoreToJson(WebhookStore instance) =>
     <String, dynamic>{
-      'active': ?instance.active,
+      'active': instance.active,
       'title': instance.title,
-      'triggers': ?instance.triggers,
-      'responses': ?instance.responses,
-      'deliveries': ?instance.deliveries,
+      'triggers': instance.triggers,
+      'responses': instance.responses,
+      'deliveries': instance.deliveries,
       'url': instance.url,
     };
 
@@ -4569,13 +4560,13 @@ WebhookUpdate _$WebhookUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$WebhookUpdateToJson(WebhookUpdate instance) =>
     <String, dynamic>{
-      'active': ?instance.active,
-      'title': ?instance.title,
-      'secret': ?instance.secret,
-      'triggers': ?instance.triggers,
-      'responses': ?instance.responses,
-      'deliveries': ?instance.deliveries,
-      'url': ?instance.url,
+      'active': instance.active,
+      'title': instance.title,
+      'secret': instance.secret,
+      'triggers': instance.triggers,
+      'responses': instance.responses,
+      'deliveries': instance.deliveries,
+      'url': instance.url,
     };
 
 WebhookAttempt _$WebhookAttemptFromJson(Map<String, dynamic> json) =>
@@ -4594,12 +4585,12 @@ WebhookAttempt _$WebhookAttemptFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$WebhookAttemptToJson(WebhookAttempt instance) =>
     <String, dynamic>{
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
-      'webhook_message_id': ?instance.webhookMessageId,
-      'status_code': ?instance.statusCode,
-      'logs': ?instance.logs,
-      'response': ?instance.response,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'webhook_message_id': instance.webhookMessageId,
+      'status_code': instance.statusCode,
+      'logs': instance.logs,
+      'response': instance.response,
     };
 
 WebhookMessage _$WebhookMessageFromJson(Map<String, dynamic> json) =>
@@ -4619,13 +4610,13 @@ WebhookMessage _$WebhookMessageFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$WebhookMessageToJson(WebhookMessage instance) =>
     <String, dynamic>{
-      'created_at': ?instance.createdAt?.toIso8601String(),
-      'updated_at': ?instance.updatedAt?.toIso8601String(),
-      'sent': ?instance.sent,
-      'errored': ?instance.errored,
-      'webhook_id': ?instance.webhookId,
-      'uuid': ?instance.uuid,
-      'message': ?instance.message,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
+      'sent': instance.sent,
+      'errored': instance.errored,
+      'webhook_id': instance.webhookId,
+      'uuid': instance.uuid,
+      'message': instance.message,
     };
 
 PolymorphicProperty _$PolymorphicPropertyFromJson(Map<String, dynamic> json) =>
@@ -4658,17 +4649,17 @@ BasicSummaryEntry _$BasicSummaryEntryFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$BasicSummaryEntryToJson(BasicSummaryEntry instance) =>
     <String, dynamic>{
-      'key': ?instance.key,
-      'title': ?instance.title,
-      'monetary_value': ?instance.monetaryValue,
-      'currency_id': ?instance.currencyId,
-      'currency_code': ?instance.currencyCode,
-      'currency_symbol': ?instance.currencySymbol,
-      'currency_decimal_places': ?instance.currencyDecimalPlaces,
-      'no_available_budgets': ?instance.noAvailableBudgets,
-      'value_parsed': ?instance.valueParsed,
-      'local_icon': ?instance.localIcon,
-      'sub_title': ?instance.subTitle,
+      'key': instance.key,
+      'title': instance.title,
+      'monetary_value': instance.monetaryValue,
+      'currency_id': instance.currencyId,
+      'currency_code': instance.currencyCode,
+      'currency_symbol': instance.currencySymbol,
+      'currency_decimal_places': instance.currencyDecimalPlaces,
+      'no_available_budgets': instance.noAvailableBudgets,
+      'value_parsed': instance.valueParsed,
+      'local_icon': instance.localIcon,
+      'sub_title': instance.subTitle,
     };
 
 Configuration _$ConfigurationFromJson(Map<String, dynamic> json) =>
@@ -4682,7 +4673,7 @@ Configuration _$ConfigurationFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
     <String, dynamic>{
-      'title': ?configValueFilterToJson(instance.title),
+      'title': configValueFilterToJson(instance.title),
       'value': instance.value.toJson(),
       'editable': instance.editable,
     };
@@ -4714,9 +4705,9 @@ CronResult _$CronResultFromJson(Map<String, dynamic> json) => CronResult(
 
 Map<String, dynamic> _$CronResultToJson(CronResult instance) =>
     <String, dynamic>{
-      'recurring_transactions': ?instance.recurringTransactions?.toJson(),
-      'auto_budgets': ?instance.autoBudgets?.toJson(),
-      'telemetry': ?instance.telemetry?.toJson(),
+      'recurring_transactions': instance.recurringTransactions?.toJson(),
+      'auto_budgets': instance.autoBudgets?.toJson(),
+      'telemetry': instance.telemetry?.toJson(),
     };
 
 CronResultRow _$CronResultRowFromJson(Map<String, dynamic> json) =>
@@ -4729,10 +4720,10 @@ CronResultRow _$CronResultRowFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$CronResultRowToJson(CronResultRow instance) =>
     <String, dynamic>{
-      'job_fired': ?instance.jobFired,
-      'job_succeeded': ?instance.jobSucceeded,
-      'job_errored': ?instance.jobErrored,
-      'message': ?instance.message,
+      'job_fired': instance.jobFired,
+      'job_succeeded': instance.jobSucceeded,
+      'job_errored': instance.jobErrored,
+      'message': instance.message,
     };
 
 SystemInfo _$SystemInfoFromJson(Map<String, dynamic> json) => SystemInfo(
@@ -4742,7 +4733,7 @@ SystemInfo _$SystemInfoFromJson(Map<String, dynamic> json) => SystemInfo(
 );
 
 Map<String, dynamic> _$SystemInfoToJson(SystemInfo instance) =>
-    <String, dynamic>{'data': ?instance.data?.toJson()};
+    <String, dynamic>{'data': instance.data?.toJson()};
 
 UserSingle _$UserSingleFromJson(Map<String, dynamic> json) =>
     UserSingle(data: UserRead.fromJson(json['data'] as Map<String, dynamic>));
@@ -4757,7 +4748,7 @@ Meta _$MetaFromJson(Map<String, dynamic> json) => Meta(
 );
 
 Map<String, dynamic> _$MetaToJson(Meta instance) => <String, dynamic>{
-  'pagination': ?instance.pagination?.toJson(),
+  'pagination': instance.pagination?.toJson(),
 };
 
 BadRequestResponse _$BadRequestResponseFromJson(Map<String, dynamic> json) =>
@@ -4768,8 +4759,8 @@ BadRequestResponse _$BadRequestResponseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$BadRequestResponseToJson(BadRequestResponse instance) =>
     <String, dynamic>{
-      'message': ?instance.message,
-      'exception': ?instance.exception,
+      'message': instance.message,
+      'exception': instance.exception,
     };
 
 InternalExceptionResponse _$InternalExceptionResponseFromJson(
@@ -4782,8 +4773,8 @@ InternalExceptionResponse _$InternalExceptionResponseFromJson(
 Map<String, dynamic> _$InternalExceptionResponseToJson(
   InternalExceptionResponse instance,
 ) => <String, dynamic>{
-  'message': ?instance.message,
-  'exception': ?instance.exception,
+  'message': instance.message,
+  'exception': instance.exception,
 };
 
 NotFoundResponse _$NotFoundResponseFromJson(Map<String, dynamic> json) =>
@@ -4794,8 +4785,8 @@ NotFoundResponse _$NotFoundResponseFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$NotFoundResponseToJson(NotFoundResponse instance) =>
     <String, dynamic>{
-      'message': ?instance.message,
-      'exception': ?instance.exception,
+      'message': instance.message,
+      'exception': instance.exception,
     };
 
 UnauthenticatedResponse _$UnauthenticatedResponseFromJson(
@@ -4808,8 +4799,8 @@ UnauthenticatedResponse _$UnauthenticatedResponseFromJson(
 Map<String, dynamic> _$UnauthenticatedResponseToJson(
   UnauthenticatedResponse instance,
 ) => <String, dynamic>{
-  'message': ?instance.message,
-  'exception': ?instance.exception,
+  'message': instance.message,
+  'exception': instance.exception,
 };
 
 ValidationErrorResponse _$ValidationErrorResponseFromJson(
@@ -4826,8 +4817,8 @@ ValidationErrorResponse _$ValidationErrorResponseFromJson(
 Map<String, dynamic> _$ValidationErrorResponseToJson(
   ValidationErrorResponse instance,
 ) => <String, dynamic>{
-  'message': ?instance.message,
-  'errors': ?instance.errors?.toJson(),
+  'message': instance.message,
+  'errors': instance.errors?.toJson(),
 };
 
 BillProperties$PaidDates$Item _$BillProperties$PaidDates$ItemFromJson(
@@ -4857,24 +4848,24 @@ BillProperties$PaidDates$Item _$BillProperties$PaidDates$ItemFromJson(
 Map<String, dynamic> _$BillProperties$PaidDates$ItemToJson(
   BillProperties$PaidDates$Item instance,
 ) => <String, dynamic>{
-  'transaction_group_id': ?instance.transactionGroupId,
-  'transaction_journal_id': ?instance.transactionJournalId,
-  'date': ?instance.date?.toIso8601String(),
-  'subscription_id': ?instance.subscriptionId,
-  'currency_id': ?instance.currencyId,
-  'currency_name': ?instance.currencyName,
-  'currency_code': ?instance.currencyCode,
-  'currency_symbol': ?instance.currencySymbol,
-  'currency_decimal_places': ?instance.currencyDecimalPlaces,
-  'primary_currency_id': ?instance.primaryCurrencyId,
-  'primary_currency_name': ?instance.primaryCurrencyName,
-  'primary_currency_code': ?instance.primaryCurrencyCode,
-  'primary_currency_symbol': ?instance.primaryCurrencySymbol,
-  'primary_currency_decimal_places': ?instance.primaryCurrencyDecimalPlaces,
-  'amount': ?instance.amount,
-  'pc_amount': ?instance.pcAmount,
-  'foreign_amount': ?instance.foreignAmount,
-  'pc_foreign_amount': ?instance.pcForeignAmount,
+  'transaction_group_id': instance.transactionGroupId,
+  'transaction_journal_id': instance.transactionJournalId,
+  'date': instance.date?.toIso8601String(),
+  'subscription_id': instance.subscriptionId,
+  'currency_id': instance.currencyId,
+  'currency_name': instance.currencyName,
+  'currency_code': instance.currencyCode,
+  'currency_symbol': instance.currencySymbol,
+  'currency_decimal_places': instance.currencyDecimalPlaces,
+  'primary_currency_id': instance.primaryCurrencyId,
+  'primary_currency_name': instance.primaryCurrencyName,
+  'primary_currency_code': instance.primaryCurrencyCode,
+  'primary_currency_symbol': instance.primaryCurrencySymbol,
+  'primary_currency_decimal_places': instance.primaryCurrencyDecimalPlaces,
+  'amount': instance.amount,
+  'pc_amount': instance.pcAmount,
+  'foreign_amount': instance.foreignAmount,
+  'pc_foreign_amount': instance.pcForeignAmount,
 };
 
 SystemInfo$Data _$SystemInfo$DataFromJson(Map<String, dynamic> json) =>
@@ -4888,11 +4879,11 @@ SystemInfo$Data _$SystemInfo$DataFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SystemInfo$DataToJson(SystemInfo$Data instance) =>
     <String, dynamic>{
-      'version': ?instance.version,
-      'api_version': ?instance.apiVersion,
-      'php_version': ?instance.phpVersion,
-      'os': ?instance.os,
-      'driver': ?instance.driver,
+      'version': instance.version,
+      'api_version': instance.apiVersion,
+      'php_version': instance.phpVersion,
+      'os': instance.os,
+      'driver': instance.driver,
     };
 
 Meta$Pagination _$Meta$PaginationFromJson(Map<String, dynamic> json) =>
@@ -4906,11 +4897,11 @@ Meta$Pagination _$Meta$PaginationFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$Meta$PaginationToJson(Meta$Pagination instance) =>
     <String, dynamic>{
-      'total': ?instance.total,
-      'count': ?instance.count,
-      'per_page': ?instance.perPage,
-      'current_page': ?instance.currentPage,
-      'total_pages': ?instance.totalPages,
+      'total': instance.total,
+      'count': instance.count,
+      'per_page': instance.perPage,
+      'current_page': instance.currentPage,
+      'total_pages': instance.totalPages,
     };
 
 ValidationErrorResponse$Errors _$ValidationErrorResponse$ErrorsFromJson(
@@ -4948,16 +4939,16 @@ ValidationErrorResponse$Errors _$ValidationErrorResponse$ErrorsFromJson(
 Map<String, dynamic> _$ValidationErrorResponse$ErrorsToJson(
   ValidationErrorResponse$Errors instance,
 ) => <String, dynamic>{
-  'email': ?instance.email,
-  'force': ?instance.force,
-  'blocked': ?instance.blocked,
-  'field': ?instance.field,
-  'role': ?instance.role,
-  'blocked_code': ?instance.blockedCode,
-  'name': ?instance.name,
-  'type': ?instance.type,
-  'iban': ?instance.iban,
-  'start': ?instance.start,
-  'end': ?instance.end,
-  'date': ?instance.date,
+  'email': instance.email,
+  'force': instance.force,
+  'blocked': instance.blocked,
+  'field': instance.field,
+  'role': instance.role,
+  'blocked_code': instance.blockedCode,
+  'name': instance.name,
+  'type': instance.type,
+  'iban': instance.iban,
+  'start': instance.start,
+  'end': instance.end,
+  'date': instance.date,
 };

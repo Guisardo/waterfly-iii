@@ -281,6 +281,24 @@ class SCs extends S {
   String get errorUnknown => 'Neznámá chyba.';
 
   @override
+  String get errorInvalidHost => 'Invalid host';
+
+  @override
+  String get errorInvalidApiKey => 'Invalid API key';
+
+  @override
+  String get errorInvalidApiVersion => 'Invalid Firefly API version';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API version too low';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Unexpected HTTP status code';
+
+  @override
+  String get errorNotValidInstance => 'Not a valid Firefly III instance';
+
+  @override
   String get formButtonHelp => 'Nápověda';
 
   @override
@@ -923,6 +941,10 @@ class SCs extends S {
   String get transactionErrorNoAccounts => 'Prosím, nejprve vyplňte účty.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Prosím, vyberte majetkový účet.';
 
@@ -987,4 +1009,187 @@ class SCs extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Výběr';
+
+  @override
+  String get syncSettingsTitle => 'Nastavení synchronizace';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Synchronizace přes mobilní data';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Povolit synchronizaci při použití mobilních dat (ve výchozím nastavení zakázáno pro úsporu dat)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Přihlašovací údaje';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Neplatné - Prosím zadejte přihlašovací údaje znovu';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Ověřeno';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Neověřeno';
+
+  @override
+  String get syncSettingsReenterButton => 'Zadat znovu';
+
+  @override
+  String get syncSettingsDownloadSync => 'Synchronizace stahování';
+
+  @override
+  String get syncSettingsUploadSync => 'Synchronizace nahrávání';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Poslední synchronizace: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Stav: Pozastaveno';
+
+  @override
+  String get syncSettingsStatusActive => 'Stav: Aktivní';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Počet pokusů: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Další pokus: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Chyba: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Obnovit nyní';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Ruční synchronizace';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Spustit synchronizaci nyní';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Synchronizovat nyní';
+
+  @override
+  String get syncNotificationSyncing => 'Synchronizace...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Synchronizace s Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Synchronizace $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Synchronizace dokončena';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Synchronizace s Firefly III byla úspěšně dokončena';
+
+  @override
+  String get syncNotificationPaused => 'Synchronizace pozastavena';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Synchronizace pozastavena kvůli chybě. Bude automaticky opakována.';
+
+  @override
+  String get syncNotificationAuthError => 'Chyba ověření';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Prosím zadejte své přihlašovací údaje znovu v nastavení';
+
+  @override
+  String get syncNotificationChannelName => 'Synchronizace';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Create Transaction?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Click to create a transaction based on the notification $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Create Transaction from Notification';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notification asking to create a transaction from another Notification.';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Stav synchronizace na pozadí';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Stav synchronizace entit';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transakce';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Účty';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategorie';
+
+  @override
+  String get syncSettingsEntityTags => 'Štítky';
+
+  @override
+  String get syncSettingsEntityBills => 'Účty';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Rozpočty';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Měny';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Pokladničky';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Nikdy nesynchronizováno';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Synchronizace...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Úspěch';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Chyba';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Pozastaveno';
+
+  @override
+  String get settingsSynchronization => 'Synchronizace';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Nastavení a stav synchronizace';
 }

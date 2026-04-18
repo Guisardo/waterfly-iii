@@ -593,6 +593,7 @@ TransactionTypeProperty accountsToTransaction(
           .loan: .withdrawal,
           .mortgage: .withdrawal,
           .reconciliationAccount: .reconciliation,
+          .revenueAccount: .withdrawal,
         },
         .cashAccount: <AccountTypeProperty, TransactionTypeProperty>{
           .assetAccount: .deposit,

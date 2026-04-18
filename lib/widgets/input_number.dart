@@ -1,26 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
-import 'package:waterflyiii/services/math_expression_evaluator.dart';
+import 'package:waterflyiii/utils/math_expression_evaluator.dart';
+import 'package:waterflyiii/widgets/number_keyboard.dart';
 
-/// Number Input Widget with Math Evaluation Support
+/// A numeric text input field with an optional custom math keyboard.
 ///
-/// A text input field for numeric values that supports:
-/// - Basic number input with decimal support
-/// - Mathematical operations (+, -, *, /) with automatic evaluation
-/// - Chained calculations (evaluates when a second operator is pressed)
-/// - Evaluation on Enter key press
-/// - Evaluation on focus loss
+/// When [showMathKeyboard] is true (default), tapping the field suppresses
+/// the system keyboard and shows [NumberKeyboard] instead, which exposes
+/// arithmetic operators (+, −, ×, ÷, %) alongside the digits. The expression
+/// is evaluated with [MathExpressionEvaluator] on = press or focus loss.
 ///
-/// Example:
-/// ```dart
-/// NumberInput(
-///   controller: amountController,
-///   focusNode: amountFocusNode,
-///   decimals: 2,
-///   onChanged: (value) => amount = double.tryParse(value) ?? 0,
-/// )
-/// ```
+/// When [showMathKeyboard] is false the widget behaves like a plain numeric
+/// [TextFormField] (system keyboard, no expression evaluation).
 class NumberInput extends StatefulWidget {
   const NumberInput({
     super.key,
@@ -36,13 +28,13 @@ class NumberInput extends StatefulWidget {
     this.disabled = false,
     this.style,
     this.focusNode,
-    this.enableMathEvaluation = true,
+    this.showMathKeyboard = true,
   });
 
   final TextEditingController? controller;
   final String? value;
   final String? label;
-  final ValueChanged<String>? onChanged;
+  final Function? onChanged;
   final String? error;
   final Widget? icon;
   final String? hintText;
@@ -50,8 +42,14 @@ class NumberInput extends StatefulWidget {
   final int decimals;
   final bool disabled;
   final TextStyle? style;
+
+  /// External [FocusNode] to attach to the underlying [TextFormField].
+  /// If null, an internal node is created automatically.
   final FocusNode? focusNode;
-  final bool enableMathEvaluation;
+
+  /// Whether to show the custom [NumberKeyboard] overlay instead of the
+  /// system keyboard. Defaults to true.
+  final bool showMathKeyboard;
 
   @override
   State<NumberInput> createState() => _NumberInputState();
@@ -60,199 +58,282 @@ class NumberInput extends StatefulWidget {
 class _NumberInputState extends State<NumberInput> {
   final Logger _log = Logger('NumberInput');
   final MathExpressionEvaluator _evaluator = MathExpressionEvaluator();
-  String _previousText = '';
-  bool _isEvaluating = false;
+
+  late final FocusNode _focusNode;
+  bool _ownsNode = false;
+
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
     super.initState();
-    _previousText = widget.controller?.text ?? widget.value ?? '';
-
-    // Listen to focus changes for evaluation on focus loss
-    if (widget.focusNode != null && widget.enableMathEvaluation) {
-      widget.focusNode!.addListener(_onFocusChange);
+    if (widget.focusNode != null) {
+      _focusNode = widget.focusNode!;
+    } else {
+      _focusNode = FocusNode();
+      _ownsNode = true;
     }
+    _focusNode.addListener(_onFocusChange);
   }
 
   @override
   void dispose() {
-    if (widget.focusNode != null && widget.enableMathEvaluation) {
-      widget.focusNode!.removeListener(_onFocusChange);
+    _focusNode.removeListener(_onFocusChange);
+    _hideKeyboard();
+    if (_ownsNode) {
+      _focusNode.dispose();
     }
     super.dispose();
   }
 
-  @override
-  void didUpdateWidget(NumberInput oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.focusNode != widget.focusNode) {
-      if (oldWidget.focusNode != null) {
-        oldWidget.focusNode!.removeListener(_onFocusChange);
-      }
-      if (widget.focusNode != null && widget.enableMathEvaluation) {
-        widget.focusNode!.addListener(_onFocusChange);
-      }
-    }
-    if (oldWidget.enableMathEvaluation != widget.enableMathEvaluation &&
-        widget.focusNode != null) {
-      if (widget.enableMathEvaluation) {
-        widget.focusNode!.addListener(_onFocusChange);
-      } else {
-        widget.focusNode!.removeListener(_onFocusChange);
-      }
-    }
-  }
+  // ---------------------------------------------------------------------------
+  // Focus handling
+  // ---------------------------------------------------------------------------
 
   void _onFocusChange() {
-    if (widget.focusNode != null &&
-        !widget.focusNode!.hasFocus &&
-        widget.enableMathEvaluation &&
-        widget.controller != null) {
-      // Evaluate on focus loss
-      _evaluateExpression(widget.controller!.text, isFullEvaluation: true);
+    if (_focusNode.hasFocus) {
+      if (widget.showMathKeyboard && !widget.disabled) {
+        _showKeyboard();
+      }
+    } else {
+      _hideKeyboard();
+      _evaluateOnBlur();
     }
   }
 
-  void _evaluateExpression(String text, {required bool isFullEvaluation}) {
-    if (_isEvaluating || text.isEmpty) {
+  void _showKeyboard() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+
+    final OverlayState? overlay = Overlay.maybeOf(context);
+    if (overlay == null) {
       return;
     }
 
-    _isEvaluating = true;
-    _log.fine(() => 'Evaluating expression: $text (full: $isFullEvaluation)');
+    _overlayEntry = OverlayEntry(
+      builder: (BuildContext ctx) => Positioned(
+        bottom: 0,
+        left: 0,
+        right: 0,
+        child: NumberKeyboard(
+          hasDecimal: widget.decimals > 0,
+          onKey: _insertKey,
+          onBackspace: _handleBackspace,
+          onClear: _handleClear,
+          onEquals: _handleEquals,
+          onPercent: _handlePercent,
+        ),
+      ),
+    );
+    overlay.insert(_overlayEntry!);
+  }
 
-    try {
-      double? result;
-      if (isFullEvaluation) {
-        result = _evaluator.evaluate(text);
-      } else {
-        // Partial evaluation for chained calculations
-        result = _evaluator.evaluatePartial(text);
-      }
+  void _hideKeyboard() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
 
-      if (result != null && widget.controller != null) {
-        final String formattedResult = _formatResult(result);
-        widget.controller!.text = formattedResult;
-        widget.controller!.selection = TextSelection.fromPosition(
-          TextPosition(offset: formattedResult.length),
-        );
+  // ---------------------------------------------------------------------------
+  // Keyboard key handlers
+  // ---------------------------------------------------------------------------
 
-        // Trigger onChanged with the evaluated result
-        widget.onChanged?.call(formattedResult);
-
-        _log.fine(() => 'Expression evaluated: $text -> $formattedResult');
-      }
-    } catch (e, stackTrace) {
-      _log.warning('Error evaluating expression: $text', e, stackTrace);
-    } finally {
-      _isEvaluating = false;
+  void _insertKey(String key) {
+    final TextEditingController? ctrl = widget.controller;
+    if (ctrl == null) {
+      return;
     }
+
+    final TextSelection selection = ctrl.selection;
+    final String text = ctrl.text;
+
+    final int start = selection.start < 0 ? text.length : selection.start;
+    final int end = selection.end < 0 ? text.length : selection.end;
+
+    final String newText = text.substring(0, start) + key + text.substring(end);
+    ctrl.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: start + key.length),
+    );
+    widget.onChanged?.call(ctrl.text);
+    _log.fine(() => 'Inserted "$key" → "${ctrl.text}"');
+  }
+
+  void _handleBackspace() {
+    final TextEditingController? ctrl = widget.controller;
+    if (ctrl == null) {
+      return;
+    }
+
+    final TextSelection selection = ctrl.selection;
+    final String text = ctrl.text;
+
+    if (selection.start != selection.end) {
+      // Delete selected range
+      final String newText =
+          text.substring(0, selection.start) + text.substring(selection.end);
+      ctrl.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: selection.start),
+      );
+    } else {
+      final int offset = selection.start < 0 ? text.length : selection.start;
+      if (offset <= 0) {
+        return;
+      }
+      final String newText =
+          text.substring(0, offset - 1) + text.substring(offset);
+      ctrl.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: offset - 1),
+      );
+    }
+    widget.onChanged?.call(ctrl.text);
+  }
+
+  void _handleClear() {
+    final TextEditingController? ctrl = widget.controller;
+    if (ctrl == null) {
+      return;
+    }
+    ctrl.clear();
+    widget.onChanged?.call('');
+    _log.fine(() => 'Cleared input');
+  }
+
+  void _handlePercent() {
+    final TextEditingController? ctrl = widget.controller;
+    if (ctrl == null) {
+      return;
+    }
+    if (ctrl.text.isEmpty) {
+      return;
+    }
+    final double? value = _evaluator.evaluate(ctrl.text);
+    if (value == null) {
+      return;
+    }
+    final double percentValue = value / 100.0;
+    final String formatted = _formatResult(percentValue);
+    ctrl.value = TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+    widget.onChanged?.call(formatted);
+    _log.fine(() => 'Percent: ${ctrl.text} → $formatted');
+  }
+
+  void _handleEquals() {
+    _evaluateExpression(isFullEvaluation: true);
+    _focusNode.unfocus();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Expression evaluation
+  // ---------------------------------------------------------------------------
+
+  void _evaluateOnBlur() {
+    if (widget.showMathKeyboard) {
+      _evaluateExpression(isFullEvaluation: true);
+    }
+  }
+
+  void _evaluateExpression({required bool isFullEvaluation}) {
+    final TextEditingController? ctrl = widget.controller;
+    if (ctrl == null || ctrl.text.isEmpty) {
+      return;
+    }
+
+    _log.fine(() => 'Evaluating "${ctrl.text}" (full: $isFullEvaluation)');
+
+    double? result;
+    if (isFullEvaluation) {
+      result = _evaluator.evaluate(ctrl.text);
+    } else {
+      result = _evaluator.evaluatePartial(ctrl.text);
+    }
+
+    if (result == null) {
+      return;
+    }
+
+    final String formatted = _formatResult(result);
+    ctrl.value = TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+    widget.onChanged?.call(formatted);
+    _log.fine(() => 'Evaluated "${ctrl.text}" → $formatted');
   }
 
   String _formatResult(double result) {
-    if (widget.decimals > 0) {
-      return result.toStringAsFixed(widget.decimals);
-    }
-    return result.toStringAsFixed(0);
+    return result.toStringAsFixed(widget.decimals);
   }
 
-  bool _isOperator(String char) {
-    return char == '+' || char == '-' || char == '*' || char == '/';
-  }
+  // ---------------------------------------------------------------------------
+  // Input formatter helpers
+  // ---------------------------------------------------------------------------
 
-  void _handleTextChange(String newText) {
-    if (!widget.enableMathEvaluation || _isEvaluating) {
-      widget.onChanged?.call(newText);
-      _previousText = newText;
-      return;
-    }
+  RegExp _getRegex() => (widget.decimals > 0)
+      ? RegExp(r'^[0-9]+[,.]{0,1}[0-9]{0,' + widget.decimals.toString() + r'}$')
+      : RegExp(r'^[0-9]+$');
 
-    // Check if an operator was just pressed (chained calculation)
-    if (newText.length > _previousText.length) {
-      final String addedChar = newText.substring(_previousText.length);
-      if (addedChar.length == 1 && _isOperator(addedChar)) {
-        // Operator was pressed - check if there's a previous operator
-        final String textBeforeNewOperator = newText.substring(
-          0,
-          newText.length - 1,
-        );
-        if (textBeforeNewOperator.isNotEmpty &&
-            RegExp(r'[+\-*/]').hasMatch(textBeforeNewOperator)) {
-          // Previous operator exists - evaluate partial expression
-          final double? partialResult = _evaluator.evaluatePartial(
-            textBeforeNewOperator,
-          );
-          if (partialResult != null && widget.controller != null) {
-            _isEvaluating = true;
-            try {
-              final String formattedResult = _formatResult(partialResult);
-              final String newExpression = formattedResult + addedChar;
-
-              // Update controller with result + new operator
-              widget.controller!.text = newExpression;
-              widget.controller!.selection = TextSelection.fromPosition(
-                TextPosition(offset: newExpression.length),
-              );
-
-              // Trigger onChanged with the new expression
-              widget.onChanged?.call(newExpression);
-
-              _previousText = newExpression;
-              _log.fine(
-                () =>
-                    'Chained calculation: $textBeforeNewOperator -> $formattedResult, added operator: $addedChar',
-              );
-            } finally {
-              _isEvaluating = false;
-            }
-            return;
-          }
-        }
-      }
-    }
-
-    // Normal text change - update previous text and call onChanged
-    _previousText = newText;
-    widget.onChanged?.call(newText);
-  }
+  // ---------------------------------------------------------------------------
+  // Build
+  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.controller,
-      focusNode: widget.focusNode,
+      focusNode: _focusNode,
       initialValue: widget.value,
-      onChanged: _handleTextChange,
-      onEditingComplete: () {
-        // Evaluate on Enter key press
-        if (widget.enableMathEvaluation && widget.controller != null) {
-          _evaluateExpression(widget.controller!.text, isFullEvaluation: true);
-        }
-        // Move focus to next field
-        widget.focusNode?.unfocus();
-      },
+      onChanged: widget.onChanged as void Function(String)?,
       readOnly: widget.disabled,
       enabled: !widget.disabled,
-      keyboardType: TextInputType.numberWithOptions(
-        decimal: (widget.decimals > 0),
-      ),
+      // Suppress system keyboard when custom keyboard is active.
+      keyboardType: (widget.showMathKeyboard && !widget.disabled)
+          ? TextInputType.none
+          : TextInputType.numberWithOptions(decimal: (widget.decimals > 0)),
       inputFormatters: <TextInputFormatter>[
-        FilteringTextInputFormatter.allow(RegExp(_getRegexString())),
+        TextInputFormatter.withFunction(
+          (TextEditingValue oldValue, TextEditingValue newValue) =>
+              newValue.copyWith(text: newValue.text.replaceAll(',', '.')),
+        ),
         TextInputFormatter.withFunction((
           TextEditingValue oldValue,
           TextEditingValue newValue,
         ) {
-          // Replace comma with dot
-          final String normalized = newValue.text.replaceAll(',', '.');
+          if (newValue.composing != TextRange.empty) {
+            return newValue;
+          }
 
-          // Prevent consecutive operators
-          if (widget.enableMathEvaluation) {
-            if (RegExp(r'[+\-*/]{2,}').hasMatch(normalized)) {
-              return oldValue; // Reject consecutive operators
+          // Check for operators in newValue (excluding leading minus for negative numbers)
+          final String textWithoutLeadingMinus = newValue.text.startsWith('-')
+              ? newValue.text.substring(1)
+              : newValue.text;
+          final int opCount = RegExp(
+            r'[+\-*/]',
+          ).allMatches(textWithoutLeadingMinus).length;
+
+          // No operators → normal number validation
+          if (opCount == 0) {
+            if (newValue.text.isNotEmpty &&
+                !_getRegex().hasMatch(newValue.text)) {
+              return oldValue;
+            }
+            return newValue;
+          }
+
+          // Allow multiple operators — expression will be evaluated on blur
+          final List<String> numbers = newValue.text.split(RegExp(r'[+\-*/]'));
+          for (int i = 0; i < numbers.length; i++) {
+            if (numbers[i].isNotEmpty &&
+                !RegExp(r'^[0-9]+[,.]?[0-9]*$').hasMatch(numbers[i])) {
+              return oldValue;
             }
           }
 
-          return newValue.copyWith(text: normalized);
+          return newValue;
         }),
       ],
       decoration: InputDecoration(
@@ -268,31 +349,5 @@ class _NumberInputState extends State<NumberInput> {
           ? widget.style?.copyWith(color: Theme.of(context).disabledColor)
           : widget.style,
     );
-  }
-
-  String _getRegexString() {
-    if (!widget.enableMathEvaluation) {
-      // Original regex without operators
-      return (widget.decimals > 0)
-          ? r'^[0-9]+[,.]{0,1}[0-9]{0,' + widget.decimals.toString() + r'}'
-          : r'[0-9]';
-    }
-
-    // Regex with operators support
-    // Pattern: optional leading minus, number, then optional (operator + optional number)*
-    // Allows trailing operators for partial input (e.g., "10+")
-    if (widget.decimals > 0) {
-      // Pattern: ^-?[0-9]+([,.]{0,1}[0-9]{0,N})?([+\-*/]([0-9]+([,.]{0,1}[0-9]{0,N})?)?)?)*$
-      final String decimalPart =
-          r'([,.]{0,1}[0-9]{0,' + widget.decimals.toString() + r'})';
-      final String numberWithDecimal = r'([0-9]+' + decimalPart + r'?)';
-      final String operatorWithNumber = r'([+\-*/]' + numberWithDecimal + r'?)';
-      return r'^-?[0-9]+' + decimalPart + r'?(' + operatorWithNumber + r')*$';
-    } else {
-      // Pattern: ^-?[0-9]+([+\-*/]([0-9]+)?)?*$
-      final String numberPart = r'([0-9]+)';
-      final String operatorWithNumber = r'([+\-*/]' + numberPart + r'?)';
-      return r'^-?[0-9]+(' + operatorWithNumber + r')*$';
-    }
   }
 }

@@ -281,6 +281,24 @@ class SDa extends S {
   String get errorUnknown => 'Ukendt fejl.';
 
   @override
+  String get errorInvalidHost => 'Invalid host';
+
+  @override
+  String get errorInvalidApiKey => 'Invalid API key';
+
+  @override
+  String get errorInvalidApiVersion => 'Invalid Firefly API version';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API version too low';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Unexpected HTTP status code';
+
+  @override
+  String get errorNotValidInstance => 'Not a valid Firefly III instance';
+
+  @override
   String get formButtonHelp => 'Hjælp';
 
   @override
@@ -919,6 +937,10 @@ class SDa extends S {
   String get transactionErrorNoAccounts => 'Udfyld venligst konti først.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount => 'Vælg venligst en aktivkonto.';
 
   @override
@@ -982,4 +1004,187 @@ class SDa extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Hævning';
+
+  @override
+  String get syncSettingsTitle => 'Synkroniseringsindstillinger';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Synkroniser med mobildata';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Tillad synkronisering ved brug af mobildata (deaktiveret som standard for at spare data)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Legitimationsoplysninger';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Ugyldigt - Indtast venligst legitimationsoplysninger igen';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Valideret';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Ikke valideret';
+
+  @override
+  String get syncSettingsReenterButton => 'Indtast igen';
+
+  @override
+  String get syncSettingsDownloadSync => 'Download-synkronisering';
+
+  @override
+  String get syncSettingsUploadSync => 'Upload-synkronisering';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Sidste synkronisering: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Status: Sat på pause';
+
+  @override
+  String get syncSettingsStatusActive => 'Status: Aktiv';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Antal forsøg: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Næste forsøg: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Fejl: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Genoptag nu';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Manuel synkronisering';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Udfør synkronisering nu';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Synkroniser nu';
+
+  @override
+  String get syncNotificationSyncing => 'Synkroniserer...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Synkroniserer med Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Synkroniserer $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Synkronisering fuldført';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Synkronisering med Firefly III fuldført med succes';
+
+  @override
+  String get syncNotificationPaused => 'Synkronisering sat på pause';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Synkronisering sat på pause på grund af en fejl. Vil automatisk prøve igen.';
+
+  @override
+  String get syncNotificationAuthError => 'Godkendelsesfejl';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Indtast venligst dine legitimationsoplysninger igen i indstillingerne';
+
+  @override
+  String get syncNotificationChannelName => 'Synkronisering';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Create Transaction?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Click to create a transaction based on the notification $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Create Transaction from Notification';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notification asking to create a transaction from another Notification.';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Status for baggrundssynkronisering';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Entitetssynkroniseringsstatus';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transaktioner';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Konti';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategorier';
+
+  @override
+  String get syncSettingsEntityTags => 'Tags';
+
+  @override
+  String get syncSettingsEntityBills => 'Regninger';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budgetter';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Valutaer';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Sparegriser';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Aldrig synkroniseret';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Synkroniserer...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Succes';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Fejl';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Pauset';
+
+  @override
+  String get settingsSynchronization => 'Synkronisering';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Synkroniseringsindstillinger og status';
 }
