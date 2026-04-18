@@ -196,6 +196,8 @@ class _AccountTXpageState extends State<AccountTXpage> {
   late String _name;
   late Widget _titleWidget;
   late Widget _editIcon;
+  final GlobalKey<HomeTransactionsState> _homeTransactionsKey =
+      GlobalKey<HomeTransactionsState>();
 
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
@@ -291,9 +293,15 @@ class _AccountTXpageState extends State<AccountTXpage> {
       appBar: AppBar(title: _titleWidget, actions: <Widget>[_editIcon]),
       floatingActionButton:
           widget.account.attributes.type == ShortAccountTypeProperty.asset
-          ? NewTransactionFab(context: context, accountId: widget.account.id)
+          ? NewTransactionFab(
+              context: context,
+              accountId: widget.account.id,
+              onTransactionCreated: () =>
+                  _homeTransactionsKey.currentState?.notifRefresh(),
+            )
           : null,
       body: HomeTransactions(
+        key: _homeTransactionsKey,
         filters: TransactionFilters(account: widget.account),
       ),
     );

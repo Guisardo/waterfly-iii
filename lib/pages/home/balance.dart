@@ -92,18 +92,7 @@ class _HomeBalanceState extends State<HomeBalance>
                   return OpenContainer(
                     openBuilder:
                         (BuildContext context, Function closedContainer) =>
-                            Scaffold(
-                              appBar: AppBar(
-                                title: Text(account.attributes.name),
-                              ),
-                              floatingActionButton: NewTransactionFab(
-                                context: context,
-                                accountId: account.id,
-                              ),
-                              body: HomeTransactions(
-                                filters: TransactionFilters(account: account),
-                              ),
-                            ),
+                            _AccountTransactionScaffold(account: account),
                     openColor: Theme.of(context).cardColor,
                     closedColor: Theme.of(context).cardColor,
                     closedShape: const RoundedRectangleBorder(
@@ -185,6 +174,39 @@ class _HomeBalanceState extends State<HomeBalance>
             );
           }
         },
+      ),
+    );
+  }
+}
+
+class _AccountTransactionScaffold extends StatefulWidget {
+  const _AccountTransactionScaffold({required this.account});
+
+  final AccountRead account;
+
+  @override
+  State<_AccountTransactionScaffold> createState() =>
+      _AccountTransactionScaffoldState();
+}
+
+class _AccountTransactionScaffoldState
+    extends State<_AccountTransactionScaffold> {
+  final GlobalKey<HomeTransactionsState> _homeTransactionsKey =
+      GlobalKey<HomeTransactionsState>();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.account.attributes.name)),
+      floatingActionButton: NewTransactionFab(
+        context: context,
+        accountId: widget.account.id,
+        onTransactionCreated: () =>
+            _homeTransactionsKey.currentState?.notifRefresh(),
+      ),
+      body: HomeTransactions(
+        key: _homeTransactionsKey,
+        filters: TransactionFilters(account: widget.account),
       ),
     );
   }
