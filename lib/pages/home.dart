@@ -41,6 +41,7 @@ class HomePageState extends State<HomePage>
 
   late TabController _tabController;
   late Widget _newTransactionFab;
+  late GlobalKey<HomeTransactionsState> _homeTransactionsKey;
 
   final PageActions _actions = PageActions();
 
@@ -48,11 +49,22 @@ class HomePageState extends State<HomePage>
   void initState() {
     super.initState();
 
+    _homeTransactionsKey = GlobalKey<HomeTransactionsState>();
+    _tabPages = <Widget>[
+      const HomeMain(key: Key("HomeMain")),
+      HomeTransactions(key: _homeTransactionsKey),
+      const HomeBalance(key: Key("HomeBalance")),
+      const HomePiggybank(key: Key("HomePiggybanks")),
+    ];
     _tabController = TabController(vsync: this, length: 4);
     _tabController.addListener(_handleTabChange);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _newTransactionFab = NewTransactionFab(context: context);
+      _newTransactionFab = NewTransactionFab(
+        context: context,
+        onTransactionCreated: () =>
+            _homeTransactionsKey.currentState?.notifRefresh(),
+      );
 
       context.read<NavPageElements>().appBarBottom = TabBar(
         isScrollable: true,
@@ -87,26 +99,21 @@ class HomePageState extends State<HomePage>
           ? _newTransactionFab
           : null;
       context.read<NavPageElements>().appBarActions = _actions.get(
-        tabPages[_tabController.index].key ?? const Key(''),
+        _tabPages[_tabController.index].key ?? const Key(''),
       );
     }
   }
 
   late List<Tab> tabs;
 
-  static const List<Widget> tabPages = <Widget>[
-    HomeMain(key: Key("HomeMain")),
-    HomeTransactions(key: Key("HomeTransactions")),
-    HomeBalance(key: Key("HomeBalance")),
-    HomePiggybank(key: Key("HomePiggybanks")),
-  ];
+  late List<Widget> _tabPages;
 
   @override
   Widget build(BuildContext context) {
     log.finest(() => "build(tab: ${_tabController.index})");
     return ChangeNotifierProvider<PageActions>.value(
       value: _actions,
-      child: TabBarView(controller: _tabController, children: tabPages),
+      child: TabBarView(controller: _tabController, children: _tabPages),
     );
   }
 }

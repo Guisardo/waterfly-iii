@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/transactions.dart';
+import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
@@ -130,7 +131,7 @@ class TransactionRepository {
         return TransactionRead.fromJson(jsonData);
       }
     } catch (e) {
-      // skip
+      // Parsing error, return null
     }
     return null;
   }
@@ -652,7 +653,7 @@ class TransactionRepository {
       ..updatedAt = null
       ..localUpdatedAt = now
       ..synced = false
-      ..date = transaction.transactions.firstOrNull?.date
+      ..date = transaction.transactions.firstOrNull?.date.clearTime()
       ..sourceAccountId = transaction.transactions.firstOrNull?.sourceId
       ..destinationAccountId =
           transaction.transactions.firstOrNull?.destinationId;

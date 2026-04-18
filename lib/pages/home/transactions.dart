@@ -36,10 +36,10 @@ class HomeTransactions extends StatefulWidget {
   final TransactionFilters? filters;
 
   @override
-  State<HomeTransactions> createState() => _HomeTransactionsState();
+  State<HomeTransactions> createState() => HomeTransactionsState();
 }
 
-class _HomeTransactionsState extends State<HomeTransactions>
+class HomeTransactionsState extends State<HomeTransactions>
     with AutomaticKeepAliveClientMixin {
   final Logger log = Logger("Pages.Home.Transaction");
 

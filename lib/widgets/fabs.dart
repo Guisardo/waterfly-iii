@@ -4,10 +4,16 @@ import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 
 class NewTransactionFab extends StatelessWidget {
-  const NewTransactionFab({super.key, required this.context, this.accountId});
+  const NewTransactionFab({
+    super.key,
+    required this.context,
+    this.accountId,
+    this.onTransactionCreated,
+  });
 
   final BuildContext context;
   final String? accountId;
+  final VoidCallback? onTransactionCreated;
 
   // Threshold from LayoutProvider.getSize: expanded = width >= 840
   static const double _expandedBreakpoint = 840;
@@ -16,20 +22,25 @@ class NewTransactionFab extends StatelessWidget {
   Widget build(BuildContext context) {
     if (MediaQuery.sizeOf(context).width >= _expandedBreakpoint) {
       return FloatingActionButton(
-        onPressed: () => showDialog(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: Text(S.of(context).transactionTitleAdd),
-            content: Container(
-              constraints: BoxConstraints(
-                minWidth: 280,
-                maxWidth: MediaQuery.of(context).size.width * 0.5,
+        onPressed: () async {
+          final bool? created = await showDialog<bool>(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+              title: Text(S.of(context).transactionTitleAdd),
+              content: Container(
+                constraints: BoxConstraints(
+                  minWidth: 280,
+                  maxWidth: MediaQuery.of(context).size.width * 0.5,
+                ),
+                width: double.maxFinite,
+                child: TransactionPage(accountId: accountId),
               ),
-              width: double.maxFinite,
-              child: TransactionPage(accountId: accountId),
             ),
-          ),
-        ),
+          );
+          if ((created ?? false) && context.mounted) {
+            onTransactionCreated?.call();
+          }
+        },
         tooltip: S.of(context).formButtonTransactionAdd,
         elevation: 0,
         child: const Icon(Icons.add),
@@ -55,10 +66,8 @@ class NewTransactionFab extends StatelessWidget {
           );
         },
         onClosed: (bool? refresh) {
-          if (refresh ?? false == true) {
-            if (context.mounted) {
-              // Transaction cache cleared automatically on sync
-            }
+          if ((refresh ?? false) && context.mounted) {
+            onTransactionCreated?.call();
           }
         },
       );
