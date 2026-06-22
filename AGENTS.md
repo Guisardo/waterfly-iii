@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 Flutter/Dart Android app. Firefly III API client. Dart >=3.10.0, Flutter 3.41.6.
 

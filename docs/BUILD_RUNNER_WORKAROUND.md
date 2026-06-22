@@ -15,7 +15,7 @@ The patch is applied to:
 - `~/.pub-cache/hosted/pub.dev/isar_community_generator-3.3.0/lib/src/helper.dart`
 - `~/.pub-cache/hosted/pub.dev/isar_community_generator-3.3.0/lib/src/isar_type.dart`
 
-**Note**: This patch needs to be reapplied after `flutter pub get` if the package is reinstalled. Use `.dart_tool/patch_isar_generator.sh` to reapply.
+**Note**: This patch needs to be reapplied after `flutter pub get` if the package is reinstalled. Use `bash patch_isar_generator.sh` to reapply.
 
 ## Current Status
 
@@ -33,7 +33,7 @@ The patch is applied to:
 
 1. **After `flutter pub get`**, run the patch script:
    ```bash
-   .dart_tool/patch_isar_generator.sh
+   bash patch_isar_generator.sh
    ```
 
 2. **Run build_runner**:
@@ -48,7 +48,7 @@ The patch is applied to:
 
 ## Patch Script
 
-A patch script has been created at `.dart_tool/patch_isar_generator.sh` that automatically applies the necessary patches to `isar_community_generator` 3.3.0 to make it compatible with analyzer 8.4.1.
+A patch script has been created at `patch_isar_generator.sh` that automatically applies the necessary patches to `isar_community_generator` 3.3.0 to make it compatible with analyzer 8.4.1.
 
 The script converts:
 - `TypeChecker.fromRuntime(Collection)` → `TypeChecker.fromUrl('package:isar_community/isar.dart#Collection')`
