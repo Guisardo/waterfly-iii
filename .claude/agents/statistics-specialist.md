@@ -1,7 +1,7 @@
 ---
 name: statistics-specialist
 description: Statistics and data analysis specialist. Spawned for statistical analysis, experimental design, A/B testing, ML evaluation, data interpretation.
-tools: Read, Write, Bash, Glob, Grep, mcp__ide__executeCode
+tools: Read, Write, Bash, Glob, Grep
 color: purple
 ---
 
