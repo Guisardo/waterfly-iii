@@ -20,6 +20,7 @@ import 'package:waterflyiii/notificationlistener.dart';
 import 'package:waterflyiii/pages/settings/connection.dart';
 import 'package:waterflyiii/pages/settings/debug.dart';
 import 'package:waterflyiii/pages/settings/notifications.dart';
+import 'package:waterflyiii/pages/settings/sync.dart';
 import 'package:waterflyiii/settings.dart';
 
 final Logger log = Logger("Pages.Settings");
@@ -209,7 +210,8 @@ class SettingsPageState extends State<SettingsPage>
                   final S l10n = S.of(context);
 
                   late String subtitle;
-                  if (snapshot.connectionState == .done && snapshot.hasData) {
+                  if (snapshot.connectionState == ConnectionState.done &&
+                      snapshot.hasData) {
                     if (!snapshot.data!.servicePermission ||
                         !snapshot.data!.notificationPermission) {
                       subtitle = l10n.settingsNLPermissionNotGranted;
@@ -256,6 +258,21 @@ class SettingsPageState extends State<SettingsPage>
                 },
           ),
         if (Platform.isAndroid) const Divider(),
+        OpenContainer(
+          openBuilder: (BuildContext context, Function closedContainer) =>
+              const SyncSettingsPage(),
+          openColor: Theme.of(context).cardColor,
+          closedColor: Theme.of(context).cardColor,
+          closedElevation: 0,
+          closedBuilder: (BuildContext context, Function openContainer) =>
+              ListTile(
+                title: Text(S.of(context).settingsSynchronization),
+                subtitle: Text(S.of(context).settingsSynchronizationSubtitle),
+                leading: const CircleAvatar(child: Icon(Icons.sync)),
+                onTap: () => openContainer(),
+              ),
+        ),
+        const Divider(),
         ListTile(
           title: Text(S.of(context).settingsFAQ),
           subtitle: Text(S.of(context).settingsFAQHelp),

@@ -45,3 +45,4 @@ linter:
 analyzer:
   exclude:
     - lib/generated/**
+    - lib/data/local/database/tables/*.g.dart

@@ -279,6 +279,24 @@ class SKo extends S {
   String get errorUnknown => '알수없는 오류.';
 
   @override
+  String get errorInvalidHost => 'Invalid host';
+
+  @override
+  String get errorInvalidApiKey => 'Invalid API key';
+
+  @override
+  String get errorInvalidApiVersion => 'Invalid Firefly API version';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API version too low';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Unexpected HTTP status code';
+
+  @override
+  String get errorNotValidInstance => 'Not a valid Firefly III instance';
+
+  @override
   String get formButtonHelp => '도움말';
 
   @override
@@ -907,6 +925,10 @@ class SKo extends S {
   String get transactionErrorNoAccounts => '먼저 계정을 입력해 주세요.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount => '자산 계정을 선택해 주세요.';
 
   @override
@@ -970,4 +992,183 @@ class SKo extends S {
 
   @override
   String get transactionTypeWithdrawal => '출금';
+
+  @override
+  String get syncSettingsTitle => '동기화 설정';
+
+  @override
+  String get syncSettingsMobileDataTitle => '모바일 데이터로 동기화';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      '모바일 데이터 사용 시 동기화 허용 (데이터 절약을 위해 기본적으로 비활성화됨)';
+
+  @override
+  String get syncSettingsCredentialsTitle => '자격 증명';
+
+  @override
+  String get syncSettingsCredentialsInvalid => '유효하지 않음 - 자격 증명을 다시 입력하세요';
+
+  @override
+  String get syncSettingsCredentialsValidated => '확인됨';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => '확인되지 않음';
+
+  @override
+  String get syncSettingsReenterButton => '다시 입력';
+
+  @override
+  String get syncSettingsDownloadSync => '다운로드 동기화';
+
+  @override
+  String get syncSettingsUploadSync => '업로드 동기화';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return '마지막 동기화: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => '상태: 일시 중지됨';
+
+  @override
+  String get syncSettingsStatusActive => '상태: 활성';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return '재시도 횟수: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return '다음 재시도: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return '오류: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => '지금 재개';
+
+  @override
+  String get syncSettingsManualSyncTitle => '수동 동기화';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => '지금 동기화 트리거';
+
+  @override
+  String get syncSettingsSyncNowButton => '지금 동기화';
+
+  @override
+  String get syncNotificationSyncing => '동기화 중...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Firefly III와 동기화 중';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return '$entityType 동기화 중...';
+  }
+
+  @override
+  String get syncNotificationCompleted => '동기화 완료';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Firefly III와의 동기화가 성공적으로 완료되었습니다';
+
+  @override
+  String get syncNotificationPaused => '동기화 일시 중지됨';
+
+  @override
+  String get syncNotificationPausedBody =>
+      '오류로 인해 동기화가 일시 중지되었습니다. 자동으로 다시 시도됩니다.';
+
+  @override
+  String get syncNotificationAuthError => '인증 오류';
+
+  @override
+  String get syncNotificationAuthErrorBody => '설정에서 자격 증명을 다시 입력하세요';
+
+  @override
+  String get syncNotificationChannelName => '동기화';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Create Transaction?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Click to create a transaction based on the notification $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Create Transaction from Notification';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notification asking to create a transaction from another Notification.';
+
+  @override
+  String get syncNotificationChannelDescription => '백그라운드 동기화 상태';
+
+  @override
+  String get syncSettingsEntityStatusTitle => '엔티티 동기화 상태';
+
+  @override
+  String get syncSettingsEntityTransactions => '거래';
+
+  @override
+  String get syncSettingsEntityAccounts => '계정';
+
+  @override
+  String get syncSettingsEntityCategories => '카테고리';
+
+  @override
+  String get syncSettingsEntityTags => '태그';
+
+  @override
+  String get syncSettingsEntityBills => '청구서';
+
+  @override
+  String get syncSettingsEntityBudgets => '예산';
+
+  @override
+  String get syncSettingsEntityCurrencies => '통화';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => '저금통';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => '동기화되지 않음';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => '동기화 중...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => '성공';
+
+  @override
+  String get syncSettingsEntityStatusError => '오류';
+
+  @override
+  String get syncSettingsEntityStatusPaused => '일시 중지됨';
+
+  @override
+  String get settingsSynchronization => '동기화';
+
+  @override
+  String get settingsSynchronizationSubtitle => '동기화 설정 및 상태';
 }

@@ -1,35 +1,46 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
-import 'package:waterflyiii/layout.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 
 class NewTransactionFab extends StatelessWidget {
-  const NewTransactionFab({super.key, required this.context, this.accountId});
+  const NewTransactionFab({
+    super.key,
+    required this.context,
+    this.accountId,
+    this.onTransactionCreated,
+  });
 
   final BuildContext context;
   final String? accountId;
+  final VoidCallback? onTransactionCreated;
+
+  // Threshold from LayoutProvider.getSize: expanded = width >= 840
+  static const double _expandedBreakpoint = 840;
 
   @override
   Widget build(BuildContext context) {
-    if (context.watch<LayoutProvider>().currentSize >= .expanded) {
+    if (MediaQuery.sizeOf(context).width >= _expandedBreakpoint) {
       return FloatingActionButton(
-        onPressed: () => showDialog(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: Text(S.of(context).transactionTitleAdd),
-            content: Container(
-              constraints: BoxConstraints(
-                minWidth: 280,
-                maxWidth: MediaQuery.of(context).size.width * 0.5,
+        onPressed: () async {
+          final bool? created = await showDialog<bool>(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+              title: Text(S.of(context).transactionTitleAdd),
+              content: Container(
+                constraints: BoxConstraints(
+                  minWidth: 280,
+                  maxWidth: MediaQuery.of(context).size.width * 0.5,
+                ),
+                width: double.maxFinite,
+                child: TransactionPage(accountId: accountId),
               ),
-              width: .maxFinite,
-              child: TransactionPage(accountId: accountId),
             ),
-          ),
-        ),
+          );
+          if ((created ?? false) && context.mounted) {
+            onTransactionCreated?.call();
+          }
+        },
         tooltip: S.of(context).formButtonTransactionAdd,
         elevation: 0,
         child: const Icon(Icons.add),
@@ -42,7 +53,9 @@ class NewTransactionFab extends StatelessWidget {
         closedColor: Theme.of(context).colorScheme.primaryContainer,
         closedShape:
             Theme.of(context).floatingActionButtonTheme.shape ??
-            const RoundedRectangleBorder(borderRadius: .all(.circular(16.0))),
+            const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16.0)),
+            ),
         closedElevation:
             Theme.of(context).floatingActionButtonTheme.elevation ?? 6,
         closedBuilder: (BuildContext context, Function openContainer) {
@@ -53,10 +66,8 @@ class NewTransactionFab extends StatelessWidget {
           );
         },
         onClosed: (bool? refresh) {
-          if (refresh ?? false == true) {
-            if (context.mounted) {
-              context.read<FireflyService>().transStock!.clear();
-            }
+          if ((refresh ?? false) && context.mounted) {
+            onTransactionCreated?.call();
           }
         },
       );

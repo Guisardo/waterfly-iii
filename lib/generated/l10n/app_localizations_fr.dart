@@ -284,6 +284,25 @@ class SFr extends S {
   String get errorUnknown => 'Erreur inconnue.';
 
   @override
+  String get errorInvalidHost => 'Hôte invalide';
+
+  @override
+  String get errorInvalidApiKey => 'Clé API invalide';
+
+  @override
+  String get errorInvalidApiVersion => 'Version de l\'API Firefly invalide';
+
+  @override
+  String get errorApiVersionTooLow => 'Version de l\'API Firefly trop basse';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Code de statut HTTP inattendu';
+
+  @override
+  String get errorNotValidInstance =>
+      'Ce n\'est pas une instance Firefly III valide';
+
+  @override
   String get formButtonHelp => 'Aide';
 
   @override
@@ -932,6 +951,10 @@ class SFr extends S {
       'Veuillez d\'abord renseigner les comptes.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Veuillez sélectionner un compte d\'actif.';
 
@@ -996,4 +1019,189 @@ class SFr extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Dépense';
+
+  @override
+  String get syncSettingsTitle => 'Paramètres de synchronisation';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Synchroniser sur données mobiles';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Autoriser la synchronisation lors de l\'utilisation de données mobiles (désactivé par défaut pour économiser les données)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Identifiants';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Invalide - Veuillez ressaisir les identifiants';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Validé';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Non validé';
+
+  @override
+  String get syncSettingsReenterButton => 'Ressaisir';
+
+  @override
+  String get syncSettingsDownloadSync => 'Synchronisation de téléchargement';
+
+  @override
+  String get syncSettingsUploadSync => 'Synchronisation de téléversement';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Dernière synchronisation : $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Statut : En pause';
+
+  @override
+  String get syncSettingsStatusActive => 'Statut : Actif';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Nombre de tentatives : $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Prochaine tentative : $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Erreur : $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Reprendre maintenant';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Synchronisation manuelle';
+
+  @override
+  String get syncSettingsManualSyncSubtitle =>
+      'Déclencher la synchronisation maintenant';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Synchroniser maintenant';
+
+  @override
+  String get syncNotificationSyncing => 'Synchronisation...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Synchronisation avec Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Synchronisation de $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Synchronisation terminée';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Synchronisation avec Firefly III terminée avec succès';
+
+  @override
+  String get syncNotificationPaused => 'Synchronisation en pause';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Synchronisation en pause en raison d\'une erreur. Nouvelle tentative automatique.';
+
+  @override
+  String get syncNotificationAuthError => 'Erreur d\'authentification';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Veuillez ressaisir vos identifiants dans les paramètres';
+
+  @override
+  String get syncNotificationChannelName => 'Synchronisation';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Créer une transaction ?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Appuyez pour créer une transaction basée sur la notification $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Créer une transaction à partir d\'une notification';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notification demandant de créer une transaction à partir d\'une autre notification.';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Statut de la synchronisation en arrière-plan';
+
+  @override
+  String get syncSettingsEntityStatusTitle =>
+      'Statut de synchronisation des entités';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transactions';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Comptes';
+
+  @override
+  String get syncSettingsEntityCategories => 'Catégories';
+
+  @override
+  String get syncSettingsEntityTags => 'Tags';
+
+  @override
+  String get syncSettingsEntityBills => 'Factures';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budgets';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Devises';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Tirelires';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Jamais synchronisé';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Synchronisation...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Succès';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Erreur';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'En pause';
+
+  @override
+  String get settingsSynchronization => 'Synchronisation';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Paramètres et statut de synchronisation';
 }

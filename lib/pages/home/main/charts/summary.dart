@@ -11,20 +11,62 @@ import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/widgets/charts.dart';
 
-class SummaryChart extends StatelessWidget {
-  const SummaryChart({super.key, required this.data});
+class SummaryChart extends StatefulWidget {
+  const SummaryChart({super.key, required this.data, this.dataVersion});
 
   final List<ChartDataSet> data;
+  final int? dataVersion;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'SummaryChart(dataLength: ${data.length})';
+  }
+
+  @override
+  State<SummaryChart> createState() => _SummaryChartState();
+}
+
+class _SummaryChartState extends State<SummaryChart> {
+  @override
+  void didUpdateWidget(SummaryChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Force rebuild when data or dataVersion changes
+    if (oldWidget.data != widget.data ||
+        oldWidget.dataVersion != widget.dataVersion) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<ChartDataSet> data = widget.data;
+    final int? dataVersion = widget.dataVersion;
     final List<CartesianSeries<TimeSeriesChart, DateTime>> chartData =
         <CartesianSeries<TimeSeriesChart, DateTime>>[];
 
+    double minValue = double.infinity;
+    double maxValue = double.negativeInfinity;
+
     for (ChartDataSet e in data) {
+      final List<TimeSeriesChart> chartPoints = e.toChart();
+
+      // Calculate min/max for axis range
+      for (TimeSeriesChart point in chartPoints) {
+        if (point.value < minValue) minValue = point.value;
+        if (point.value > maxValue) maxValue = point.value;
+      }
+
+      // Skip series with all zeros to avoid rendering issues
+      final bool hasNonZeroValues = chartPoints.any(
+        (TimeSeriesChart p) => p.value != 0.0,
+      );
+      if (!hasNonZeroValues && chartPoints.isNotEmpty) {
+        continue;
+      }
+
       chartData.add(
         LineSeries<TimeSeriesChart, DateTime>(
-          dataSource: e.toChart(),
+          dataSource: chartPoints,
           xValueMapper: (TimeSeriesChart data, _) => data.time,
           yValueMapper: (TimeSeriesChart data, _) => data.value,
           legendItemText: e.label,
@@ -34,32 +76,53 @@ class SummaryChart extends StatelessWidget {
       );
     }
 
-    return SfCartesianChart(
-      primaryXAxis: DateTimeAxis(
-        labelStyle: Theme.of(
-          context,
-        ).textTheme.labelMedium?.copyWith(fontWeight: .normal),
-        dateFormat: DateFormat(DateFormat.ABBR_MONTH_DAY),
-        axisLine: AxisLine(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+    if (chartData.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Create a unique key based on data version and data hash to force complete recreation
+    final int dataHash = data.fold<int>(
+      0,
+      (int sum, ChartDataSet e) =>
+          sum + (e.label?.hashCode ?? 0) + e.toChart().length,
+    );
+    final int? version = dataVersion;
+    final Key chartKey = version != null
+        ? ValueKey<String>('summary-$version-$dataHash')
+        : ValueKey<int>(dataHash);
+    // Wrap chart in SizedBox with explicit width to ensure proper rendering
+    return SizedBox(
+      width: double.infinity,
+      child: SfCartesianChart(
+        key: chartKey,
+        primaryXAxis: DateTimeAxis(
+          labelStyle: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(fontWeight: .normal),
+          dateFormat: DateFormat(DateFormat.ABBR_MONTH_DAY),
+          axisLine: AxisLine(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          minorTicksPerInterval: 1,
         ),
-        minorTicksPerInterval: 1,
+        primaryYAxis: NumericAxis(
+          labelStyle: Theme.of(
+            context,
+          ).textTheme.labelMedium?.copyWith(fontWeight: .normal),
+          axisLine: AxisLine(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          axisLabelFormatter: (AxisLabelRenderDetails args) => ChartAxisLabel(
+            NumberFormat().format(double.parse(args.text)),
+            args.textStyle,
+          ),
+          minimum: minValue != double.infinity ? minValue : null,
+          maximum: maxValue != double.negativeInfinity ? maxValue : null,
+        ),
+        series: chartData,
+        palette: possibleChartColorsDart,
+        enableAxisAnimation: true,
       ),
-      primaryYAxis: NumericAxis(
-        labelStyle: Theme.of(
-          context,
-        ).textTheme.labelMedium?.copyWith(fontWeight: .normal),
-        axisLine: AxisLine(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-        axisLabelFormatter: (AxisLabelRenderDetails args) => ChartAxisLabel(
-          NumberFormat().format(double.parse(args.text)),
-          args.textStyle,
-        ),
-      ),
-      series: chartData,
-      palette: possibleChartColorsDart,
-      enableAxisAnimation: true,
     );
   }
 }

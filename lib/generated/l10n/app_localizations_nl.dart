@@ -281,6 +281,24 @@ class SNl extends S {
   String get errorUnknown => 'Onbekende fout.';
 
   @override
+  String get errorInvalidHost => 'Ongeldige host';
+
+  @override
+  String get errorInvalidApiKey => 'Ongeldige API-sleutel';
+
+  @override
+  String get errorInvalidApiVersion => 'Ongeldige Firefly API-versie';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API-versie te laag';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Onverwachte HTTP-statuscode';
+
+  @override
+  String get errorNotValidInstance => 'Geen geldige Firefly III-instantie';
+
+  @override
   String get formButtonHelp => 'Hulp';
 
   @override
@@ -921,6 +939,10 @@ class SNl extends S {
   String get transactionErrorNoAccounts => 'Vul eerst de rekeningen in.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount => 'Selecteer een betaalrekening.';
 
   @override
@@ -983,4 +1005,186 @@ class SNl extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Opname';
+
+  @override
+  String get syncSettingsTitle => 'Synchronisatie-instellingen';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Synchroniseren via mobiele data';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Synchronisatie toestaan bij gebruik van mobiele data (standaard uitgeschakeld om data te besparen)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Inloggegevens';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Ongeldig - Voer de inloggegevens opnieuw in';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Geverifieerd';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Niet geverifieerd';
+
+  @override
+  String get syncSettingsReenterButton => 'Opnieuw invoeren';
+
+  @override
+  String get syncSettingsDownloadSync => 'Downloadsynchronisatie';
+
+  @override
+  String get syncSettingsUploadSync => 'Uploadsynchronisatie';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Laatste synchronisatie: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Status: Gepauzeerd';
+
+  @override
+  String get syncSettingsStatusActive => 'Status: Actief';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Aantal pogingen: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Volgende poging: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Fout: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Nu hervatten';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Handmatige synchronisatie';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Synchronisatie nu activeren';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Nu synchroniseren';
+
+  @override
+  String get syncNotificationSyncing => 'Synchroniseren...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Synchroniseren met Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Synchroniseren $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Synchronisatie voltooid';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Synchronisatie met Firefly III succesvol voltooid';
+
+  @override
+  String get syncNotificationPaused => 'Synchronisatie gepauzeerd';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Synchronisatie gepauzeerd vanwege een fout. Wordt automatisch opnieuw geprobeerd.';
+
+  @override
+  String get syncNotificationAuthError => 'Authenticatiefout';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Voer uw inloggegevens opnieuw in via de instellingen';
+
+  @override
+  String get syncNotificationChannelName => 'Synchronisatie';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Transactie aanmaken?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Tik om een transactie aan te maken op basis van de melding $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName => 'Transactie maken van melding';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Melding die vraagt om een transactie aan te maken van een andere melding.';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Status van achtergrondsynchronisatie';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Entiteit synchronisatiestatus';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transacties';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Rekeningen';
+
+  @override
+  String get syncSettingsEntityCategories => 'Categorieën';
+
+  @override
+  String get syncSettingsEntityTags => 'Tags';
+
+  @override
+  String get syncSettingsEntityBills => 'Rekeningen';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Budgetten';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Valuta';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Spaarpotten';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Nooit gesynchroniseerd';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Synchroniseren...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Succesvol';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Fout';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Gepauzeerd';
+
+  @override
+  String get settingsSynchronization => 'Synchronisatie';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Synchronisatie-instellingen en status';
 }

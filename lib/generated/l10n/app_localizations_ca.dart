@@ -284,6 +284,24 @@ class SCa extends S {
   String get errorUnknown => 'Error desconegut.';
 
   @override
+  String get errorInvalidHost => 'Invalid host';
+
+  @override
+  String get errorInvalidApiKey => 'Invalid API key';
+
+  @override
+  String get errorInvalidApiVersion => 'Invalid Firefly API version';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API version too low';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Unexpected HTTP status code';
+
+  @override
+  String get errorNotValidInstance => 'Not a valid Firefly III instance';
+
+  @override
   String get formButtonHelp => 'Ajuda';
 
   @override
@@ -931,6 +949,10 @@ class SCa extends S {
       'Si us plau, omple els comptes primer.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Si us plau, selecciona un compte d\'actiu.';
 
@@ -996,4 +1018,188 @@ class SCa extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Retirada';
+
+  @override
+  String get syncSettingsTitle => 'Configuració de sincronització';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Sincronitzar amb dades mòbils';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Permetre la sincronització quan s\'utilitzen dades mòbils (desactivat per defecte per estalviar dades)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Credencials';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Invàlid - Si us plau, torneu a introduir les credencials';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Validat';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'No validat';
+
+  @override
+  String get syncSettingsReenterButton => 'Tornar a introduir';
+
+  @override
+  String get syncSettingsDownloadSync => 'Sincronització de descàrrega';
+
+  @override
+  String get syncSettingsUploadSync => 'Sincronització de càrrega';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Última sincronització: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Estat: Pausat';
+
+  @override
+  String get syncSettingsStatusActive => 'Estat: Actiu';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Nombre d\'intents: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Següent intent: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Reprendre ara';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Sincronització manual';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Activar sincronització ara';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Sincronitzar ara';
+
+  @override
+  String get syncNotificationSyncing => 'Sincronitzant...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Sincronitzant amb Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Sincronitzant $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Sincronització completada';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Sincronització amb Firefly III completada amb èxit';
+
+  @override
+  String get syncNotificationPaused => 'Sincronització pausada';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Sincronització pausada a causa d\'un error. Es tornarà a intentar automàticament.';
+
+  @override
+  String get syncNotificationAuthError => 'Error d\'autenticació';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Si us plau, torneu a introduir les vostres credencials a la configuració';
+
+  @override
+  String get syncNotificationChannelName => 'Sincronització';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Create Transaction?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Click to create a transaction based on the notification $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Create Transaction from Notification';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notification asking to create a transaction from another Notification.';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Estat de la sincronització en segon pla';
+
+  @override
+  String get syncSettingsEntityStatusTitle =>
+      'Estat de sincronització d\'entitats';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transaccions';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Comptes';
+
+  @override
+  String get syncSettingsEntityCategories => 'Categories';
+
+  @override
+  String get syncSettingsEntityTags => 'Etiquetes';
+
+  @override
+  String get syncSettingsEntityBills => 'Factures';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Pressupostos';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Monedes';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Guardioles';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Mai sincronitzat';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Sincronitzant...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Èxit';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Error';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Pausat';
+
+  @override
+  String get settingsSynchronization => 'Sincronització';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Configuració i estat de sincronització';
 }

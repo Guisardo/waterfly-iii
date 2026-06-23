@@ -492,6 +492,42 @@ abstract class S {
   /// **'Unknown error.'**
   String get errorUnknown;
 
+  /// Error: The provided host URL is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid host'**
+  String get errorInvalidHost;
+
+  /// Error: The provided API key is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid API key'**
+  String get errorInvalidApiKey;
+
+  /// Error: The Firefly API version is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Firefly API version'**
+  String get errorInvalidApiVersion;
+
+  /// Error: The Firefly API version is too low
+  ///
+  /// In en, this message translates to:
+  /// **'Firefly API version too low'**
+  String get errorApiVersionTooLow;
+
+  /// Error: Received an unexpected HTTP status code
+  ///
+  /// In en, this message translates to:
+  /// **'Unexpected HTTP status code'**
+  String get errorUnexpectedStatusCode;
+
+  /// Error: The host is not a valid Firefly III instance
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid Firefly III instance'**
+  String get errorNotValidInstance;
+
   /// Button Label: Help
   ///
   /// In en, this message translates to:
@@ -1530,6 +1566,12 @@ abstract class S {
   /// **'Please fill in the accounts first.'**
   String get transactionErrorNoAccounts;
 
+  /// Message shown when transaction is saved offline and queued for sync
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction saved. Will sync when online.'**
+  String get transactionSavedOffline;
+
   /// Transaction Save Error: No account is an asset (own) account
   ///
   /// In en, this message translates to:
@@ -1655,6 +1697,324 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Withdrawal'**
   String get transactionTypeWithdrawal;
+
+  /// Title for sync settings page
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Settings'**
+  String get syncSettingsTitle;
+
+  /// Title for mobile data sync toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Sync on mobile data'**
+  String get syncSettingsMobileDataTitle;
+
+  /// Subtitle for mobile data sync toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Allow synchronization when using mobile data (disabled by default to save data)'**
+  String get syncSettingsMobileDataSubtitle;
+
+  /// Title for credentials status section
+  ///
+  /// In en, this message translates to:
+  /// **'Credentials'**
+  String get syncSettingsCredentialsTitle;
+
+  /// Text shown when credentials are invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid - Please re-enter credentials'**
+  String get syncSettingsCredentialsInvalid;
+
+  /// Text shown when credentials are validated
+  ///
+  /// In en, this message translates to:
+  /// **'Validated'**
+  String get syncSettingsCredentialsValidated;
+
+  /// Text shown when credentials are not yet validated
+  ///
+  /// In en, this message translates to:
+  /// **'Not validated'**
+  String get syncSettingsCredentialsNotValidated;
+
+  /// Button text to re-enter credentials
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter'**
+  String get syncSettingsReenterButton;
+
+  /// Title for download sync status section
+  ///
+  /// In en, this message translates to:
+  /// **'Download Sync'**
+  String get syncSettingsDownloadSync;
+
+  /// Title for upload sync status section
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Sync'**
+  String get syncSettingsUploadSync;
+
+  /// Text showing last sync time
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync: {date}'**
+  String syncSettingsLastSync(String date);
+
+  /// Text shown when sync is paused
+  ///
+  /// In en, this message translates to:
+  /// **'Status: Paused'**
+  String get syncSettingsStatusPaused;
+
+  /// Text shown when sync is active
+  ///
+  /// In en, this message translates to:
+  /// **'Status: Active'**
+  String get syncSettingsStatusActive;
+
+  /// Text shown when sync is in progress
+  ///
+  /// In en, this message translates to:
+  /// **'Status: Syncing...'**
+  String get syncSettingsStatusSyncing;
+
+  /// Text showing retry count
+  ///
+  /// In en, this message translates to:
+  /// **'Retry count: {count}'**
+  String syncSettingsRetryCount(int count);
+
+  /// Text showing next retry time
+  ///
+  /// In en, this message translates to:
+  /// **'Next retry: {date}'**
+  String syncSettingsNextRetry(String date);
+
+  /// Text showing sync error
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String syncSettingsError(String error);
+
+  /// Button text to resume paused sync
+  ///
+  /// In en, this message translates to:
+  /// **'Resume Now'**
+  String get syncSettingsResumeButton;
+
+  /// Title for manual sync section
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Sync'**
+  String get syncSettingsManualSyncTitle;
+
+  /// Subtitle for manual sync section
+  ///
+  /// In en, this message translates to:
+  /// **'Trigger sync now'**
+  String get syncSettingsManualSyncSubtitle;
+
+  /// Button text to trigger manual sync
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Now'**
+  String get syncSettingsSyncNowButton;
+
+  /// Notification title when sync is in progress
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get syncNotificationSyncing;
+
+  /// Notification body when sync is in progress
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronizing with Firefly III'**
+  String get syncNotificationSyncingBody;
+
+  /// Notification title when syncing specific entity type
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing {entityType}...'**
+  String syncNotificationSyncingEntity(String entityType);
+
+  /// Notification title when sync is completed
+  ///
+  /// In en, this message translates to:
+  /// **'Sync completed'**
+  String get syncNotificationCompleted;
+
+  /// Notification body when sync is completed
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization with Firefly III completed successfully'**
+  String get syncNotificationCompletedBody;
+
+  /// Notification title when sync is paused
+  ///
+  /// In en, this message translates to:
+  /// **'Sync paused'**
+  String get syncNotificationPaused;
+
+  /// Notification body when sync is paused
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization paused due to error. Will retry automatically.'**
+  String get syncNotificationPausedBody;
+
+  /// Notification title for authentication error
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication error'**
+  String get syncNotificationAuthError;
+
+  /// Notification body for authentication error
+  ///
+  /// In en, this message translates to:
+  /// **'Please re-enter your credentials in settings'**
+  String get syncNotificationAuthErrorBody;
+
+  /// Name of the sync notification channel
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization'**
+  String get syncNotificationChannelName;
+
+  /// Title of notification asking user to create a transaction from another notification
+  ///
+  /// In en, this message translates to:
+  /// **'Create Transaction?'**
+  String get notificationListenerCreateTransactionTitle;
+
+  /// Body of notification asking user to create a transaction from another notification
+  ///
+  /// In en, this message translates to:
+  /// **'Click to create a transaction based on the notification {appName}'**
+  String notificationListenerCreateTransactionBody(String appName);
+
+  /// Name of the notification listener channel
+  ///
+  /// In en, this message translates to:
+  /// **'Create Transaction from Notification'**
+  String get notificationListenerChannelName;
+
+  /// Description of the notification listener channel
+  ///
+  /// In en, this message translates to:
+  /// **'Notification asking to create a transaction from another Notification.'**
+  String get notificationListenerChannelDescription;
+
+  /// Description of the sync notification channel
+  ///
+  /// In en, this message translates to:
+  /// **'Background synchronization status'**
+  String get syncNotificationChannelDescription;
+
+  /// Title for the per-entity sync status section
+  ///
+  /// In en, this message translates to:
+  /// **'Entity Sync Status'**
+  String get syncSettingsEntityStatusTitle;
+
+  /// Entity type name: Transactions
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get syncSettingsEntityTransactions;
+
+  /// Entity type name: Accounts
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get syncSettingsEntityAccounts;
+
+  /// Entity type name: Categories
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get syncSettingsEntityCategories;
+
+  /// Entity type name: Tags
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get syncSettingsEntityTags;
+
+  /// Entity type name: Bills
+  ///
+  /// In en, this message translates to:
+  /// **'Bills'**
+  String get syncSettingsEntityBills;
+
+  /// Entity type name: Budgets
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get syncSettingsEntityBudgets;
+
+  /// Entity type name: Currencies
+  ///
+  /// In en, this message translates to:
+  /// **'Currencies'**
+  String get syncSettingsEntityCurrencies;
+
+  /// Entity type name: Piggy Banks
+  ///
+  /// In en, this message translates to:
+  /// **'Piggy Banks'**
+  String get syncSettingsEntityPiggyBanks;
+
+  /// Status text when an entity has never been synced
+  ///
+  /// In en, this message translates to:
+  /// **'Never synced'**
+  String get syncSettingsEntityStatusNeverSynced;
+
+  /// Status text when an entity is currently syncing
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get syncSettingsEntityStatusSyncing;
+
+  /// Progress indicator showing current count and total count
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String syncSettingsEntityProgress(int current, int total);
+
+  /// Status text when an entity sync was successful
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get syncSettingsEntityStatusSuccess;
+
+  /// Status text when an entity sync has an error
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get syncSettingsEntityStatusError;
+
+  /// Status text when an entity sync is paused
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get syncSettingsEntityStatusPaused;
+
+  /// Title for synchronization settings option in main settings page
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization'**
+  String get settingsSynchronization;
+
+  /// Subtitle for synchronization settings option in main settings page
+  ///
+  /// In en, this message translates to:
+  /// **'Sync settings and status'**
+  String get settingsSynchronizationSubtitle;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

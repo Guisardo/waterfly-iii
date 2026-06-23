@@ -24,6 +24,7 @@ class _SplashPageState extends State<SplashPage> {
   final Logger log = Logger("Pages.Splash.Page");
 
   Object? _loginError;
+  bool _loginInProgress = false;
 
   Future<void> _login(String? host, String? apiKey) async {
     log.fine(() => "SplashPage->_login()");
@@ -32,14 +33,19 @@ class _SplashPageState extends State<SplashPage> {
 
     try {
       if (host == null || apiKey == null) {
-        log.finer(() => "SplashPage->_login() from storage");
-        success = await context.read<FireflyService>().signInFromStorage();
+        log.finer(
+          () =>
+              "SplashPage->_login() from storage - should not happen, use restoreFromStorage()",
+        );
+        // This path should not be used - app startup should use restoreFromStorage()
+        // But keeping for backward compatibility
+        success = await context.read<FireflyService>().restoreFromStorage();
       } else {
         log.finer(
           () =>
-              "SplashPage->_login() with credentials: $host, apiKey ${apiKey.isEmpty ? "unset" : "set"}, "
-              "customHeaders ${widget.customHeadersRaw?.isNotEmpty ?? false ? "set" : "unset"}",
+              "SplashPage->_login() with credentials: $host, apiKey ${apiKey.isEmpty ? "unset" : "set"}",
         );
+        // New login with credentials - validate with API calls
         success = await context.read<FireflyService>().signIn(
           host,
           apiKey,
@@ -52,9 +58,18 @@ class _SplashPageState extends State<SplashPage> {
         e,
         stackTrace,
       );
-      setState(() {
-        _loginError = e;
-      });
+      if (mounted) {
+        setState(() {
+          _loginError = e;
+        });
+      }
+    } finally {
+      // Allow auto-pop now that login attempt is complete
+      if (mounted) {
+        setState(() {
+          _loginInProgress = false;
+        });
+      }
     }
 
     log.fine(() => "_login() returning $success");
@@ -67,6 +82,7 @@ class _SplashPageState extends State<SplashPage> {
     super.initState();
 
     if (widget.host != null && widget.apiKey != null) {
+      _loginInProgress = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         log.finest(() => "initState() scheduling login");
         _login(widget.host, widget.apiKey);
@@ -78,7 +94,10 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     log.finest(() => "build(loginError: $_loginError)");
 
-    if (context.read<FireflyService>().signedIn) {
+    // Watch for authentication state changes reactively
+    final FireflyService fireflyService = context.watch<FireflyService>();
+
+    if (fireflyService.signedIn && !_loginInProgress && _loginError == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
       });
@@ -87,15 +106,22 @@ class _SplashPageState extends State<SplashPage> {
 
     Widget page;
 
-    _loginError ??= context.select(
-      (FireflyService f) => f.storageSignInException,
-    );
+    // Update error from storage sign-in exception if available
+    _loginError ??= fireflyService.storageSignInException;
+
+    // Also watch for changes to storage sign-in exception, but only update
+    // when a new (non-null) exception appears — never clear a local error
+    // that was set by a signIn() failure.
+    final Object? currentException = fireflyService.storageSignInException;
+    if (currentException != null && currentException != _loginError) {
+      _loginError = currentException;
+    }
 
     if (_loginError == null) {
       log.finer(() => "_loginError null --> show spinner");
       page = Container(
         alignment: const Alignment(0, 0),
-        child: const CircularProgressIndicator.adaptive(),
+        child: const CircularProgressIndicator(),
       );
       const QuickActions().setShortcutItems(<ShortcutItem>[
         ShortcutItem(
@@ -109,12 +135,20 @@ class _SplashPageState extends State<SplashPage> {
       String errorDetails =
           "Host: ${context.read<FireflyService>().lastTriedHost}";
       final String errorDescription = () {
-        if (_loginError is AuthErrorStatusCode) {
+        if (_loginError is AuthErrorHost) {
+          return S.of(context).errorInvalidHost;
+        } else if (_loginError is AuthErrorApiKey) {
+          return S.of(context).errorInvalidApiKey;
+        } else if (_loginError is AuthErrorNoInstance) {
+          return S.of(context).errorNotValidInstance;
+        } else if (_loginError is AuthErrorVersionInvalid) {
+          return S.of(context).errorInvalidApiVersion;
+        } else if (_loginError is AuthErrorStatusCode) {
           final AuthErrorStatusCode errorType =
               _loginError as AuthErrorStatusCode;
           errorDetails += "\n";
           errorDetails += S.of(context).errorStatusCode(errorType.code);
-          return errorType.cause;
+          return S.of(context).errorUnexpectedStatusCode;
         } else if (_loginError is AuthErrorVersionTooLow) {
           final AuthErrorVersionTooLow errorType =
               _loginError as AuthErrorVersionTooLow;
@@ -122,16 +156,13 @@ class _SplashPageState extends State<SplashPage> {
           errorDetails += S
               .of(context)
               .errorMinAPIVersion(errorType.requiredVersion.toString());
-          return errorType.cause;
-        } else if (_loginError is AuthError) {
-          final AuthError errorType = _loginError as AuthError;
-          return errorType.cause;
+          return S.of(context).errorApiVersionTooLow;
         }
         errorDetails += "\n$_loginError";
         return S.of(context).errorUnknown;
       }();
       page = SizedBox(
-        width: .infinity,
+        width: double.infinity,
         child: Column(
           children: <Widget>[
             AnimatedHeight(
@@ -139,7 +170,7 @@ class _SplashPageState extends State<SplashPage> {
                 elevation: 0,
                 color: Theme.of(context).colorScheme.errorContainer,
                 child: Padding(
-                  padding: const .all(12),
+                  padding: const EdgeInsets.all(12),
                   child: Text(
                     errorDescription,
                     style: TextStyle(
@@ -155,7 +186,7 @@ class _SplashPageState extends State<SplashPage> {
                 elevation: 0,
                 color: Theme.of(context).colorScheme.errorContainer,
                 child: Padding(
-                  padding: const .all(12),
+                  padding: const EdgeInsets.all(12),
                   child: Text(
                     errorDetails,
                     style: TextStyle(
@@ -168,7 +199,7 @@ class _SplashPageState extends State<SplashPage> {
             ),
             const SizedBox(height: 12),
             OverflowBar(
-              alignment: .center,
+              alignment: MainAxisAlignment.center,
               spacing: 12,
               children: <Widget>[
                 OutlinedButton(
@@ -206,7 +237,7 @@ class _SplashPageState extends State<SplashPage> {
         child: Center(
           child: ListView(
             shrinkWrap: true,
-            padding: const .all(24),
+            padding: const EdgeInsets.all(24),
             children: <Widget>[
               Column(
                 children: <Widget>[

@@ -281,6 +281,24 @@ class SId extends S {
   String get errorUnknown => 'Kesalahan tidak diketahui.';
 
   @override
+  String get errorInvalidHost => 'Invalid host';
+
+  @override
+  String get errorInvalidApiKey => 'Invalid API key';
+
+  @override
+  String get errorInvalidApiVersion => 'Invalid Firefly API version';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API version too low';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Unexpected HTTP status code';
+
+  @override
+  String get errorNotValidInstance => 'Not a valid Firefly III instance';
+
+  @override
   String get formButtonHelp => 'Bantuan';
 
   @override
@@ -921,6 +939,10 @@ class SId extends S {
   String get transactionErrorNoAccounts => 'Harap isi akun terlebih dahulu.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount => 'Harap pilih akun aset.';
 
   @override
@@ -985,4 +1007,187 @@ class SId extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Penarikan';
+
+  @override
+  String get syncSettingsTitle => 'Pengaturan Sinkronisasi';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Sinkronkan dengan data seluler';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Izinkan sinkronisasi saat menggunakan data seluler (dinonaktifkan secara default untuk menghemat data)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Kredensial';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Tidak valid - Silakan masukkan kredensial lagi';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Tervalidasi';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Belum tervalidasi';
+
+  @override
+  String get syncSettingsReenterButton => 'Masukkan lagi';
+
+  @override
+  String get syncSettingsDownloadSync => 'Sinkronisasi unduhan';
+
+  @override
+  String get syncSettingsUploadSync => 'Sinkronisasi unggahan';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Sinkronisasi terakhir: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Status: Dijeda';
+
+  @override
+  String get syncSettingsStatusActive => 'Status: Aktif';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Jumlah percobaan: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Percobaan berikutnya: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Kesalahan: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Lanjutkan sekarang';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Sinkronisasi manual';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Aktifkan sinkronisasi sekarang';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Sinkronkan sekarang';
+
+  @override
+  String get syncNotificationSyncing => 'Menyinkronkan...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Menyinkronkan dengan Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Menyinkronkan $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Sinkronisasi selesai';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Sinkronisasi dengan Firefly III berhasil diselesaikan';
+
+  @override
+  String get syncNotificationPaused => 'Sinkronisasi dijeda';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Sinkronisasi dijeda karena kesalahan. Akan dicoba lagi secara otomatis.';
+
+  @override
+  String get syncNotificationAuthError => 'Kesalahan autentikasi';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Silakan masukkan kredensial Anda lagi di pengaturan';
+
+  @override
+  String get syncNotificationChannelName => 'Sinkronisasi';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Create Transaction?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Click to create a transaction based on the notification $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Create Transaction from Notification';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notification asking to create a transaction from another Notification.';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Status sinkronisasi latar belakang';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Status Sinkronisasi Entitas';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Transaksi';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Akun';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategori';
+
+  @override
+  String get syncSettingsEntityTags => 'Tag';
+
+  @override
+  String get syncSettingsEntityBills => 'Tagihan';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Anggaran';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Mata Uang';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Celengan';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Belum pernah disinkronkan';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Menyinkronkan...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Berhasil';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Kesalahan';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Dijeda';
+
+  @override
+  String get settingsSynchronization => 'Sinkronisasi';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Pengaturan dan status sinkronisasi';
 }

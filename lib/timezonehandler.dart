@@ -1,27 +1,47 @@
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:logging/logging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 class TimeZoneHandler {
   late tz.Location _serverLoc;
   tz.Location? _deviceLoc;
+  String _serverTimezone;
 
   final Logger log = Logger("TimeZoneHandler");
 
-  // :TODO: make variable
   bool _useServerTime = true;
   bool get useServerTime => _useServerTime;
+  String get serverTimezone => _serverTimezone;
 
-  TimeZoneHandler(String serverTZ) {
+  TimeZoneHandler(String serverTZ) : _serverTimezone = serverTZ {
     try {
       _serverLoc = tz.getLocation(serverTZ);
     } on tz.LocationNotFoundException {
       _serverLoc = tz.getLocation("UTC");
+      _serverTimezone = "UTC";
     }
     log.info(() => "Server Timezone: $serverTZ ($sLocation)");
-    updateDeviceLocation().then(
-      (_) => tz.setLocalLocation(useServerTime ? sLocation : dLocation),
-    );
+    // Load useServerTime setting from SharedPreferences
+    _loadUseServerTimeSetting().then((bool useServerTime) {
+      _useServerTime = useServerTime;
+      updateDeviceLocation().then(
+        (_) => tz.setLocalLocation(useServerTime ? sLocation : dLocation),
+      );
+    });
+  }
+
+  Future<bool> _loadUseServerTimeSetting() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      return prefs.getBool('USESERVERTIME') ?? true;
+    } catch (e) {
+      log.warning(
+        "Failed to load useServerTime setting, defaulting to true",
+        e,
+      );
+      return true;
+    }
   }
 
   tz.Location get sLocation => _serverLoc;
@@ -47,8 +67,10 @@ class TimeZoneHandler {
   }
 
   tz.TZDateTime getLocalTimeAsServerTime(tz.TZDateTime t) {
-    final Duration offsetMs =
-        sLocation.currentTimeZone.offset - dLocation.currentTimeZone.offset;
+    final Duration offsetMs = Duration(
+      milliseconds:
+          sLocation.currentTimeZone.offset - dLocation.currentTimeZone.offset,
+    );
     return t.subtract(offsetMs);
   }
 

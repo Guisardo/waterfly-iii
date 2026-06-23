@@ -290,6 +290,25 @@ class SRu extends S {
   String get errorUnknown => 'Неизвестная ошибка.';
 
   @override
+  String get errorInvalidHost => 'Неверный хост';
+
+  @override
+  String get errorInvalidApiKey => 'Неверный API-ключ';
+
+  @override
+  String get errorInvalidApiVersion => 'Неверная версия API Firefly';
+
+  @override
+  String get errorApiVersionTooLow => 'Версия API Firefly слишком низкая';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Неожиданный HTTP-код состояния';
+
+  @override
+  String get errorNotValidInstance =>
+      'Не является действительным экземпляром Firefly III';
+
+  @override
   String get formButtonHelp => 'Помощь';
 
   @override
@@ -928,6 +947,10 @@ class SRu extends S {
   String get transactionErrorNoAccounts => 'Пожалуйста, сначала укажите счета.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Пожалуйста, выберите счёт актива.';
 
@@ -993,4 +1016,188 @@ class SRu extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Вывод средств';
+
+  @override
+  String get syncSettingsTitle => 'Настройки синхронизации';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Синхронизация по мобильным данным';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Разрешить синхронизацию при использовании мобильных данных (по умолчанию отключено для экономии данных)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Учетные данные';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Недействительно - Пожалуйста, введите учетные данные заново';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Проверено';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Не проверено';
+
+  @override
+  String get syncSettingsReenterButton => 'Ввести заново';
+
+  @override
+  String get syncSettingsDownloadSync => 'Синхронизация загрузки';
+
+  @override
+  String get syncSettingsUploadSync => 'Синхронизация выгрузки';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Последняя синхронизация: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Статус: Приостановлено';
+
+  @override
+  String get syncSettingsStatusActive => 'Статус: Активно';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Количество попыток: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Следующая попытка: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Ошибка: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Возобновить сейчас';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Ручная синхронизация';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Запустить синхронизацию сейчас';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Синхронизировать сейчас';
+
+  @override
+  String get syncNotificationSyncing => 'Синхронизация...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Синхронизация с Firefly III';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Синхронизация $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Синхронизация завершена';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'Синхронизация с Firefly III успешно завершена';
+
+  @override
+  String get syncNotificationPaused => 'Синхронизация приостановлена';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Синхронизация приостановлена из-за ошибки. Будет автоматически повторена.';
+
+  @override
+  String get syncNotificationAuthError => 'Ошибка аутентификации';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Пожалуйста, введите учетные данные заново в настройках';
+
+  @override
+  String get syncNotificationChannelName => 'Синхронизация';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Создать транзакцию?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Нажмите, чтобы создать транзакцию на основе уведомления $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Создать транзакцию из уведомления';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Уведомление с запросом на создание транзакции из другого уведомления.';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Статус фоновой синхронизации';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Статус синхронизации сущностей';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Транзакции';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Счета';
+
+  @override
+  String get syncSettingsEntityCategories => 'Категории';
+
+  @override
+  String get syncSettingsEntityTags => 'Теги';
+
+  @override
+  String get syncSettingsEntityBills => 'Счета';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Бюджеты';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Валюты';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Копилки';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced =>
+      'Никогда не синхронизировалось';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Синхронизация...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Успешно';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Ошибка';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Приостановлено';
+
+  @override
+  String get settingsSynchronization => 'Синхронизация';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Настройки и статус синхронизации';
 }

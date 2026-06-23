@@ -1,15 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:async/async.dart';
 import 'package:badges/badges.dart' as badges;
-import 'package:chopper/chopper.dart' show HttpMethod, Response;
+import 'package:chopper/chopper.dart' show Response;
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_sharing_intent/model/sharing_file.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
@@ -29,7 +26,10 @@ import 'package:waterflyiii/pages/transaction/delete.dart';
 import 'package:waterflyiii/pages/transaction/piggy.dart';
 import 'package:waterflyiii/pages/transaction/tags.dart';
 import 'package:waterflyiii/settings.dart';
-import 'package:waterflyiii/stock.dart';
+import 'package:isar_community/isar.dart';
+import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
+import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/timezonehandler.dart';
 import 'package:waterflyiii/widgets/autocompletetext.dart';
 import 'package:waterflyiii/widgets/input_number.dart';
@@ -890,11 +890,6 @@ class _TransactionPageState extends State<TransactionPage>
                       context,
                     );
                     final NavigatorState nav = Navigator.of(context);
-                    final FireflyIii api = context.read<FireflyService>().api;
-                    final AuthUser? user = context.read<FireflyService>().user;
-                    final TransStock? stock = context
-                        .read<FireflyService>()
-                        .transStock;
 
                     // Sanity checks
                     String? error;
@@ -904,9 +899,6 @@ class _TransactionPageState extends State<TransactionPage>
                     }
                     if (_titleTextController.text.isEmpty) {
                       error = S.of(context).transactionErrorTitle;
-                    }
-                    if (user == null || stock == null) {
-                      error = S.of(context).errorAPIUnavailable;
                     }
                     if (_transactionType ==
                         TransactionTypeProperty.swaggerGeneratedUnknown) {
@@ -921,147 +913,50 @@ class _TransactionPageState extends State<TransactionPage>
                       );
                       return;
                     }
-                    // Force evaluate any pending math expressions in amount fields
-                    // before reading _localAmounts in the save loop below.
-                    // FocusNode listeners fire synchronously on unfocus(), so
-                    // _onFocusChange → _evaluateExpression → onChanged completes
-                    // before the next line executes.
-                    FocusScope.of(context).unfocus();
-
                     // Do stuff
                     setState(() {
                       _savingInProgress = true;
                     });
-                    late Response<TransactionSingle> resp;
 
-                    // Update existing transaction
-                    if (!_newTX) {
-                      final String id = widget.transaction!.id;
-                      final List<TransactionSplitUpdate> txS =
-                          <TransactionSplitUpdate>[];
-                      for (int i = 0; i < _localAmounts.length; i++) {
-                        late String sourceName, destinationName;
+                    // Get the repository
+                    final Isar isar = await AppDatabase.instance;
+                    final TransactionRepository transactionRepo =
+                        TransactionRepository(isar);
 
-                        sourceName = _sourceAccountTextControllers[i].text;
-                        if (sourceName.isEmpty) {
-                          sourceName = _sourceAccountTextController.text;
-                        }
-                        destinationName =
-                            _destinationAccountTextControllers[i].text;
-                        if (destinationName.isEmpty) {
+                    try {
+                      // Update existing transaction
+                      if (!_newTX) {
+                        final String id = widget.transaction!.id;
+                        final List<TransactionSplitUpdate> txS =
+                            <TransactionSplitUpdate>[];
+                        for (int i = 0; i < _localAmounts.length; i++) {
+                          late String sourceName, destinationName;
+
+                          sourceName = _sourceAccountTextControllers[i].text;
+                          if (sourceName.isEmpty) {
+                            sourceName = _sourceAccountTextController.text;
+                          }
                           destinationName =
-                              _destinationAccountTextController.text;
-                        }
+                              _destinationAccountTextControllers[i].text;
+                          if (destinationName.isEmpty) {
+                            destinationName =
+                                _destinationAccountTextController.text;
+                          }
 
-                        final TransactionSplitUpdate
-                        txSs = TransactionSplitUpdate(
-                          amount: _localAmounts[i].toString(),
-                          billId: _bills[i]?.id ?? "0",
-                          budgetName:
-                              (_transactionType ==
-                                  TransactionTypeProperty.withdrawal)
-                              ? _budgetTextControllers[i].text
-                              : "",
-                          categoryName: _categoryTextControllers[i].text,
-                          date: _date,
-                          description: _split
-                              ? _titleTextControllers[i].text
-                              : _titleTextController.text,
-                          destinationName: destinationName,
-                          // :HAX: Since nulled fields are not submitted, we set
-                          // the value to 0 so the foreign currency is gone...
-                          foreignAmount: _foreignCurrencies[i] != null
-                              ? _foreignAmounts[i].toString()
-                              : "0",
-                          foreignCurrencyId: _foreignCurrencies[i]?.id,
-                          notes: _noteTextControllers[i].text,
-                          order: i,
-                          sourceName: sourceName,
-                          tags: _tags[i].tags,
-                          transactionJournalId: _transactionJournalIDs
-                              .elementAtOrNull(i),
-                          type: _transactionType,
-                          reconciled: _reconciled,
-                        );
-
-                        final TransactionSplit? oldSplit = widget
-                            .transaction
-                            ?.attributes
-                            .transactions
-                            .firstWhereOrNull(
-                              (TransactionSplit e) =>
-                                  e.transactionJournalId != null &&
-                                  e.transactionJournalId ==
-                                      txSs.transactionJournalId,
-                            );
-                        if (oldSplit != null) {
-                          txS.add(txFilterSameFields(txSs, oldSplit));
-                        } else {
-                          txS.add(txSs);
-                        }
-                      }
-                      final TransactionUpdate txUpdate = TransactionUpdate(
-                        groupTitle: _split ? _titleTextController.text : null,
-                        transactions: txS,
-                      );
-                      // Delete old splits
-                      final List<Future<Response<dynamic>>> futures =
-                          _deletedSplitIDs
-                              .where((String id) => id.isNotEmpty)
-                              .map((String id) {
-                                log.fine(() => "deleting split $id");
-                                return api.v1TransactionJournalsIdDelete(
-                                  id: id,
-                                );
-                              })
-                              .toList();
-                      if (futures.isNotEmpty) {
-                        await Future.wait(futures);
-                      }
-                      resp = await api.v1TransactionsIdPut(
-                        id: id,
-                        body: txUpdate,
-                      );
-                    } else {
-                      // New transaction
-                      final List<TransactionSplitStore> txS =
-                          <TransactionSplitStore>[];
-                      for (int i = 0; i < _localAmounts.length; i++) {
-                        late String sourceName, destinationName;
-
-                        sourceName = _sourceAccountTextControllers[i].text;
-                        if (sourceName.isEmpty) {
-                          sourceName = _sourceAccountTextController.text;
-                        }
-                        destinationName =
-                            _destinationAccountTextControllers[i].text;
-                        if (destinationName.isEmpty) {
-                          destinationName =
-                              _destinationAccountTextController.text;
-                        }
-
-                        txS.add(
-                          TransactionSplitStore(
-                            type: _transactionType,
-                            date: _date.copyWith(
-                              second: 0,
-                              millisecond: 0,
-                              microsecond: 0,
-                            ),
+                          final TransactionSplitUpdate
+                          txSs = TransactionSplitUpdate(
                             amount: _localAmounts[i].toString(),
-                            description: _split
-                                ? _titleTextControllers[i].text
-                                : _titleTextController.text,
                             billId: _bills[i]?.id ?? "0",
-                            piggyBankId: (_piggy[i]?.id != null)
-                                ? (int.parse(_piggy[i]!.id))
-                                : null,
                             budgetName:
                                 (_transactionType ==
                                     TransactionTypeProperty.withdrawal)
                                 ? _budgetTextControllers[i].text
                                 : "",
                             categoryName: _categoryTextControllers[i].text,
+                            date: _date,
+                            description: _split
+                                ? _titleTextControllers[i].text
+                                : _titleTextController.text,
                             destinationName: destinationName,
                             // :HAX: Since nulled fields are not submitted, we set
                             // the value to 0 so the foreign currency is gone...
@@ -1073,42 +968,166 @@ class _TransactionPageState extends State<TransactionPage>
                             order: i,
                             sourceName: sourceName,
                             tags: _tags[i].tags,
+                            transactionJournalId: _transactionJournalIDs
+                                .elementAtOrNull(i),
+                            type: _transactionType,
                             reconciled: _reconciled,
+                          );
+
+                          final TransactionSplit? oldSplit = widget
+                              .transaction
+                              ?.attributes
+                              .transactions
+                              .firstWhereOrNull(
+                                (TransactionSplit e) =>
+                                    e.transactionJournalId != null &&
+                                    e.transactionJournalId ==
+                                        txSs.transactionJournalId,
+                              );
+                          if (oldSplit != null) {
+                            txS.add(txFilterSameFields(txSs, oldSplit));
+                          } else {
+                            txS.add(txSs);
+                          }
+                        }
+                        final TransactionUpdate txUpdate = TransactionUpdate(
+                          groupTitle: _split ? _titleTextController.text : null,
+                          transactions: txS,
+                        );
+
+                        // Queue deleted splits for sync
+                        for (final String splitId in _deletedSplitIDs) {
+                          if (splitId.isNotEmpty) {
+                            log.fine(
+                              () => "queuing split $splitId for deletion",
+                            );
+                            await transactionRepo.deleteSplit(splitId);
+                          }
+                        }
+
+                        // Queue update for sync
+                        await transactionRepo.updateExisting(id, txUpdate);
+                        log.fine(() => "transaction update queued for sync");
+                      } else {
+                        // New transaction
+                        final List<TransactionSplitStore> txS =
+                            <TransactionSplitStore>[];
+                        for (int i = 0; i < _localAmounts.length; i++) {
+                          late String sourceName, destinationName;
+
+                          sourceName = _sourceAccountTextControllers[i].text;
+                          if (sourceName.isEmpty) {
+                            sourceName = _sourceAccountTextController.text;
+                          }
+                          destinationName =
+                              _destinationAccountTextControllers[i].text;
+                          if (destinationName.isEmpty) {
+                            destinationName =
+                                _destinationAccountTextController.text;
+                          }
+
+                          txS.add(
+                            TransactionSplitStore(
+                              type: _transactionType,
+                              date: _date.copyWith(
+                                second: 0,
+                                millisecond: 0,
+                                microsecond: 0,
+                              ),
+                              amount: _localAmounts[i].toString(),
+                              description: _split
+                                  ? _titleTextControllers[i].text
+                                  : _titleTextController.text,
+                              billId: _bills[i]?.id ?? "0",
+                              piggyBankId: (_piggy[i]?.id != null)
+                                  ? (int.parse(_piggy[i]!.id))
+                                  : null,
+                              budgetName:
+                                  (_transactionType ==
+                                      TransactionTypeProperty.withdrawal)
+                                  ? _budgetTextControllers[i].text
+                                  : "",
+                              categoryName: _categoryTextControllers[i].text,
+                              destinationName: destinationName,
+                              // :HAX: Since nulled fields are not submitted, we set
+                              // the value to 0 so the foreign currency is gone...
+                              foreignAmount: _foreignCurrencies[i] != null
+                                  ? _foreignAmounts[i].toString()
+                                  : "0",
+                              foreignCurrencyId: _foreignCurrencies[i]?.id,
+                              notes: _noteTextControllers[i].text,
+                              order: i,
+                              sourceName: sourceName,
+                              tags: _tags[i].tags,
+                              reconciled: _reconciled,
+                            ),
+                          );
+                        }
+                        final TransactionStore newTx = TransactionStore(
+                          groupTitle: _split ? _titleTextController.text : null,
+                          transactions: txS,
+                          applyRules: true,
+                          fireWebhooks: true,
+                          errorIfDuplicateHash: true,
+                        );
+
+                        // Create locally and queue for sync
+                        final String pendingId = await transactionRepo
+                            .createNew(newTx);
+                        log.fine(
+                          () =>
+                              "transaction created locally with id: $pendingId, queued for sync",
+                        );
+
+                        // Note: Attachments for new pending transactions will be
+                        // uploaded after the transaction is synced and has a real ID
+                        if (_attachments?.isNotEmpty ?? false) {
+                          log.info(
+                            () =>
+                                "attachments will be uploaded after transaction is synced",
+                          );
+                        }
+                      }
+
+                      // Done saving locally
+                      setState(() => _savingInProgress = false);
+
+                      if (nav.canPop()) {
+                        // Popping true means that the TX list will be refreshed.
+                        // This should only happen if:
+                        // 1. it is a new transaction
+                        // 2. the date has been changed (changing the order of the TX list)
+                        nav.pop(
+                          widget.transaction == null ||
+                              _date !=
+                                  _tzHandler.sTime(
+                                    widget
+                                        .transaction!
+                                        .attributes
+                                        .transactions
+                                        .first
+                                        .date,
+                                  ),
+                        );
+                      } else {
+                        // Launched from notification
+                        // https://stackoverflow.com/questions/45109557/flutter-how-to-programmatically-exit-the-app
+                        await SystemChannels.platform.invokeMethod(
+                          'SystemNavigator.pop',
+                        );
+                        await nav.pushReplacement(
+                          MaterialPageRoute<bool>(
+                            builder: (BuildContext context) => const NavPage(),
                           ),
                         );
                       }
-                      final TransactionStore newTx = TransactionStore(
-                        groupTitle: _split ? _titleTextController.text : null,
-                        transactions: txS,
-                        applyRules: true,
-                        fireWebhooks: true,
-                        errorIfDuplicateHash: true,
-                      );
-                      resp = await api.v1TransactionsPost(body: newTx);
-                    }
-
-                    // Check if insert/update was successful
-                    if (!resp.isSuccessful || resp.body == null) {
-                      try {
-                        final ValidationErrorResponse valError =
-                            ValidationErrorResponse.fromJson(
-                              json.decode(resp.error.toString()),
-                            );
-                        error =
-                            valError.message ??
-                            // ignore: use_build_context_synchronously
-                            (context.mounted
-                                // ignore: use_build_context_synchronously
-                                ? S.of(context).errorUnknown
-                                : "[nocontext] Unknown error.");
-                      } catch (_) {
-                        // ignore: use_build_context_synchronously
-                        error = context.mounted
-                            // ignore: use_build_context_synchronously
-                            ? S.of(context).errorUnknown
-                            : "[nocontext] Unknown error.";
-                      }
-
+                    } catch (e, stackTrace) {
+                      log.severe("Error saving transaction", e, stackTrace);
+                      // ignore: use_build_context_synchronously
+                      error = context.mounted
+                          // ignore: use_build_context_synchronously
+                          ? S.of(context).errorUnknown
+                          : "[nocontext] Unknown error.";
                       msg.showSnackBar(
                         SnackBar(
                           content: Text(error),
@@ -1118,124 +1137,6 @@ class _TransactionPageState extends State<TransactionPage>
                       setState(() {
                         _savingInProgress = false;
                       });
-                      return;
-                    }
-
-                    // Update stock
-                    await stock!.setTransaction(resp.body!.data);
-
-                    // Upload attachments if required
-                    if ((_attachments?.isNotEmpty ?? false) &&
-                        _transactionJournalIDs.firstWhereOrNull(
-                              (String? e) => e != null,
-                            ) ==
-                            null) {
-                      log.fine(
-                        () => "uploading ${_attachments!.length} attachments",
-                      );
-                      final TransactionSplit? tx = resp
-                          .body
-                          ?.data
-                          .attributes
-                          .transactions
-                          .firstWhereOrNull(
-                            (TransactionSplit e) =>
-                                e.transactionJournalId != null,
-                          );
-                      if (tx != null) {
-                        final String txId = tx.transactionJournalId!;
-                        log.finest(() => "uploading to txId $txId");
-                        for (AttachmentRead attachment in _attachments!) {
-                          log.finest(
-                            () =>
-                                "uploading attachment ${attachment.id}: ${attachment.attributes.filename}",
-                          );
-                          final Response<AttachmentSingle> respAttachment =
-                              await api.v1AttachmentsPost(
-                                body: AttachmentStore(
-                                  filename: attachment.attributes.filename!,
-                                  attachableType:
-                                      AttachableType.transactionjournal,
-                                  attachableId: txId,
-                                ),
-                              );
-                          if (!respAttachment.isSuccessful ||
-                              respAttachment.body == null) {
-                            log.warning(() => "error uploading attachment");
-                            continue;
-                          }
-                          final AttachmentRead newAttachment =
-                              respAttachment.body!.data;
-                          log.finest(
-                            () => "attachment id is ${newAttachment.id}",
-                          );
-
-                          final File file = File(
-                            attachment.attributes.uploadUrl!,
-                          );
-
-                          final http.StreamedRequest request =
-                              http.StreamedRequest(
-                                HttpMethod.Post,
-                                Uri.parse(newAttachment.attributes.uploadUrl!),
-                              );
-                          request.headers.addAll(user!.headers());
-                          request.headers[HttpHeaders.contentTypeHeader] =
-                              ContentType.binary.mimeType;
-                          request.contentLength = await file.length();
-                          log.fine(
-                            () =>
-                                "AttachmentUpload: Starting Upload ${newAttachment.id}",
-                          );
-
-                          file.openRead().listen(
-                            (List<int> data) {
-                              log.finest(() => "sent ${data.length} bytes");
-                              request.sink.add(data);
-                            },
-                            onDone: () {
-                              request.sink.close();
-                            },
-                          );
-
-                          await httpClient.send(request);
-
-                          log.fine(() => "done uploading attachment");
-                        }
-                      }
-                    }
-
-                    // Done saving
-                    setState(() => _savingInProgress = false);
-
-                    if (nav.canPop()) {
-                      // Popping true means that the TX list will be refreshed.
-                      // This should only happen if:
-                      // 1. it is a new transaction
-                      // 2. the date has been changed (changing the order of the TX list)
-                      nav.pop(
-                        widget.transaction == null ||
-                            _date !=
-                                _tzHandler.sTime(
-                                  widget
-                                      .transaction!
-                                      .attributes
-                                      .transactions
-                                      .first
-                                      .date,
-                                ),
-                      );
-                    } else {
-                      // Launched from notification
-                      // https://stackoverflow.com/questions/45109557/flutter-how-to-programmatically-exit-the-app
-                      await SystemChannels.platform.invokeMethod(
-                        'SystemNavigator.pop',
-                      );
-                      await nav.pushReplacement(
-                        MaterialPageRoute<bool>(
-                          builder: (BuildContext context) => const NavPage(),
-                        ),
-                      );
                     }
                   },
             child: _savingInProgress
@@ -1271,9 +1172,6 @@ class _TransactionPageState extends State<TransactionPage>
     final List<Widget> childs = <Widget>[];
     const Widget hDivider = SizedBox(height: 16);
     const Widget vDivider = SizedBox(width: 16);
-
-    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOpSource;
-    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOpDestination;
 
     // Title
     childs.add(
@@ -1417,31 +1315,21 @@ class _TransactionPageState extends State<TransactionPage>
                       option.name,
                   optionsBuilder: (TextEditingValue textEditingValue) async {
                     try {
-                      unawaited(fetchOpSource?.cancel());
-
-                      final FireflyIii api = context.read<FireflyService>().api;
-                      fetchOpSource =
-                          CancelableOperation<
-                            Response<AutocompleteAccountArray>
-                          >.fromFuture(
-                            api.v1AutocompleteAccountsGet(
-                              query: textEditingValue.text,
-                              types: _destinationAccountType
-                                  .allowedOpposingTypes(false),
+                      final Isar isar = await AppDatabase.instance;
+                      final AccountRepository accountRepo = AccountRepository(
+                        isar,
+                      );
+                      final List<AutocompleteAccount> accounts =
+                          await accountRepo.autocomplete(
+                            query: textEditingValue.text,
+                            types: _destinationAccountType.allowedOpposingTypes(
+                              false,
                             ),
                           );
-                      final Response<AutocompleteAccountArray>? response =
-                          await fetchOpSource?.valueOrCancellation();
-                      if (response == null) {
-                        // Cancelled
-                        return const Iterable<AutocompleteAccount>.empty();
-                      }
-                      apiThrowErrorIfEmpty(response, mounted ? context : null);
-
-                      return response.body!;
+                      return accounts;
                     } catch (e, stackTrace) {
                       log.severe(
-                        "Error while fetching autocomplete from API",
+                        "Error while fetching accounts from local database",
                         e,
                         stackTrace,
                       );
@@ -1517,37 +1405,21 @@ class _TransactionPageState extends State<TransactionPage>
                     },
                     optionsBuilder: (TextEditingValue textEditingValue) async {
                       try {
-                        unawaited(fetchOpDestination?.cancel());
-
-                        final FireflyIii api = context
-                            .read<FireflyService>()
-                            .api;
-                        fetchOpDestination =
-                            CancelableOperation<
-                              Response<AutocompleteAccountArray>
-                            >.fromFuture(
-                              api.v1AutocompleteAccountsGet(
-                                query: textEditingValue.text,
-                                types: _sourceAccountType.allowedOpposingTypes(
-                                  true,
-                                ),
+                        final Isar isar = await AppDatabase.instance;
+                        final AccountRepository accountRepo = AccountRepository(
+                          isar,
+                        );
+                        final List<AutocompleteAccount> accounts =
+                            await accountRepo.autocomplete(
+                              query: textEditingValue.text,
+                              types: _sourceAccountType.allowedOpposingTypes(
+                                true,
                               ),
                             );
-                        final Response<AutocompleteAccountArray>? response =
-                            await fetchOpDestination?.valueOrCancellation();
-                        if (response == null) {
-                          // Cancelled
-                          return const Iterable<AutocompleteAccount>.empty();
-                        }
-                        apiThrowErrorIfEmpty(
-                          response,
-                          mounted ? context : null,
-                        );
-
-                        return response.body!;
+                        return accounts;
                       } catch (e, stackTrace) {
                         log.severe(
-                          "Error while fetching autocomplete from API",
+                          "Error while fetching accounts from local database",
                           e,
                           stackTrace,
                         );
@@ -1753,8 +1625,6 @@ class _TransactionPageState extends State<TransactionPage>
   Card _buildSplitWidget(BuildContext context, int i) {
     const Widget hDivider = SizedBox(height: 16);
 
-    CancelableOperation<Response<AutocompleteAccountArray>>? fetchOp;
-
     return Card(
       key: ValueKey<int>(i),
       child: Padding(
@@ -1805,45 +1675,23 @@ class _TransactionPageState extends State<TransactionPage>
                                         TextEditingValue textEditingValue,
                                       ) async {
                                         try {
-                                          unawaited(fetchOp?.cancel());
-
-                                          final FireflyIii api = context
-                                              .read<FireflyService>()
-                                              .api;
-                                          fetchOp =
-                                              CancelableOperation<
-                                                Response<
-                                                  AutocompleteAccountArray
-                                                >
-                                              >.fromFuture(
-                                                api.v1AutocompleteAccountsGet(
-                                                  query: textEditingValue.text,
-                                                  types: _destinationAccountType
-                                                      .allowedOpposingTypes(
-                                                        false,
-                                                      ),
-                                                ),
+                                          final Isar isar =
+                                              await AppDatabase.instance;
+                                          final AccountRepository accountRepo =
+                                              AccountRepository(isar);
+                                          final List<AutocompleteAccount>
+                                          accounts = await accountRepo
+                                              .autocomplete(
+                                                query: textEditingValue.text,
+                                                types: _destinationAccountType
+                                                    .allowedOpposingTypes(
+                                                      false,
+                                                    ),
                                               );
-                                          final Response<
-                                            AutocompleteAccountArray
-                                          >?
-                                          response = await fetchOp
-                                              ?.valueOrCancellation();
-                                          if (response == null) {
-                                            // Cancelled
-                                            return const Iterable<
-                                              AutocompleteAccount
-                                            >.empty();
-                                          }
-                                          apiThrowErrorIfEmpty(
-                                            response,
-                                            mounted ? context : null,
-                                          );
-
-                                          return response.body!;
+                                          return accounts;
                                         } catch (e, stackTrace) {
                                           log.severe(
-                                            "Error while fetching autocomplete from API",
+                                            "Error while fetching accounts from local database",
                                             e,
                                             stackTrace,
                                           );
@@ -1890,43 +1738,21 @@ class _TransactionPageState extends State<TransactionPage>
                                         TextEditingValue textEditingValue,
                                       ) async {
                                         try {
-                                          final FireflyIii api = context
-                                              .read<FireflyService>()
-                                              .api;
-                                          fetchOp =
-                                              CancelableOperation<
-                                                Response<
-                                                  AutocompleteAccountArray
-                                                >
-                                              >.fromFuture(
-                                                api.v1AutocompleteAccountsGet(
-                                                  query: textEditingValue.text,
-                                                  types: _sourceAccountType
-                                                      .allowedOpposingTypes(
-                                                        true,
-                                                      ),
-                                                ),
+                                          final Isar isar =
+                                              await AppDatabase.instance;
+                                          final AccountRepository accountRepo =
+                                              AccountRepository(isar);
+                                          final List<AutocompleteAccount>
+                                          accounts = await accountRepo
+                                              .autocomplete(
+                                                query: textEditingValue.text,
+                                                types: _sourceAccountType
+                                                    .allowedOpposingTypes(true),
                                               );
-                                          final Response<
-                                            AutocompleteAccountArray
-                                          >?
-                                          response = await fetchOp
-                                              ?.valueOrCancellation();
-                                          if (response == null) {
-                                            // Cancelled
-                                            return const Iterable<
-                                              AutocompleteAccount
-                                            >.empty();
-                                          }
-                                          apiThrowErrorIfEmpty(
-                                            response,
-                                            mounted ? context : null,
-                                          );
-
-                                          return response.body!;
+                                          return accounts;
                                         } catch (e, stackTrace) {
                                           log.severe(
-                                            "Error while fetching autocomplete from API",
+                                            "Error while fetching accounts from local database",
                                             e,
                                             stackTrace,
                                           );
@@ -2374,7 +2200,6 @@ class TransactionDeleteButton extends StatelessWidget {
       onPressed: _savingInProgress
           ? null
           : () async {
-              final FireflyIii api = context.read<FireflyService>().api;
               final NavigatorState nav = Navigator.of(context);
               final bool? ok = await showDialog<bool>(
                 context: context,
@@ -2385,7 +2210,13 @@ class TransactionDeleteButton extends StatelessWidget {
                 return;
               }
 
-              await api.v1TransactionsIdDelete(id: transactionId);
+              if (transactionId != null) {
+                // Use repository to queue deletion for sync
+                final Isar isar = await AppDatabase.instance;
+                final TransactionRepository transactionRepo =
+                    TransactionRepository(isar);
+                await transactionRepo.delete(transactionId!);
+              }
               nav.pop(true);
             },
     );

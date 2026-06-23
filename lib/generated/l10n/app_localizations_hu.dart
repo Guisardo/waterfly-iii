@@ -281,6 +281,24 @@ class SHu extends S {
   String get errorUnknown => 'Ismeretlen hiba.';
 
   @override
+  String get errorInvalidHost => 'Invalid host';
+
+  @override
+  String get errorInvalidApiKey => 'Invalid API key';
+
+  @override
+  String get errorInvalidApiVersion => 'Invalid Firefly API version';
+
+  @override
+  String get errorApiVersionTooLow => 'Firefly API version too low';
+
+  @override
+  String get errorUnexpectedStatusCode => 'Unexpected HTTP status code';
+
+  @override
+  String get errorNotValidInstance => 'Not a valid Firefly III instance';
+
+  @override
   String get formButtonHelp => 'Súgó';
 
   @override
@@ -929,6 +947,10 @@ class SHu extends S {
       'Kérjük, először töltse ki a számlákat.';
 
   @override
+  String get transactionSavedOffline =>
+      'Transaction saved. Will sync when online.';
+
+  @override
   String get transactionErrorNoAssetAccount =>
       'Kérjük, válasszon ki egy eszközzámlát.';
 
@@ -995,4 +1017,187 @@ class SHu extends S {
 
   @override
   String get transactionTypeWithdrawal => 'Költség';
+
+  @override
+  String get syncSettingsTitle => 'Szinkronizálási beállítások';
+
+  @override
+  String get syncSettingsMobileDataTitle => 'Szinkronizálás mobiladatokkal';
+
+  @override
+  String get syncSettingsMobileDataSubtitle =>
+      'Szinkronizálás engedélyezése mobiladatok használatakor (alapértelmezetten kikapcsolva az adatmegtakarítás érdekében)';
+
+  @override
+  String get syncSettingsCredentialsTitle => 'Hitelesítő adatok';
+
+  @override
+  String get syncSettingsCredentialsInvalid =>
+      'Érvénytelen - Kérjük, adja meg újra a hitelesítő adatokat';
+
+  @override
+  String get syncSettingsCredentialsValidated => 'Ellenőrizve';
+
+  @override
+  String get syncSettingsCredentialsNotValidated => 'Nem ellenőrizve';
+
+  @override
+  String get syncSettingsReenterButton => 'Újra megadás';
+
+  @override
+  String get syncSettingsDownloadSync => 'Letöltési szinkronizálás';
+
+  @override
+  String get syncSettingsUploadSync => 'Feltöltési szinkronizálás';
+
+  @override
+  String syncSettingsLastSync(String date) {
+    return 'Utolsó szinkronizálás: $date';
+  }
+
+  @override
+  String get syncSettingsStatusPaused => 'Állapot: Szüneteltetve';
+
+  @override
+  String get syncSettingsStatusActive => 'Állapot: Aktív';
+
+  @override
+  String get syncSettingsStatusSyncing => 'Status: Syncing...';
+
+  @override
+  String syncSettingsRetryCount(int count) {
+    return 'Újrapróbálások száma: $count';
+  }
+
+  @override
+  String syncSettingsNextRetry(String date) {
+    return 'Következő újrapróbálás: $date';
+  }
+
+  @override
+  String syncSettingsError(String error) {
+    return 'Hiba: $error';
+  }
+
+  @override
+  String get syncSettingsResumeButton => 'Folytatás most';
+
+  @override
+  String get syncSettingsManualSyncTitle => 'Manuális szinkronizálás';
+
+  @override
+  String get syncSettingsManualSyncSubtitle => 'Szinkronizálás indítása most';
+
+  @override
+  String get syncSettingsSyncNowButton => 'Szinkronizálás most';
+
+  @override
+  String get syncNotificationSyncing => 'Szinkronizálás...';
+
+  @override
+  String get syncNotificationSyncingBody => 'Szinkronizálás Firefly III-mal';
+
+  @override
+  String syncNotificationSyncingEntity(String entityType) {
+    return 'Szinkronizálás $entityType...';
+  }
+
+  @override
+  String get syncNotificationCompleted => 'Szinkronizálás befejezve';
+
+  @override
+  String get syncNotificationCompletedBody =>
+      'A Firefly III-mal való szinkronizálás sikeresen befejeződött';
+
+  @override
+  String get syncNotificationPaused => 'Szinkronizálás szüneteltetve';
+
+  @override
+  String get syncNotificationPausedBody =>
+      'Szinkronizálás hiba miatt szüneteltetve. Automatikusan újra megpróbálja.';
+
+  @override
+  String get syncNotificationAuthError => 'Hitelesítési hiba';
+
+  @override
+  String get syncNotificationAuthErrorBody =>
+      'Kérjük, adja meg újra a hitelesítő adatait a beállításokban';
+
+  @override
+  String get syncNotificationChannelName => 'Szinkronizálás';
+
+  @override
+  String get notificationListenerCreateTransactionTitle =>
+      'Create Transaction?';
+
+  @override
+  String notificationListenerCreateTransactionBody(String appName) {
+    return 'Click to create a transaction based on the notification $appName';
+  }
+
+  @override
+  String get notificationListenerChannelName =>
+      'Create Transaction from Notification';
+
+  @override
+  String get notificationListenerChannelDescription =>
+      'Notification asking to create a transaction from another Notification.';
+
+  @override
+  String get syncNotificationChannelDescription =>
+      'Háttérszinkronizálás állapota';
+
+  @override
+  String get syncSettingsEntityStatusTitle => 'Entitás szinkronizálási állapot';
+
+  @override
+  String get syncSettingsEntityTransactions => 'Tranzakciók';
+
+  @override
+  String get syncSettingsEntityAccounts => 'Számlák';
+
+  @override
+  String get syncSettingsEntityCategories => 'Kategóriák';
+
+  @override
+  String get syncSettingsEntityTags => 'Címkék';
+
+  @override
+  String get syncSettingsEntityBills => 'Számlák';
+
+  @override
+  String get syncSettingsEntityBudgets => 'Költségvetések';
+
+  @override
+  String get syncSettingsEntityCurrencies => 'Pénznemek';
+
+  @override
+  String get syncSettingsEntityPiggyBanks => 'Malacperselyek';
+
+  @override
+  String get syncSettingsEntityStatusNeverSynced => 'Soha nem szinkronizálva';
+
+  @override
+  String get syncSettingsEntityStatusSyncing => 'Szinkronizálás...';
+
+  @override
+  String syncSettingsEntityProgress(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get syncSettingsEntityStatusSuccess => 'Sikeres';
+
+  @override
+  String get syncSettingsEntityStatusError => 'Hiba';
+
+  @override
+  String get syncSettingsEntityStatusPaused => 'Szüneteltetve';
+
+  @override
+  String get settingsSynchronization => 'Szinkronizálás';
+
+  @override
+  String get settingsSynchronizationSubtitle =>
+      'Szinkronizálási beállítások és állapot';
 }

@@ -4,6 +4,7 @@
 *.pyc
 *.swp
 .DS_Store
+.claude/debug-sessions/
 .atom/
 .build/
 .buildlog/
@@ -43,3 +44,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Plans
+docs/plans/
+
+# Generated dart dev files
+*.g.dart
+
+# Coverage
+coverage/
