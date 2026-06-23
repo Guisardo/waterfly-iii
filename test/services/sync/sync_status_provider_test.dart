@@ -293,6 +293,28 @@ void main() {
       expect(provider.hasUploadError, isA<bool>());
     });
 
+    test('hasUploadError returns true when upload has lastError', () async {
+      final SyncMetadata uploadMetadata = SyncMetadata()
+        ..entityType = 'upload'
+        ..lastError = 'Upload incomplete';
+
+      await isar.writeTxn(() async {
+        await isar.syncMetadatas.put(uploadMetadata);
+      });
+
+      await provider.initialize(
+        fireflyService: fireflyService,
+        connectivityService: connectivityService,
+        settingsProvider: settingsProvider,
+        isar: isar,
+      );
+
+      await provider.refreshMetadata();
+
+      expect(provider.hasUploadError, isTrue);
+      expect(provider.uploadError, 'Upload incomplete');
+    });
+
     test(
       'hasError returns true when either download or upload has error',
       () async {

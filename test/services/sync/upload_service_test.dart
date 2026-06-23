@@ -49,6 +49,15 @@ class _MockConnectivityService extends ChangeNotifier
   }
 }
 
+class _CompletionThrowingNotifications extends SyncNotifications {
+  @override
+  Future<void> showSyncCompleted({
+    int notificationId = SyncNotifications.syncNotificationId,
+  }) {
+    return Future<void>.error(Exception('completion notification failed'));
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -112,6 +121,18 @@ void main() {
       expect(uploadService.isUploading, false);
     });
 
+    test('already-running result is not a background success', () {
+      const UploadRunResult result = UploadRunResult(
+        status: UploadRunStatus.skippedAlreadyRunning,
+        initialPendingCount: 1,
+        succeededCount: 0,
+        failedCount: 0,
+        unattemptedCount: 1,
+      );
+
+      expect(result.shouldReportBackgroundSuccess, isFalse);
+    });
+
     test('uploadPendingChanges skips when already uploading', () async {
       // Note: Can't easily test concurrent uploads without complex setup
       // This test verifies the method exists
@@ -170,8 +191,42 @@ void main() {
     test(
       'uploadPendingChanges returns early when no pending changes',
       () async {
-        await uploadService.uploadPendingChanges();
+        final UploadRunResult result = await uploadService
+            .uploadPendingChanges();
         expect(uploadService.isUploading, false);
+        expect(result.status, UploadRunStatus.noPendingChanges);
+        expect(result.completedSuccessfully, isTrue);
+      },
+    );
+
+    test(
+      'uploadPendingChanges records partial failure without lastUploadSync',
+      () async {
+        final PendingChanges change = PendingChanges()
+          ..entityType = 'transactions'
+          ..entityId = null
+          ..operation = PendingChangeOperation.create.name
+          ..data = '{"invalid": "transaction"}'
+          ..createdAt = DateTime.now().toUtc()
+          ..retryCount = 0
+          ..synced = false;
+
+        await isar.writeTxn(() async {
+          await isar.pendingChanges.put(change);
+        });
+
+        final UploadRunResult result = await uploadService
+            .uploadPendingChanges();
+
+        final SyncMetadata? metadata = await isar.syncMetadatas
+            .filter()
+            .entityTypeEqualTo('upload')
+            .findFirst();
+
+        expect(result.status, UploadRunStatus.partialFailure);
+        expect(result.completedSuccessfully, isFalse);
+        expect(metadata?.lastError, isNotNull);
+        expect(metadata?.lastUploadSync, isNull);
       },
     );
 
@@ -289,13 +344,13 @@ void main() {
       expect(() => testService.dispose(), returnsNormally);
     });
 
-    test('notifies listeners when uploading state changes', () {
+    test('notifies listeners when uploading state changes', () async {
       uploadService.addListener(() {
         // Listener added to verify notifications
       });
 
       // Trigger a state change
-      uploadService.uploadPendingChanges();
+      await uploadService.uploadPendingChanges();
 
       // Listener mechanism exists
       expect(uploadService, isNotNull);
@@ -1834,6 +1889,46 @@ void main() {
       });
 
       test(
+        'uploadPendingChanges logs DELETE conflict and retries once',
+        () async {
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..entityId = 'tx-1'
+            ..operation = PendingChangeOperation.delete.name
+            ..data = null
+            ..createdAt = DateTime.now().toUtc()
+            ..retryCount = 0
+            ..synced = false;
+
+          await isar.writeTxn(() async {
+            await isar.pendingChanges.put(change);
+          });
+
+          mockApiHelper.mockHttpClient.setHandler('/v1/transactions/tx-1', (
+            http.BaseRequest request,
+          ) {
+            return http.Response(
+              jsonEncode(<String, String>{'error': 'Conflict'}),
+              409,
+              headers: <String, String>{'content-type': 'application/json'},
+            );
+          });
+
+          final UploadRunResult result = await uploadService
+              .uploadPendingChanges();
+          final PendingChanges? updated = await isar.pendingChanges
+              .filter()
+              .idEqualTo(change.id)
+              .findFirst();
+
+          expect(result.status, UploadRunStatus.partialFailure);
+          expect(updated, isNotNull);
+          expect(updated!.retryCount, 1);
+          expect(updated.lastError, contains('Conflict'));
+        },
+      );
+
+      test(
         'uploadPendingChanges processes successful CREATE and updates transaction repository',
         () async {
           final PendingChanges change = PendingChanges()
@@ -2158,11 +2253,21 @@ void main() {
       test(
         'uploadPendingChanges handles network error and pauses upload',
         () async {
+          final DateTime now = DateTime.now().toUtc();
           final PendingChanges change = PendingChanges()
             ..entityType = 'transactions'
             ..entityId = 'tx-1'
             ..operation = 'CREATE'
-            ..data = jsonEncode(<String, String>{'test': 'data'})
+            ..data = jsonEncode(<String, Object>{
+              'transactions': <Map<String, String>>[
+                <String, String>{
+                  'type': 'withdrawal',
+                  'date': now.toIso8601String(),
+                  'amount': '10.00',
+                  'description': 'Network test',
+                },
+              ],
+            })
             ..createdAt = DateTime.now().toUtc()
             ..retryCount = 0
             ..synced = false;
@@ -2197,11 +2302,21 @@ void main() {
       test(
         'uploadPendingChanges handles timeout error and pauses upload',
         () async {
+          final DateTime now = DateTime.now().toUtc();
           final PendingChanges change = PendingChanges()
             ..entityType = 'transactions'
             ..entityId = 'tx-1'
             ..operation = 'CREATE'
-            ..data = jsonEncode(<String, String>{'test': 'data'})
+            ..data = jsonEncode(<String, Object>{
+              'transactions': <Map<String, String>>[
+                <String, String>{
+                  'type': 'withdrawal',
+                  'date': now.toIso8601String(),
+                  'amount': '10.00',
+                  'description': 'Timeout test',
+                },
+              ],
+            })
             ..createdAt = DateTime.now().toUtc()
             ..retryCount = 0
             ..synced = false;
@@ -2302,9 +2417,7 @@ void main() {
               .idEqualTo(change.id)
               .findFirst();
           expect(updated, isNotNull);
-          // Retry count should be incremented for non-network errors
-          // But if it's a network error, the upload is paused instead
-          expect(updated!.retryCount, greaterThanOrEqualTo(0));
+          expect(updated!.retryCount, 1);
         },
       );
 
@@ -2354,13 +2467,20 @@ void main() {
       test(
         'uploadPendingChanges updates metadata after successful upload',
         () async {
+          final DateTime now = DateTime.now().toUtc();
           final PendingChanges change = PendingChanges()
             ..entityType = 'transactions'
             ..entityId = 'tx-1'
             ..operation = 'CREATE'
-            ..data = jsonEncode(<String, String>{
-              'type': 'withdrawal',
-              'amount': '10.00',
+            ..data = jsonEncode(<String, Object>{
+              'transactions': <Map<String, String>>[
+                <String, String>{
+                  'type': 'withdrawal',
+                  'date': now.toIso8601String(),
+                  'amount': '10.00',
+                  'description': 'Metadata success',
+                },
+              ],
             })
             ..createdAt = DateTime.now().toUtc()
             ..retryCount = 0
@@ -2375,12 +2495,24 @@ void main() {
             http.BaseRequest request,
           ) {
             return http.Response(
-              jsonEncode(<String, Map<String, Object>>{
+              jsonEncode(<String, Object>{
                 'data': <String, Object>{
                   'type': 'transactions',
                   'id': 'tx-1',
-                  'attributes': <String, String>{
+                  'attributes': <String, Object>{
                     'created_at': DateTime.now().toUtc().toIso8601String(),
+                    'updated_at': DateTime.now().toUtc().toIso8601String(),
+                    'transactions': <Map<String, String>>[
+                      <String, String>{
+                        'type': 'withdrawal',
+                        'date': now.toIso8601String(),
+                        'amount': '10.00',
+                        'description': 'Metadata success',
+                      },
+                    ],
+                  },
+                  'links': <String, String>{
+                    'self': 'https://example.com/api/v1/transactions/tx-1',
                   },
                 },
               }),
@@ -2402,6 +2534,185 @@ void main() {
           if (metadata != null) {
             expect(metadata.lastUploadSync, isNotNull);
           }
+        },
+      );
+
+      test(
+        'uploadPendingChanges posts duplicate when search match lacks external id',
+        () async {
+          final DateTime now = DateTime.now().toUtc();
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..operation = PendingChangeOperation.create.name
+            ..data = jsonEncode(<String, Object>{
+              'transactions': <Map<String, String>>[
+                <String, String>{
+                  'type': 'withdrawal',
+                  'date': now.toIso8601String(),
+                  'amount': '10.00',
+                  'description': 'Legit duplicate',
+                },
+              ],
+            })
+            ..createdAt = now
+            ..retryCount = 0
+            ..synced = false;
+
+          await isar.writeTxn(() async {
+            await isar.pendingChanges.put(change);
+          });
+
+          mockApiHelper.mockHttpClient.setHandler('/v1/search/transactions', (
+            http.BaseRequest request,
+          ) {
+            return http.Response(
+              jsonEncode(<String, Object>{
+                'data': <Map<String, Object>>[
+                  <String, Object>{
+                    'type': 'transactions',
+                    'id': 'existing-tx',
+                    'attributes': <String, Object>{
+                      'transactions': <Map<String, String>>[
+                        <String, String>{
+                          'type': 'withdrawal',
+                          'date': now.toIso8601String(),
+                          'amount': '10.00',
+                          'description': 'Legit duplicate',
+                        },
+                      ],
+                    },
+                    'links': <String, String>{
+                      'self':
+                          'https://example.com/api/v1/transactions/existing-tx',
+                    },
+                  },
+                ],
+                'meta': <String, Object>{
+                  'pagination': <String, int>{'total_pages': 1},
+                },
+                'links': <String, String>{},
+              }),
+              200,
+              headers: <String, String>{'content-type': 'application/json'},
+            );
+          });
+
+          bool postCalled = false;
+          mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
+            http.BaseRequest request,
+          ) {
+            postCalled = true;
+            return http.Response(
+              jsonEncode(<String, Object>{
+                'data': <String, Object>{
+                  'type': 'transactions',
+                  'id': 'new-tx',
+                  'attributes': <String, Object>{
+                    'created_at': now.toIso8601String(),
+                    'updated_at': now.toIso8601String(),
+                    'transactions': <Map<String, String>>[
+                      <String, String>{
+                        'type': 'withdrawal',
+                        'date': now.toIso8601String(),
+                        'amount': '10.00',
+                        'description': 'Legit duplicate',
+                        'external_id': 'waterflyiii:change-${change.id}:0',
+                      },
+                    ],
+                  },
+                  'links': <String, String>{
+                    'self': 'https://example.com/api/v1/transactions/new-tx',
+                  },
+                },
+              }),
+              200,
+              headers: <String, String>{'content-type': 'application/json'},
+            );
+          });
+
+          final UploadRunResult result = await uploadService
+              .uploadPendingChanges();
+          final PendingChanges? pending = await isar.pendingChanges
+              .filter()
+              .idEqualTo(change.id)
+              .findFirst();
+
+          expect(result.status, UploadRunStatus.success);
+          expect(postCalled, isTrue);
+          expect(pending, isNull);
+        },
+      );
+
+      test(
+        'uploadPendingChanges succeeds when completion notification fails',
+        () async {
+          final DateTime now = DateTime.now().toUtc();
+          final UploadService throwingNotificationService = UploadService(
+            isar: isar,
+            fireflyService: fireflyService,
+            connectivityService: connectivityService,
+            notifications: _CompletionThrowingNotifications(),
+            settingsProvider: settingsProvider,
+          );
+          final PendingChanges change = PendingChanges()
+            ..entityType = 'transactions'
+            ..operation = PendingChangeOperation.create.name
+            ..data = jsonEncode(<String, Object>{
+              'transactions': <Map<String, String>>[
+                <String, String>{
+                  'type': 'withdrawal',
+                  'date': now.toIso8601String(),
+                  'amount': '10.00',
+                  'description': 'Notification failure success',
+                },
+              ],
+            })
+            ..createdAt = now
+            ..retryCount = 0
+            ..synced = false;
+
+          await isar.writeTxn(() async {
+            await isar.pendingChanges.put(change);
+          });
+
+          mockApiHelper.mockHttpClient.setHandler('/v1/transactions', (
+            http.BaseRequest request,
+          ) {
+            return http.Response(
+              jsonEncode(<String, Object>{
+                'data': <String, Object>{
+                  'type': 'transactions',
+                  'id': 'notification-success',
+                  'attributes': <String, Object>{
+                    'created_at': now.toIso8601String(),
+                    'updated_at': now.toIso8601String(),
+                    'transactions': <Map<String, String>>[
+                      <String, String>{
+                        'type': 'withdrawal',
+                        'date': now.toIso8601String(),
+                        'amount': '10.00',
+                        'description': 'Notification failure success',
+                        'external_id': 'waterflyiii:change-${change.id}:0',
+                      },
+                    ],
+                  },
+                  'links': <String, String>{
+                    'self':
+                        'https://example.com/api/v1/transactions/notification-success',
+                  },
+                },
+              }),
+              200,
+              headers: <String, String>{'content-type': 'application/json'},
+            );
+          });
+
+          final UploadRunResult result = await throwingNotificationService
+              .uploadPendingChanges();
+          throwingNotificationService.dispose();
+
+          expect(result.status, UploadRunStatus.success);
+          expect(result.shouldReportBackgroundSuccess, isTrue);
         },
       );
 

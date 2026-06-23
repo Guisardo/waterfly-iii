@@ -45,8 +45,12 @@ class SyncStatusProvider extends ChangeNotifier {
   String? get currentSyncingEntity => _currentSyncingEntity;
   SyncProgress? get currentProgress => _currentProgress;
 
-  bool get hasDownloadError => _downloadMetadata?.syncPaused ?? false;
-  bool get hasUploadError => _uploadMetadata?.syncPaused ?? false;
+  bool get hasDownloadError =>
+      (_downloadMetadata?.syncPaused ?? false) ||
+      (_downloadMetadata?.lastError?.isNotEmpty ?? false);
+  bool get hasUploadError =>
+      (_uploadMetadata?.syncPaused ?? false) ||
+      (_uploadMetadata?.lastError?.isNotEmpty ?? false);
   bool get hasError => hasDownloadError || hasUploadError;
   String? get downloadError => _downloadMetadata?.lastError;
   String? get uploadError => _uploadMetadata?.lastError;
@@ -184,23 +188,27 @@ class SyncStatusProvider extends ChangeNotifier {
   }
 
   /// Trigger upload sync
-  Future<void> upload() async {
+  Future<UploadRunResult?> upload() async {
     if (_uploadService == null) {
-      return;
+      return null;
     }
-    await _uploadService!.uploadPendingChanges(forceRetry: true);
+    final UploadRunResult result = await _uploadService!.uploadPendingChanges(
+      forceRetry: true,
+    );
     await refreshMetadata();
+    return result;
   }
 
   /// Trigger both download and upload sync
   /// [forceRetry] - If true, bypasses pause state and clears errors (for manual sync)
-  Future<void> syncAll({bool forceRetry = false}) async {
+  Future<UploadRunResult?> syncAll({bool forceRetry = false}) async {
     await sync(forceRetry: forceRetry);
-    await upload();
+    final UploadRunResult? result = await upload();
     // Small delay to ensure database transactions are committed
     await Future<void>.delayed(const Duration(milliseconds: 100));
     // Ensure metadata is refreshed after both syncs complete
     await refreshMetadata();
+    return result;
   }
 
   @override

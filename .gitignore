@@ -4,6 +4,7 @@
 *.pyc
 *.swp
 .DS_Store
+.claude/debug-sessions/
 .atom/
 .build/
 .buildlog/
