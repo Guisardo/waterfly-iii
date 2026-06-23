@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/tables/categories.dart';
+import 'package:waterflyiii/data/local/database/tables/insights.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 import 'package:waterflyiii/data/local/database/tables/transactions.dart';
@@ -595,9 +596,18 @@ void main() {
             ..createdAt = DateTime.now().toUtc()
             ..retryCount = 0
             ..synced = false;
+          final Insights insight = Insights()
+            ..insightType = 'expense'
+            ..insightSubtype = 'category'
+            ..startDate = DateTime.utc(2026, 6)
+            ..endDate = DateTime.utc(2026, 6, 30)
+            ..data = '[]'
+            ..cachedAt = DateTime.now().toUtc()
+            ..stale = false;
 
           await isar.writeTxn(() async {
             await isar.pendingChanges.put(change);
+            await isar.insights.put(insight);
           });
 
           // Set up successful CREATE response
@@ -635,6 +645,11 @@ void main() {
 
           await uploadService.uploadPendingChanges();
           expect(uploadService.isUploading, false);
+          final Insights? updatedInsight = await isar.insights
+              .filter()
+              .idEqualTo(insight.id)
+              .findFirst();
+          expect(updatedInsight?.stale, true);
         },
       );
 

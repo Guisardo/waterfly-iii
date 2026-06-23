@@ -202,8 +202,10 @@ class SyncStatusProvider extends ChangeNotifier {
   /// Trigger both download and upload sync
   /// [forceRetry] - If true, bypasses pause state and clears errors (for manual sync)
   Future<UploadRunResult?> syncAll({bool forceRetry = false}) async {
-    await sync(forceRetry: forceRetry);
     final UploadRunResult? result = await upload();
+    if (result == null || result.completedSuccessfully) {
+      await sync(forceRetry: forceRetry);
+    }
     // Small delay to ensure database transactions are committed
     await Future<void>.delayed(const Duration(milliseconds: 100));
     // Ensure metadata is refreshed after both syncs complete
