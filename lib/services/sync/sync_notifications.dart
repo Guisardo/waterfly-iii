@@ -104,6 +104,8 @@ class SyncNotifications {
   static const int syncNotificationId = 1000;
   static const int credentialErrorNotificationId = 1001;
   static const int syncPausedNotificationId = 1002;
+  static const int uploadNotificationId = 1003;
+  static const int uploadPausedNotificationId = 1004;
 
   Future<void> initialize() async {
     const AndroidInitializationSettings androidSettings =
@@ -118,7 +120,9 @@ class SyncNotifications {
     );
   }
 
-  Future<void> showSyncStarted() async {
+  Future<void> showSyncStarted({
+    int notificationId = syncNotificationId,
+  }) async {
     final String channelName = _getLocalizedString(
       (S l) => l.syncNotificationChannelName,
     );
@@ -150,7 +154,7 @@ class SyncNotifications {
       (S l) => l.syncNotificationSyncingBody,
     );
 
-    await _notifications.show(syncNotificationId, title, body, details);
+    await _notifications.show(notificationId, title, body, details);
   }
 
   Future<void> showSyncProgress({
@@ -158,6 +162,7 @@ class SyncNotifications {
     required int current,
     required int total,
     String? message,
+    int notificationId = syncNotificationId,
   }) async {
     final String channelName = _getLocalizedString(
       (S l) => l.syncNotificationChannelName,
@@ -188,15 +193,17 @@ class SyncNotifications {
     );
 
     await _notifications.show(
-      syncNotificationId,
+      notificationId,
       title,
       message ?? '$current / $total',
       details,
     );
   }
 
-  Future<void> showSyncCompleted() async {
-    await _notifications.cancel(syncNotificationId);
+  Future<void> showSyncCompleted({
+    int notificationId = syncNotificationId,
+  }) async {
+    await _notifications.cancel(notificationId);
 
     final String channelName = _getLocalizedString(
       (S l) => l.syncNotificationChannelName,
@@ -225,11 +232,15 @@ class SyncNotifications {
       (S l) => l.syncNotificationCompletedBody,
     );
 
-    await _notifications.show(syncNotificationId, title, body, details);
+    await _notifications.show(notificationId, title, body, details);
   }
 
-  Future<void> showSyncPaused(String error) async {
-    await _notifications.cancel(syncNotificationId);
+  Future<void> showSyncPaused(
+    String error, {
+    int notificationId = syncNotificationId,
+    int pausedNotificationId = syncPausedNotificationId,
+  }) async {
+    await _notifications.cancel(notificationId);
 
     final String channelName = _getLocalizedString(
       (S l) => l.syncNotificationChannelName,
@@ -256,7 +267,11 @@ class SyncNotifications {
       (S l) => l.syncNotificationPausedBody,
     );
 
-    await _notifications.show(syncPausedNotificationId, title, body, details);
+    await _notifications.show(pausedNotificationId, title, body, details);
+  }
+
+  Future<void> cancelUploadProgress() async {
+    await _notifications.cancel(uploadNotificationId);
   }
 
   Future<void> showCredentialError() async {

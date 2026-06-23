@@ -14,6 +14,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/pages/bills.dart';
+import 'package:waterflyiii/services/sync/sync_log_sanitizer.dart';
 
 final Logger log = Logger("Settings");
 
@@ -849,12 +850,12 @@ class DebugLogger {
     if (_logPath?.isEmpty ?? true) {
       return;
     }
-    String message = record.message;
+    String message = sanitizeSyncLogText(record.message);
     if (record.error != null) {
-      message += "\nERROR MESSAGE: ${record.error}";
+      message += "\nERROR MESSAGE: ${sanitizeSyncLogText(record.error)}";
     }
     if (record.stackTrace != null) {
-      message += "\nSTACKTRACE:\n${record.stackTrace}\n\n";
+      message += "\nSTACKTRACE:\n${sanitizeSyncLogText(record.stackTrace)}\n\n";
     }
     File(_logPath!).writeAsStringSync(
       "${record.time}: [${record.loggerName} - ${record.level.name}] $message\n",

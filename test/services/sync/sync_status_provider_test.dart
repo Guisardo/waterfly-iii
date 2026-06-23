@@ -5,6 +5,7 @@ import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/sync/sync_status_provider.dart';
+import 'package:waterflyiii/services/sync/upload_service.dart';
 import 'package:waterflyiii/settings.dart';
 import '../../helpers/test_database.dart';
 
@@ -35,6 +36,34 @@ class _MockConnectivityService extends ChangeNotifier
     _mockNetworkType = type;
     _mockIsOnline = online;
     notifyListeners();
+  }
+}
+
+class _OrderedSyncStatusProvider extends SyncStatusProvider {
+  final List<String> calls = <String>[];
+  UploadRunResult? uploadResult;
+
+  @override
+  Future<UploadRunResult?> upload() async {
+    calls.add('upload');
+    return uploadResult ??
+        const UploadRunResult(
+          status: UploadRunStatus.success,
+          initialPendingCount: 1,
+          succeededCount: 1,
+          failedCount: 0,
+          unattemptedCount: 0,
+        );
+  }
+
+  @override
+  Future<void> sync({bool forceRetry = false}) async {
+    calls.add('sync:$forceRetry');
+  }
+
+  @override
+  Future<void> refreshMetadata() async {
+    calls.add('refresh');
   }
 }
 
@@ -219,7 +248,7 @@ void main() {
       expect(provider, isNotNull);
     });
 
-    test('syncAll triggers both syncs', () async {
+    test('syncAll can trigger both upload and download sync', () async {
       await provider.initialize(
         fireflyService: fireflyService,
         connectivityService: connectivityService,
@@ -227,8 +256,9 @@ void main() {
         isar: isar, // Inject test Isar
       );
 
-      // Note: In test environment, secure storage is unavailable, so sync will fail
-      // The syncAll method catches exceptions internally and handles them gracefully
+      // Note: In test environment, secure storage is unavailable, so download
+      // sync will fail. syncAll uploads first so pending local changes are not
+      // blocked behind a slow download refresh.
       // We just verify the method can be called without crashing
       await provider.syncAll();
 
@@ -237,6 +267,37 @@ void main() {
       // Sync should have stopped (due to credential validation failure)
       expect(provider.isDownloadSyncing, false);
       expect(provider.isUploading, false);
+    });
+
+    test('syncAll uploads before download sync', () async {
+      final _OrderedSyncStatusProvider orderedProvider =
+          _OrderedSyncStatusProvider();
+
+      final UploadRunResult? result = await orderedProvider.syncAll(
+        forceRetry: true,
+      );
+
+      expect(result?.completedSuccessfully, true);
+      expect(orderedProvider.calls, <String>['upload', 'sync:true', 'refresh']);
+    });
+
+    test('syncAll skips download sync when upload is incomplete', () async {
+      final _OrderedSyncStatusProvider orderedProvider =
+          _OrderedSyncStatusProvider()
+            ..uploadResult = const UploadRunResult(
+              status: UploadRunStatus.partialFailure,
+              initialPendingCount: 2,
+              succeededCount: 1,
+              failedCount: 1,
+              unattemptedCount: 0,
+            );
+
+      final UploadRunResult? result = await orderedProvider.syncAll(
+        forceRetry: true,
+      );
+
+      expect(result?.completedSuccessfully, false);
+      expect(orderedProvider.calls, <String>['upload', 'refresh']);
     });
 
     test('hasDownloadError returns true when download is paused', () async {
@@ -291,6 +352,28 @@ void main() {
 
       // hasUploadError depends on metadata from AppDatabase.instance
       expect(provider.hasUploadError, isA<bool>());
+    });
+
+    test('hasUploadError returns true when upload has lastError', () async {
+      final SyncMetadata uploadMetadata = SyncMetadata()
+        ..entityType = 'upload'
+        ..lastError = 'Upload incomplete';
+
+      await isar.writeTxn(() async {
+        await isar.syncMetadatas.put(uploadMetadata);
+      });
+
+      await provider.initialize(
+        fireflyService: fireflyService,
+        connectivityService: connectivityService,
+        settingsProvider: settingsProvider,
+        isar: isar,
+      );
+
+      await provider.refreshMetadata();
+
+      expect(provider.hasUploadError, isTrue);
+      expect(provider.uploadError, 'Upload incomplete');
     });
 
     test(

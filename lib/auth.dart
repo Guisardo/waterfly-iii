@@ -26,6 +26,7 @@ import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 import 'package:waterflyiii/data/repositories/currency_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
+import 'package:waterflyiii/services/sync/sync_log_sanitizer.dart';
 import 'package:waterflyiii/services/sync/sync_notifications.dart';
 import 'package:waterflyiii/services/sync/sync_service.dart';
 import 'package:waterflyiii/services/sync/upload_service.dart';
@@ -108,9 +109,14 @@ class APIRequestInterceptor implements Interceptor {
 
   @override
   FutureOr<Response<BodyType>> intercept<BodyType>(Chain<BodyType> chain) {
-    log.finest(() => "API query ${chain.request.method} ${chain.request.url}");
+    log.finest(
+      () => "API query ${chain.request.method} ${chain.request.url.path}",
+    );
     if (chain.request.body != null) {
-      log.finest(() => "Query Body: ${chain.request.body}");
+      log.finest(
+        () =>
+            "Query Body: ${sanitizeSyncLogText(chain.request.body.runtimeType)}",
+      );
     }
     final Request request = applyHeaders(
       chain.request,

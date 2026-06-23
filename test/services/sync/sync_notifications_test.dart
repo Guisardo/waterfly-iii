@@ -30,6 +30,18 @@ void main() {
       expect(notifications, isNotNull);
     });
 
+    test('notification IDs separate download and upload progress', () {
+      expect(SyncNotifications.syncNotificationId, isNot(1003));
+      expect(
+        SyncNotifications.uploadNotificationId,
+        isNot(SyncNotifications.syncNotificationId),
+      );
+      expect(
+        SyncNotifications.uploadPausedNotificationId,
+        isNot(SyncNotifications.syncPausedNotificationId),
+      );
+    });
+
     test('showSyncStarted shows notification', () async {
       try {
         await notifications.initialize();

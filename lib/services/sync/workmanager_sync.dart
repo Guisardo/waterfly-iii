@@ -85,7 +85,16 @@ void callbackDispatcher() {
         await syncService.sync();
       } else if (task == uploadTaskName) {
         log.config("Running upload sync in background");
-        await uploadService.uploadPendingChanges();
+        final UploadRunResult result = await uploadService
+            .uploadPendingChanges();
+        if (!result.shouldReportBackgroundSuccess) {
+          log.warning(
+            "Background upload incomplete: status=${result.status.name} "
+            "success=${result.succeededCount} failed=${result.failedCount} "
+            "unattempted=${result.unattemptedCount}",
+          );
+          return Future<bool>.value(false);
+        }
       } else {
         log.warning("Unknown task: $task");
         return Future<bool>.value(false);

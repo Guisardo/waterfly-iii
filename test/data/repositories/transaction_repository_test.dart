@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
@@ -311,6 +313,59 @@ void main() {
       final DateTime expectedMidnight = DateTime(2026, 4, 17, 0, 0, 0, 0, 0);
       expect(row!.date, equals(expectedMidnight));
     });
+
+    test(
+      'createNew stores stable external IDs in row and pending change',
+      () async {
+        final DateTime date = DateTime(2026, 4, 17, 15, 30, 0);
+        final TransactionStore store = TransactionStore(
+          transactions: <TransactionSplitStore>[
+            TransactionSplitStore(
+              type: TransactionTypeProperty.withdrawal,
+              date: date,
+              amount: '25.00',
+              description: 'Pending coffee',
+            ),
+            TransactionSplitStore(
+              type: TransactionTypeProperty.withdrawal,
+              date: date,
+              amount: '5.00',
+              description: 'Pending snack',
+              externalId: 'existing-id',
+            ),
+          ],
+        );
+
+        final String pendingId = await repository.createNew(store);
+
+        final Transactions? row = await isar.transactions
+            .filter()
+            .transactionIdEqualTo(pendingId)
+            .findFirst();
+        final PendingChanges? change = await isar.pendingChanges
+            .filter()
+            .localPendingIdEqualTo(pendingId)
+            .findFirst();
+
+        expect(row, isNotNull);
+        expect(change, isNotNull);
+
+        final TransactionStore rowStore = TransactionStore.fromJson(
+          jsonDecode(row!.data) as Map<String, dynamic>,
+        );
+        final TransactionStore changeStore = TransactionStore.fromJson(
+          jsonDecode(change!.data!) as Map<String, dynamic>,
+        );
+
+        expect(rowStore.transactions[0].externalId, 'waterflyiii:$pendingId:0');
+        expect(
+          changeStore.transactions[0].externalId,
+          rowStore.transactions[0].externalId,
+        );
+        expect(rowStore.transactions[1].externalId, 'existing-id');
+        expect(changeStore.transactions[1].externalId, 'existing-id');
+      },
+    );
 
     test(
       'getByDateRange includes pending transaction with non-midnight split date',
