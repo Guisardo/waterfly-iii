@@ -884,4 +884,42 @@ class TransactionRepository {
       await isar.transactions.put(row);
     });
   }
+
+  Future<int> deleteSyncedMissingFromServer(
+    Set<String> serverTransactionIds,
+  ) async {
+    final List<Transactions> localRows = await isar.transactions
+        .where()
+        .findAll();
+    final List<PendingChanges> pendingChanges = await isar.pendingChanges
+        .where()
+        .findAll();
+    final Set<String> pendingTransactionIds = pendingChanges
+        .where(
+          (PendingChanges change) =>
+              change.entityType == 'transactions' &&
+              !change.synced &&
+              change.entityId != null,
+        )
+        .map((PendingChanges change) => change.entityId!)
+        .toSet();
+
+    final List<Id> idsToDelete = <Id>[];
+    for (final Transactions row in localRows) {
+      if (!row.synced) continue;
+      if (row.deletedAt != null) continue;
+      if (row.transactionId.startsWith('pending-')) continue;
+      if (serverTransactionIds.contains(row.transactionId)) continue;
+      if (pendingTransactionIds.contains(row.transactionId)) continue;
+      idsToDelete.add(row.id);
+    }
+
+    if (idsToDelete.isEmpty) {
+      return 0;
+    }
+
+    return isar.writeTxn<int>(() {
+      return isar.transactions.deleteAll(idsToDelete);
+    });
+  }
 }

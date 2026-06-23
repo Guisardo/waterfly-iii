@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
+import 'package:waterflyiii/data/local/database/tables/transactions.dart';
 import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/data/repositories/category_repository.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
@@ -46,6 +47,89 @@ class _MockConnectivityService extends ChangeNotifier
     _mockIsOnline = online;
     notifyListeners();
   }
+}
+
+class _NoopSyncNotifications extends SyncNotifications {
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> showCredentialError() async {}
+
+  @override
+  Future<void> showSyncCompleted() async {}
+
+  @override
+  Future<void> showSyncPaused(String error) async {}
+
+  @override
+  Future<void> showSyncProgress({
+    required String entityType,
+    required int current,
+    required int total,
+    String? message,
+  }) async {}
+
+  @override
+  Future<void> showSyncStarted() async {}
+}
+
+Map<String, dynamic> _transactionJson({
+  required String id,
+  required String amount,
+  required String description,
+  DateTime? date,
+}) {
+  final DateTime transactionDate = date ?? DateTime.now().toUtc();
+  return <String, dynamic>{
+    'type': 'transactions',
+    'id': id,
+    'attributes': <String, Object?>{
+      'created_at': transactionDate.toIso8601String(),
+      'updated_at': transactionDate.toIso8601String(),
+      'group_title': null,
+      'transactions': <Map<String, Object>>[
+        <String, Object>{
+          'transaction_journal_id': id,
+          'type': 'withdrawal',
+          'date': transactionDate.toIso8601String(),
+          'order': 0,
+          'currency_id': '1',
+          'currency_code': 'USD',
+          'currency_symbol': '\$',
+          'currency_decimal_places': 2,
+          'amount': amount,
+          'description': description,
+          'source_id': '1',
+          'source_name': 'Source',
+          'source_type': 'asset',
+          'destination_id': '2',
+          'destination_name': 'Destination',
+          'destination_type': 'expense',
+          'reconciled': false,
+          'tags': <dynamic>[],
+          'links': <dynamic>[],
+        },
+      ],
+    },
+    'links': <String, String>{
+      'self': 'https://example.com/api/v1/transactions/$id',
+    },
+  };
+}
+
+Transactions _syncedTransactionRow(TransactionRead transaction) {
+  final TransactionSplit? split =
+      transaction.attributes.transactions.firstOrNull;
+  return Transactions()
+    ..transactionId = transaction.id
+    ..data = jsonEncode(transaction.toJson())
+    ..updatedAt = transaction.attributes.updatedAt
+    ..localUpdatedAt = DateTime.now().toUtc()
+    ..synced = true
+    ..date = split?.date
+    ..sourceAccountId = split?.sourceId
+    ..destinationAccountId = split?.destinationId;
 }
 
 void main() {
@@ -1050,6 +1134,73 @@ void main() {
         await syncService.sync(entityType: 'transactions');
         expect(syncService.isSyncing, false);
       });
+
+      test(
+        'sync transactions deletes synced local rows missing from server',
+        () async {
+          final SyncMetadata authMetadata = SyncMetadata()
+            ..entityType = 'auth'
+            ..credentialsValidated = true
+            ..credentialsInvalid = false;
+
+          await isar.writeTxn(() async {
+            await isar.syncMetadatas.put(authMetadata);
+          });
+
+          syncService.dispose();
+          syncService = SyncService(
+            isar: isar,
+            fireflyService: fireflyService,
+            connectivityService: connectivityService,
+            notifications: _NoopSyncNotifications(),
+            settingsProvider: settingsProvider,
+          );
+
+          final DateTime now = DateTime.now().toUtc();
+          final TransactionRead kept = TransactionRead.fromJson(
+            _transactionJson(
+              id: 'tx-keep',
+              amount: '2710.80',
+              description: 'remedio Nico',
+              date: now,
+            ),
+          );
+          final TransactionRead deletedOnServer = TransactionRead.fromJson(
+            _transactionJson(
+              id: 'tx-deleted',
+              amount: '2710.80',
+              description: 'remedio Nico',
+              date: now,
+            ),
+          );
+          await isar.writeTxn(() async {
+            await isar.transactions.put(_syncedTransactionRow(kept));
+            await isar.transactions.put(_syncedTransactionRow(deletedOnServer));
+          });
+
+          mockApiHelper.setupTransactions(
+            transactions: <Map<String, dynamic>>[
+              _transactionJson(
+                id: 'tx-keep',
+                amount: '2710.80',
+                description: 'remedio Nico',
+                date: now.add(const Duration(minutes: 1)),
+              ),
+            ],
+          );
+
+          await syncService.sync(entityType: 'transactions');
+
+          final List<Transactions> remainingRows = await isar.transactions
+              .where()
+              .findAll();
+          final Iterable<String> remainingIds = remainingRows.map(
+            (Transactions row) => row.transactionId,
+          );
+          expect(remainingIds, contains('tx-keep'));
+          expect(remainingIds, isNot(contains('tx-deleted')));
+        },
+      );
 
       test('sync transactions handles conflict detection', () async {
         // Mark credentials as validated

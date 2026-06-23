@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
@@ -6,6 +8,46 @@ import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 import '../../helpers/test_database.dart';
+
+Map<String, dynamic> _transactionJson({
+  required String id,
+  required String amount,
+  required String description,
+  DateTime? date,
+}) {
+  final String transactionDate = (date ?? DateTime.now()).toIso8601String();
+  return <String, dynamic>{
+    'type': 'transactions',
+    'id': id,
+    'attributes': <String, List<Map<String, String>>>{
+      'transactions': <Map<String, String>>[
+        <String, String>{
+          'type': 'withdrawal',
+          'date': transactionDate,
+          'amount': amount,
+          'description': description,
+        },
+      ],
+    },
+    'links': <String, String>{
+      'self': 'https://example.com/api/v1/transactions/$id',
+    },
+  };
+}
+
+Transactions _syncedTransactionRow(TransactionRead transaction) {
+  final TransactionSplit? split =
+      transaction.attributes.transactions.firstOrNull;
+  return Transactions()
+    ..transactionId = transaction.id
+    ..data = jsonEncode(transaction.toJson())
+    ..updatedAt = transaction.attributes.updatedAt
+    ..localUpdatedAt = DateTime.now().toUtc()
+    ..synced = true
+    ..date = split?.date
+    ..sourceAccountId = split?.sourceId
+    ..destinationAccountId = split?.destinationId;
+}
 
 void main() {
   group('TransactionRepository', () {
@@ -283,6 +325,74 @@ void main() {
       final TransactionRead? retrieved = await repository.getById('test-7');
       expect(retrieved, isNotNull);
     });
+
+    test(
+      'deleteSyncedMissingFromServer removes stale synced transaction',
+      () async {
+        final TransactionRead kept = TransactionRead.fromJson(
+          _transactionJson(
+            id: 'test-8',
+            amount: '10.00',
+            description: 'Still on server',
+          ),
+        );
+        final TransactionRead removed = TransactionRead.fromJson(
+          _transactionJson(
+            id: 'test-9',
+            amount: '2710.80',
+            description: 'remedio Nico',
+          ),
+        );
+        await isar.writeTxn(() async {
+          await isar.transactions.put(_syncedTransactionRow(kept));
+          await isar.transactions.put(_syncedTransactionRow(removed));
+        });
+
+        final int deletedCount = await repository.deleteSyncedMissingFromServer(
+          <String>{'test-8'},
+        );
+
+        expect(deletedCount, 1);
+        final List<Transactions> remainingRows = await isar.transactions
+            .where()
+            .findAll();
+        final Iterable<String> remainingIds = remainingRows.map(
+          (Transactions row) => row.transactionId,
+        );
+        expect(remainingIds, contains('test-8'));
+        expect(remainingIds, isNot(contains('test-9')));
+      },
+    );
+
+    test(
+      'deleteSyncedMissingFromServer preserves pending local changes',
+      () async {
+        final TransactionRead edited = TransactionRead.fromJson(
+          _transactionJson(
+            id: 'test-10',
+            amount: '2710.80',
+            description: 'remedio Nico edited locally',
+          ),
+        );
+        await isar.writeTxn(() async {
+          await isar.transactions.put(_syncedTransactionRow(edited));
+        });
+        await repository.update(edited);
+
+        final int deletedCount = await repository.deleteSyncedMissingFromServer(
+          <String>{},
+        );
+
+        expect(deletedCount, 0);
+        final List<Transactions> remainingRows = await isar.transactions
+            .where()
+            .findAll();
+        final Iterable<String> remainingIds = remainingRows.map(
+          (Transactions row) => row.transactionId,
+        );
+        expect(remainingIds, contains('test-10'));
+      },
+    );
 
     test('createNew normalizes stored date to midnight', () async {
       // A non-midnight date (15:30 local time) — this was the root cause of the

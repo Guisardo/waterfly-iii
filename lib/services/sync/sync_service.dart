@@ -429,6 +429,7 @@ class SyncService extends ChangeNotifier {
     int page = 1;
     bool hasMore = true;
     int totalSynced = 0;
+    final Set<String> serverTransactionIds = <String>{};
 
     while (hasMore) {
       try {
@@ -448,6 +449,8 @@ class SyncService extends ChangeNotifier {
         }
 
         final List<TransactionRead> transactions = response.body!.data;
+        final int? totalPages = response.body!.meta.pagination?.totalPages;
+        final String? nextPage = response.body!.links.next;
 
         if (transactions.isEmpty) {
           hasMore = false;
@@ -455,6 +458,7 @@ class SyncService extends ChangeNotifier {
         }
 
         for (final TransactionRead transaction in transactions) {
+          serverTransactionIds.add(transaction.id);
           final DateTime? updatedAt = transaction.attributes.updatedAt;
 
           // For incremental sync, skip transactions not modified since last sync.
@@ -501,16 +505,24 @@ class SyncService extends ChangeNotifier {
         );
 
         // Check if there are more pages
-        final int? totalPages = response.body!.meta.pagination?.totalPages;
-        if (totalPages == null || page >= totalPages) {
-          hasMore = false;
-        } else {
+        if (totalPages != null && page < totalPages) {
           page++;
+        } else if (totalPages == null && nextPage != null) {
+          page++;
+        } else {
+          hasMore = false;
         }
       } catch (e) {
         log.severe("Error syncing transactions page $page", e);
         rethrow;
       }
+    }
+
+    final int deletedCount = await repo.deleteSyncedMissingFromServer(
+      serverTransactionIds,
+    );
+    if (deletedCount > 0) {
+      log.config("Deleted $deletedCount transactions missing from server");
     }
 
     log.config("Synced $totalSynced transactions");
