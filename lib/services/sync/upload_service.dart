@@ -233,6 +233,42 @@ class UploadService extends ChangeNotifier {
   }
 
   Future<bool> _processCreate(PendingChanges change, FireflyIii api) async {
+    if (change.entityType == 'transactions' && change.localPendingId != null) {
+      final List<PendingChanges> changes = await isar.pendingChanges
+          .where()
+          .findAll();
+      PendingChanges? activeChange;
+      for (final PendingChanges pendingChange in changes) {
+        if (pendingChange.id == change.id &&
+            pendingChange.entityType == 'transactions' &&
+            pendingChange.operation == PendingChangeOperation.create.name &&
+            !pendingChange.synced &&
+            pendingChange.localPendingId == change.localPendingId) {
+          activeChange = pendingChange;
+          break;
+        }
+      }
+      if (activeChange == null) {
+        log.config(
+          "Skipping cancelled pending transaction create ${change.localPendingId}",
+        );
+        return true;
+      }
+
+      final Transactions? pendingRow = await isar.transactions
+          .filter()
+          .transactionIdEqualTo(change.localPendingId!)
+          .findFirst();
+      if (pendingRow == null) {
+        log.config(
+          "Dropping pending transaction create without local row ${change.localPendingId}",
+        );
+        await _markChangeAsSynced(activeChange.id);
+        return true;
+      }
+      change = activeChange;
+    }
+
     final Map<String, dynamic> data =
         jsonDecode(change.data!) as Map<String, dynamic>;
 

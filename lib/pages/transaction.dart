@@ -966,7 +966,17 @@ class _TransactionPageState extends State<TransactionPage>
                             foreignCurrencyId: _foreignCurrencies[i]?.id,
                             notes: _noteTextControllers[i].text,
                             order: i,
+                            sourceId:
+                                _transactionType ==
+                                    TransactionTypeProperty.withdrawal
+                                ? _ownAccountId
+                                : null,
                             sourceName: sourceName,
+                            destinationId:
+                                _transactionType ==
+                                    TransactionTypeProperty.deposit
+                                ? _ownAccountId
+                                : null,
                             tags: _tags[i].tags,
                             transactionJournalId: _transactionJournalIDs
                                 .elementAtOrNull(i),
@@ -1057,7 +1067,17 @@ class _TransactionPageState extends State<TransactionPage>
                               foreignCurrencyId: _foreignCurrencies[i]?.id,
                               notes: _noteTextControllers[i].text,
                               order: i,
+                              sourceId:
+                                  _transactionType ==
+                                      TransactionTypeProperty.withdrawal
+                                  ? _ownAccountId
+                                  : null,
                               sourceName: sourceName,
+                              destinationId:
+                                  _transactionType ==
+                                      TransactionTypeProperty.deposit
+                                  ? _ownAccountId
+                                  : null,
                               tags: _tags[i].tags,
                               reconciled: _reconciled,
                             ),

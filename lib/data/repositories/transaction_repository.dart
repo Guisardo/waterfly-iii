@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/tables/transactions.dart';
 import 'package:waterflyiii/extensions.dart';
@@ -13,6 +14,315 @@ class TransactionRepository {
   TransactionRepository(this.isar);
 
   DateTime _getNow() => DateTime.now().toUtc();
+
+  AccountTypeProperty _pendingSourceType(TransactionTypeProperty type) {
+    switch (type) {
+      case TransactionTypeProperty.deposit:
+        return AccountTypeProperty.revenueAccount;
+      case TransactionTypeProperty.transfer:
+      case TransactionTypeProperty.withdrawal:
+      case TransactionTypeProperty.openingBalance:
+      case TransactionTypeProperty.reconciliation:
+        return AccountTypeProperty.assetAccount;
+      case TransactionTypeProperty.swaggerGeneratedUnknown:
+        return AccountTypeProperty.swaggerGeneratedUnknown;
+    }
+  }
+
+  AccountTypeProperty _pendingDestinationType(TransactionTypeProperty type) {
+    switch (type) {
+      case TransactionTypeProperty.withdrawal:
+        return AccountTypeProperty.expenseAccount;
+      case TransactionTypeProperty.deposit:
+      case TransactionTypeProperty.transfer:
+      case TransactionTypeProperty.openingBalance:
+      case TransactionTypeProperty.reconciliation:
+        return AccountTypeProperty.assetAccount;
+      case TransactionTypeProperty.swaggerGeneratedUnknown:
+        return AccountTypeProperty.swaggerGeneratedUnknown;
+    }
+  }
+
+  String _pendingCurrencyId(TransactionSplitStore split) =>
+      split.currencyId ??
+      split.foreignCurrencyId ??
+      split.currencyCode ??
+      split.foreignCurrencyCode ??
+      '0';
+
+  String _pendingCurrencyCode(TransactionSplitStore split) =>
+      split.currencyCode ?? split.foreignCurrencyCode ?? '';
+
+  TransactionSplitStore _mergePendingSplit(
+    TransactionSplitStore? existingSplit,
+    TransactionSplitUpdate splitUpdate,
+    int index,
+    DateTime now,
+  ) {
+    final bool clearsForeignCurrency = splitUpdate.foreignAmount == '0';
+
+    return TransactionSplitStore(
+      type:
+          splitUpdate.type ??
+          existingSplit?.type ??
+          TransactionTypeProperty.withdrawal,
+      date: splitUpdate.date ?? existingSplit?.date ?? now,
+      amount: splitUpdate.amount ?? existingSplit?.amount ?? '0',
+      description: splitUpdate.description ?? existingSplit?.description ?? '',
+      order: splitUpdate.order ?? existingSplit?.order ?? index,
+      currencyId: splitUpdate.currencyId ?? existingSplit?.currencyId,
+      currencyCode: splitUpdate.currencyCode ?? existingSplit?.currencyCode,
+      foreignAmount: clearsForeignCurrency
+          ? null
+          : splitUpdate.foreignAmount ?? existingSplit?.foreignAmount,
+      foreignCurrencyId: clearsForeignCurrency
+          ? null
+          : splitUpdate.foreignCurrencyId ?? existingSplit?.foreignCurrencyId,
+      foreignCurrencyCode: clearsForeignCurrency
+          ? null
+          : splitUpdate.foreignCurrencyCode ??
+                existingSplit?.foreignCurrencyCode,
+      budgetId: splitUpdate.budgetId ?? existingSplit?.budgetId,
+      budgetName: splitUpdate.budgetName ?? existingSplit?.budgetName,
+      categoryId: splitUpdate.categoryId ?? existingSplit?.categoryId,
+      categoryName: splitUpdate.categoryName ?? existingSplit?.categoryName,
+      sourceId: splitUpdate.sourceId ?? existingSplit?.sourceId,
+      sourceName: splitUpdate.sourceName ?? existingSplit?.sourceName,
+      destinationId: splitUpdate.destinationId ?? existingSplit?.destinationId,
+      destinationName:
+          splitUpdate.destinationName ?? existingSplit?.destinationName,
+      reconciled: splitUpdate.reconciled ?? existingSplit?.reconciled,
+      billId: splitUpdate.billId ?? existingSplit?.billId,
+      billName: splitUpdate.billName ?? existingSplit?.billName,
+      tags: splitUpdate.tags ?? existingSplit?.tags,
+      notes: splitUpdate.notes ?? existingSplit?.notes,
+      internalReference:
+          splitUpdate.internalReference ?? existingSplit?.internalReference,
+      externalUrl: splitUpdate.externalUrl ?? existingSplit?.externalUrl,
+      sepaCc: splitUpdate.sepaCc ?? existingSplit?.sepaCc,
+      sepaCtOp: splitUpdate.sepaCtOp ?? existingSplit?.sepaCtOp,
+      sepaCtId: splitUpdate.sepaCtId ?? existingSplit?.sepaCtId,
+      sepaDb: splitUpdate.sepaDb ?? existingSplit?.sepaDb,
+      sepaCountry: splitUpdate.sepaCountry ?? existingSplit?.sepaCountry,
+      sepaEp: splitUpdate.sepaEp ?? existingSplit?.sepaEp,
+      sepaCi: splitUpdate.sepaCi ?? existingSplit?.sepaCi,
+      sepaBatchId: splitUpdate.sepaBatchId ?? existingSplit?.sepaBatchId,
+      interestDate: splitUpdate.interestDate ?? existingSplit?.interestDate,
+      bookDate: splitUpdate.bookDate ?? existingSplit?.bookDate,
+      processDate: splitUpdate.processDate ?? existingSplit?.processDate,
+      dueDate: splitUpdate.dueDate ?? existingSplit?.dueDate,
+      paymentDate: splitUpdate.paymentDate ?? existingSplit?.paymentDate,
+      invoiceDate: splitUpdate.invoiceDate ?? existingSplit?.invoiceDate,
+    );
+  }
+
+  TransactionStore _mergePendingStore(
+    TransactionStore existingStore,
+    TransactionUpdate update,
+    DateTime now,
+  ) {
+    final List<TransactionSplitUpdate> updateSplits =
+        update.transactions ?? <TransactionSplitUpdate>[];
+    final int splitCount =
+        existingStore.transactions.length > updateSplits.length
+        ? existingStore.transactions.length
+        : updateSplits.length;
+
+    final List<TransactionSplitStore> updatedSplits = <TransactionSplitStore>[];
+    for (int i = 0; i < splitCount; i++) {
+      final TransactionSplitStore? existingSplit = existingStore.transactions
+          .elementAtOrNull(i);
+      final TransactionSplitUpdate? splitUpdate = updateSplits.elementAtOrNull(
+        i,
+      );
+      if (splitUpdate == null) {
+        if (existingSplit != null) updatedSplits.add(existingSplit);
+        continue;
+      }
+      updatedSplits.add(_mergePendingSplit(existingSplit, splitUpdate, i, now));
+    }
+
+    return TransactionStore(
+      groupTitle: update.groupTitle ?? existingStore.groupTitle,
+      transactions: updatedSplits,
+      applyRules: existingStore.applyRules,
+      fireWebhooks: existingStore.fireWebhooks,
+      errorIfDuplicateHash: existingStore.errorIfDuplicateHash,
+    );
+  }
+
+  TransactionSplit _mergeSyncedSplit(
+    TransactionSplit existingSplit,
+    TransactionSplitUpdate splitUpdate,
+  ) {
+    final bool clearsForeignCurrency =
+        splitUpdate.foreignAmount == '0' &&
+        splitUpdate.foreignCurrencyId == null;
+
+    return existingSplit.copyWithWrapped(
+      type: splitUpdate.type == null
+          ? null
+          : Wrapped<TransactionTypeProperty>.value(splitUpdate.type!),
+      date: splitUpdate.date == null
+          ? null
+          : Wrapped<DateTime>.value(splitUpdate.date!),
+      order: splitUpdate.order == null
+          ? null
+          : Wrapped<int?>.value(splitUpdate.order),
+      amount: splitUpdate.amount == null
+          ? null
+          : Wrapped<String>.value(splitUpdate.amount!),
+      description: splitUpdate.description == null
+          ? null
+          : Wrapped<String>.value(splitUpdate.description!),
+      foreignAmount: clearsForeignCurrency
+          ? const Wrapped<String?>.value(null)
+          : splitUpdate.foreignAmount == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.foreignAmount),
+      foreignCurrencyId: clearsForeignCurrency
+          ? const Wrapped<String?>.value(null)
+          : splitUpdate.foreignCurrencyId == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.foreignCurrencyId),
+      foreignCurrencyCode: clearsForeignCurrency
+          ? const Wrapped<String?>.value(null)
+          : splitUpdate.foreignCurrencyCode == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.foreignCurrencyCode),
+      budgetId: splitUpdate.budgetId == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.budgetId),
+      budgetName: splitUpdate.budgetName == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.budgetName),
+      categoryId: splitUpdate.categoryId == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.categoryId),
+      categoryName: splitUpdate.categoryName == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.categoryName),
+      sourceId: splitUpdate.sourceId == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.sourceId),
+      sourceName: splitUpdate.sourceName == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.sourceName),
+      destinationId: splitUpdate.destinationId == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.destinationId),
+      destinationName: splitUpdate.destinationName == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.destinationName),
+      reconciled: splitUpdate.reconciled == null
+          ? null
+          : Wrapped<bool?>.value(splitUpdate.reconciled),
+      billId: splitUpdate.billId == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.billId),
+      billName: splitUpdate.billName == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.billName),
+      tags: splitUpdate.tags == null
+          ? null
+          : Wrapped<List<String>?>.value(splitUpdate.tags),
+      notes: splitUpdate.notes == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.notes),
+      internalReference: splitUpdate.internalReference == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.internalReference),
+      externalId: splitUpdate.externalId == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.externalId),
+      externalUrl: splitUpdate.externalUrl == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.externalUrl),
+      sepaCc: splitUpdate.sepaCc == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.sepaCc),
+      sepaCtOp: splitUpdate.sepaCtOp == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.sepaCtOp),
+      sepaCtId: splitUpdate.sepaCtId == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.sepaCtId),
+      sepaDb: splitUpdate.sepaDb == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.sepaDb),
+      sepaCountry: splitUpdate.sepaCountry == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.sepaCountry),
+      sepaEp: splitUpdate.sepaEp == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.sepaEp),
+      sepaCi: splitUpdate.sepaCi == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.sepaCi),
+      sepaBatchId: splitUpdate.sepaBatchId == null
+          ? null
+          : Wrapped<String?>.value(splitUpdate.sepaBatchId),
+      interestDate: splitUpdate.interestDate == null
+          ? null
+          : Wrapped<DateTime?>.value(splitUpdate.interestDate),
+      bookDate: splitUpdate.bookDate == null
+          ? null
+          : Wrapped<DateTime?>.value(splitUpdate.bookDate),
+      processDate: splitUpdate.processDate == null
+          ? null
+          : Wrapped<DateTime?>.value(splitUpdate.processDate),
+      dueDate: splitUpdate.dueDate == null
+          ? null
+          : Wrapped<DateTime?>.value(splitUpdate.dueDate),
+      paymentDate: splitUpdate.paymentDate == null
+          ? null
+          : Wrapped<DateTime?>.value(splitUpdate.paymentDate),
+      invoiceDate: splitUpdate.invoiceDate == null
+          ? null
+          : Wrapped<DateTime?>.value(splitUpdate.invoiceDate),
+    );
+  }
+
+  TransactionRead _mergeSyncedTransactionRead(
+    TransactionRead existingTransaction,
+    TransactionUpdate update,
+  ) {
+    final List<TransactionSplitUpdate> updateSplits =
+        update.transactions ?? <TransactionSplitUpdate>[];
+    final List<TransactionSplit> updatedSplits = existingTransaction
+        .attributes
+        .transactions
+        .mapIndexed((int index, TransactionSplit existingSplit) {
+          final TransactionSplitUpdate? splitUpdate = updateSplits
+              .elementAtOrNull(index);
+          if (splitUpdate == null) return existingSplit;
+          return _mergeSyncedSplit(existingSplit, splitUpdate);
+        })
+        .toList();
+
+    return existingTransaction.copyWith(
+      attributes: existingTransaction.attributes.copyWith(
+        groupTitle:
+            update.groupTitle ?? existingTransaction.attributes.groupTitle,
+        transactions: updatedSplits,
+      ),
+    );
+  }
+
+  Future<PendingChanges?> _findPendingCreate(String pendingId) async {
+    final List<PendingChanges> changes = await isar.pendingChanges
+        .where()
+        .findAll();
+    for (final PendingChanges change in changes) {
+      if (change.entityType == 'transactions' &&
+          change.operation == PendingChangeOperation.create.name &&
+          !change.synced &&
+          change.localPendingId == pendingId) {
+        return change;
+      }
+    }
+    return null;
+  }
 
   /// Converts a TransactionStore (API request format) to TransactionRead (API response format)
   /// for displaying pending transactions in the UI
@@ -31,25 +341,30 @@ class TransactionRepository {
           type: splitStore.type,
           date: splitStore.date,
           order: splitStore.order,
+          currencyId: _pendingCurrencyId(splitStore),
+          currencyCode: _pendingCurrencyCode(splitStore),
+          currencySymbol: _pendingCurrencyCode(splitStore),
+          currencyName: _pendingCurrencyCode(splitStore),
+          currencyDecimalPlaces: 2,
           amount: splitStore.amount,
           description: splitStore.description,
-          sourceId: null, // Will be resolved by sync service
+          sourceId: splitStore.sourceId,
           sourceName: splitStore.sourceName,
           sourceIban: null,
-          sourceType: null,
-          destinationId: null, // Will be resolved by sync service
+          sourceType: _pendingSourceType(splitStore.type),
+          destinationId: splitStore.destinationId,
           destinationName: splitStore.destinationName,
           destinationIban: null,
-          destinationType: null,
+          destinationType: _pendingDestinationType(splitStore.type),
           billId: splitStore.billId != null && splitStore.billId != "0"
               ? splitStore.billId
               : null,
-          billName: null,
-          categoryId: null,
+          billName: splitStore.billName,
+          categoryId: splitStore.categoryId,
           categoryName: (splitStore.categoryName?.isNotEmpty ?? false)
               ? splitStore.categoryName
               : null,
-          budgetId: null,
+          budgetId: splitStore.budgetId,
           budgetName: (splitStore.budgetName?.isNotEmpty ?? false)
               ? splitStore.budgetName
               : null,
@@ -69,8 +384,10 @@ class TransactionRepository {
               : null,
           foreignCurrencyId: splitStore.foreignCurrencyId,
           foreignCurrencyCode: splitStore.foreignCurrencyCode,
-          foreignCurrencySymbol: null,
-          foreignCurrencyDecimalPlaces: null,
+          foreignCurrencySymbol: splitStore.foreignCurrencyCode,
+          foreignCurrencyDecimalPlaces: splitStore.foreignCurrencyCode == null
+              ? null
+              : 2,
           sepaCc: splitStore.sepaCc,
           sepaCtOp: splitStore.sepaCtOp,
           sepaCtId: splitStore.sepaCtId,
@@ -617,6 +934,20 @@ class TransactionRepository {
         .transactionIdEqualTo(id)
         .findFirst();
 
+    if (id.startsWith('pending-')) {
+      final PendingChanges? pendingCreate = await _findPendingCreate(id);
+      if (existing == null || pendingCreate == null) {
+        throw StateError(
+          'Cannot cancel pending transaction $id without its pending CREATE',
+        );
+      }
+      await isar.writeTxn(() async {
+        await isar.transactions.delete(existing.id);
+        await isar.pendingChanges.delete(pendingCreate.id);
+      });
+      return;
+    }
+
     final PendingChanges pendingChange = PendingChanges()
       ..entityType = 'transactions'
       ..entityId = id
@@ -697,91 +1028,40 @@ class TransactionRepository {
             existingData,
           );
 
-          // Merge update into existing store
-          final List<TransactionSplitStore> updatedSplits =
-              <TransactionSplitStore>[];
-          for (int i = 0; i < (update.transactions?.length ?? 0); i++) {
-            final TransactionSplitUpdate splitUpdate = update.transactions![i];
-            final TransactionSplitStore? existingSplit = existingStore
-                .transactions
-                .elementAtOrNull(i);
-
-            updatedSplits.add(
-              TransactionSplitStore(
-                type:
-                    splitUpdate.type ??
-                    existingSplit?.type ??
-                    TransactionTypeProperty.withdrawal,
-                date: splitUpdate.date ?? existingSplit?.date ?? now,
-                amount: splitUpdate.amount ?? existingSplit?.amount ?? '0',
-                description:
-                    splitUpdate.description ?? existingSplit?.description ?? '',
-                sourceName: splitUpdate.sourceName ?? existingSplit?.sourceName,
-                sourceId: splitUpdate.sourceId ?? existingSplit?.sourceId,
-                destinationName:
-                    splitUpdate.destinationName ??
-                    existingSplit?.destinationName,
-                destinationId:
-                    splitUpdate.destinationId ?? existingSplit?.destinationId,
-                categoryName:
-                    splitUpdate.categoryName ?? existingSplit?.categoryName,
-                categoryId: splitUpdate.categoryId ?? existingSplit?.categoryId,
-                budgetName: splitUpdate.budgetName ?? existingSplit?.budgetName,
-                budgetId: splitUpdate.budgetId ?? existingSplit?.budgetId,
-                billId: splitUpdate.billId ?? existingSplit?.billId,
-                billName: splitUpdate.billName ?? existingSplit?.billName,
-                tags: splitUpdate.tags ?? existingSplit?.tags,
-                notes: splitUpdate.notes ?? existingSplit?.notes,
-                foreignAmount:
-                    splitUpdate.foreignAmount ?? existingSplit?.foreignAmount,
-                foreignCurrencyId:
-                    splitUpdate.foreignCurrencyId ??
-                    existingSplit?.foreignCurrencyId,
-                foreignCurrencyCode:
-                    splitUpdate.foreignCurrencyCode ??
-                    existingSplit?.foreignCurrencyCode,
-                reconciled: splitUpdate.reconciled ?? existingSplit?.reconciled,
-                order: splitUpdate.order ?? existingSplit?.order ?? i,
-              ),
+          final TransactionStore updatedStore = _mergePendingStore(
+            existingStore,
+            update,
+            now,
+          );
+          if (updatedStore.transactions.isEmpty) {
+            throw StateError('Pending transaction $id cannot have no splits');
+          }
+          final PendingChanges? existingPending = await _findPendingCreate(id);
+          if (existingPending == null) {
+            throw StateError(
+              'Cannot update pending transaction $id without its pending CREATE',
             );
           }
-
-          final TransactionStore updatedStore = TransactionStore(
-            groupTitle: update.groupTitle ?? existingStore.groupTitle,
-            transactions: updatedSplits,
-            applyRules: existingStore.applyRules,
-            fireWebhooks: existingStore.fireWebhooks,
-            errorIfDuplicateHash: existingStore.errorIfDuplicateHash,
-          );
 
           existing
             ..data = jsonEncode(updatedStore.toJson())
             ..localUpdatedAt = now
-            ..synced = false;
+            ..synced = false
+            ..date = updatedStore.transactions.firstOrNull?.date.clearTime()
+            ..sourceAccountId = updatedStore.transactions.firstOrNull?.sourceId
+            ..destinationAccountId =
+                updatedStore.transactions.firstOrNull?.destinationId;
+
+          existingPending
+            ..data = jsonEncode(updatedStore.toJson())
+            ..createdAt = now;
 
           await isar.writeTxn(() async {
             await isar.transactions.put(existing);
+            await isar.pendingChanges.put(existingPending);
           });
-
-          // Update the pending change if it exists
-          final PendingChanges? existingPending = await isar.pendingChanges
-              .filter()
-              .entityTypeEqualTo('transactions')
-              .entityIdIsNull()
-              .dataContains(id)
-              .findFirst();
-
-          if (existingPending != null) {
-            existingPending
-              ..data = jsonEncode(updatedStore.toJson())
-              ..createdAt = now;
-
-            await isar.writeTxn(() async {
-              await isar.pendingChanges.put(existingPending);
-            });
-          }
         } catch (e) {
-          // If merge fails, just store the update as is
+          rethrow;
         }
       }
       return;
@@ -803,10 +1083,26 @@ class TransactionRepository {
       ..synced = false;
 
     if (existing != null) {
-      // We store the TransactionUpdate directly - the sync service will handle it
+      final TransactionRead existingTransaction = TransactionRead.fromJson(
+        jsonDecode(existing.data) as Map<String, dynamic>,
+      );
+      final TransactionRead updatedTransaction = _mergeSyncedTransactionRead(
+        existingTransaction,
+        update,
+      );
+
       existing
+        ..data = jsonEncode(updatedTransaction.toJson())
         ..localUpdatedAt = now
-        ..synced = false;
+        ..synced = false
+        ..date = updatedTransaction.attributes.transactions.firstOrNull?.date
+        ..sourceAccountId =
+            updatedTransaction.attributes.transactions.firstOrNull?.sourceId
+        ..destinationAccountId = updatedTransaction
+            .attributes
+            .transactions
+            .firstOrNull
+            ?.destinationId;
 
       await isar.writeTxn(() async {
         await isar.transactions.put(existing);

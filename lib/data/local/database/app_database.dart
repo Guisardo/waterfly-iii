@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:waterflyiii/data/local/database/tables/transactions.dart';
@@ -62,6 +63,16 @@ class AppDatabase {
     }
     final Isar isar = await _completer!.future;
     await isar.close();
+    _completer = null;
+  }
+
+  @visibleForTesting
+  static void setTestInstance(Isar isar) {
+    _completer = Completer<Isar>()..complete(isar);
+  }
+
+  @visibleForTesting
+  static void resetForTesting() {
     _completer = null;
   }
 }

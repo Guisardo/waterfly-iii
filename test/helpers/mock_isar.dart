@@ -1207,6 +1207,8 @@ class MockIsar implements Isar {
           'entityType': (PendingChanges t, dynamic v) => t.entityType == v,
           'entityId': (PendingChanges t, dynamic v) => t.entityId == v,
           'operation': (PendingChanges t, dynamic v) => t.operation == v,
+          'localPendingId': (PendingChanges t, dynamic v) =>
+              t.localPendingId == v,
         },
         _TempIsar(),
       ),

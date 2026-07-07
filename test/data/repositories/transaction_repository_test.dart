@@ -49,6 +49,67 @@ Transactions _syncedTransactionRow(TransactionRead transaction) {
     ..destinationAccountId = split?.destinationId;
 }
 
+TransactionStore _pendingStore({
+  required TransactionTypeProperty type,
+  required DateTime date,
+  required String amount,
+  required String description,
+  String? sourceId,
+  String? sourceName,
+  String? destinationId,
+  String? destinationName,
+  String? foreignAmount,
+  String? foreignCurrencyId,
+  String? foreignCurrencyCode,
+  List<TransactionSplitStore>? splits,
+}) {
+  return TransactionStore(
+    groupTitle: splits == null ? null : 'Pending group',
+    transactions:
+        splits ??
+        <TransactionSplitStore>[
+          TransactionSplitStore(
+            type: type,
+            date: date,
+            amount: amount,
+            description: description,
+            currencyId: '1',
+            currencyCode: 'USD',
+            sourceId: sourceId,
+            sourceName: sourceName,
+            destinationId: destinationId,
+            destinationName: destinationName,
+            categoryName: 'Groceries',
+            budgetName: 'Food',
+            tags: <String>['pending'],
+            notes: 'local note',
+            foreignAmount: foreignAmount,
+            foreignCurrencyId: foreignCurrencyId,
+            foreignCurrencyCode: foreignCurrencyCode,
+            reconciled: true,
+          ),
+        ],
+    applyRules: true,
+    fireWebhooks: true,
+    errorIfDuplicateHash: true,
+  );
+}
+
+Future<PendingChanges?> _pendingCreateFor(Isar isar, String pendingId) async {
+  final List<PendingChanges> changes = await isar.pendingChanges
+      .where()
+      .findAll();
+  for (final PendingChanges change in changes) {
+    if (change.entityType == 'transactions' &&
+        change.operation == PendingChangeOperation.create.name &&
+        !change.synced &&
+        change.localPendingId == pendingId) {
+      return change;
+    }
+  }
+  return null;
+}
+
 void main() {
   group('TransactionRepository', () {
     late Isar isar;
@@ -167,6 +228,62 @@ void main() {
       expect(retrieved!.attributes.transactions.first.description, 'Updated');
     });
 
+    test(
+      'updateExisting for synced transaction updates local date before sync',
+      () async {
+        final DateTime originalDate = DateTime(2026, 7, 7, 15, 50);
+        final DateTime updatedDate = DateTime(2026, 7, 6, 15, 50);
+        final TransactionRead transaction = TransactionRead.fromJson(
+          _transactionJson(
+            id: 'test-synced-date',
+            amount: '123.00',
+            description: 'Original date',
+            date: originalDate,
+          ),
+        );
+        await isar.writeTxn(() async {
+          await isar.transactions.put(_syncedTransactionRow(transaction));
+        });
+
+        await repository.updateExisting(
+          'test-synced-date',
+          TransactionUpdate(
+            transactions: <TransactionSplitUpdate>[
+              TransactionSplitUpdate(
+                date: updatedDate,
+                description: 'Original date',
+              ),
+            ],
+          ),
+        );
+
+        final TransactionRead? retrieved = await repository.getById(
+          'test-synced-date',
+        );
+        expect(retrieved, isNotNull);
+        expect(retrieved!.attributes.transactions.first.date, updatedDate);
+
+        final Transactions? row = await isar.transactions
+            .filter()
+            .transactionIdEqualTo('test-synced-date')
+            .findFirst();
+        expect(row, isNotNull);
+        expect(row!.synced, isFalse);
+        expect(row.date, updatedDate);
+
+        final List<PendingChanges> pending = await isar.pendingChanges
+            .filter()
+            .entityTypeEqualTo('transactions')
+            .entityIdEqualTo('test-synced-date')
+            .findAll();
+        expect(pending, hasLength(1));
+        final TransactionUpdate queuedUpdate = TransactionUpdate.fromJson(
+          jsonDecode(pending.single.data!) as Map<String, dynamic>,
+        );
+        expect(queuedUpdate.transactions?.single.date, updatedDate);
+      },
+    );
+
     test('delete removes transaction and queues pending change', () async {
       final Map<String, dynamic> transactionJson = <String, dynamic>{
         'type': 'transactions',
@@ -199,7 +316,7 @@ void main() {
       final List<PendingChanges> pending = await isar.pendingChanges
           .filter()
           .entityTypeEqualTo('transactions')
-          .operationEqualTo('DELETE')
+          .operationEqualTo(PendingChangeOperation.delete.name)
           .findAll();
       expect(pending.length, greaterThan(0));
     });
@@ -479,5 +596,294 @@ void main() {
         );
       },
     );
+
+    for (final (
+          TransactionTypeProperty type,
+          AccountTypeProperty sourceType,
+          AccountTypeProperty destinationType,
+        )
+        in <
+          (TransactionTypeProperty, AccountTypeProperty, AccountTypeProperty)
+        >[
+          (
+            TransactionTypeProperty.withdrawal,
+            AccountTypeProperty.assetAccount,
+            AccountTypeProperty.expenseAccount,
+          ),
+          (
+            TransactionTypeProperty.deposit,
+            AccountTypeProperty.revenueAccount,
+            AccountTypeProperty.assetAccount,
+          ),
+          (
+            TransactionTypeProperty.transfer,
+            AccountTypeProperty.assetAccount,
+            AccountTypeProperty.assetAccount,
+          ),
+        ]) {
+      test('getById returns editor-safe pending ${type.name}', () async {
+        final DateTime date = DateTime(2026, 5, 1, 12, 30);
+        final String pendingId = await repository.createNew(
+          _pendingStore(
+            type: type,
+            date: date,
+            amount: '12.34',
+            description: 'Pending ${type.name}',
+            sourceId: 'source-1',
+            sourceName: 'Source account',
+            destinationId: 'destination-1',
+            destinationName: 'Destination account',
+          ),
+        );
+
+        final TransactionRead? transaction = await repository.getById(
+          pendingId,
+        );
+
+        expect(transaction, isNotNull);
+        expect(transaction!.id, pendingId);
+        final TransactionSplit split =
+            transaction.attributes.transactions.first;
+        expect(split.type, type);
+        expect(split.amount, '12.34');
+        expect(split.description, 'Pending ${type.name}');
+        expect(split.currencyId, '1');
+        expect(split.currencyCode, 'USD');
+        expect(split.currencySymbol, isNotNull);
+        expect(split.currencyName, isNotNull);
+        expect(split.sourceId, 'source-1');
+        expect(split.destinationId, 'destination-1');
+        expect(split.sourceType, sourceType);
+        expect(split.destinationType, destinationType);
+        expect(split.categoryName, 'Groceries');
+        expect(split.budgetName, 'Food');
+        expect(split.tags, <String>['pending']);
+        expect(split.notes, 'local note');
+        expect(split.reconciled, isTrue);
+      });
+    }
+
+    test(
+      'updateExisting for pending transaction updates row indexes and queued create',
+      () async {
+        final DateTime originalDate = DateTime(2026, 5, 1, 12, 30);
+        final DateTime updatedDate = DateTime(2026, 6, 2, 16, 45);
+        final String pendingId = await repository.createNew(
+          _pendingStore(
+            type: TransactionTypeProperty.withdrawal,
+            date: originalDate,
+            amount: '10.00',
+            description: 'Original first split',
+            sourceId: 'asset-1',
+            sourceName: 'Checking',
+            destinationId: 'expense-1',
+            destinationName: 'Shop',
+            foreignAmount: '99.00',
+            foreignCurrencyId: '2',
+            foreignCurrencyCode: 'EUR',
+            splits: <TransactionSplitStore>[
+              TransactionSplitStore(
+                type: TransactionTypeProperty.withdrawal,
+                date: originalDate,
+                amount: '10.00',
+                description: 'Original first split',
+                currencyId: '1',
+                currencyCode: 'USD',
+                sourceId: 'asset-1',
+                sourceName: 'Checking',
+                destinationId: 'expense-1',
+                destinationName: 'Shop',
+                categoryName: 'Old category',
+                budgetName: 'Old budget',
+                tags: <String>['old'],
+                notes: 'old note',
+                foreignAmount: '99.00',
+                foreignCurrencyId: '2',
+                foreignCurrencyCode: 'EUR',
+                reconciled: false,
+              ),
+              TransactionSplitStore(
+                type: TransactionTypeProperty.withdrawal,
+                date: originalDate,
+                amount: '20.00',
+                description: 'Preserved second split',
+                currencyId: '1',
+                currencyCode: 'USD',
+                sourceId: 'asset-1',
+                sourceName: 'Checking',
+                destinationId: 'expense-2',
+                destinationName: 'Cafe',
+                categoryName: 'Coffee',
+                tags: <String>['keep'],
+                notes: 'keep note',
+                reconciled: true,
+              ),
+            ],
+          ),
+        );
+
+        await repository.updateExisting(
+          pendingId,
+          TransactionUpdate(
+            groupTitle: 'Updated group',
+            transactions: <TransactionSplitUpdate>[
+              TransactionSplitUpdate(
+                type: TransactionTypeProperty.withdrawal,
+                date: updatedDate,
+                amount: '15.00',
+                description: 'Updated first split',
+                sourceId: 'asset-2',
+                sourceName: 'Savings',
+                destinationId: 'expense-3',
+                destinationName: 'Market',
+                categoryName: 'New category',
+                budgetName: 'New budget',
+                tags: <String>['new'],
+                notes: 'new note',
+                foreignAmount: '0',
+                reconciled: true,
+              ),
+            ],
+          ),
+        );
+
+        final Transactions? row = await isar.transactions
+            .filter()
+            .transactionIdEqualTo(pendingId)
+            .findFirst();
+        expect(row, isNotNull);
+        expect(row!.date, DateTime(2026, 6, 2));
+        expect(row.sourceAccountId, 'asset-2');
+        expect(row.destinationAccountId, 'expense-3');
+
+        final PendingChanges? pendingCreate = await _pendingCreateFor(
+          isar,
+          pendingId,
+        );
+        expect(pendingCreate, isNotNull);
+        final TransactionStore queuedStore = TransactionStore.fromJson(
+          jsonDecode(pendingCreate!.data!) as Map<String, dynamic>,
+        );
+        expect(queuedStore.groupTitle, 'Updated group');
+        expect(queuedStore.transactions.length, 2);
+        expect(queuedStore.transactions.first.amount, '15.00');
+        expect(
+          queuedStore.transactions.first.description,
+          'Updated first split',
+        );
+        expect(queuedStore.transactions.first.sourceId, 'asset-2');
+        expect(queuedStore.transactions.first.destinationId, 'expense-3');
+        expect(queuedStore.transactions.first.categoryName, 'New category');
+        expect(queuedStore.transactions.first.tags, <String>['new']);
+        expect(queuedStore.transactions.first.foreignAmount, isNull);
+        expect(queuedStore.transactions.first.foreignCurrencyId, isNull);
+        expect(
+          queuedStore.transactions[1].description,
+          'Preserved second split',
+        );
+        expect(queuedStore.transactions[1].tags, <String>['keep']);
+        expect(queuedStore.transactions[1].reconciled, isTrue);
+      },
+    );
+
+    test(
+      'updateExisting preserves all splits when pending update is empty',
+      () async {
+        final String pendingId = await repository.createNew(
+          _pendingStore(
+            type: TransactionTypeProperty.withdrawal,
+            date: DateTime(2026, 5, 1),
+            amount: '10.00',
+            description: 'Original',
+            splits: <TransactionSplitStore>[
+              TransactionSplitStore(
+                type: TransactionTypeProperty.withdrawal,
+                date: DateTime(2026, 5, 1),
+                amount: '10.00',
+                description: 'First split',
+              ),
+              TransactionSplitStore(
+                type: TransactionTypeProperty.withdrawal,
+                date: DateTime(2026, 5, 1),
+                amount: '20.00',
+                description: 'Second split',
+              ),
+            ],
+          ),
+        );
+
+        await repository.updateExisting(pendingId, const TransactionUpdate());
+
+        final PendingChanges? pendingCreate = await _pendingCreateFor(
+          isar,
+          pendingId,
+        );
+        final TransactionStore queuedStore = TransactionStore.fromJson(
+          jsonDecode(pendingCreate!.data!) as Map<String, dynamic>,
+        );
+        expect(queuedStore.transactions.length, 2);
+        expect(queuedStore.transactions.first.description, 'First split');
+        expect(queuedStore.transactions[1].description, 'Second split');
+      },
+    );
+
+    test(
+      'delete cancels pending transaction create without server delete',
+      () async {
+        final String pendingId = await repository.createNew(
+          _pendingStore(
+            type: TransactionTypeProperty.withdrawal,
+            date: DateTime(2026, 5, 1),
+            amount: '10.00',
+            description: 'Cancel me',
+          ),
+        );
+
+        await repository.delete(pendingId);
+
+        expect(await repository.getById(pendingId), isNull);
+        final List<PendingChanges> changes = await isar.pendingChanges
+            .where()
+            .findAll();
+        expect(
+          changes.where(
+            (PendingChanges change) => change.localPendingId == pendingId,
+          ),
+          isEmpty,
+        );
+        expect(
+          changes.where(
+            (PendingChanges change) =>
+                change.entityId == pendingId &&
+                change.operation == PendingChangeOperation.delete.name,
+          ),
+          isEmpty,
+        );
+      },
+    );
+
+    test('delete fails closed when pending create is missing', () async {
+      final Transactions row = Transactions()
+        ..transactionId = 'pending-missing-create'
+        ..data = jsonEncode(
+          _pendingStore(
+            type: TransactionTypeProperty.withdrawal,
+            date: DateTime(2026, 5, 1),
+            amount: '10.00',
+            description: 'Broken pending',
+          ).toJson(),
+        )
+        ..localUpdatedAt = DateTime.now()
+        ..synced = false;
+      await isar.writeTxn(() async {
+        await isar.transactions.put(row);
+      });
+
+      expect(
+        () => repository.delete('pending-missing-create'),
+        throwsA(isA<StateError>()),
+      );
+      expect(await repository.getById('pending-missing-create'), isNotNull);
+    });
   });
 }
