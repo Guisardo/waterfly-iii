@@ -14,6 +14,10 @@ import 'package:waterflyiii/app.dart';
 void main() async {
   Logger.root.level = kDebugMode ? Level.ALL : Level.INFO;
   Logger.root.onRecord.listen((LogRecord record) {
+    // Diagnostic loggers are mirrored to logcat in release builds.
+    if (kReleaseMode && record.loggerName.startsWith('Diag.')) {
+      debugPrint('[${record.loggerName}] ${record.message}');
+    }
     developer.log(
       record.message,
       time: record.time,

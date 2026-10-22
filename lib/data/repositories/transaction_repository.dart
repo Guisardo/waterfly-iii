@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:isar_community/isar.dart';
+import 'package:logging/logging.dart';
 import 'package:waterflyiii/data/local/database/tables/transactions.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
@@ -12,6 +13,8 @@ class TransactionRepository {
   final Isar isar;
 
   TransactionRepository(this.isar);
+
+  static final Logger _diag = Logger('Diag.TxRepo');
 
   DateTime _getNow() => DateTime.now().toUtc();
 
@@ -541,6 +544,33 @@ class TransactionRepository {
         .dateBetween(start, end)
         .findAll();
 
+    if ((page ?? 1) == 1) {
+      _diag.info(
+        () =>
+            'getByDateRange start=${start.toUtc().toIso8601String()} '
+            'end=${end.toUtc().toIso8601String()} rows=${rows.length}',
+      );
+      final List<Transactions> recent = await isar.transactions
+          .where()
+          .findAll();
+      recent.sort(
+        (Transactions a, Transactions b) => (b.localUpdatedAt ?? DateTime(1970))
+            .compareTo(a.localUpdatedAt ?? DateTime(1970)),
+      );
+      for (final Transactions r in recent.take(5)) {
+        final bool inWindow =
+            r.date != null && !r.date!.isBefore(start) && !r.date!.isAfter(end);
+        _diag.info(
+          () =>
+              'recent id=${r.transactionId} synced=${r.synced} '
+              'deleted=${r.deletedAt != null} '
+              'date=${r.date?.toUtc().toIso8601String()} '
+              'localUpdated=${r.localUpdatedAt?.toUtc().toIso8601String()} '
+              'inWindow=$inWindow',
+        );
+      }
+    }
+
     final List<TransactionRead> filtered = <TransactionRead>[];
     for (final Transactions row in rows) {
       final TransactionRead? tx = _deserializeRow(row);
@@ -1005,6 +1035,13 @@ class TransactionRepository {
       await isar.pendingChanges.put(pendingChange);
     });
 
+    _diag.info(
+      () =>
+          'createNew id=$pendingId '
+          'splitDate=${transaction.transactions.firstOrNull?.date.toIso8601String()} '
+          'stored=${row.date?.toUtc().toIso8601String()}',
+    );
+
     return pendingId;
   }
 
@@ -1176,6 +1213,15 @@ class TransactionRepository {
             transaction.attributes.transactions.firstOrNull?.destinationId;
     }
 
+    if (row.date != null &&
+        row.date!.isAfter(now.subtract(const Duration(days: 2)))) {
+      _diag.info(
+        () =>
+            'upsertFromSync id=${transaction.id} existing=${existing != null} '
+            'date=${row.date?.toUtc().toIso8601String()}',
+      );
+    }
+
     await isar.writeTxn(() async {
       await isar.transactions.put(row);
     });
@@ -1213,6 +1259,12 @@ class TransactionRepository {
     if (idsToDelete.isEmpty) {
       return 0;
     }
+
+    _diag.info(
+      () =>
+          'deleteSyncedMissingFromServer count=${idsToDelete.length} '
+          'server=${serverTransactionIds.length} ids=${localRows.where((Transactions r) => idsToDelete.contains(r.id)).map((Transactions r) => r.transactionId).take(20).join(',')}',
+    );
 
     return isar.writeTxn<int>(() {
       return isar.transactions.deleteAll(idsToDelete);

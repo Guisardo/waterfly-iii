@@ -179,6 +179,7 @@ class HomeTransactionsState extends State<HomeTransactions>
   }
 
   void notifRefresh() {
+    Logger('Diag.TxList').info(() => 'notifRefresh');
     setState(() {
       _lastCalculatedBalance = null;
       _pagingState = _pagingState.reset();
@@ -248,6 +249,16 @@ class HomeTransactionsState extends State<HomeTransactions>
 
       // Use repository instead of stock
       final DateTime? endDate = settingsProvider.showFutureTXs ? null : now;
+      Logger('Diag.TxList').info(
+        () =>
+            'fetchPage page=$pageKey filter=${settingsProvider.transactionDateFilter} '
+            'showFuture=${settingsProvider.showFutureTXs} '
+            'hasFilters=${_filters.hasFilters} account=${widget.filters?.account?.id} '
+            'now=${now.toIso8601String()} nowUtc=${now.toUtc().toIso8601String()} '
+            'start=${startDate.toUtc().toIso8601String()} '
+            'end=${endDate?.toUtc().toIso8601String()} '
+            'serverTZ=${_tzHandler.serverTimezone} useServerTime=${_tzHandler.useServerTime}',
+      );
 
       if (widget.filters?.account != null) {
         transactionList = await repo.getByAccount(
@@ -350,6 +361,11 @@ class HomeTransactionsState extends State<HomeTransactions>
         }
       }
 
+      Logger('Diag.TxList').info(
+        () =>
+            'fetched page=$pageKey count=${transactionList.length} '
+            'first=${transactionList.take(3).map((TransactionRead t) => '${t.id}@${t.attributes.transactions.firstOrNull?.date.toUtc().toIso8601String()}').join(',')}',
+      );
       final bool isLastPage = transactionList.length < _numberOfPostsPerRequest;
 
       if (mounted) {
