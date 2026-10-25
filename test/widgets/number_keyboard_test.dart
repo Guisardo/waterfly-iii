@@ -149,6 +149,42 @@ void main() {
       await tester.pump();
       expect(captures.keys, <String>['.']);
     });
+
+    testWidgets('- layout puts backspace above equals and C % × ÷ on top', (
+      WidgetTester tester,
+    ) async {
+      await pumpKeyboard(tester);
+
+      Rect rectOfText(String label) =>
+          tester.getRect(find.widgetWithText(FilledButton, label));
+
+      final Rect backspace = tester.getRect(
+        find.widgetWithIcon(FilledButton, Icons.backspace_outlined),
+      );
+      final Rect confirm = rectOfText('=');
+      final Rect plus = rectOfText('+');
+      final Rect three = rectOfText('3');
+
+      // Top row, left to right: C % × ÷
+      final List<Rect> top = <String>[
+        'C',
+        '%',
+        '×',
+        '÷',
+      ].map(rectOfText).toList();
+      for (int i = 1; i < top.length; i++) {
+        expect(top[i].left, greaterThan(top[i - 1].left));
+        expect(top[i].center.dy, closeTo(top[0].center.dy, 0.5));
+      }
+
+      // Backspace: right of 3, directly above the right half of =.
+      expect(backspace.center.dy, closeTo(three.center.dy, 0.5));
+      expect(backspace.left, greaterThan(three.right));
+      expect(backspace.right, closeTo(confirm.right, 0.5));
+      expect(backspace.bottom, lessThan(confirm.top));
+      expect(plus.center.dx, closeTo(backspace.center.dx, 0.5));
+      expect(plus.bottom, lessThan(backspace.top));
+    });
   });
 }
 

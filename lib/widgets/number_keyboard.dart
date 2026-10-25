@@ -6,10 +6,10 @@ typedef NumberKeyCallback = void Function(String value);
 ///
 /// Displays a calculator-style keypad:
 /// ```
-/// [C]  [⌫]  [%]  [÷]
-/// [7]  [8]  [9]  [×]
-/// [4]  [5]  [6]  [−]
-/// [1]  [2]  [3]  [+]
+/// [C]  [%]  [×]  [÷]
+/// [7]  [8]  [9]  [−]
+/// [4]  [5]  [6]  [+]
+/// [1]  [2]  [3]  [⌫]
 /// [.]  [0]       [=]
 /// ```
 ///
@@ -159,20 +159,20 @@ class NumberKeyboard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            // Row 1: C  ⌫  %  ÷
+            // Row 1: C  %  ×  ÷
             Row(
               children: <Widget>[
                 _clearKey(context),
                 const SizedBox(width: _spacing),
-                _backspaceKey(context),
-                const SizedBox(width: _spacing),
                 _operatorKey(context, '%', onPercent),
+                const SizedBox(width: _spacing),
+                _operatorKey(context, '×', () => onKey('*')),
                 const SizedBox(width: _spacing),
                 _operatorKey(context, '÷', () => onKey('/')),
               ],
             ),
             const SizedBox(height: _spacing),
-            // Row 2: 7  8  9  ×
+            // Row 2: 7  8  9  −
             Row(
               children: <Widget>[
                 _digitKey(context, '7', '7'),
@@ -181,11 +181,11 @@ class NumberKeyboard extends StatelessWidget {
                 const SizedBox(width: _spacing),
                 _digitKey(context, '9', '9'),
                 const SizedBox(width: _spacing),
-                _operatorKey(context, '×', () => onKey('*')),
+                _operatorKey(context, '−', () => onKey('-')),
               ],
             ),
             const SizedBox(height: _spacing),
-            // Row 3: 4  5  6  −
+            // Row 3: 4  5  6  +
             Row(
               children: <Widget>[
                 _digitKey(context, '4', '4'),
@@ -194,11 +194,11 @@ class NumberKeyboard extends StatelessWidget {
                 const SizedBox(width: _spacing),
                 _digitKey(context, '6', '6'),
                 const SizedBox(width: _spacing),
-                _operatorKey(context, '−', () => onKey('-')),
+                _operatorKey(context, '+', () => onKey('+')),
               ],
             ),
             const SizedBox(height: _spacing),
-            // Row 4: 1  2  3  +
+            // Row 4: 1  2  3  ⌫
             Row(
               children: <Widget>[
                 _digitKey(context, '1', '1'),
@@ -207,7 +207,7 @@ class NumberKeyboard extends StatelessWidget {
                 const SizedBox(width: _spacing),
                 _digitKey(context, '3', '3'),
                 const SizedBox(width: _spacing),
-                _operatorKey(context, '+', () => onKey('+')),
+                _backspaceKey(context),
               ],
             ),
             const SizedBox(height: _spacing),
