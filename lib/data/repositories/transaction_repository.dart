@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:waterflyiii/data/local/database/tables/transactions.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
+import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.enums.swagger.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart';
 
@@ -456,7 +457,95 @@ class TransactionRepository {
     return null;
   }
 
-  Future<List<TransactionRead>> getAll() async {
+  Future<List<TransactionRead>> getAll() async =>
+      _withPendingCurrency(await _getAllRaw());
+
+  Future<List<TransactionRead>> getByDateRange(
+    DateTime start,
+    DateTime end, {
+    int? page,
+    int? limit,
+  }) async => _withPendingCurrency(
+    await _getByDateRangeRaw(start, end, page: page, limit: limit),
+  );
+
+  Future<List<TransactionRead>> getByAccount(
+    String accountId,
+    DateTime? start,
+    DateTime? end, {
+    int? page,
+    int? limit,
+  }) async => _withPendingCurrency(
+    await _getByAccountRaw(accountId, start, end, page: page, limit: limit),
+  );
+
+  /// Pending rows are built from a store that carries no currency data.
+  /// Resolve it from the own account so the list can show the real symbol.
+  Future<List<TransactionRead>> _withPendingCurrency(
+    List<TransactionRead> items,
+  ) async {
+    if (!items.any((TransactionRead t) => t.id.startsWith('pending-'))) {
+      return items;
+    }
+    final AccountRepository accounts = AccountRepository(isar);
+    final Map<String, AccountRead?> cache = <String, AccountRead?>{};
+    final List<TransactionRead> result = <TransactionRead>[];
+    for (final TransactionRead tx in items) {
+      if (!tx.id.startsWith('pending-')) {
+        result.add(tx);
+        continue;
+      }
+      bool changed = false;
+      final List<TransactionSplit> splits = <TransactionSplit>[];
+      for (final TransactionSplit split in tx.attributes.transactions) {
+        if ((split.currencyCode ?? '').isNotEmpty) {
+          splits.add(split);
+          continue;
+        }
+        final String? accountId = split.type == TransactionTypeProperty.deposit
+            ? split.destinationId
+            : split.sourceId;
+        if (accountId == null || accountId.isEmpty) {
+          splits.add(split);
+          continue;
+        }
+        if (!cache.containsKey(accountId)) {
+          try {
+            cache[accountId] = await accounts.getById(accountId);
+          } catch (_) {
+            cache[accountId] = null;
+          }
+        }
+        final AccountProperties? props = cache[accountId]?.attributes;
+        final String code = props?.currencyCode ?? '';
+        if (props == null || code.isEmpty) {
+          splits.add(split);
+          continue;
+        }
+        splits.add(
+          split.copyWith(
+            currencyId: props.currencyId ?? split.currencyId,
+            currencyCode: code,
+            currencySymbol: props.currencySymbol ?? code,
+            currencyName: props.currencyName ?? code,
+            currencyDecimalPlaces:
+                props.currencyDecimalPlaces ?? split.currencyDecimalPlaces,
+          ),
+        );
+        changed = true;
+      }
+      result.add(
+        changed
+            ? tx.copyWith(
+                attributes: tx.attributes.copyWith(transactions: splits),
+              )
+            : tx,
+      );
+    }
+    return result;
+  }
+
+  Future<List<TransactionRead>> _getAllRaw() async {
     final List<Transactions> rows = await isar.transactions
         .filter()
         .deletedAtIsNull()
@@ -532,7 +621,7 @@ class TransactionRepository {
     }).toList();
   }
 
-  Future<List<TransactionRead>> getByDateRange(
+  Future<List<TransactionRead>> _getByDateRangeRaw(
     DateTime start,
     DateTime end, {
     int? page,
@@ -599,7 +688,7 @@ class TransactionRepository {
     return filtered;
   }
 
-  Future<List<TransactionRead>> getByAccount(
+  Future<List<TransactionRead>> _getByAccountRaw(
     String accountId,
     DateTime? start,
     DateTime? end, {

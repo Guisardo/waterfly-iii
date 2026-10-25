@@ -726,7 +726,8 @@ class HomeTransactionsState extends State<HomeTransactions>
     if (foreignAmounts.isNotEmpty) {
       foreignAmounts.forEach((String cur, double amount) {
         if (foreignCurrencies.containsKey(cur)) {
-          foreignText += "${foreignCurrencies[cur]!.fmt(amount)} ";
+          foreignText +=
+              "${foreignCurrencies[cur]!.fmt(amount, symbolFirst: true)} ";
         }
       });
       foreignText += " ";
@@ -882,7 +883,7 @@ class HomeTransactionsState extends State<HomeTransactions>
                         ),
                       ),
                     TextSpan(
-                      text: currency.fmt(amount),
+                      text: currency.fmt(amount, symbolFirst: true),
                       style: Theme.of(context).textTheme.titleMedium!.copyWith(
                         color: transactions.first.type != .reconciliation
                             ? transactions.first.type.color
@@ -967,7 +968,7 @@ class HomeTransactionsState extends State<HomeTransactions>
                       ),
                     if (_filters.account != null)
                       TextSpan(
-                        text: currency.fmt(balance),
+                        text: currency.fmt(balance, symbolFirst: true),
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                           fontFeatures: const <FontFeature>[.tabularFigures()],
                         ),

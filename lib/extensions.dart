@@ -15,11 +15,13 @@ extension CurrencyFormat on CurrencyRead {
     String? locale,
     bool forceCode = false,
     int? decimalDigits,
+    bool symbolFirst = false,
   }) => NumberFormat.currency(
     locale: locale ?? Intl.defaultLocale,
     name: attributes.code,
     decimalDigits: decimalDigits ?? attributes.decimalPlaces,
     symbol: forceCode ? null : attributes.symbol,
+    customPattern: symbolFirst ? '\u00A4\u00A0#,##0.00' : null,
   ).format(amount);
 
   String zero({String? locale}) => NumberFormat.currency(
