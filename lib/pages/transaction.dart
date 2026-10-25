@@ -1229,9 +1229,11 @@ class _TransactionPageState extends State<TransactionPage>
 
     // Amount, Date & Time
     childs.add(
-      // Date/Time select might overflow, so we need to be able to scroll horizontally.
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
+      // Amount, date and time must always be fully visible: scale the row
+      // down when it is wider than the screen instead of scrolling it.
+      FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
         child: Row(
           children: <Widget>[
             SizedBox(
