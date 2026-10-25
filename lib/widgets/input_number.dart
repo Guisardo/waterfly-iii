@@ -88,23 +88,49 @@ class _NumberInputState extends State<NumberInput> {
   }
 
   /// Edits made through the custom keyboard change the controller directly, which
-  /// does not scroll the field. While typing with the caret at the end, keep the
-  /// end of the text visible.
+  /// does not scroll the field. Keep the caret visible: jump to the end when the
+  /// caret is at the end of the text, otherwise scroll just enough to reveal it.
   void _onControllerChanged() {
     final TextEditingController? ctrl = widget.controller;
     if (ctrl == null || !_focusNode.hasFocus) {
       return;
     }
     final TextSelection sel = ctrl.selection;
-    if (!sel.isCollapsed || sel.baseOffset != ctrl.text.length) {
+    if (!sel.isValid || !sel.isCollapsed) {
       return;
     }
+    final bool atEnd = sel.baseOffset == ctrl.text.length;
+    final int offset = sel.baseOffset;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scrollController.hasClients) {
         return;
       }
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      if (atEnd) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        return;
+      }
+      final int length = widget.controller?.text.length ?? 0;
+      _findEditableText()?.bringIntoView(
+        TextPosition(offset: offset > length ? length : offset),
+      );
     });
+  }
+
+  EditableTextState? _findEditableText() {
+    EditableTextState? found;
+    void visit(Element element) {
+      if (found != null) {
+        return;
+      }
+      if (element is StatefulElement && element.state is EditableTextState) {
+        found = element.state as EditableTextState;
+        return;
+      }
+      element.visitChildren(visit);
+    }
+
+    context.visitChildElements(visit);
+    return found;
   }
 
   @override
