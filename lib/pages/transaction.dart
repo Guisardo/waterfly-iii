@@ -39,6 +39,9 @@ final Logger log = Logger("Pages.Transaction");
 
 bool _savingInProgress = false;
 
+/// Counter used only to correlate save diagnostics in logs.
+int _saveAttemptCounter = 0;
+
 /// Whether saving should land the user on the Transactions tab.
 ///
 /// Only brand-new transactions do. Edits and clones return to the list they
@@ -903,6 +906,14 @@ class _TransactionPageState extends State<TransactionPage>
                     );
                     final NavigatorState nav = Navigator.of(context);
 
+                    final int attempt = ++_saveAttemptCounter;
+                    final Stopwatch saveWatch = Stopwatch()..start();
+                    String stage = 'tap';
+                    log.info(
+                      'save#$attempt tap newTX=$_newTX mounted=$mounted '
+                      'alreadySaving=$_savingInProgress',
+                    );
+
                     // Sanity checks
                     String? error;
 
@@ -931,10 +942,18 @@ class _TransactionPageState extends State<TransactionPage>
                     });
 
                     // Get the repository
+                    stage = 'db-open';
+                    log.info(
+                      'save#$attempt db-open t=${saveWatch.elapsedMilliseconds}ms',
+                    );
                     final Isar isar = await AppDatabase.instance;
+                    log.info(
+                      'save#$attempt db-open-done t=${saveWatch.elapsedMilliseconds}ms',
+                    );
                     final TransactionRepository transactionRepo =
                         TransactionRepository(isar);
 
+                    stage = 'persist';
                     try {
                       // Update existing transaction
                       if (!_newTX) {
@@ -1030,6 +1049,10 @@ class _TransactionPageState extends State<TransactionPage>
                         // Queue update for sync
                         await transactionRepo.updateExisting(id, txUpdate);
                         log.fine(() => "transaction update queued for sync");
+                        stage = 'persisted';
+                        log.info(
+                          'save#$attempt persisted-update t=${saveWatch.elapsedMilliseconds}ms',
+                        );
                       } else {
                         // New transaction
                         final List<TransactionSplitStore> txS =
@@ -1111,6 +1134,12 @@ class _TransactionPageState extends State<TransactionPage>
                               "transaction created locally with id: $pendingId, queued for sync",
                         );
 
+                        stage = 'persisted';
+                        log.info(
+                          'save#$attempt persisted-new id=$pendingId '
+                          't=${saveWatch.elapsedMilliseconds}ms',
+                        );
+
                         // Note: Attachments for new pending transactions will be
                         // uploaded after the transaction is synced and has a real ID
                         if (_attachments?.isNotEmpty ?? false) {
@@ -1121,9 +1150,20 @@ class _TransactionPageState extends State<TransactionPage>
                         }
                       }
 
+                      stage = 'post-persist';
+                      log.info(
+                        'save#$attempt post-persist mounted=$mounted '
+                        't=${saveWatch.elapsedMilliseconds}ms',
+                      );
                       // Done saving locally
                       setState(() => _savingInProgress = false);
 
+                      stage = 'navigate';
+                      log.info(
+                        'save#$attempt navigate '
+                        'openTabs=${shouldOpenTransactionsAfterSave(isNewTransaction: widget.transaction == null, fromNotification: widget.notification != null, fromSharedFiles: widget.files?.isNotEmpty ?? false)} '
+                        'canPop=${nav.canPop()} t=${saveWatch.elapsedMilliseconds}ms',
+                      );
                       if (shouldOpenTransactionsAfterSave(
                         isNewTransaction: widget.transaction == null,
                         fromNotification: widget.notification != null,
@@ -1168,8 +1208,18 @@ class _TransactionPageState extends State<TransactionPage>
                           ),
                         );
                       }
+                      log.info(
+                        'save#$attempt done t=${saveWatch.elapsedMilliseconds}ms',
+                      );
                     } catch (e, stackTrace) {
-                      log.severe("Error saving transaction", e, stackTrace);
+                      log.severe(
+                        'save#$attempt FAILED stage=$stage '
+                        't=${saveWatch.elapsedMilliseconds}ms type=${e.runtimeType} '
+                        'mounted=$mounted error=$e '
+                        'stack=${stackTrace.toString().split("\n").take(14).join(" | ")}',
+                        e,
+                        stackTrace,
+                      );
                       // ignore: use_build_context_synchronously
                       error = context.mounted
                           // ignore: use_build_context_synchronously
