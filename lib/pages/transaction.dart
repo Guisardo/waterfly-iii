@@ -39,6 +39,18 @@ final Logger log = Logger("Pages.Transaction");
 
 bool _savingInProgress = false;
 
+/// Whether saving should land the user on the Transactions tab.
+///
+/// Only brand-new transactions do. Edits and clones return to the list they
+/// came from; notification and shared-file launches keep closing back to the
+/// source app.
+@visibleForTesting
+bool shouldOpenTransactionsAfterSave({
+  required bool isNewTransaction,
+  required bool fromNotification,
+  required bool fromSharedFiles,
+}) => isNewTransaction && !fromNotification && !fromSharedFiles;
+
 class TransactionPage extends StatefulWidget {
   const TransactionPage({
     super.key,
@@ -1112,7 +1124,22 @@ class _TransactionPageState extends State<TransactionPage>
                       // Done saving locally
                       setState(() => _savingInProgress = false);
 
-                      if (nav.canPop()) {
+                      if (shouldOpenTransactionsAfterSave(
+                        isNewTransaction: widget.transaction == null,
+                        fromNotification: widget.notification != null,
+                        fromSharedFiles: widget.files?.isNotEmpty ?? false,
+                      )) {
+                        // Show the new transaction in the Transactions tab.
+                        unawaited(
+                          nav.pushAndRemoveUntil(
+                            MaterialPageRoute<void>(
+                              builder: (BuildContext context) =>
+                                  const NavPage(initialHomeTab: 1),
+                            ),
+                            (Route<dynamic> route) => false,
+                          ),
+                        );
+                      } else if (nav.canPop()) {
                         // Popping true means that the TX list will be refreshed.
                         // This should only happen if:
                         // 1. it is a new transaction

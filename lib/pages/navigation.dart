@@ -82,7 +82,10 @@ class NavPageElements with ChangeNotifier {
 }
 
 class NavPage extends StatefulWidget {
-  const NavPage({super.key});
+  const NavPage({super.key, this.initialHomeTab = 0});
+
+  /// Home tab shown first (0 = Main, 1 = Transactions).
+  final int initialHomeTab;
 
   @override
   State<NavPage> createState() => NavPageState();
@@ -102,7 +105,7 @@ class NavPageState extends State<NavPage> with TickerProviderStateMixin {
     navDestinations = <NavDestination>[
       NavDestination(
         S.of(context).navigationMain,
-        const HomePage(),
+        HomePage(initialTab: widget.initialHomeTab),
         const Icon(Icons.dashboard_outlined),
         const Icon(Icons.dashboard),
       ),

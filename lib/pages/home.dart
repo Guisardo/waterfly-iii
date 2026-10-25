@@ -29,7 +29,10 @@ class PageActions extends ChangeNotifier {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.initialTab = 0});
+
+  /// Tab shown first (0 = Main, 1 = Transactions, 2 = Balance, 3 = Piggybanks).
+  final int initialTab;
 
   @override
   State<HomePage> createState() => HomePageState();
@@ -56,7 +59,11 @@ class HomePageState extends State<HomePage>
       const HomeBalance(key: Key("HomeBalance")),
       const HomePiggybank(key: Key("HomePiggybanks")),
     ];
-    _tabController = TabController(vsync: this, length: 4);
+    _tabController = TabController(
+      vsync: this,
+      length: 4,
+      initialIndex: widget.initialTab.clamp(0, 3).toInt(),
+    );
     _tabController.addListener(_handleTabChange);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
