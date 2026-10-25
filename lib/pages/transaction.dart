@@ -1235,7 +1235,7 @@ class _TransactionPageState extends State<TransactionPage>
         child: Row(
           children: <Widget>[
             SizedBox(
-              width: 130,
+              width: amountFieldWidth(context),
               child: Center(
                 child: NumberInput(
                   icon: _localCurrency != null

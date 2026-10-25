@@ -351,3 +351,29 @@ class _NumberInputState extends State<NumberInput> {
     );
   }
 }
+
+/// Width for a [NumberInput] that has a leading icon and an outline border,
+/// sized so [integerDigits] digits, the decimal separator and [decimals]
+/// decimals are fully visible at the current text scale.
+double amountFieldWidth(
+  BuildContext context, {
+  int integerDigits = 6,
+  int decimals = 2,
+  double minWidth = 130,
+}) {
+  final TextStyle style =
+      Theme.of(context).textTheme.bodyLarge ?? const TextStyle(fontSize: 16);
+  final String sample =
+      '9' * integerDigits + (decimals > 0 ? '.${'9' * decimals}' : '');
+  final TextPainter painter = TextPainter(
+    text: TextSpan(text: sample, style: style),
+    textDirection: TextDirection.ltr,
+    textScaler: MediaQuery.textScalerOf(context),
+  )..layout();
+  final double textWidth = painter.width;
+  painter.dispose();
+  // 40: leading icon (24) + icon gap (16). 32: outline field padding (16+16).
+  // 8: caret slack.
+  final double needed = 40 + 32 + textWidth + 8;
+  return needed < minWidth ? minWidth : needed;
+}
