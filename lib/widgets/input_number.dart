@@ -63,6 +63,7 @@ class _NumberInputState extends State<NumberInput> {
   bool _ownsNode = false;
 
   OverlayEntry? _overlayEntry;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -74,11 +75,43 @@ class _NumberInputState extends State<NumberInput> {
       _ownsNode = true;
     }
     _focusNode.addListener(_onFocusChange);
+    widget.controller?.addListener(_onControllerChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant NumberInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.removeListener(_onControllerChanged);
+      widget.controller?.addListener(_onControllerChanged);
+    }
+  }
+
+  /// Edits made through the custom keyboard change the controller directly, which
+  /// does not scroll the field. While typing with the caret at the end, keep the
+  /// end of the text visible.
+  void _onControllerChanged() {
+    final TextEditingController? ctrl = widget.controller;
+    if (ctrl == null || !_focusNode.hasFocus) {
+      return;
+    }
+    final TextSelection sel = ctrl.selection;
+    if (!sel.isCollapsed || sel.baseOffset != ctrl.text.length) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) {
+        return;
+      }
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
   }
 
   @override
   void dispose() {
     _focusNode.removeListener(_onFocusChange);
+    widget.controller?.removeListener(_onControllerChanged);
+    _scrollController.dispose();
     _hideKeyboard();
     if (_ownsNode) {
       _focusNode.dispose();
@@ -286,6 +319,7 @@ class _NumberInputState extends State<NumberInput> {
     return TextFormField(
       controller: widget.controller,
       focusNode: _focusNode,
+      scrollController: _scrollController,
       initialValue: widget.value,
       onChanged: widget.onChanged as void Function(String)?,
       readOnly: widget.disabled,
