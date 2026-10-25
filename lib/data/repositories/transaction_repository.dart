@@ -634,6 +634,7 @@ class TransactionRepository {
         .findAll();
 
     if ((page ?? 1) == 1) {
+      await _dumpPendingDiag();
       _diag.info(
         () =>
             'getByDateRange start=${start.toUtc().toIso8601String()} '
@@ -686,6 +687,82 @@ class TransactionRepository {
     }
 
     return filtered;
+  }
+
+  /// Diagnostics: logs the open upload queue, the local pending rows and the
+  /// rows that look like the duplicated entry, to trace where it comes from.
+  Future<void> _dumpPendingDiag() async {
+    try {
+      final List<PendingChanges> queue = await isar.pendingChanges
+          .where()
+          .findAll();
+      final List<PendingChanges> open = queue
+          .where((PendingChanges c) => !c.synced)
+          .toList();
+      _diag.info(() => 'queue total=${queue.length} open=${open.length}');
+      for (final PendingChanges c in open.take(40)) {
+        _diag.info(
+          () =>
+              'queue id=${c.id} type=${c.entityType} op=${c.operation} '
+              'entity=${c.entityId} local=${c.localPendingId} '
+              'retry=${c.retryCount} '
+              'created=${c.createdAt.toUtc().toIso8601String()} '
+              'err=${_diagClip(c.lastError)} data=${_diagSummary(c.data)}',
+        );
+      }
+
+      final List<Transactions> all = await isar.transactions.where().findAll();
+      final List<Transactions> pending = all
+          .where((Transactions r) => r.transactionId.startsWith('pending-'))
+          .toList();
+      _diag.info(() => 'pendingRows count=${pending.length}');
+      for (final Transactions r in pending.take(40)) {
+        _diag.info(() => 'pendingRow ${_diagRow(r)}');
+      }
+
+      final List<Transactions> hits = all.where((Transactions r) {
+        final String d = r.data.toLowerCase();
+        return d.contains('fiambre') && d.contains('17427');
+      }).toList();
+      _diag.info(() => 'hits count=${hits.length}');
+      for (final Transactions r in hits.take(40)) {
+        _diag.info(() => 'hit ${_diagRow(r)}');
+      }
+    } catch (e) {
+      _diag.warning(() => 'dumpPendingDiag failed: $e');
+    }
+  }
+
+  String _diagRow(Transactions r) =>
+      'id=${r.transactionId} synced=${r.synced} '
+      'deleted=${r.deletedAt != null} '
+      'date=${r.date?.toUtc().toIso8601String()} '
+      'localUpdated=${r.localUpdatedAt?.toUtc().toIso8601String()} '
+      'updated=${r.updatedAt?.toUtc().toIso8601String()} '
+      'data=${_diagSummary(r.data)}';
+
+  String _diagClip(String? text) {
+    if (text == null) return 'null';
+    return text.length > 600 ? '${text.substring(0, 600)}...' : text;
+  }
+
+  String _diagSummary(String? raw) {
+    if (raw == null) return 'null';
+    try {
+      final Map<String, dynamic> map = jsonDecode(raw) as Map<String, dynamic>;
+      final Map<String, dynamic>? attributes =
+          map['attributes'] as Map<String, dynamic>?;
+      final List<dynamic> splits =
+          (attributes?['transactions'] ?? map['transactions']) as List<dynamic>;
+      return splits
+          .map((dynamic s) {
+            final Map<String, dynamic> m = s as Map<String, dynamic>;
+            return '${m['description']}|${m['amount']}|${m['date']}';
+          })
+          .join(' ; ');
+    } catch (_) {
+      return 'unparsed';
+    }
   }
 
   Future<List<TransactionRead>> _getByAccountRaw(
