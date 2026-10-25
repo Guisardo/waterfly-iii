@@ -26,6 +26,18 @@ import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 
 final Logger log = Logger("Upload");
 
+final RegExp _duplicateOfPattern = RegExp(r'Duplicate of transaction #(\d+)');
+
+/// Returns the id of the existing transaction when [error] is the server
+/// rejecting a create because an identical transaction already exists.
+@visibleForTesting
+int? duplicateTransactionIdFromError(Object? error) {
+  if (error == null) return null;
+  final Match? match = _duplicateOfPattern.firstMatch(error.toString());
+  if (match == null) return null;
+  return int.tryParse(match.group(1)!);
+}
+
 class UploadService extends ChangeNotifier {
   final Isar isar;
   final FireflyService fireflyService;
@@ -640,6 +652,13 @@ class UploadService extends ChangeNotifier {
           });
           return false;
         }
+        final int? duplicateOf = change.entityType == 'transactions'
+            ? duplicateTransactionIdFromError(response.error)
+            : null;
+        if (duplicateOf != null && change.localPendingId != null) {
+          await _resolveDuplicateCreate(change, duplicateOf);
+          return true;
+        }
         throw Exception(
           "Failed to create ${change.entityType}: ${response.error}",
         );
@@ -664,6 +683,40 @@ class UploadService extends ChangeNotifier {
       }
       rethrow;
     }
+  }
+
+  /// The server refuses a create that duplicates an existing transaction, so
+  /// the local placeholder can never upload. Drop it together with its queue
+  /// entry; the existing server transaction arrives through the download sync.
+  Future<void> _resolveDuplicateCreate(
+    PendingChanges change,
+    int duplicateOf,
+  ) async {
+    final String? localId = change.localPendingId;
+    log.info(
+      'Create rejected as duplicate of transaction #$duplicateOf; '
+      'dropping local placeholder $localId (queue ${change.id})',
+    );
+    await conflictResolver.logConflict(
+      entityType: change.entityType,
+      entityId: duplicateOf.toString(),
+      conflictType: ConflictType.upload,
+      localUpdatedAt: null,
+      serverUpdatedAt: null,
+      resolution: ConflictResolution.localCancelled,
+    );
+    await isar.writeTxn(() async {
+      if (localId != null) {
+        final Transactions? row = await isar.transactions
+            .filter()
+            .transactionIdEqualTo(localId)
+            .findFirst();
+        if (row != null) {
+          await isar.transactions.delete(row.id);
+        }
+      }
+      await isar.pendingChanges.delete(change.id);
+    });
   }
 
   Future<bool> _processUpdate(PendingChanges change, FireflyIii api) async {
