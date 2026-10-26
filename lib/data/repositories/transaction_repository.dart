@@ -17,6 +17,17 @@ class TransactionRepository {
 
   static final Logger _diag = Logger('Diag.TxRepo');
 
+  /// Upper bound for the main transactions list query.
+  ///
+  /// [endDate] is the start of the current server day. Pending rows are stored
+  /// at device midnight and synced rows keep their time of day, so everything
+  /// dated today sits after that instant. The window therefore has to run to the
+  /// end of the day, as the account and filter queries already do.
+  static DateTime listQueryEnd(DateTime? endDate, DateTime now) =>
+      endDate == null
+      ? now.add(const Duration(days: 365))
+      : endDate.add(const Duration(days: 1));
+
   DateTime _getNow() => DateTime.now().toUtc();
 
   AccountTypeProperty _pendingSourceType(TransactionTypeProperty type) {

@@ -294,7 +294,7 @@ class HomeTransactionsState extends State<HomeTransactions>
       } else {
         transactionList = await repo.getByDateRange(
           startDate,
-          endDate ?? now.add(const Duration(days: 365)),
+          TransactionRepository.listQueryEnd(endDate, now),
           page: pageKey,
           limit: _numberOfPostsPerRequest,
         );
