@@ -15,8 +15,13 @@ void main() async {
   Logger.root.level = kDebugMode ? Level.ALL : Level.INFO;
   Logger.root.onRecord.listen((LogRecord record) {
     // Diagnostic loggers are mirrored to logcat in release builds.
-    if (kReleaseMode && record.loggerName.startsWith('Diag.')) {
-      debugPrint('[${record.loggerName}] ${record.message}');
+    if (kReleaseMode &&
+        (record.loggerName.startsWith('Diag.') ||
+            record.level >= Level.WARNING)) {
+      debugPrint(
+        '[${record.loggerName}] ${record.message}'
+        '${record.error != null ? " error=${record.error}" : ""}',
+      );
     }
     developer.log(
       record.message,

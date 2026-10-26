@@ -36,6 +36,7 @@ import 'package:waterflyiii/widgets/input_number.dart';
 import 'package:waterflyiii/widgets/materialiconbutton.dart';
 
 final Logger log = Logger("Pages.Transaction");
+final Logger _diagSave = Logger('Diag.Save');
 
 bool _savingInProgress = false;
 
@@ -909,7 +910,7 @@ class _TransactionPageState extends State<TransactionPage>
                     final int attempt = ++_saveAttemptCounter;
                     final Stopwatch saveWatch = Stopwatch()..start();
                     String stage = 'tap';
-                    log.info(
+                    _diagSave.info(
                       'save#$attempt tap newTX=$_newTX mounted=$mounted '
                       'alreadySaving=$_savingInProgress',
                     );
@@ -943,11 +944,11 @@ class _TransactionPageState extends State<TransactionPage>
 
                     // Get the repository
                     stage = 'db-open';
-                    log.info(
+                    _diagSave.info(
                       'save#$attempt db-open t=${saveWatch.elapsedMilliseconds}ms',
                     );
                     final Isar isar = await AppDatabase.instance;
-                    log.info(
+                    _diagSave.info(
                       'save#$attempt db-open-done t=${saveWatch.elapsedMilliseconds}ms',
                     );
                     final TransactionRepository transactionRepo =
@@ -1050,7 +1051,7 @@ class _TransactionPageState extends State<TransactionPage>
                         await transactionRepo.updateExisting(id, txUpdate);
                         log.fine(() => "transaction update queued for sync");
                         stage = 'persisted';
-                        log.info(
+                        _diagSave.info(
                           'save#$attempt persisted-update t=${saveWatch.elapsedMilliseconds}ms',
                         );
                       } else {
@@ -1135,7 +1136,7 @@ class _TransactionPageState extends State<TransactionPage>
                         );
 
                         stage = 'persisted';
-                        log.info(
+                        _diagSave.info(
                           'save#$attempt persisted-new id=$pendingId '
                           't=${saveWatch.elapsedMilliseconds}ms',
                         );
@@ -1151,7 +1152,7 @@ class _TransactionPageState extends State<TransactionPage>
                       }
 
                       stage = 'post-persist';
-                      log.info(
+                      _diagSave.info(
                         'save#$attempt post-persist mounted=$mounted '
                         't=${saveWatch.elapsedMilliseconds}ms',
                       );
@@ -1159,7 +1160,7 @@ class _TransactionPageState extends State<TransactionPage>
                       setState(() => _savingInProgress = false);
 
                       stage = 'navigate';
-                      log.info(
+                      _diagSave.info(
                         'save#$attempt navigate '
                         'openTabs=${shouldOpenTransactionsAfterSave(isNewTransaction: widget.transaction == null, fromNotification: widget.notification != null, fromSharedFiles: widget.files?.isNotEmpty ?? false)} '
                         'canPop=${nav.canPop()} t=${saveWatch.elapsedMilliseconds}ms',
@@ -1208,11 +1209,11 @@ class _TransactionPageState extends State<TransactionPage>
                           ),
                         );
                       }
-                      log.info(
+                      _diagSave.info(
                         'save#$attempt done t=${saveWatch.elapsedMilliseconds}ms',
                       );
                     } catch (e, stackTrace) {
-                      log.severe(
+                      _diagSave.severe(
                         'save#$attempt FAILED stage=$stage '
                         't=${saveWatch.elapsedMilliseconds}ms type=${e.runtimeType} '
                         'mounted=$mounted error=$e '

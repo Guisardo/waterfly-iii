@@ -25,6 +25,7 @@ import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 
 final Logger log = Logger("Upload");
+final Logger _diagUpload = Logger('Diag.Upload');
 
 final RegExp _duplicateOfPattern = RegExp(r'Duplicate of transaction #(\d+)');
 
@@ -63,7 +64,9 @@ class UploadService extends ChangeNotifier {
   }
 
   Future<void> uploadPendingChanges({bool forceRetry = false}) async {
+    _diagUpload.info('start forceRetry=$forceRetry');
     if (_isUploading) {
+      _diagUpload.info('skip: already uploading');
       log.config("Upload already in progress, skipping");
       return;
     }
@@ -74,6 +77,7 @@ class UploadService extends ChangeNotifier {
     try {
       // Check if upload is paused
       if (!forceRetry && await retryManager.isPaused('upload')) {
+        _diagUpload.info('skip: paused by backoff');
         log.config("Upload is paused");
         _isUploading = false;
         notifyListeners();
@@ -82,6 +86,7 @@ class UploadService extends ChangeNotifier {
 
       // Check connectivity
       if (!connectivityService.isOnline) {
+        _diagUpload.info('skip: offline');
         log.config("Device is offline, skipping upload");
         _isUploading = false;
         notifyListeners();
@@ -91,6 +96,7 @@ class UploadService extends ChangeNotifier {
       // Check mobile data setting
       if (connectivityService.isMobile &&
           (settingsProvider?.syncUseMobileData ?? false) == false) {
+        _diagUpload.info('skip: mobile data disabled');
         log.config("Mobile data upload disabled, skipping");
         _isUploading = false;
         notifyListeners();
@@ -110,7 +116,12 @@ class UploadService extends ChangeNotifier {
               ),
           );
 
+      _diagUpload.info(
+        'pending count=${pending.length} '
+        '${pending.take(6).map((PendingChanges c) => "${c.entityType}:${c.operation}:${c.localPendingId ?? c.entityId}:retry=${c.retryCount}").join(",")}',
+      );
       if (pending.isEmpty) {
+        _diagUpload.info('skip: no pending changes');
         log.config("No pending changes to upload");
         _isUploading = false;
         notifyListeners();
@@ -130,6 +141,10 @@ class UploadService extends ChangeNotifier {
       for (final PendingChanges change in pending) {
         try {
           final bool success = await _processChange(change);
+          _diagUpload.info(
+            'change ${change.id} ${change.entityType}:${change.operation} '
+            'success=$success retry=${change.retryCount} lastError=${change.lastError}',
+          );
           if (success) {
             successCount++;
           } else {
@@ -143,6 +158,9 @@ class UploadService extends ChangeNotifier {
           }
         } catch (e, stackTrace) {
           log.severe("Error processing change ${change.id}", e, stackTrace);
+          _diagUpload.info(
+            'change ${change.id} threw type=${e.runtimeType} error=$e',
+          );
           failureCount++;
 
           // Check for conflict errors first
@@ -170,6 +188,7 @@ class UploadService extends ChangeNotifier {
               SyncErrorClassifier.isTimeoutError(e) ||
               SyncErrorClassifier.isServerError(e)) {
             // Pause entire upload sync
+            _diagUpload.info('pausing upload type=${e.runtimeType} error=$e');
             await retryManager.pauseWithBackoff('upload', e.toString());
             await notifications.showSyncPaused(e.toString());
             break;
@@ -199,6 +218,9 @@ class UploadService extends ChangeNotifier {
 
       await notifications.showSyncCompleted();
 
+      _diagUpload.info(
+        'completed success=$successCount failures=$failureCount',
+      );
       log.config(
         "Upload completed: $successCount success, $failureCount failures",
       );
@@ -207,10 +229,12 @@ class UploadService extends ChangeNotifier {
       notifyListeners();
     } catch (e, stackTrace) {
       log.severe("Upload failed", e, stackTrace);
+      _diagUpload.info('upload failed type=${e.runtimeType} error=$e');
 
       if (SyncErrorClassifier.isNetworkError(e) ||
           SyncErrorClassifier.isTimeoutError(e) ||
           SyncErrorClassifier.isServerError(e)) {
+        _diagUpload.info('pausing upload type=${e.runtimeType} error=$e');
         await retryManager.pauseWithBackoff('upload', e.toString());
         await notifications.showSyncPaused(e.toString());
       }
