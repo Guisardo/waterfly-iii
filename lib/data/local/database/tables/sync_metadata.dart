@@ -13,7 +13,13 @@ class SyncMetadata {
 
   DateTime? lastUploadSync;
 
+  /// Moment of the last complete read of the entity. A delta sync only runs
+  /// while this is recent, because purged rows never show up in a delta.
   DateTime? lastFullSync;
+
+  /// Newest server change (updated or deleted moment) the delta sync has
+  /// applied. The next delta read starts a safety overlap before it.
+  DateTime? deltaCursor;
 
   @Index()
   bool syncPaused = false;

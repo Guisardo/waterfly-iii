@@ -32,6 +32,33 @@ import 'package:waterflyiii/extensions.dart';
 
 final Logger log = Logger("Sync");
 
+/// Capabilities, announced by GET /v1/about, that the delta sync depends on.
+const String _capabilityIncrementalTransactions = 'incremental.transactions';
+const String _capabilityDeletedItems = 'deleted_items';
+
+/// Entity name the server uses for deleted transactions.
+const String _deletedTransactionsEntity = 'transactions';
+
+/// Page size of the transaction and deleted item lists.
+const int _syncPageSize = 50;
+
+/// A delta read starts this long before the stored cursor, so changes that
+/// were committed late or around a clock change are not missed.
+const Duration _deltaOverlap = Duration(hours: 2);
+
+/// A delta never reports rows that were purged on the server, so a full read
+/// is repeated at least this often.
+const Duration _fullReadInterval = Duration(days: 7);
+
+/// How often the changed list is read again when it moved while it was read.
+const int _deltaMaxReadAttempts = 3;
+
+/// Sort order of the changed list: newest change first.
+const String _sortNewestFirst = '-updated_at';
+
+/// Upper bound for the capability probe, so a slow /v1/about cannot stall sync.
+const Duration _capabilityProbeTimeout = Duration(seconds: 30);
+
 /// Progress information for sync operations.
 class SyncProgress {
   /// The type of entity being synced (e.g., 'transactions', 'accounts').
@@ -354,7 +381,11 @@ class SyncService extends ChangeNotifier {
     try {
       switch (entityType) {
         case 'transactions':
-          await _syncTransactions(lastSync);
+          await _syncTransactions(
+            lastSync,
+            metadata: metadata,
+            forceFullSync: forceFullSync,
+          );
           break;
         case 'accounts':
           await _syncAccounts(lastSync);
@@ -422,10 +453,81 @@ class SyncService extends ChangeNotifier {
     }
   }
 
-  Future<void> _syncTransactions(DateTime? lastSync) async {
+  Future<void> _syncTransactions(
+    DateTime? lastSync, {
+    SyncMetadata? metadata,
+    bool forceFullSync = false,
+  }) async {
+    final _IncrementalSupport support = await _probeIncrementalSupport();
+    if (support == _IncrementalSupport.notAnnounced &&
+        metadata?.deltaCursor != null) {
+      log.config(
+        "Server does not announce incremental sync (anymore), forgetting "
+        "the transactions cursor",
+      );
+      await _updateSyncMetadata('transactions', clearDeltaCursor: true);
+    }
+
+    final bool announced = support == _IncrementalSupport.announced;
+    if (announced && !forceFullSync && _canReadDelta(metadata)) {
+      await _syncTransactionsDelta(metadata!.deltaCursor!);
+      return;
+    }
+
+    await _syncTransactionsFull(lastSync, recordCursor: announced);
+  }
+
+  /// Asks the server which incremental features it announces.
+  ///
+  /// Any failure (401, timeout, unparsable answer) is "unknown": the caller
+  /// then reads everything, exactly as before. The credential flags are
+  /// deliberately not touched, some instances answer 401 on /v1/about while
+  /// every other endpoint works (see [validateCredentials]).
+  Future<_IncrementalSupport> _probeIncrementalSupport() async {
+    try {
+      final Response<SystemInfo> response = await fireflyService.api
+          .v1AboutGet()
+          .timeout(_capabilityProbeTimeout);
+      final SystemInfo? body = response.body;
+      if (!response.isSuccessful || body == null || body.data == null) {
+        log.config(
+          "Capability probe gave no usable answer "
+          "(status=${response.statusCode}), reading everything",
+        );
+        return _IncrementalSupport.unknown;
+      }
+
+      final List<String> capabilities =
+          body.data!.capabilities ?? const <String>[];
+      return capabilities.contains(_capabilityIncrementalTransactions) &&
+              capabilities.contains(_capabilityDeletedItems)
+          ? _IncrementalSupport.announced
+          : _IncrementalSupport.notAnnounced;
+    } catch (e, stackTrace) {
+      log.warning("Capability probe failed, reading everything", e, stackTrace);
+      return _IncrementalSupport.unknown;
+    }
+  }
+
+  /// A delta needs a cursor and a full read that is recent enough.
+  bool _canReadDelta(SyncMetadata? metadata) {
+    final DateTime? cursor = metadata?.deltaCursor;
+    final DateTime? lastFullSync = metadata?.lastFullSync;
+    if (cursor == null || lastFullSync == null) {
+      return false;
+    }
+    return DateTime.now().toUtc().difference(lastFullSync) < _fullReadInterval;
+  }
+
+  Future<void> _syncTransactionsFull(
+    DateTime? lastSync, {
+    required bool recordCursor,
+  }) async {
     final TransactionRepository repo = TransactionRepository(isar);
     final FireflyIii api = fireflyService.api;
 
+    final DateTime startedAt = DateTime.now().toUtc();
+    final _CursorTracker cursor = _CursorTracker();
     int page = 1;
     bool hasMore = true;
     int totalSynced = 0;
@@ -439,7 +541,7 @@ class SyncService extends ChangeNotifier {
         // paginate all pages and filter by updatedAt per-item for incremental sync.
         final Response<TransactionArray> response = await api.v1TransactionsGet(
           page: page,
-          limit: 50,
+          limit: _syncPageSize,
         );
 
         if (!response.isSuccessful || response.body == null) {
@@ -460,6 +562,7 @@ class SyncService extends ChangeNotifier {
         for (final TransactionRead transaction in transactions) {
           serverTransactionIds.add(transaction.id);
           final DateTime? updatedAt = transaction.attributes.updatedAt;
+          cursor.seen(updatedAt);
 
           // For incremental sync, skip transactions not modified since last sync.
           // We do NOT break early here because ordering is not guaranteed by the
@@ -470,30 +573,9 @@ class SyncService extends ChangeNotifier {
             continue;
           }
 
-          // Check for conflicts
-          final TransactionRead? local = await repo.getById(transaction.id);
-          if (local != null) {
-            final DateTime? localUpdatedAt = local.attributes.updatedAt;
-            if (localUpdatedAt != null &&
-                updatedAt != null &&
-                localUpdatedAt.isAtSameMomentAs(updatedAt) &&
-                jsonEncode(local.toJson()) !=
-                    jsonEncode(transaction.toJson())) {
-              // Concurrent modification conflict
-              await conflictResolver.logConflict(
-                entityType: 'transactions',
-                entityId: transaction.id,
-                conflictType: ConflictType.concurrent,
-                localUpdatedAt: localUpdatedAt,
-                serverUpdatedAt: updatedAt,
-                resolution: ConflictResolution.serverWins,
-              );
-            }
+          if (await _applyServerTransaction(repo, transaction, cursor)) {
+            totalSynced++;
           }
-
-          if (await _hasPendingChange('transactions', transaction.id)) continue;
-          await repo.upsertFromSync(transaction);
-          totalSynced++;
         }
 
         _progressController?.add(
@@ -526,6 +608,251 @@ class SyncService extends ChangeNotifier {
     }
 
     log.config("Synced $totalSynced transactions");
+
+    // Only a server that announces the delta features can be read as a delta
+    // later, so only then is there a cursor to remember.
+    if (recordCursor) {
+      final DateTime? newCursor = cursor.resolve();
+      await _updateSyncMetadata(
+        'transactions',
+        lastFullSync: startedAt,
+        deltaCursor: newCursor,
+      );
+      log.config("Full read of transactions done, cursor=$newCursor");
+    }
+  }
+
+  /// Reads only what changed since [previousCursor]: the changed transactions,
+  /// then the deleted ones. Nothing is written before both reads succeeded, and
+  /// the cursor only moves when the changed list held still while it was read.
+  Future<void> _syncTransactionsDelta(DateTime previousCursor) async {
+    final TransactionRepository repo = TransactionRepository(isar);
+    final String since = previousCursor
+        .subtract(_deltaOverlap)
+        .toUtc()
+        .toIso8601String();
+    log.config("Reading transactions changed since $since");
+
+    final _ChangedTransactions changed = await _readChangedTransactions(since);
+    final List<DeletedItemRead> deleted = await _readDeletedTransactions(since);
+
+    final _CursorTracker cursor = _CursorTracker();
+    int totalSynced = 0;
+    for (final TransactionRead transaction in changed.rows) {
+      cursor.seen(transaction.attributes.updatedAt);
+      if (await _applyServerTransaction(repo, transaction, cursor)) {
+        totalSynced++;
+      }
+    }
+
+    final Set<String> deletedIds = <String>{};
+    for (final DeletedItemRead item in deleted) {
+      cursor.seen(item.attributes.deletedAt);
+      if (await _hasPendingChange('transactions', item.id)) {
+        cursor.hold(item.attributes.deletedAt);
+        continue;
+      }
+      deletedIds.add(item.id);
+    }
+    final int deletedCount = await repo.deleteSyncedByIds(deletedIds);
+
+    _progressController?.add(
+      SyncProgress(
+        entityType: 'transactions',
+        current: totalSynced + deletedCount,
+        total: totalSynced + deletedCount,
+      ),
+    );
+    log.config(
+      "Delta synced $totalSynced changed and $deletedCount deleted "
+      "transactions",
+    );
+
+    if (!changed.stable) {
+      log.warning(
+        "Changed transactions kept moving while they were read "
+        "($_deltaMaxReadAttempts attempts), leaving the cursor at "
+        "$previousCursor",
+      );
+      return;
+    }
+
+    final DateTime? newCursor = cursor.resolve(previous: previousCursor);
+    if (newCursor != null && newCursor != previousCursor) {
+      await _updateSyncMetadata('transactions', deltaCursor: newCursor);
+    }
+  }
+
+  /// Reads every transaction changed since [since], newest first.
+  ///
+  /// The server list can change while its pages are read, which can push a row
+  /// onto a page that was already read. After each read a one-row request on
+  /// the same filter compares the total and the newest row; when they differ
+  /// the read is repeated, up to [_deltaMaxReadAttempts] times.
+  Future<_ChangedTransactions> _readChangedTransactions(String since) async {
+    final FireflyIii api = fireflyService.api;
+
+    late _ChangedTransactions read;
+    for (int attempt = 1; attempt <= _deltaMaxReadAttempts; attempt++) {
+      read = await _readChangedPages(api, since);
+
+      final Response<TransactionArray> probe = await api.v1TransactionsGet(
+        updatedSince: since,
+        sort: _sortNewestFirst,
+        limit: 1,
+        page: 1,
+      );
+      if (!probe.isSuccessful || probe.body == null) {
+        throw Exception(
+          "Failed to check the changed transactions: "
+          "${probe.statusCode} ${probe.error}",
+        );
+      }
+
+      final TransactionRead? newestNow = probe.body!.data.firstOrNull;
+      final bool sameTotal = probe.body!.meta.pagination?.total == read.total;
+      final bool sameNewest =
+          newestNow?.id == read.newest?.id &&
+          newestNow?.attributes.updatedAt == read.newest?.attributes.updatedAt;
+      if (sameTotal && sameNewest) {
+        return read.asStable();
+      }
+      log.config(
+        "Changed transactions moved while read (attempt $attempt of "
+        "$_deltaMaxReadAttempts)",
+      );
+    }
+    return read;
+  }
+
+  Future<_ChangedTransactions> _readChangedPages(
+    FireflyIii api,
+    String since,
+  ) async {
+    // A row that changes mid-read moves to the front of the list and pushes
+    // others down, so it can show up on two pages: keep it once.
+    final Map<String, TransactionRead> rows = <String, TransactionRead>{};
+    TransactionRead? newest;
+    int? total;
+    int page = 1;
+    bool hasMore = true;
+
+    while (hasMore) {
+      final Response<TransactionArray> response = await api.v1TransactionsGet(
+        updatedSince: since,
+        sort: _sortNewestFirst,
+        limit: _syncPageSize,
+        page: page,
+      );
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception(
+          "Failed to fetch changed transactions: "
+          "${response.statusCode} ${response.error}",
+        );
+      }
+
+      final TransactionArray body = response.body!;
+      if (page == 1) {
+        total = body.meta.pagination?.total;
+        newest = body.data.firstOrNull;
+      }
+      for (final TransactionRead transaction in body.data) {
+        rows[transaction.id] = transaction;
+      }
+
+      hasMore =
+          body.data.isNotEmpty && _hasNextPage(page, body.meta, body.links);
+      page++;
+    }
+
+    return _ChangedTransactions(
+      rows: rows.values.toList(),
+      total: total,
+      newest: newest,
+    );
+  }
+
+  /// Reads every deleted transaction since [since], oldest first.
+  Future<List<DeletedItemRead>> _readDeletedTransactions(String since) async {
+    final FireflyIii api = fireflyService.api;
+    final List<DeletedItemRead> items = <DeletedItemRead>[];
+    int page = 1;
+    bool hasMore = true;
+
+    while (hasMore) {
+      final Response<DeletedItemArray> response = await api.v1DataDeletedGet(
+        since: since,
+        types: _deletedTransactionsEntity,
+        limit: _syncPageSize,
+        page: page,
+      );
+      if (!response.isSuccessful || response.body == null) {
+        throw Exception(
+          "Failed to fetch deleted transactions: "
+          "${response.statusCode} ${response.error}",
+        );
+      }
+
+      final DeletedItemArray body = response.body!;
+      items.addAll(
+        body.data.where(
+          (DeletedItemRead item) =>
+              item.attributes.entity.value == _deletedTransactionsEntity,
+        ),
+      );
+
+      hasMore =
+          body.data.isNotEmpty && _hasNextPage(page, body.meta, body.links);
+      page++;
+    }
+
+    return items;
+  }
+
+  bool _hasNextPage(int page, Meta meta, PageLink links) {
+    final int? totalPages = meta.pagination?.totalPages;
+    if (totalPages != null) {
+      return page < totalPages;
+    }
+    return links.next != null;
+  }
+
+  /// Stores one transaction from the server unless a local change is waiting
+  /// to be uploaded for it. Returns whether it was stored; a skipped row holds
+  /// the cursor back so it is read again once the local change is gone.
+  Future<bool> _applyServerTransaction(
+    TransactionRepository repo,
+    TransactionRead transaction,
+    _CursorTracker cursor,
+  ) async {
+    final DateTime? updatedAt = transaction.attributes.updatedAt;
+
+    // Check for conflicts
+    final TransactionRead? local = await repo.getById(transaction.id);
+    if (local != null) {
+      final DateTime? localUpdatedAt = local.attributes.updatedAt;
+      if (localUpdatedAt != null &&
+          updatedAt != null &&
+          localUpdatedAt.isAtSameMomentAs(updatedAt) &&
+          jsonEncode(local.toJson()) != jsonEncode(transaction.toJson())) {
+        // Concurrent modification conflict
+        await conflictResolver.logConflict(
+          entityType: 'transactions',
+          entityId: transaction.id,
+          conflictType: ConflictType.concurrent,
+          localUpdatedAt: localUpdatedAt,
+          serverUpdatedAt: updatedAt,
+          resolution: ConflictResolution.serverWins,
+        );
+      }
+    }
+
+    if (await _hasPendingChange('transactions', transaction.id)) {
+      cursor.hold(updatedAt);
+      return false;
+    }
+    await repo.upsertFromSync(transaction);
+    return true;
   }
 
   Future<void> _syncAccounts(DateTime? lastSync) async {
@@ -1209,6 +1536,7 @@ class SyncService extends ChangeNotifier {
     DateTime? lastDownloadSync,
     DateTime? lastUploadSync,
     DateTime? lastFullSync,
+    DateTime? deltaCursor,
     bool? syncPaused,
     int? retryCount,
     DateTime? nextRetryAt,
@@ -1216,6 +1544,7 @@ class SyncService extends ChangeNotifier {
     bool? credentialsValidated,
     bool? credentialsInvalid,
     bool clearError = false,
+    bool clearDeltaCursor = false,
   }) async {
     final SyncMetadata? existing = await isar.syncMetadatas
         .filter()
@@ -1228,6 +1557,7 @@ class SyncService extends ChangeNotifier {
         ..lastDownloadSync = lastDownloadSync
         ..lastUploadSync = lastUploadSync
         ..lastFullSync = lastFullSync
+        ..deltaCursor = clearDeltaCursor ? null : deltaCursor
         ..syncPaused = syncPaused ?? false
         ..retryCount = retryCount ?? 0
         ..nextRetryAt = nextRetryAt
@@ -1247,6 +1577,12 @@ class SyncService extends ChangeNotifier {
       }
       if (lastFullSync != null) {
         existing.lastFullSync = lastFullSync;
+      }
+      // Only an explicit flag clears the cursor, a null argument means "keep".
+      if (clearDeltaCursor) {
+        existing.deltaCursor = null;
+      } else if (deltaCursor != null) {
+        existing.deltaCursor = deltaCursor;
       }
       if (syncPaused != null) {
         existing.syncPaused = syncPaused;
@@ -1303,5 +1639,86 @@ class SyncService extends ChangeNotifier {
     if (!_disposed) {
       notifyListeners();
     }
+  }
+}
+
+/// What the server says about the delta sync, as far as it could be found out.
+enum _IncrementalSupport {
+  /// The server announced both features.
+  announced,
+
+  /// The server answered and does not announce both features.
+  notAnnounced,
+
+  /// The probe failed; nothing is known, so nothing may be concluded.
+  unknown,
+}
+
+/// The transactions changed since a moment, as read from the server.
+class _ChangedTransactions {
+  const _ChangedTransactions({
+    required this.rows,
+    required this.total,
+    required this.newest,
+    this.stable = false,
+  });
+
+  final List<TransactionRead> rows;
+
+  /// Total the server reported with the first page.
+  final int? total;
+
+  /// First (newest) row of the first page.
+  final TransactionRead? newest;
+
+  /// True when a follow-up request found the same total and newest row.
+  final bool stable;
+
+  _ChangedTransactions asStable() => _ChangedTransactions(
+    rows: rows,
+    total: total,
+    newest: newest,
+    stable: true,
+  );
+}
+
+/// Works out where the delta cursor may move to after applying server changes.
+///
+/// The cursor is the newest server change that was applied, but it never moves
+/// past a change that had to be skipped (a local edit is waiting to upload):
+/// that change must be read again later.
+class _CursorTracker {
+  DateTime? _newest;
+  DateTime? _heldAt;
+  bool _blocked = false;
+
+  /// A server change (updated or deleted moment) that was read.
+  void seen(DateTime? at) {
+    if (at != null && (_newest == null || at.isAfter(_newest!))) {
+      _newest = at;
+    }
+  }
+
+  /// A server change that was not applied. Without a moment the cursor cannot
+  /// be placed before it, so it must not move at all.
+  void hold(DateTime? at) {
+    if (at == null) {
+      _blocked = true;
+    } else if (_heldAt == null || at.isBefore(_heldAt!)) {
+      _heldAt = at;
+    }
+  }
+
+  /// The cursor to store, or [previous] when it must stay where it was.
+  DateTime? resolve({DateTime? previous}) {
+    if (_blocked) {
+      return previous;
+    }
+    DateTime? candidate = _newest ?? previous;
+    if (_heldAt != null &&
+        (candidate == null || _heldAt!.isBefore(candidate))) {
+      candidate = _heldAt;
+    }
+    return candidate;
   }
 }
