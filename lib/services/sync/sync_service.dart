@@ -39,8 +39,10 @@ const String _capabilityDeletedItems = 'deleted_items';
 /// Entity name the server uses for deleted transactions.
 const String _deletedTransactionsEntity = 'transactions';
 
-/// Page size of the transaction and deleted item lists.
-const int _syncPageSize = 50;
+/// Page size of the transaction and deleted item lists. Pages of 50 rows are
+/// about 110 KB of JSON; answers that large were seen cut off on the way to
+/// the phone, so pages stay well below that.
+const int _syncPageSize = 20;
 
 /// A delta read starts this long before the stored cursor, so changes that
 /// were committed late or around a clock change are not missed.
@@ -267,6 +269,8 @@ class SyncService extends ChangeNotifier {
               'piggy_banks',
             ];
 
+      // Entities that failed without stopping the whole sync, by entity type.
+      final Map<String, String> failures = <String, String>{};
       for (final String type in entityTypes) {
         try {
           await _syncEntityType(type, forceFullSync: forceFullSync);
@@ -286,8 +290,14 @@ class SyncService extends ChangeNotifier {
               SyncErrorClassifier.isAuthError(e)) {
             rethrow;
           }
-          // Continue with other entity types for non-critical errors
+          // Continue with other entity types for non-critical errors, but
+          // remember them: the sync must not be reported as a success.
+          failures[type] = e.toString();
         }
+      }
+
+      if (failures.isNotEmpty) {
+        await _recordSyncFailures(entityTypes, failures);
       }
 
       // Refresh stale insights
@@ -295,6 +305,14 @@ class SyncService extends ChangeNotifier {
 
       // Prefetch common date range insights for dashboard
       await _prefetchCommonInsights();
+
+      if (failures.isNotEmpty) {
+        // Errors of the failed entities stay visible and the download sync is
+        // neither marked as done nor announced as completed.
+        _isSyncing = false;
+        _notifyListenersIfNotDisposed();
+        return;
+      }
 
       // Update lastDownloadSync metadata after successful sync
       await _updateSyncMetadata(
@@ -355,6 +373,37 @@ class SyncService extends ChangeNotifier {
       await _progressController?.close();
       _progressController = null;
     }
+  }
+
+  /// Keeps the error of every failed entity visible and records on the
+  /// download row that the sync was incomplete. Entities that did sync have
+  /// their previous error cleared.
+  Future<void> _recordSyncFailures(
+    List<String> entityTypes,
+    Map<String, String> failures,
+  ) async {
+    for (final String type in entityTypes) {
+      if (!failures.containsKey(type)) {
+        await _updateSyncMetadata(type, clearError: true);
+      }
+    }
+
+    final String summary = failures.entries
+        .map((MapEntry<String, String> failure) {
+          return "${failure.key}: ${failure.value}";
+        })
+        .join("; ");
+    log.warning(
+      "Sync incomplete, ${failures.length} of ${entityTypes.length} "
+      "entities failed: $summary",
+    );
+    await _updateSyncMetadata(
+      'download',
+      lastError:
+          "Sync incomplete, ${failures.length} of ${entityTypes.length} "
+          "failed ($summary)",
+    );
+    await notifications.showSyncPaused(summary);
   }
 
   Future<void> _syncEntityType(
@@ -519,6 +568,37 @@ class SyncService extends ChangeNotifier {
     return DateTime.now().toUtc().difference(lastFullSync) < _fullReadInterval;
   }
 
+  /// Fetches one page of the transaction list. When the answer cannot be
+  /// parsed (the converter then returns the raw text, which the generated
+  /// client fails to cast) the error names the page instead of a type cast.
+  Future<Response<TransactionArray>> _getTransactionsPage(
+    FireflyIii api, {
+    required int page,
+    required int limit,
+    String? updatedSince,
+    String? sort,
+  }) async {
+    try {
+      return await api.v1TransactionsGet(
+        page: page,
+        limit: limit,
+        updatedSince: updatedSince,
+        sort: sort,
+      );
+    } on TypeError catch (e, stackTrace) {
+      log.severe(
+        "Transactions page $page (limit=$limit, updatedSince=$updatedSince) "
+        "could not be read",
+        e,
+        stackTrace,
+      );
+      throw Exception(
+        "Transactions page $page could not be read: the answer from the "
+        "server is cut off or not valid JSON (see log, ${e.runtimeType})",
+      );
+    }
+  }
+
   Future<void> _syncTransactionsFull(
     DateTime? lastSync, {
     required bool recordCursor,
@@ -531,6 +611,8 @@ class SyncService extends ChangeNotifier {
     int page = 1;
     bool hasMore = true;
     int totalSynced = 0;
+    int rowsRead = 0;
+    int? serverTotal;
     final Set<String> serverTransactionIds = <String>{};
 
     while (hasMore) {
@@ -539,7 +621,8 @@ class SyncService extends ChangeNotifier {
         // any server-side redirects (raw http.Client strips Authorization on redirect).
         // The Firefly III v1 API does not support order_by/order_direction, so we
         // paginate all pages and filter by updatedAt per-item for incremental sync.
-        final Response<TransactionArray> response = await api.v1TransactionsGet(
+        final Response<TransactionArray> response = await _getTransactionsPage(
+          api,
           page: page,
           limit: _syncPageSize,
         );
@@ -553,11 +636,13 @@ class SyncService extends ChangeNotifier {
         final List<TransactionRead> transactions = response.body!.data;
         final int? totalPages = response.body!.meta.pagination?.totalPages;
         final String? nextPage = response.body!.links.next;
+        serverTotal ??= response.body!.meta.pagination?.total;
 
         if (transactions.isEmpty) {
           hasMore = false;
           break;
         }
+        rowsRead += transactions.length;
 
         for (final TransactionRead transaction in transactions) {
           serverTransactionIds.add(transaction.id);
@@ -578,11 +663,17 @@ class SyncService extends ChangeNotifier {
           }
         }
 
+        // Rows read of the rows the server holds, not rows rewritten: rows that
+        // did not change are read too, and that is where the time goes. Without
+        // a total from the server the progress stays open-ended.
+        final int? knownTotal = serverTotal;
         _progressController?.add(
           SyncProgress(
             entityType: 'transactions',
-            current: totalSynced,
-            total: totalSynced + 1,
+            current: rowsRead,
+            total: knownTotal == null
+                ? 0
+                : (knownTotal > rowsRead ? knownTotal : rowsRead),
           ),
         );
 
@@ -659,8 +750,8 @@ class SyncService extends ChangeNotifier {
     _progressController?.add(
       SyncProgress(
         entityType: 'transactions',
-        current: totalSynced + deletedCount,
-        total: totalSynced + deletedCount,
+        current: changed.rows.length + deleted.length,
+        total: changed.rows.length + deleted.length,
       ),
     );
     log.config(
@@ -696,7 +787,8 @@ class SyncService extends ChangeNotifier {
     for (int attempt = 1; attempt <= _deltaMaxReadAttempts; attempt++) {
       read = await _readChangedPages(api, since);
 
-      final Response<TransactionArray> probe = await api.v1TransactionsGet(
+      final Response<TransactionArray> probe = await _getTransactionsPage(
+        api,
         updatedSince: since,
         sort: _sortNewestFirst,
         limit: 1,
@@ -738,7 +830,8 @@ class SyncService extends ChangeNotifier {
     bool hasMore = true;
 
     while (hasMore) {
-      final Response<TransactionArray> response = await api.v1TransactionsGet(
+      final Response<TransactionArray> response = await _getTransactionsPage(
+        api,
         updatedSince: since,
         sort: _sortNewestFirst,
         limit: _syncPageSize,

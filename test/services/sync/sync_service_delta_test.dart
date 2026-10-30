@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -44,6 +45,9 @@ class _OnlineConnectivity extends ChangeNotifier
 }
 
 class _SilentNotifications extends SyncNotifications {
+  int completedCalls = 0;
+  final List<String> pausedWith = <String>[];
+
   @override
   Future<void> initialize() async {}
 
@@ -51,10 +55,14 @@ class _SilentNotifications extends SyncNotifications {
   Future<void> showCredentialError() async {}
 
   @override
-  Future<void> showSyncCompleted() async {}
+  Future<void> showSyncCompleted() async {
+    completedCalls++;
+  }
 
   @override
-  Future<void> showSyncPaused(String error) async {}
+  Future<void> showSyncPaused(String error) async {
+    pausedWith.add(error);
+  }
 
   @override
   Future<void> showSyncProgress({
@@ -143,6 +151,10 @@ class _FakeServer {
   String? aboutRawBody;
   int? listFailureStatus;
 
+  /// Cuts the transaction list answer after this many characters, like a
+  /// connection that drops in the middle of the body.
+  int? truncateListAfter;
+
   /// Called before each transaction list request is answered, so a test can
   /// change the data while the client is paging.
   void Function(Uri uri, int requestNumber)? onListRequest;
@@ -226,9 +238,18 @@ class _FakeServer {
       }
     });
 
-    return _paged(
+    final http.Response full = _paged(
       query,
       rows.map((_ServerTransaction t) => t.toJson()).toList(),
+    );
+    final int? cut = truncateListAfter;
+    if (cut == null || full.body.length <= cut) {
+      return full;
+    }
+    return http.Response(
+      full.body.substring(0, cut),
+      full.statusCode,
+      headers: full.headers,
     );
   }
 
@@ -419,6 +440,7 @@ void main() {
     late MockFireflyServiceHelper helper;
     late _OnlineConnectivity connectivity;
     late SyncService syncService;
+    late _SilentNotifications notifications;
 
     setUpAll(() {
       db = _FilteringIsar();
@@ -431,11 +453,12 @@ void main() {
       helper = MockFireflyServiceHelper()..setSignedIn(true);
       server.install(helper.mockHttpClient);
       connectivity = _OnlineConnectivity();
+      notifications = _SilentNotifications();
       syncService = SyncService(
         isar: isar,
         fireflyService: helper.getFireflyService(),
         connectivityService: connectivity,
-        notifications: _SilentNotifications(),
+        notifications: notifications,
       );
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(
@@ -550,7 +573,7 @@ void main() {
             _at(60).subtract(_overlap).toIso8601String(),
           );
           expect(read.queryParameters['sort'], '-updated_at');
-          expect(read.queryParameters['limit'], '50');
+          expect(read.queryParameters['limit'], '20');
         }
         expect((await localDescriptions())['tx-1'], 'edited');
         expect((await metadata('transactions')).deltaCursor, _at(10));
@@ -568,7 +591,7 @@ void main() {
 
       expect(
         server.pageReads.map((Uri u) => u.queryParameters['page']),
-        <String?>['1', '2', '3'],
+        <String?>['1', '2', '3', '4', '5', '6', '7'],
       );
       expect(await localDescriptions(), hasLength(121));
     });
@@ -863,6 +886,129 @@ void main() {
 
       expect(server.unfilteredReads, isEmpty);
       expect((await metadata('transactions')).deltaCursor, cursor);
+    });
+  });
+
+  group('SyncService reports an incomplete sync', () {
+    late Isar isar;
+    late _FilteringIsar db;
+    late _FakeServer server;
+    late _SilentNotifications notifications;
+    late SyncService syncService;
+    late _OnlineConnectivity connectivity;
+
+    setUpAll(() {
+      db = _FilteringIsar();
+      isar = db;
+    });
+
+    setUp(() async {
+      await db.reset();
+      server = _FakeServer();
+      final MockFireflyServiceHelper helper = MockFireflyServiceHelper()
+        ..setSignedIn(true);
+      server.install(helper.mockHttpClient);
+      connectivity = _OnlineConnectivity();
+      notifications = _SilentNotifications();
+      syncService = SyncService(
+        isar: isar,
+        fireflyService: helper.getFireflyService(),
+        connectivityService: connectivity,
+        notifications: notifications,
+      );
+      await isar.writeTxn(() async {
+        await isar.syncMetadatas.put(
+          SyncMetadata()
+            ..entityType = 'auth'
+            ..credentialsValidated = true,
+        );
+      });
+      server.transactions.addAll(<_ServerTransaction>[
+        _ServerTransaction('tx-1', _at(300)),
+        _ServerTransaction('tx-2', _at(60)),
+      ]);
+    });
+
+    tearDown(() {
+      syncService.dispose();
+      connectivity.dispose();
+    });
+
+    Future<SyncMetadata> metadata(String entityType) async {
+      final SyncMetadata? row = await isar.syncMetadatas
+          .filter()
+          .entityTypeEqualTo(entityType)
+          .findFirst();
+      expect(row, isNotNull, reason: 'no metadata row for $entityType');
+      return row!;
+    }
+
+    test('a cut-off answer fails the sync instead of completing it', () async {
+      server.truncateListAfter = 500;
+
+      await syncService.sync(entityType: 'transactions');
+
+      final SyncMetadata transactions = await metadata('transactions');
+      expect(transactions.lastError, contains('could not be read'));
+      expect(transactions.lastDownloadSync, isNull);
+
+      final SyncMetadata download = await metadata('download');
+      expect(download.lastError, contains('Sync incomplete'));
+      expect(download.lastError, contains('transactions'));
+      expect(download.lastDownloadSync, isNull);
+
+      expect(notifications.completedCalls, 0);
+      expect(notifications.pausedWith, hasLength(1));
+      expect(notifications.pausedWith.single, contains('transactions'));
+    });
+
+    test('progress counts rows read out of the rows on the server', () async {
+      server.transactions
+        ..clear()
+        ..addAll(<_ServerTransaction>[
+          for (int i = 0; i < 45; i++)
+            _ServerTransaction('tx-$i', _at(100 - i)),
+        ]);
+
+      final List<SyncProgress> events = <SyncProgress>[];
+      final Future<void> run = syncService.sync(entityType: 'transactions');
+      final StreamSubscription<SyncProgress> subscription = syncService
+          .progressStream!
+          .listen(events.add);
+      await run;
+      await subscription.cancel();
+
+      final List<SyncProgress> reads = events
+          .where(
+            (SyncProgress e) => e.entityType == 'transactions' && e.total > 0,
+          )
+          .toList();
+      expect(reads.map((SyncProgress e) => e.current), <int>[20, 40, 45]);
+      expect(reads.map((SyncProgress e) => e.total), everyElement(45));
+    });
+
+    test('a cut-off answer does not record a cursor', () async {
+      server.truncateListAfter = 500;
+
+      await syncService.sync(entityType: 'transactions');
+
+      final SyncMetadata transactions = await metadata('transactions');
+      expect(transactions.deltaCursor, isNull);
+      expect(transactions.lastFullSync, isNull);
+    });
+
+    test('the entity error is cleared by the next good sync', () async {
+      server.truncateListAfter = 500;
+      await syncService.sync(entityType: 'transactions');
+      expect((await metadata('transactions')).lastError, isNotNull);
+
+      server.truncateListAfter = null;
+      await syncService.sync(entityType: 'transactions');
+
+      final SyncMetadata transactions = await metadata('transactions');
+      expect(transactions.lastError, isNull);
+      expect(transactions.lastDownloadSync, isNotNull);
+      expect(transactions.deltaCursor, _at(60));
     });
   });
 
