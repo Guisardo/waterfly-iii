@@ -48,6 +48,20 @@ class _SilentNotifications extends SyncNotifications {
   int completedCalls = 0;
   final List<String> pausedWith = <String>[];
 
+  /// What was shown or started, in order.
+  final List<String> events = <String>[];
+
+  @override
+  Future<bool> startKeepAlive() async {
+    events.add('keep-alive start');
+    return true;
+  }
+
+  @override
+  Future<void> stopKeepAlive() async {
+    events.add('keep-alive stop');
+  }
+
   @override
   Future<void> initialize() async {}
 
@@ -57,11 +71,13 @@ class _SilentNotifications extends SyncNotifications {
   @override
   Future<void> showSyncCompleted() async {
     completedCalls++;
+    events.add('completed');
   }
 
   @override
   Future<void> showSyncPaused(String error) async {
     pausedWith.add(error);
+    events.add('paused');
   }
 
   @override
@@ -1114,6 +1130,35 @@ void main() {
           .toList();
       expect(reads.map((SyncProgress e) => e.current), <int>[20, 40, 45]);
       expect(reads.map((SyncProgress e) => e.total), everyElement(45));
+    });
+
+    test(
+      'the sync is kept alive and the service stops before the failure notice',
+      () async {
+        server.truncateListAfter = 500;
+
+        await syncService.sync(entityType: 'transactions');
+
+        expect(notifications.events.first, 'keep-alive start');
+        expect(
+          notifications.events.where((String e) => e == 'keep-alive start'),
+          hasLength(1),
+        );
+        final int stop = notifications.events.indexOf('keep-alive stop');
+        final int paused = notifications.events.indexOf('paused');
+        expect(stop, greaterThan(0));
+        expect(paused, greaterThan(stop));
+      },
+    );
+
+    test('the sync is kept alive and stopped when it ends early', () async {
+      // A sync that stops on a network error leaves through the outer catch.
+      server.listFailureStatus = 503;
+
+      await syncService.sync(entityType: 'transactions');
+
+      expect(notifications.events, contains('keep-alive start'));
+      expect(notifications.events, contains('keep-alive stop'));
     });
 
     test('a cut-off answer does not record a cursor', () async {

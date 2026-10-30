@@ -118,6 +118,9 @@ class SyncService extends ChangeNotifier {
   bool get isSyncing => _isSyncing;
 
   StreamController<SyncProgress>? _progressController;
+  StreamSubscription<SyncProgress>? _notificationProgress;
+  DateTime? _lastProgressNotice;
+  int _lastProgressPercent = -1;
   Stream<SyncProgress>? get progressStream => _progressController?.stream;
 
   SyncService({
@@ -173,6 +176,11 @@ class SyncService extends ChangeNotifier {
 
     _isSyncing = true;
     _progressController = StreamController<SyncProgress>.broadcast();
+    _lastProgressNotice = null;
+    _lastProgressPercent = -1;
+    _notificationProgress = _progressController!.stream.listen(
+      _showProgressNotice,
+    );
     _notifyListenersIfNotDisposed();
 
     try {
@@ -269,6 +277,7 @@ class SyncService extends ChangeNotifier {
       }
 
       await notifications.showSyncStarted();
+      await notifications.startKeepAlive();
 
       // Sync entities
       final List<String> entityTypes = entityType != null
@@ -354,12 +363,14 @@ class SyncService extends ChangeNotifier {
       }
 
       await retryManager.resetRetry('download');
+      await notifications.stopKeepAlive();
       await notifications.showSyncCompleted();
 
       _isSyncing = false;
       _notifyListenersIfNotDisposed();
     } catch (e, stackTrace) {
       log.severe("Sync failed", e, stackTrace);
+      await notifications.stopKeepAlive();
 
       // Handle errors
       if (SyncErrorClassifier.isNetworkError(e) ||
@@ -385,9 +396,47 @@ class SyncService extends ChangeNotifier {
       _isSyncing = false;
       _notifyListenersIfNotDisposed();
     } finally {
+      await notifications.stopKeepAlive();
+      await _notificationProgress?.cancel();
+      _notificationProgress = null;
       await _progressController?.close();
       _progressController = null;
     }
+  }
+
+  /// Mirrors the sync progress in the ongoing notification, at most every
+  /// 1.5 seconds and only when the percentage moved.
+  void _showProgressNotice(SyncProgress progress) {
+    if (progress.total <= 0) {
+      return;
+    }
+    final int percent = progress.current * 100 ~/ progress.total;
+    final DateTime now = DateTime.now();
+    final DateTime? last = _lastProgressNotice;
+    if (percent == _lastProgressPercent ||
+        (last != null &&
+            now.difference(last) < const Duration(milliseconds: 1500))) {
+      return;
+    }
+    _lastProgressNotice = now;
+    _lastProgressPercent = percent;
+
+    unawaited(
+      notifications
+          .showSyncProgress(
+            entityType: progress.entityType,
+            current: progress.current,
+            total: progress.total,
+            message: "${progress.current} / ${progress.total}",
+          )
+          .catchError((Object e, StackTrace stackTrace) {
+            log.warning(
+              "Could not update the sync notification",
+              e,
+              stackTrace,
+            );
+          }),
+    );
   }
 
   /// Keeps the error of every failed entity visible and records on the
@@ -418,6 +467,7 @@ class SyncService extends ChangeNotifier {
           "Sync incomplete, ${failures.length} of ${entityTypes.length} "
           "failed ($summary)",
     );
+    await notifications.stopKeepAlive();
     await notifications.showSyncPaused(summary);
   }
 
