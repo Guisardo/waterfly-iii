@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -44,6 +45,23 @@ class _OnlineConnectivity extends ChangeNotifier
 }
 
 class _SilentNotifications extends SyncNotifications {
+  int completedCalls = 0;
+  final List<String> pausedWith = <String>[];
+
+  /// What was shown or started, in order.
+  final List<String> events = <String>[];
+
+  @override
+  Future<bool> startKeepAlive() async {
+    events.add('keep-alive start');
+    return true;
+  }
+
+  @override
+  Future<void> stopKeepAlive() async {
+    events.add('keep-alive stop');
+  }
+
   @override
   Future<void> initialize() async {}
 
@@ -51,10 +69,16 @@ class _SilentNotifications extends SyncNotifications {
   Future<void> showCredentialError() async {}
 
   @override
-  Future<void> showSyncCompleted() async {}
+  Future<void> showSyncCompleted() async {
+    completedCalls++;
+    events.add('completed');
+  }
 
   @override
-  Future<void> showSyncPaused(String error) async {}
+  Future<void> showSyncPaused(String error) async {
+    pausedWith.add(error);
+    events.add('paused');
+  }
 
   @override
   Future<void> showSyncProgress({
@@ -143,6 +167,13 @@ class _FakeServer {
   String? aboutRawBody;
   int? listFailureStatus;
 
+  /// Cuts the transaction list answer after this many characters, like a
+  /// connection that drops in the middle of the body.
+  int? truncateListAfter;
+
+  /// Cuts only the answer for this page of the list.
+  int? truncatePage;
+
   /// Called before each transaction list request is answered, so a test can
   /// change the data while the client is paging.
   void Function(Uri uri, int requestNumber)? onListRequest;
@@ -221,14 +252,27 @@ class _FakeServer {
           return b.updatedAt.compareTo(a.updatedAt);
         case 'updated_at':
           return a.updatedAt.compareTo(b.updatedAt);
+        case '-id':
+          return b.id.compareTo(a.id);
         default:
           return a.id.compareTo(b.id);
       }
     });
 
-    return _paged(
+    final http.Response full = _paged(
       query,
       rows.map((_ServerTransaction t) => t.toJson()).toList(),
+    );
+    final int? cut =
+        truncateListAfter ??
+        (truncatePage != null && query['page'] == '$truncatePage' ? 500 : null);
+    if (cut == null || full.body.length <= cut) {
+      return full;
+    }
+    return http.Response(
+      full.body.substring(0, cut),
+      full.statusCode,
+      headers: full.headers,
     );
   }
 
@@ -419,6 +463,7 @@ void main() {
     late MockFireflyServiceHelper helper;
     late _OnlineConnectivity connectivity;
     late SyncService syncService;
+    late _SilentNotifications notifications;
 
     setUpAll(() {
       db = _FilteringIsar();
@@ -431,11 +476,12 @@ void main() {
       helper = MockFireflyServiceHelper()..setSignedIn(true);
       server.install(helper.mockHttpClient);
       connectivity = _OnlineConnectivity();
+      notifications = _SilentNotifications();
       syncService = SyncService(
         isar: isar,
         fireflyService: helper.getFireflyService(),
         connectivityService: connectivity,
-        notifications: _SilentNotifications(),
+        notifications: notifications,
       );
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(
@@ -508,6 +554,128 @@ void main() {
       server.resetRequests();
     }
 
+    List<_ServerTransaction> hundredRows() => <_ServerTransaction>[
+      for (int i = 0; i < 100; i++)
+        _ServerTransaction('tx-${i.toString().padLeft(3, '0')}', _at(500 - i)),
+    ];
+
+    List<int> pagesRead() => server.pageReads
+        .map((Uri u) => int.parse(u.queryParameters['page']!))
+        .toList();
+
+    test('an interrupted first read saves a checkpoint', () async {
+      server.transactions.addAll(hundredRows());
+      server.truncatePage = 4;
+
+      await runSync();
+
+      final SyncMetadata row = await metadata('transactions');
+      expect(row.fullReadNextPage, 4);
+      expect(row.fullReadSeenIds, hasLength(60));
+      expect(row.fullReadStartedAt, isNotNull);
+      expect(row.deltaCursor, isNull);
+      expect(row.lastFullSync, isNull);
+      expect(await localDescriptions(), hasLength(60));
+    });
+
+    test('the next sync resumes two pages before the failed page', () async {
+      server.transactions.addAll(hundredRows());
+      server.truncatePage = 4;
+      await runSync();
+      final DateTime startedAt = (await metadata(
+        'transactions',
+      )).fullReadStartedAt!;
+      server.truncatePage = null;
+      server.resetRequests();
+
+      await runSync();
+
+      expect(pagesRead(), <int>[2, 3, 4, 5]);
+      expect(await localDescriptions(), hasLength(100));
+      final SyncMetadata row = await metadata('transactions');
+      expect(row.deltaCursor, _at(500 - 99));
+      expect(row.lastFullSync, startedAt);
+      expect(row.fullReadNextPage, isNull);
+      expect(row.fullReadStartedAt, isNull);
+      expect(row.fullReadSeenIds, isNull);
+    });
+
+    test('the first read lists the newest rows first', () async {
+      server.transactions.addAll(hundredRows());
+
+      await runSync();
+
+      expect(server.pageReads.first.queryParameters['sort'], '-id');
+    });
+
+    test(
+      'a resumed read keeps rows read before and drops purged ones',
+      () async {
+        await seedLocal(_ServerTransaction('tx-purged', _at(900)));
+        server.transactions.addAll(hundredRows());
+        server.truncatePage = 4;
+        await runSync();
+        server.truncatePage = null;
+
+        await runSync();
+
+        final Set<String> ids = (await localDescriptions()).keys.toSet();
+        expect(ids, hasLength(100));
+        expect(ids, isNot(contains('tx-purged')));
+        // Pages 1 and 2 are not read again; their rows must survive.
+        expect(ids, containsAll(<String>['tx-099', 'tx-060']));
+      },
+    );
+
+    test('a checkpoint older than a day is ignored', () async {
+      server.transactions.addAll(hundredRows());
+      await isar.writeTxn(() async {
+        await isar.syncMetadatas.put(
+          SyncMetadata()
+            ..entityType = 'transactions'
+            ..fullReadNextPage = 4
+            ..fullReadStartedAt = DateTime.now().toUtc().subtract(
+              const Duration(hours: 25),
+            )
+            ..fullReadSeenIds = <String>['tx-099'],
+        );
+      });
+
+      await runSync();
+
+      expect(pagesRead().first, 1);
+      expect(pagesRead(), hasLength(5));
+    });
+
+    test('a forced full sync ignores the checkpoint', () async {
+      server.transactions.addAll(hundredRows());
+      await isar.writeTxn(() async {
+        await isar.syncMetadatas.put(
+          SyncMetadata()
+            ..entityType = 'transactions'
+            ..fullReadNextPage = 4
+            ..fullReadStartedAt = DateTime.now().toUtc()
+            ..fullReadSeenIds = <String>['tx-099'],
+        );
+      });
+
+      await runSync(forceFullSync: true);
+
+      expect(pagesRead().first, 1);
+    });
+
+    test('a server without the features saves no checkpoint', () async {
+      server.capabilities = <String>[];
+      server.transactions.addAll(hundredRows());
+      server.truncatePage = 3;
+
+      await runSync();
+
+      final SyncMetadata row = await metadata('transactions');
+      expect(row.fullReadNextPage, isNull);
+      expect(row.fullReadSeenIds, isNull);
+    });
+
     test('first sync reads everything and records the cursor', () async {
       server.transactions.addAll(<_ServerTransaction>[
         _ServerTransaction('tx-1', _at(300)),
@@ -550,7 +718,7 @@ void main() {
             _at(60).subtract(_overlap).toIso8601String(),
           );
           expect(read.queryParameters['sort'], '-updated_at');
-          expect(read.queryParameters['limit'], '50');
+          expect(read.queryParameters['limit'], '20');
         }
         expect((await localDescriptions())['tx-1'], 'edited');
         expect((await metadata('transactions')).deltaCursor, _at(10));
@@ -568,7 +736,7 @@ void main() {
 
       expect(
         server.pageReads.map((Uri u) => u.queryParameters['page']),
-        <String?>['1', '2', '3'],
+        <String?>['1', '2', '3', '4', '5', '6', '7'],
       );
       expect(await localDescriptions(), hasLength(121));
     });
@@ -863,6 +1031,158 @@ void main() {
 
       expect(server.unfilteredReads, isEmpty);
       expect((await metadata('transactions')).deltaCursor, cursor);
+    });
+  });
+
+  group('SyncService reports an incomplete sync', () {
+    late Isar isar;
+    late _FilteringIsar db;
+    late _FakeServer server;
+    late _SilentNotifications notifications;
+    late SyncService syncService;
+    late _OnlineConnectivity connectivity;
+
+    setUpAll(() {
+      db = _FilteringIsar();
+      isar = db;
+    });
+
+    setUp(() async {
+      await db.reset();
+      server = _FakeServer();
+      final MockFireflyServiceHelper helper = MockFireflyServiceHelper()
+        ..setSignedIn(true);
+      server.install(helper.mockHttpClient);
+      connectivity = _OnlineConnectivity();
+      notifications = _SilentNotifications();
+      syncService = SyncService(
+        isar: isar,
+        fireflyService: helper.getFireflyService(),
+        connectivityService: connectivity,
+        notifications: notifications,
+      );
+      await isar.writeTxn(() async {
+        await isar.syncMetadatas.put(
+          SyncMetadata()
+            ..entityType = 'auth'
+            ..credentialsValidated = true,
+        );
+      });
+      server.transactions.addAll(<_ServerTransaction>[
+        _ServerTransaction('tx-1', _at(300)),
+        _ServerTransaction('tx-2', _at(60)),
+      ]);
+    });
+
+    tearDown(() {
+      syncService.dispose();
+      connectivity.dispose();
+    });
+
+    Future<SyncMetadata> metadata(String entityType) async {
+      final SyncMetadata? row = await isar.syncMetadatas
+          .filter()
+          .entityTypeEqualTo(entityType)
+          .findFirst();
+      expect(row, isNotNull, reason: 'no metadata row for $entityType');
+      return row!;
+    }
+
+    test('a cut-off answer fails the sync instead of completing it', () async {
+      server.truncateListAfter = 500;
+
+      await syncService.sync(entityType: 'transactions');
+
+      final SyncMetadata transactions = await metadata('transactions');
+      expect(transactions.lastError, contains('could not be read'));
+      expect(transactions.lastDownloadSync, isNull);
+
+      final SyncMetadata download = await metadata('download');
+      expect(download.lastError, contains('Sync incomplete'));
+      expect(download.lastError, contains('transactions'));
+      expect(download.lastDownloadSync, isNull);
+
+      expect(notifications.completedCalls, 0);
+      expect(notifications.pausedWith, hasLength(1));
+      expect(notifications.pausedWith.single, contains('transactions'));
+    });
+
+    test('progress counts rows read out of the rows on the server', () async {
+      server.transactions
+        ..clear()
+        ..addAll(<_ServerTransaction>[
+          for (int i = 0; i < 45; i++)
+            _ServerTransaction('tx-$i', _at(100 - i)),
+        ]);
+
+      final List<SyncProgress> events = <SyncProgress>[];
+      final Future<void> run = syncService.sync(entityType: 'transactions');
+      final StreamSubscription<SyncProgress> subscription = syncService
+          .progressStream!
+          .listen(events.add);
+      await run;
+      await subscription.cancel();
+
+      final List<SyncProgress> reads = events
+          .where(
+            (SyncProgress e) => e.entityType == 'transactions' && e.total > 0,
+          )
+          .toList();
+      expect(reads.map((SyncProgress e) => e.current), <int>[20, 40, 45]);
+      expect(reads.map((SyncProgress e) => e.total), everyElement(45));
+    });
+
+    test(
+      'the sync is kept alive and the service stops before the failure notice',
+      () async {
+        server.truncateListAfter = 500;
+
+        await syncService.sync(entityType: 'transactions');
+
+        expect(notifications.events.first, 'keep-alive start');
+        expect(
+          notifications.events.where((String e) => e == 'keep-alive start'),
+          hasLength(1),
+        );
+        final int stop = notifications.events.indexOf('keep-alive stop');
+        final int paused = notifications.events.indexOf('paused');
+        expect(stop, greaterThan(0));
+        expect(paused, greaterThan(stop));
+      },
+    );
+
+    test('the sync is kept alive and stopped when it ends early', () async {
+      // A sync that stops on a network error leaves through the outer catch.
+      server.listFailureStatus = 503;
+
+      await syncService.sync(entityType: 'transactions');
+
+      expect(notifications.events, contains('keep-alive start'));
+      expect(notifications.events, contains('keep-alive stop'));
+    });
+
+    test('a cut-off answer does not record a cursor', () async {
+      server.truncateListAfter = 500;
+
+      await syncService.sync(entityType: 'transactions');
+
+      final SyncMetadata transactions = await metadata('transactions');
+      expect(transactions.deltaCursor, isNull);
+      expect(transactions.lastFullSync, isNull);
+    });
+
+    test('the entity error is cleared by the next good sync', () async {
+      server.truncateListAfter = 500;
+      await syncService.sync(entityType: 'transactions');
+      expect((await metadata('transactions')).lastError, isNotNull);
+
+      server.truncateListAfter = null;
+      await syncService.sync(entityType: 'transactions');
+
+      final SyncMetadata transactions = await metadata('transactions');
+      expect(transactions.lastError, isNull);
+      expect(transactions.lastDownloadSync, isNotNull);
+      expect(transactions.deltaCursor, _at(60));
     });
   });
 

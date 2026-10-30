@@ -120,7 +120,50 @@ class APIRequestInterceptor implements Interceptor {
     request.followRedirects = true;
     request.maxRedirects = 5;
 
-    return chain.proceed(request);
+    final Stopwatch stopwatch = Stopwatch()..start();
+    return Future<Response<BodyType>>.value(chain.proceed(request)).then((
+      Response<BodyType> response,
+    ) {
+      _logUnreadableBody(request, response, stopwatch.elapsed);
+      return response;
+    });
+  }
+
+  /// Log what arrived when a JSON answer ends in the middle of its text, so a
+  /// cut-off response can be diagnosed (the converter would only report a
+  /// parse error).
+  void _logUnreadableBody<BodyType>(
+    Request request,
+    Response<BodyType> response,
+    Duration elapsed,
+  ) {
+    final Object? body = response.body;
+    if (body is! String || body.isEmpty) {
+      return;
+    }
+    final String? contentType = response.headers['content-type'];
+    final String trimmed = body.trimRight();
+    if (contentType == null ||
+        !contentType.contains('json') ||
+        trimmed.endsWith('}') ||
+        trimmed.endsWith(']')) {
+      return;
+    }
+
+    final Map<String, String> headers = response.headers;
+    final int tailStart = body.length > 80 ? body.length - 80 : 0;
+    log.warning(
+      "Cut-off JSON response for ${request.method} ${request.url} "
+      "status=${response.statusCode} elapsed=${elapsed.inMilliseconds}ms "
+      "chars=${body.length} "
+      "content-length=${headers['content-length']} "
+      "content-encoding=${headers['content-encoding']} "
+      "content-type=${headers['content-type']} "
+      "transfer-encoding=${headers['transfer-encoding']} "
+      "server=${headers['server']} cf-ray=${headers['cf-ray']} "
+      "alt-svc=${headers['alt-svc']} "
+      "tail=${jsonEncode(body.substring(tailStart))}",
+    );
   }
 }
 

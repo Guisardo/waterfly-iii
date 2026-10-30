@@ -153,6 +153,97 @@ class SyncNotifications {
     await _notifications.show(syncNotificationId, title, body, details);
   }
 
+  bool _keepAliveRunning = false;
+
+  /// Runs an Android foreground service with the ongoing sync notification, so
+  /// the system keeps the app's network access while it is in the background.
+  /// Without it a long sync is cut when the app leaves the foreground.
+  ///
+  /// Returns whether the service is running. Android refuses to start one
+  /// from the background in some cases; that is logged and the sync goes on
+  /// without it.
+  Future<bool> startKeepAlive() async {
+    if (_keepAliveRunning) {
+      return true;
+    }
+
+    final String channelName = _getLocalizedString(
+      (S l) => l.syncNotificationChannelName,
+    );
+    final String channelDesc = _getLocalizedString(
+      (S l) => l.syncNotificationChannelDescription,
+    );
+    final String title = _getLocalizedString(
+      (S l) => l.syncNotificationSyncing,
+    );
+    final String body = _getLocalizedString(
+      (S l) => l.syncNotificationSyncingBody,
+    );
+
+    try {
+      final AndroidFlutterLocalNotificationsPlugin? android = _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      if (android == null) {
+        log.fine("No Android notifications plugin, not starting the service");
+        return false;
+      }
+
+      await android.startForegroundService(
+        syncNotificationId,
+        title,
+        body,
+        notificationDetails: AndroidNotificationDetails(
+          'sync',
+          channelName,
+          channelDescription: channelDesc,
+          importance: Importance.low,
+          priority: Priority.low,
+          ongoing: true,
+          onlyAlertOnce: true,
+          showProgress: true,
+          maxProgress: 100,
+          indeterminate: true,
+        ),
+        foregroundServiceTypes: <AndroidServiceForegroundType>{
+          AndroidServiceForegroundType.foregroundServiceTypeDataSync,
+        },
+      );
+      _keepAliveRunning = true;
+      log.config("Sync foreground service started");
+      return true;
+    } catch (e, stackTrace) {
+      log.warning(
+        "Could not start the sync foreground service, the sync may stop "
+        "when the app goes to the background",
+        e,
+        stackTrace,
+      );
+      return false;
+    }
+  }
+
+  /// Stops the service and removes its notification. Does nothing when it is
+  /// not running.
+  Future<void> stopKeepAlive() async {
+    if (!_keepAliveRunning) {
+      return;
+    }
+    _keepAliveRunning = false;
+
+    try {
+      await _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.stopForegroundService();
+      log.config("Sync foreground service stopped");
+    } catch (e, stackTrace) {
+      log.warning("Could not stop the sync foreground service", e, stackTrace);
+    }
+  }
+
   Future<void> showSyncProgress({
     required String entityType,
     required int current,
@@ -174,6 +265,7 @@ class SyncNotifications {
           importance: Importance.low,
           priority: Priority.low,
           ongoing: true,
+          onlyAlertOnce: true,
           showProgress: true,
           maxProgress: total,
           progress: current,

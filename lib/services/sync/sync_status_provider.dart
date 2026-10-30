@@ -45,7 +45,9 @@ class SyncStatusProvider extends ChangeNotifier {
   String? get currentSyncingEntity => _currentSyncingEntity;
   SyncProgress? get currentProgress => _currentProgress;
 
-  bool get hasDownloadError => _downloadMetadata?.syncPaused ?? false;
+  bool get hasDownloadError =>
+      (_downloadMetadata?.syncPaused ?? false) ||
+      _downloadMetadata?.lastError != null;
   bool get hasUploadError => _uploadMetadata?.syncPaused ?? false;
   bool get hasError => hasDownloadError || hasUploadError;
   String? get downloadError => _downloadMetadata?.lastError;

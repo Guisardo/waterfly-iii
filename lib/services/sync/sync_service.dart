@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show max;
 
 import 'package:flutter/foundation.dart';
 import 'package:chopper/chopper.dart';
@@ -39,8 +40,10 @@ const String _capabilityDeletedItems = 'deleted_items';
 /// Entity name the server uses for deleted transactions.
 const String _deletedTransactionsEntity = 'transactions';
 
-/// Page size of the transaction and deleted item lists.
-const int _syncPageSize = 50;
+/// Page size of the transaction and deleted item lists. Pages of 50 rows are
+/// about 110 KB of JSON; answers that large were seen cut off on the way to
+/// the phone, so pages stay well below that.
+const int _syncPageSize = 20;
 
 /// A delta read starts this long before the stored cursor, so changes that
 /// were committed late or around a clock change are not missed.
@@ -49,6 +52,20 @@ const Duration _deltaOverlap = Duration(hours: 2);
 /// A delta never reports rows that were purged on the server, so a full read
 /// is repeated at least this often.
 const Duration _fullReadInterval = Duration(days: 7);
+
+/// An interrupted full read continues from its checkpoint for this long.
+const Duration _fullReadCheckpointMaxAge = Duration(hours: 24);
+
+/// A resumed full read starts this many pages before the checkpoint, because
+/// rows deleted on the server meanwhile move later rows to earlier pages.
+const int _fullReadResumeOverlapPages = 2;
+
+/// The checkpoint is saved after every this many pages (and when a page fails).
+const int _fullReadCheckpointEveryPages = 5;
+
+/// Sort order of the full read: newest rows first, and stable while it runs
+/// because new rows only get higher ids.
+const String _sortNewestIdFirst = '-id';
 
 /// How often the changed list is read again when it moved while it was read.
 const int _deltaMaxReadAttempts = 3;
@@ -101,6 +118,9 @@ class SyncService extends ChangeNotifier {
   bool get isSyncing => _isSyncing;
 
   StreamController<SyncProgress>? _progressController;
+  StreamSubscription<SyncProgress>? _notificationProgress;
+  DateTime? _lastProgressNotice;
+  int _lastProgressPercent = -1;
   Stream<SyncProgress>? get progressStream => _progressController?.stream;
 
   SyncService({
@@ -156,6 +176,11 @@ class SyncService extends ChangeNotifier {
 
     _isSyncing = true;
     _progressController = StreamController<SyncProgress>.broadcast();
+    _lastProgressNotice = null;
+    _lastProgressPercent = -1;
+    _notificationProgress = _progressController!.stream.listen(
+      _showProgressNotice,
+    );
     _notifyListenersIfNotDisposed();
 
     try {
@@ -252,6 +277,7 @@ class SyncService extends ChangeNotifier {
       }
 
       await notifications.showSyncStarted();
+      await notifications.startKeepAlive();
 
       // Sync entities
       final List<String> entityTypes = entityType != null
@@ -267,6 +293,8 @@ class SyncService extends ChangeNotifier {
               'piggy_banks',
             ];
 
+      // Entities that failed without stopping the whole sync, by entity type.
+      final Map<String, String> failures = <String, String>{};
       for (final String type in entityTypes) {
         try {
           await _syncEntityType(type, forceFullSync: forceFullSync);
@@ -286,8 +314,14 @@ class SyncService extends ChangeNotifier {
               SyncErrorClassifier.isAuthError(e)) {
             rethrow;
           }
-          // Continue with other entity types for non-critical errors
+          // Continue with other entity types for non-critical errors, but
+          // remember them: the sync must not be reported as a success.
+          failures[type] = e.toString();
         }
+      }
+
+      if (failures.isNotEmpty) {
+        await _recordSyncFailures(entityTypes, failures);
       }
 
       // Refresh stale insights
@@ -295,6 +329,14 @@ class SyncService extends ChangeNotifier {
 
       // Prefetch common date range insights for dashboard
       await _prefetchCommonInsights();
+
+      if (failures.isNotEmpty) {
+        // Errors of the failed entities stay visible and the download sync is
+        // neither marked as done nor announced as completed.
+        _isSyncing = false;
+        _notifyListenersIfNotDisposed();
+        return;
+      }
 
       // Update lastDownloadSync metadata after successful sync
       await _updateSyncMetadata(
@@ -321,12 +363,14 @@ class SyncService extends ChangeNotifier {
       }
 
       await retryManager.resetRetry('download');
+      await notifications.stopKeepAlive();
       await notifications.showSyncCompleted();
 
       _isSyncing = false;
       _notifyListenersIfNotDisposed();
     } catch (e, stackTrace) {
       log.severe("Sync failed", e, stackTrace);
+      await notifications.stopKeepAlive();
 
       // Handle errors
       if (SyncErrorClassifier.isNetworkError(e) ||
@@ -352,9 +396,79 @@ class SyncService extends ChangeNotifier {
       _isSyncing = false;
       _notifyListenersIfNotDisposed();
     } finally {
+      await notifications.stopKeepAlive();
+      await _notificationProgress?.cancel();
+      _notificationProgress = null;
       await _progressController?.close();
       _progressController = null;
     }
+  }
+
+  /// Mirrors the sync progress in the ongoing notification, at most every
+  /// 1.5 seconds and only when the percentage moved.
+  void _showProgressNotice(SyncProgress progress) {
+    if (progress.total <= 0) {
+      return;
+    }
+    final int percent = progress.current * 100 ~/ progress.total;
+    final DateTime now = DateTime.now();
+    final DateTime? last = _lastProgressNotice;
+    if (percent == _lastProgressPercent ||
+        (last != null &&
+            now.difference(last) < const Duration(milliseconds: 1500))) {
+      return;
+    }
+    _lastProgressNotice = now;
+    _lastProgressPercent = percent;
+
+    unawaited(
+      notifications
+          .showSyncProgress(
+            entityType: progress.entityType,
+            current: progress.current,
+            total: progress.total,
+            message: "${progress.current} / ${progress.total}",
+          )
+          .catchError((Object e, StackTrace stackTrace) {
+            log.warning(
+              "Could not update the sync notification",
+              e,
+              stackTrace,
+            );
+          }),
+    );
+  }
+
+  /// Keeps the error of every failed entity visible and records on the
+  /// download row that the sync was incomplete. Entities that did sync have
+  /// their previous error cleared.
+  Future<void> _recordSyncFailures(
+    List<String> entityTypes,
+    Map<String, String> failures,
+  ) async {
+    for (final String type in entityTypes) {
+      if (!failures.containsKey(type)) {
+        await _updateSyncMetadata(type, clearError: true);
+      }
+    }
+
+    final String summary = failures.entries
+        .map((MapEntry<String, String> failure) {
+          return "${failure.key}: ${failure.value}";
+        })
+        .join("; ");
+    log.warning(
+      "Sync incomplete, ${failures.length} of ${entityTypes.length} "
+      "entities failed: $summary",
+    );
+    await _updateSyncMetadata(
+      'download',
+      lastError:
+          "Sync incomplete, ${failures.length} of ${entityTypes.length} "
+          "failed ($summary)",
+    );
+    await notifications.stopKeepAlive();
+    await notifications.showSyncPaused(summary);
   }
 
   Future<void> _syncEntityType(
@@ -465,7 +579,11 @@ class SyncService extends ChangeNotifier {
         "Server does not announce incremental sync (anymore), forgetting "
         "the transactions cursor",
       );
-      await _updateSyncMetadata('transactions', clearDeltaCursor: true);
+      await _updateSyncMetadata(
+        'transactions',
+        clearDeltaCursor: true,
+        clearFullReadCheckpoint: true,
+      );
     }
 
     final bool announced = support == _IncrementalSupport.announced;
@@ -474,7 +592,12 @@ class SyncService extends ChangeNotifier {
       return;
     }
 
-    await _syncTransactionsFull(lastSync, recordCursor: announced);
+    await _syncTransactionsFull(
+      lastSync,
+      recordCursor: announced,
+      metadata: metadata,
+      forceFullSync: forceFullSync,
+    );
   }
 
   /// Asks the server which incremental features it announces.
@@ -519,19 +642,73 @@ class SyncService extends ChangeNotifier {
     return DateTime.now().toUtc().difference(lastFullSync) < _fullReadInterval;
   }
 
+  /// Fetches one page of the transaction list. When the answer cannot be
+  /// parsed (the converter then returns the raw text, which the generated
+  /// client fails to cast) the error names the page instead of a type cast.
+  Future<Response<TransactionArray>> _getTransactionsPage(
+    FireflyIii api, {
+    required int page,
+    required int limit,
+    String? updatedSince,
+    String? sort,
+  }) async {
+    try {
+      return await api.v1TransactionsGet(
+        page: page,
+        limit: limit,
+        updatedSince: updatedSince,
+        sort: sort,
+      );
+    } on TypeError catch (e, stackTrace) {
+      log.severe(
+        "Transactions page $page (limit=$limit, updatedSince=$updatedSince) "
+        "could not be read",
+        e,
+        stackTrace,
+      );
+      throw Exception(
+        "Transactions page $page could not be read: the answer from the "
+        "server is cut off or not valid JSON (see log, ${e.runtimeType})",
+      );
+    }
+  }
+
   Future<void> _syncTransactionsFull(
     DateTime? lastSync, {
     required bool recordCursor,
+    SyncMetadata? metadata,
+    bool forceFullSync = false,
   }) async {
     final TransactionRepository repo = TransactionRepository(isar);
     final FireflyIii api = fireflyService.api;
 
-    final DateTime startedAt = DateTime.now().toUtc();
-    final _CursorTracker cursor = _CursorTracker();
+    // Only a server that announces the delta features lists by id, which keeps
+    // pages stable enough to continue an interrupted read.
+    final _FullReadCheckpoint? checkpoint = recordCursor && !forceFullSync
+        ? _FullReadCheckpoint.from(metadata)
+        : null;
+
+    DateTime startedAt = DateTime.now().toUtc();
+    _CursorTracker cursor = _CursorTracker();
+    final Set<String> serverTransactionIds = <String>{};
     int page = 1;
+    if (checkpoint != null &&
+        startedAt.difference(checkpoint.startedAt) <=
+            _fullReadCheckpointMaxAge) {
+      page = max(1, checkpoint.nextPage - _fullReadResumeOverlapPages);
+      startedAt = checkpoint.startedAt;
+      cursor = checkpoint.tracker();
+      serverTransactionIds.addAll(checkpoint.seenIds);
+      log.config(
+        "Resuming the full read of transactions at page $page "
+        "(checkpoint at page ${checkpoint.nextPage}, "
+        "${serverTransactionIds.length} rows already read)",
+      );
+    }
+
     bool hasMore = true;
     int totalSynced = 0;
-    final Set<String> serverTransactionIds = <String>{};
+    int? serverTotal;
 
     while (hasMore) {
       try {
@@ -539,9 +716,11 @@ class SyncService extends ChangeNotifier {
         // any server-side redirects (raw http.Client strips Authorization on redirect).
         // The Firefly III v1 API does not support order_by/order_direction, so we
         // paginate all pages and filter by updatedAt per-item for incremental sync.
-        final Response<TransactionArray> response = await api.v1TransactionsGet(
+        final Response<TransactionArray> response = await _getTransactionsPage(
+          api,
           page: page,
           limit: _syncPageSize,
+          sort: recordCursor ? _sortNewestIdFirst : null,
         );
 
         if (!response.isSuccessful || response.body == null) {
@@ -553,6 +732,7 @@ class SyncService extends ChangeNotifier {
         final List<TransactionRead> transactions = response.body!.data;
         final int? totalPages = response.body!.meta.pagination?.totalPages;
         final String? nextPage = response.body!.links.next;
+        serverTotal ??= response.body!.meta.pagination?.total;
 
         if (transactions.isEmpty) {
           hasMore = false;
@@ -578,11 +758,18 @@ class SyncService extends ChangeNotifier {
           }
         }
 
+        // Rows read of the rows the server holds, not rows rewritten: rows that
+        // did not change are read too, and that is where the time goes. Without
+        // a total from the server the progress stays open-ended.
+        final int rowsRead = serverTransactionIds.length;
+        final int? knownTotal = serverTotal;
         _progressController?.add(
           SyncProgress(
             entityType: 'transactions',
-            current: totalSynced,
-            total: totalSynced + 1,
+            current: rowsRead,
+            total: knownTotal == null
+                ? 0
+                : (knownTotal > rowsRead ? knownTotal : rowsRead),
           ),
         );
 
@@ -594,8 +781,32 @@ class SyncService extends ChangeNotifier {
         } else {
           hasMore = false;
         }
+
+        if (recordCursor &&
+            hasMore &&
+            page % _fullReadCheckpointEveryPages == 0) {
+          await _updateSyncMetadata(
+            'transactions',
+            fullReadCheckpoint: _FullReadCheckpoint.of(
+              nextPage: page,
+              startedAt: startedAt,
+              tracker: cursor,
+              seenIds: serverTransactionIds,
+            ),
+          );
+        }
       } catch (e) {
         log.severe("Error syncing transactions page $page", e);
+        if (recordCursor) {
+          await _saveCheckpointAfterFailure(
+            _FullReadCheckpoint.of(
+              nextPage: page,
+              startedAt: startedAt,
+              tracker: cursor,
+              seenIds: serverTransactionIds,
+            ),
+          );
+        }
         rethrow;
       }
     }
@@ -617,8 +828,31 @@ class SyncService extends ChangeNotifier {
         'transactions',
         lastFullSync: startedAt,
         deltaCursor: newCursor,
+        clearFullReadCheckpoint: true,
       );
       log.config("Full read of transactions done, cursor=$newCursor");
+    }
+  }
+
+  /// Saves where an interrupted full read stopped. A failure to save is logged
+  /// but must not hide the error that interrupted the read, which the caller
+  /// rethrows.
+  Future<void> _saveCheckpointAfterFailure(
+    _FullReadCheckpoint checkpoint,
+  ) async {
+    try {
+      await _updateSyncMetadata('transactions', fullReadCheckpoint: checkpoint);
+      log.config(
+        "Saved the full read checkpoint at page ${checkpoint.nextPage} "
+        "(${checkpoint.seenIds.length} rows read)",
+      );
+    } catch (e, stackTrace) {
+      log.severe(
+        "Could not save the full read checkpoint at page "
+        "${checkpoint.nextPage}",
+        e,
+        stackTrace,
+      );
     }
   }
 
@@ -659,8 +893,8 @@ class SyncService extends ChangeNotifier {
     _progressController?.add(
       SyncProgress(
         entityType: 'transactions',
-        current: totalSynced + deletedCount,
-        total: totalSynced + deletedCount,
+        current: changed.rows.length + deleted.length,
+        total: changed.rows.length + deleted.length,
       ),
     );
     log.config(
@@ -696,7 +930,8 @@ class SyncService extends ChangeNotifier {
     for (int attempt = 1; attempt <= _deltaMaxReadAttempts; attempt++) {
       read = await _readChangedPages(api, since);
 
-      final Response<TransactionArray> probe = await api.v1TransactionsGet(
+      final Response<TransactionArray> probe = await _getTransactionsPage(
+        api,
         updatedSince: since,
         sort: _sortNewestFirst,
         limit: 1,
@@ -738,7 +973,8 @@ class SyncService extends ChangeNotifier {
     bool hasMore = true;
 
     while (hasMore) {
-      final Response<TransactionArray> response = await api.v1TransactionsGet(
+      final Response<TransactionArray> response = await _getTransactionsPage(
+        api,
         updatedSince: since,
         sort: _sortNewestFirst,
         limit: _syncPageSize,
@@ -1545,6 +1781,8 @@ class SyncService extends ChangeNotifier {
     bool? credentialsInvalid,
     bool clearError = false,
     bool clearDeltaCursor = false,
+    _FullReadCheckpoint? fullReadCheckpoint,
+    bool clearFullReadCheckpoint = false,
   }) async {
     final SyncMetadata? existing = await isar.syncMetadatas
         .filter()
@@ -1564,6 +1802,8 @@ class SyncService extends ChangeNotifier {
         ..lastError = lastError
         ..credentialsValidated = credentialsValidated ?? false
         ..credentialsInvalid = credentialsInvalid ?? false;
+
+      _applyCheckpoint(metadata, fullReadCheckpoint, clearFullReadCheckpoint);
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);
@@ -1602,10 +1842,37 @@ class SyncService extends ChangeNotifier {
       if (credentialsInvalid != null) {
         existing.credentialsInvalid = credentialsInvalid;
       }
+      _applyCheckpoint(existing, fullReadCheckpoint, clearFullReadCheckpoint);
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(existing);
       });
+    }
+  }
+
+  /// Writes or clears the full read checkpoint on [metadata]; without either
+  /// argument the stored checkpoint stays as it is.
+  void _applyCheckpoint(
+    SyncMetadata metadata,
+    _FullReadCheckpoint? checkpoint,
+    bool clear,
+  ) {
+    if (clear) {
+      metadata
+        ..fullReadNextPage = null
+        ..fullReadStartedAt = null
+        ..fullReadNewest = null
+        ..fullReadHeldAt = null
+        ..fullReadBlocked = false
+        ..fullReadSeenIds = null;
+    } else if (checkpoint != null) {
+      metadata
+        ..fullReadNextPage = checkpoint.nextPage
+        ..fullReadStartedAt = checkpoint.startedAt
+        ..fullReadNewest = checkpoint.newest
+        ..fullReadHeldAt = checkpoint.heldAt
+        ..fullReadBlocked = checkpoint.blocked
+        ..fullReadSeenIds = checkpoint.seenIds.toList();
     }
   }
 
@@ -1692,6 +1959,20 @@ class _CursorTracker {
   DateTime? _heldAt;
   bool _blocked = false;
 
+  _CursorTracker();
+
+  _CursorTracker.restored({
+    DateTime? newest,
+    DateTime? heldAt,
+    bool blocked = false,
+  }) : _newest = newest,
+       _heldAt = heldAt,
+       _blocked = blocked;
+
+  DateTime? get newest => _newest;
+  DateTime? get heldAt => _heldAt;
+  bool get blocked => _blocked;
+
   /// A server change (updated or deleted moment) that was read.
   void seen(DateTime? at) {
     if (at != null && (_newest == null || at.isAfter(_newest!))) {
@@ -1721,4 +2002,57 @@ class _CursorTracker {
     }
     return candidate;
   }
+}
+
+/// Where an interrupted full read of the transactions stopped.
+class _FullReadCheckpoint {
+  const _FullReadCheckpoint({
+    required this.nextPage,
+    required this.startedAt,
+    required this.newest,
+    required this.heldAt,
+    required this.blocked,
+    required this.seenIds,
+  });
+
+  factory _FullReadCheckpoint.of({
+    required int nextPage,
+    required DateTime startedAt,
+    required _CursorTracker tracker,
+    required Set<String> seenIds,
+  }) => _FullReadCheckpoint(
+    nextPage: nextPage,
+    startedAt: startedAt,
+    newest: tracker.newest,
+    heldAt: tracker.heldAt,
+    blocked: tracker.blocked,
+    seenIds: seenIds,
+  );
+
+  /// The checkpoint stored in [metadata], or null when there is none.
+  static _FullReadCheckpoint? from(SyncMetadata? metadata) {
+    final int? nextPage = metadata?.fullReadNextPage;
+    final DateTime? startedAt = metadata?.fullReadStartedAt;
+    if (metadata == null || nextPage == null || startedAt == null) {
+      return null;
+    }
+    return _FullReadCheckpoint(
+      nextPage: nextPage,
+      startedAt: startedAt.toUtc(),
+      newest: metadata.fullReadNewest,
+      heldAt: metadata.fullReadHeldAt,
+      blocked: metadata.fullReadBlocked,
+      seenIds: (metadata.fullReadSeenIds ?? const <String>[]).toSet(),
+    );
+  }
+
+  final int nextPage;
+  final DateTime startedAt;
+  final DateTime? newest;
+  final DateTime? heldAt;
+  final bool blocked;
+  final Set<String> seenIds;
+
+  _CursorTracker tracker() =>
+      _CursorTracker.restored(newest: newest, heldAt: heldAt, blocked: blocked);
 }
