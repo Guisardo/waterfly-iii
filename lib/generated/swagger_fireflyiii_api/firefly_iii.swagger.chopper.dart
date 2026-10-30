@@ -1197,6 +1197,52 @@ The demo user is incapable of using this endpoint.
   }
 
   @override
+  Future<Response<DeletedItemArray>> _v1DataDeletedGet({
+    String? xTraceId,
+    int? limit,
+    int? page,
+    String? since,
+    String? types,
+    SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
+      description:
+          '''Lists the items that were deleted, oldest deletion first (ties by ID). At this time these are transactions.
+A client that keeps a copy of the user\'s transactions can use this list to remove what was deleted since its last visit: pass the moment of that visit in "since".
+The ID of an item is the ID of the deleted transaction.
+Only deletions that are still on record can be listed: after a call to /v1/data/purge a deletion is forgotten.
+Deleting one split of a transaction that has other splits is not a deletion of the transaction. The transaction stays and its "updated_at" moves.
+Like the list of transactions this list follows the selected financial administration and needs the read role in it.
+''',
+      summary: 'List what was deleted since a moment.',
+      operationId: 'listDeletedItems',
+      consumes: [],
+      produces: [],
+      security: [],
+      tags: ["data"],
+      deprecated: false,
+    ),
+  }) {
+    final Uri $url = Uri.parse('/v1/data/deleted');
+    final Map<String, dynamic> $params = <String, dynamic>{
+      'limit': limit,
+      'page': page,
+      'since': since,
+      'types': types,
+    };
+    final Map<String, String> $headers = {
+      if (xTraceId != null) 'X-Trace-Id': xTraceId,
+    };
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+      parameters: $params,
+      headers: $headers,
+      tag: swaggerMetaData,
+    );
+    return client.send<DeletedItemArray, DeletedItemArray>($request);
+  }
+
+  @override
   Future<Response<dynamic>> _v1DataPurgeDelete({
     String? xTraceId,
     SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
@@ -6781,6 +6827,11 @@ So, if you recurring transaction that occurs every Monday, you can trigger the c
     String? start,
     String? end,
     String? type,
+    String? createdSince,
+    String? createdUntil,
+    String? updatedSince,
+    String? updatedUntil,
+    String? sort,
     SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
       description: 'List all the user\'s transactions.',
       summary: '''List all the user\'s transactions.
@@ -6800,6 +6851,11 @@ So, if you recurring transaction that occurs every Monday, you can trigger the c
       'start': start,
       'end': end,
       'type': type,
+      'created_since': createdSince,
+      'created_until': createdUntil,
+      'updated_since': updatedSince,
+      'updated_until': updatedUntil,
+      'sort': sort,
     };
     final Map<String, String> $headers = {
       if (xTraceId != null) 'X-Trace-Id': xTraceId,

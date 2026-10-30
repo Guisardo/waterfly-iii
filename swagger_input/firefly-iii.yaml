@@ -2486,6 +2486,106 @@ paths:
               schema:
                 type: string
                 format: binary
+  /v1/data/deleted:
+    get:
+      tags:
+        - data
+      operationId: listDeletedItems
+      summary: List what was deleted since a moment.
+      description: |
+        Lists the items that were deleted, oldest deletion first (ties by ID). At this time these are transactions.
+        A client that keeps a copy of the user's transactions can use this list to remove what was deleted since its last visit: pass the moment of that visit in "since".
+        The ID of an item is the ID of the deleted transaction.
+        Only deletions that are still on record can be listed: after a call to /v1/data/purge a deletion is forgotten.
+        Deleting one split of a transaction that has other splits is not a deletion of the transaction. The transaction stays and its "updated_at" moves.
+        Like the list of transactions this list follows the selected financial administration and needs the read role in it.
+      parameters:
+        - name: X-Trace-Id
+          in: header
+          description: Unique identifier associated with this request.
+          required: false
+          example: 40c71bbb-c676-4f24-83cf-cc725d7d7a00
+          schema:
+            type: string
+            format: uuid
+            example: 40c71bbb-c676-4f24-83cf-cc725d7d7a00
+
+        - in: query
+          name: limit
+          description: Number of items per page. The default pagination is per 50 items.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            example: 10
+
+        - in: query
+          name: page
+          description: Page number. The default pagination is per 50 items.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            example: 1
+
+        - in: query
+          name: since
+          description: |
+            Only return deletions at or after this moment (inclusive). An ISO-8601 date (from the start of that day) or a date and time,
+            the same formats as the filters of the list of transactions. Leave it out to list every deletion on record.
+          required: false
+          schema:
+            type: string
+            example: "2026-06-15T10:00:00+02:00"
+        - in: query
+          name: types
+          description: |
+            A comma separated list of the kinds of items to list. Only "transactions" is supported at this time, anything else is rejected. This is the default.
+          required: false
+          schema:
+            type: string
+            example: "transactions"
+      responses:
+        "200":
+          description: A list of deleted items, oldest deletion first.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/DeletedItemArray'
+        "422":
+          description: 'Validation error. The body will have the exact details.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthenticatedResponse'
+
+        "404":
+          description: Page not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResponse'
+
+        "500":
+          description: Internal exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalExceptionResponse'
   /v1/data/purge:
     delete:
       tags:
@@ -14744,6 +14844,58 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/TransactionTypeFilter'
+        - in: query
+          name: created_since
+          description: |
+            Only return transactions that were created at or after this moment (inclusive).
+            An ISO-8601 date (2026-06-15, from the start of that day) or a date and time (2026-06-15T10:00:00+02:00 or 2026-06-15T08:00:00Z).
+            A time without an offset is read in the timezone of the Firefly III installation.
+            The value is compared with the "created_at" of the transaction. Clients must URL-encode the plus sign of an offset.
+          required: false
+          schema:
+            type: string
+            example: "2026-06-15T10:00:00+02:00"
+        - in: query
+          name: created_until
+          description: |
+            Only return transactions that were created at or before this moment (inclusive).
+            The same formats as "created_since"; a date without a time means the end of that day. Must not be before "created_since".
+          required: false
+          schema:
+            type: string
+            example: "2026-06-30"
+        - in: query
+          name: updated_since
+          description: |
+            Only return transactions that were changed at or after this moment (inclusive). The same formats as "created_since".
+            The value is compared with the "updated_at" of the transaction. It moves when a transaction is created, edited,
+            changed by a rule or moved to another account, and when one split of a transaction that has other splits is deleted.
+            It does not move when an account, category or budget that the transaction uses is renamed, or when transactions are marked as reconciled in the web interface.
+            Transactions that were deleted altogether are not listed, see /v1/data/deleted.
+          required: false
+          schema:
+            type: string
+            example: "2026-06-15T10:00:00+02:00"
+        - in: query
+          name: updated_until
+          description: |
+            Only return transactions that were changed at or before this moment (inclusive).
+            The same formats as "created_since"; a date without a time means the end of that day. Must not be before "updated_since".
+          required: false
+          schema:
+            type: string
+            example: "2026-06-30"
+        - in: query
+          name: sort
+          description: |
+            The order of the list: a comma separated list of the fields id, created_at and updated_at. Put a minus sign in front of a field to sort descending, for example -updated_at.
+            The order always ends in the ID of the transaction (in the direction of the last field) and the splits of a transaction stay together, so the order is stable from page to page.
+            Without "sort" the list is ordered by date, newest first.
+            To follow what changed, combine "updated_since" with sort=updated_at.
+          required: false
+          schema:
+            type: string
+            example: "updated_at"
       responses:
         "200":
           description: A list of transactions.
@@ -14751,6 +14903,13 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/TransactionArray'
+        "422":
+          description: 'Validation error. The body will have the exact details.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
         "401":
           description: Unauthenticated
           content:
@@ -24998,6 +25157,67 @@ components:
               type: string
               format: string
               example: "mysql"
+            capabilities:
+              type: array
+              description: |
+                The names of the optional features of this API that the server supports.
+                incremental.transactions: the list of transactions accepts created_since, created_until, updated_since, updated_until and sort.
+                deleted_items: the endpoint /v1/data/deleted lists deleted transactions.
+                The field is absent on servers that do not report their capabilities. A client has to assume that none of the features exist then.
+              items:
+                type: string
+              example:
+                - incremental.transactions
+                - deleted_items
+    DeletedItemArray:
+      type: object
+      required:
+        - data
+        - meta
+        - links
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeletedItemRead'
+        meta:
+          $ref: '#/components/schemas/Meta'
+        links:
+          $ref: '#/components/schemas/PageLink'
+    DeletedItemRead:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          description: Always "deleted-items".
+          example: deleted-items
+        id:
+          type: string
+          description: The ID of the deleted item. For the entity "transactions" this is the ID of the transaction.
+          example: "123"
+        attributes:
+          $ref: '#/components/schemas/DeletedItemProperties'
+    DeletedItemProperties:
+      type: object
+      required:
+        - entity
+        - deleted_at
+      properties:
+        entity:
+          type: string
+          description: What kind of item was deleted. At this time only "transactions".
+          enum:
+            - transactions
+          example: transactions
+        deleted_at:
+          type: string
+          format: date-time
+          description: The moment the item was deleted.
+          example: "2026-06-15T10:00:00+02:00"
     UserSingle:
       type: object
       required:

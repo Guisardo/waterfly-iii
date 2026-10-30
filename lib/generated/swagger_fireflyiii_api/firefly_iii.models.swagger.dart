@@ -15541,6 +15541,157 @@ extension $SystemInfoExtension on SystemInfo {
 }
 
 @JsonSerializable(explicitToJson: true)
+class DeletedItemArray {
+  const DeletedItemArray({
+    required this.data,
+    required this.meta,
+    required this.links,
+  });
+
+  factory DeletedItemArray.fromJson(Map<String, dynamic> json) =>
+      _$DeletedItemArrayFromJson(json);
+
+  static const toJsonFactory = _$DeletedItemArrayToJson;
+  Map<String, dynamic> toJson() => _$DeletedItemArrayToJson(this);
+
+  @JsonKey(name: 'data', includeIfNull: true, defaultValue: <DeletedItemRead>[])
+  final List<DeletedItemRead> data;
+  @JsonKey(name: 'meta', includeIfNull: true)
+  final Meta meta;
+  @JsonKey(name: 'links', includeIfNull: true)
+  final PageLink links;
+  static const fromJsonFactory = _$DeletedItemArrayFromJson;
+
+  @override
+  String toString() => jsonEncode(this);
+}
+
+extension $DeletedItemArrayExtension on DeletedItemArray {
+  DeletedItemArray copyWith({
+    List<DeletedItemRead>? data,
+    Meta? meta,
+    PageLink? links,
+  }) {
+    return DeletedItemArray(
+      data: data ?? this.data,
+      meta: meta ?? this.meta,
+      links: links ?? this.links,
+    );
+  }
+
+  DeletedItemArray copyWithWrapped({
+    Wrapped<List<DeletedItemRead>>? data,
+    Wrapped<Meta>? meta,
+    Wrapped<PageLink>? links,
+  }) {
+    return DeletedItemArray(
+      data: (data != null ? data.value : this.data),
+      meta: (meta != null ? meta.value : this.meta),
+      links: (links != null ? links.value : this.links),
+    );
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class DeletedItemRead {
+  const DeletedItemRead({
+    required this.type,
+    required this.id,
+    required this.attributes,
+  });
+
+  factory DeletedItemRead.fromJson(Map<String, dynamic> json) =>
+      _$DeletedItemReadFromJson(json);
+
+  static const toJsonFactory = _$DeletedItemReadToJson;
+  Map<String, dynamic> toJson() => _$DeletedItemReadToJson(this);
+
+  @JsonKey(name: 'type', includeIfNull: true)
+  final String type;
+  @JsonKey(name: 'id', includeIfNull: true)
+  final String id;
+  @JsonKey(name: 'attributes', includeIfNull: true)
+  final DeletedItemProperties attributes;
+  static const fromJsonFactory = _$DeletedItemReadFromJson;
+
+  @override
+  String toString() => jsonEncode(this);
+}
+
+extension $DeletedItemReadExtension on DeletedItemRead {
+  DeletedItemRead copyWith({
+    String? type,
+    String? id,
+    DeletedItemProperties? attributes,
+  }) {
+    return DeletedItemRead(
+      type: type ?? this.type,
+      id: id ?? this.id,
+      attributes: attributes ?? this.attributes,
+    );
+  }
+
+  DeletedItemRead copyWithWrapped({
+    Wrapped<String>? type,
+    Wrapped<String>? id,
+    Wrapped<DeletedItemProperties>? attributes,
+  }) {
+    return DeletedItemRead(
+      type: (type != null ? type.value : this.type),
+      id: (id != null ? id.value : this.id),
+      attributes: (attributes != null ? attributes.value : this.attributes),
+    );
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class DeletedItemProperties {
+  const DeletedItemProperties({required this.entity, required this.deletedAt});
+
+  factory DeletedItemProperties.fromJson(Map<String, dynamic> json) =>
+      _$DeletedItemPropertiesFromJson(json);
+
+  static const toJsonFactory = _$DeletedItemPropertiesToJson;
+  Map<String, dynamic> toJson() => _$DeletedItemPropertiesToJson(this);
+
+  @JsonKey(
+    name: 'entity',
+    includeIfNull: true,
+    toJson: deletedItemPropertiesEntityToJson,
+    fromJson: deletedItemPropertiesEntityFromJson,
+  )
+  final enums.DeletedItemPropertiesEntity entity;
+  @JsonKey(name: 'deleted_at', includeIfNull: true)
+  final DateTime deletedAt;
+  static const fromJsonFactory = _$DeletedItemPropertiesFromJson;
+
+  @override
+  String toString() => jsonEncode(this);
+}
+
+extension $DeletedItemPropertiesExtension on DeletedItemProperties {
+  DeletedItemProperties copyWith({
+    enums.DeletedItemPropertiesEntity? entity,
+    DateTime? deletedAt,
+  }) {
+    return DeletedItemProperties(
+      entity: entity ?? this.entity,
+      deletedAt: deletedAt ?? this.deletedAt,
+    );
+  }
+
+  DeletedItemProperties copyWithWrapped({
+    Wrapped<enums.DeletedItemPropertiesEntity>? entity,
+    Wrapped<DateTime>? deletedAt,
+  }) {
+    return DeletedItemProperties(
+      entity: (entity != null ? entity.value : this.entity),
+      deletedAt: (deletedAt != null ? deletedAt.value : this.deletedAt),
+    );
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
 class UserSingle {
   const UserSingle({required this.data});
 
@@ -15992,6 +16143,7 @@ class SystemInfo$Data {
     this.phpVersion,
     this.os,
     this.driver,
+    this.capabilities,
   });
 
   factory SystemInfo$Data.fromJson(Map<String, dynamic> json) =>
@@ -16010,6 +16162,8 @@ class SystemInfo$Data {
   final String? os;
   @JsonKey(name: 'driver', includeIfNull: true)
   final String? driver;
+  @JsonKey(name: 'capabilities', includeIfNull: true, defaultValue: <String>[])
+  final List<String>? capabilities;
   static const fromJsonFactory = _$SystemInfo$DataFromJson;
 
   @override
@@ -16023,6 +16177,7 @@ extension $SystemInfo$DataExtension on SystemInfo$Data {
     String? phpVersion,
     String? os,
     String? driver,
+    List<String>? capabilities,
   }) {
     return SystemInfo$Data(
       version: version ?? this.version,
@@ -16030,6 +16185,7 @@ extension $SystemInfo$DataExtension on SystemInfo$Data {
       phpVersion: phpVersion ?? this.phpVersion,
       os: os ?? this.os,
       driver: driver ?? this.driver,
+      capabilities: capabilities ?? this.capabilities,
     );
   }
 
@@ -16039,6 +16195,7 @@ extension $SystemInfo$DataExtension on SystemInfo$Data {
     Wrapped<String?>? phpVersion,
     Wrapped<String?>? os,
     Wrapped<String?>? driver,
+    Wrapped<List<String>?>? capabilities,
   }) {
     return SystemInfo$Data(
       version: (version != null ? version.value : this.version),
@@ -16046,6 +16203,9 @@ extension $SystemInfo$DataExtension on SystemInfo$Data {
       phpVersion: (phpVersion != null ? phpVersion.value : this.phpVersion),
       os: (os != null ? os.value : this.os),
       driver: (driver != null ? driver.value : this.driver),
+      capabilities: (capabilities != null
+          ? capabilities.value
+          : this.capabilities),
     );
   }
 }
@@ -17832,6 +17992,85 @@ List<enums.UserRoleProperty>? userRolePropertyNullableListFromJson(
 
   return userRoleProperty
       .map((e) => userRolePropertyFromJson(e.toString()))
+      .toList();
+}
+
+String? deletedItemPropertiesEntityNullableToJson(
+  enums.DeletedItemPropertiesEntity? deletedItemPropertiesEntity,
+) {
+  return deletedItemPropertiesEntity?.value;
+}
+
+String? deletedItemPropertiesEntityToJson(
+  enums.DeletedItemPropertiesEntity deletedItemPropertiesEntity,
+) {
+  return deletedItemPropertiesEntity.value;
+}
+
+enums.DeletedItemPropertiesEntity deletedItemPropertiesEntityFromJson(
+  Object? deletedItemPropertiesEntity, [
+  enums.DeletedItemPropertiesEntity? defaultValue,
+]) {
+  return enums.DeletedItemPropertiesEntity.values.firstWhereOrNull(
+        (e) => e.value == deletedItemPropertiesEntity,
+      ) ??
+      defaultValue ??
+      enums.DeletedItemPropertiesEntity.swaggerGeneratedUnknown;
+}
+
+enums.DeletedItemPropertiesEntity? deletedItemPropertiesEntityNullableFromJson(
+  Object? deletedItemPropertiesEntity, [
+  enums.DeletedItemPropertiesEntity? defaultValue,
+]) {
+  if (deletedItemPropertiesEntity == null) {
+    return null;
+  }
+  return enums.DeletedItemPropertiesEntity.values.firstWhereOrNull(
+        (e) => e.value == deletedItemPropertiesEntity,
+      ) ??
+      defaultValue;
+}
+
+String deletedItemPropertiesEntityExplodedListToJson(
+  List<enums.DeletedItemPropertiesEntity>? deletedItemPropertiesEntity,
+) {
+  return deletedItemPropertiesEntity?.map((e) => e.value!).join(',') ?? '';
+}
+
+List<String> deletedItemPropertiesEntityListToJson(
+  List<enums.DeletedItemPropertiesEntity>? deletedItemPropertiesEntity,
+) {
+  if (deletedItemPropertiesEntity == null) {
+    return [];
+  }
+
+  return deletedItemPropertiesEntity.map((e) => e.value!).toList();
+}
+
+List<enums.DeletedItemPropertiesEntity> deletedItemPropertiesEntityListFromJson(
+  List? deletedItemPropertiesEntity, [
+  List<enums.DeletedItemPropertiesEntity>? defaultValue,
+]) {
+  if (deletedItemPropertiesEntity == null) {
+    return defaultValue ?? [];
+  }
+
+  return deletedItemPropertiesEntity
+      .map((e) => deletedItemPropertiesEntityFromJson(e.toString()))
+      .toList();
+}
+
+List<enums.DeletedItemPropertiesEntity>?
+deletedItemPropertiesEntityNullableListFromJson(
+  List? deletedItemPropertiesEntity, [
+  List<enums.DeletedItemPropertiesEntity>? defaultValue,
+]) {
+  if (deletedItemPropertiesEntity == null) {
+    return defaultValue;
+  }
+
+  return deletedItemPropertiesEntity
+      .map((e) => deletedItemPropertiesEntityFromJson(e.toString()))
       .toList();
 }
 

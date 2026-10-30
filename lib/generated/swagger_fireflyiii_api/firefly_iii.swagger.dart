@@ -1417,6 +1417,66 @@ The demo user is incapable of using this endpoint.
     ),
   });
 
+  ///List what was deleted since a moment.
+  ///@param X-Trace-Id Unique identifier associated with this request.
+  ///@param limit Number of items per page. The default pagination is per 50 items.
+  ///@param page Page number. The default pagination is per 50 items.
+  ///@param since Only return deletions at or after this moment (inclusive). An ISO-8601 date (from the start of that day) or a date and time, the same formats as the filters of the list of transactions. Leave it out to list every deletion on record.
+  ///@param types A comma separated list of the kinds of items to list. Only "transactions" is supported at this time, anything else is rejected. This is the default.
+  Future<chopper.Response<DeletedItemArray>> v1DataDeletedGet({
+    String? xTraceId,
+    int? limit,
+    int? page,
+    String? since,
+    String? types,
+  }) {
+    generatedMapping.putIfAbsent(
+      DeletedItemArray,
+      () => DeletedItemArray.fromJsonFactory,
+    );
+
+    return _v1DataDeletedGet(
+      xTraceId: xTraceId?.toString(),
+      limit: limit,
+      page: page,
+      since: since,
+      types: types,
+    );
+  }
+
+  ///List what was deleted since a moment.
+  ///@param X-Trace-Id Unique identifier associated with this request.
+  ///@param limit Number of items per page. The default pagination is per 50 items.
+  ///@param page Page number. The default pagination is per 50 items.
+  ///@param since Only return deletions at or after this moment (inclusive). An ISO-8601 date (from the start of that day) or a date and time, the same formats as the filters of the list of transactions. Leave it out to list every deletion on record.
+  ///@param types A comma separated list of the kinds of items to list. Only "transactions" is supported at this time, anything else is rejected. This is the default.
+  @GET(path: '/v1/data/deleted')
+  Future<chopper.Response<DeletedItemArray>> _v1DataDeletedGet({
+    @Header('X-Trace-Id') String? xTraceId,
+    @Query('limit') int? limit,
+    @Query('page') int? page,
+    @Query('since') String? since,
+    @Query('types') String? types,
+    @chopper.Tag()
+    SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
+      description:
+          '''Lists the items that were deleted, oldest deletion first (ties by ID). At this time these are transactions.
+A client that keeps a copy of the user\'s transactions can use this list to remove what was deleted since its last visit: pass the moment of that visit in "since".
+The ID of an item is the ID of the deleted transaction.
+Only deletions that are still on record can be listed: after a call to /v1/data/purge a deletion is forgotten.
+Deleting one split of a transaction that has other splits is not a deletion of the transaction. The transaction stays and its "updated_at" moves.
+Like the list of transactions this list follows the selected financial administration and needs the read role in it.
+''',
+      summary: 'List what was deleted since a moment.',
+      operationId: 'listDeletedItems',
+      consumes: [],
+      produces: [],
+      security: [],
+      tags: ["data"],
+      deprecated: false,
+    ),
+  });
+
   ///Endpoint to purge user data
   ///@param X-Trace-Id Unique identifier associated with this request.
   Future<chopper.Response> v1DataPurgeDelete({String? xTraceId}) {
@@ -8414,6 +8474,11 @@ So, if you recurring transaction that occurs every Monday, you can trigger the c
   ///@param start A date formatted YYYY-MM-DD. This is the start date of the selected range (inclusive).
   ///@param end A date formatted YYYY-MM-DD. This is the end date of the selected range (inclusive).
   ///@param type Optional filter on the transaction type(s) returned.
+  ///@param created_since Only return transactions that were created at or after this moment (inclusive). An ISO-8601 date (2026-06-15, from the start of that day) or a date and time (2026-06-15T10:00:00+02:00 or 2026-06-15T08:00:00Z). A time without an offset is read in the timezone of the Firefly III installation. The value is compared with the "created_at" of the transaction. Clients must URL-encode the plus sign of an offset.
+  ///@param created_until Only return transactions that were created at or before this moment (inclusive). The same formats as "created_since"; a date without a time means the end of that day. Must not be before "created_since".
+  ///@param updated_since Only return transactions that were changed at or after this moment (inclusive). The same formats as "created_since". The value is compared with the "updated_at" of the transaction. It moves when a transaction is created, edited, changed by a rule or moved to another account, and when one split of a transaction that has other splits is deleted. It does not move when an account, category or budget that the transaction uses is renamed, or when transactions are marked as reconciled in the web interface. Transactions that were deleted altogether are not listed, see /v1/data/deleted.
+  ///@param updated_until Only return transactions that were changed at or before this moment (inclusive). The same formats as "created_since"; a date without a time means the end of that day. Must not be before "updated_since".
+  ///@param sort The order of the list: a comma separated list of the fields id, created_at and updated_at. Put a minus sign in front of a field to sort descending, for example -updated_at. The order always ends in the ID of the transaction (in the direction of the last field) and the splits of a transaction stay together, so the order is stable from page to page. Without "sort" the list is ordered by date, newest first. To follow what changed, combine "updated_since" with sort=updated_at.
   Future<chopper.Response<TransactionArray>> v1TransactionsGet({
     String? xTraceId,
     int? limit,
@@ -8421,6 +8486,11 @@ So, if you recurring transaction that occurs every Monday, you can trigger the c
     String? start,
     String? end,
     enums.TransactionTypeFilter? type,
+    String? createdSince,
+    String? createdUntil,
+    String? updatedSince,
+    String? updatedUntil,
+    String? sort,
   }) {
     generatedMapping.putIfAbsent(
       TransactionArray,
@@ -8434,6 +8504,11 @@ So, if you recurring transaction that occurs every Monday, you can trigger the c
       start: start,
       end: end,
       type: type?.value?.toString(),
+      createdSince: createdSince,
+      createdUntil: createdUntil,
+      updatedSince: updatedSince,
+      updatedUntil: updatedUntil,
+      sort: sort,
     );
   }
 
@@ -8445,6 +8520,11 @@ So, if you recurring transaction that occurs every Monday, you can trigger the c
   ///@param start A date formatted YYYY-MM-DD. This is the start date of the selected range (inclusive).
   ///@param end A date formatted YYYY-MM-DD. This is the end date of the selected range (inclusive).
   ///@param type Optional filter on the transaction type(s) returned.
+  ///@param created_since Only return transactions that were created at or after this moment (inclusive). An ISO-8601 date (2026-06-15, from the start of that day) or a date and time (2026-06-15T10:00:00+02:00 or 2026-06-15T08:00:00Z). A time without an offset is read in the timezone of the Firefly III installation. The value is compared with the "created_at" of the transaction. Clients must URL-encode the plus sign of an offset.
+  ///@param created_until Only return transactions that were created at or before this moment (inclusive). The same formats as "created_since"; a date without a time means the end of that day. Must not be before "created_since".
+  ///@param updated_since Only return transactions that were changed at or after this moment (inclusive). The same formats as "created_since". The value is compared with the "updated_at" of the transaction. It moves when a transaction is created, edited, changed by a rule or moved to another account, and when one split of a transaction that has other splits is deleted. It does not move when an account, category or budget that the transaction uses is renamed, or when transactions are marked as reconciled in the web interface. Transactions that were deleted altogether are not listed, see /v1/data/deleted.
+  ///@param updated_until Only return transactions that were changed at or before this moment (inclusive). The same formats as "created_since"; a date without a time means the end of that day. Must not be before "updated_since".
+  ///@param sort The order of the list: a comma separated list of the fields id, created_at and updated_at. Put a minus sign in front of a field to sort descending, for example -updated_at. The order always ends in the ID of the transaction (in the direction of the last field) and the splits of a transaction stay together, so the order is stable from page to page. Without "sort" the list is ordered by date, newest first. To follow what changed, combine "updated_since" with sort=updated_at.
   @GET(path: '/v1/transactions')
   Future<chopper.Response<TransactionArray>> _v1TransactionsGet({
     @Header('X-Trace-Id') String? xTraceId,
@@ -8453,6 +8533,11 @@ So, if you recurring transaction that occurs every Monday, you can trigger the c
     @Query('start') String? start,
     @Query('end') String? end,
     @Query('type') String? type,
+    @Query('created_since') String? createdSince,
+    @Query('created_until') String? createdUntil,
+    @Query('updated_since') String? updatedSince,
+    @Query('updated_until') String? updatedUntil,
+    @Query('sort') String? sort,
     @chopper.Tag()
     SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
       description: 'List all the user\'s transactions.',
