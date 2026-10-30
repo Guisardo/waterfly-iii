@@ -155,6 +155,9 @@ class _FakeServer {
   /// connection that drops in the middle of the body.
   int? truncateListAfter;
 
+  /// Cuts only the answer for this page of the list.
+  int? truncatePage;
+
   /// Called before each transaction list request is answered, so a test can
   /// change the data while the client is paging.
   void Function(Uri uri, int requestNumber)? onListRequest;
@@ -233,6 +236,8 @@ class _FakeServer {
           return b.updatedAt.compareTo(a.updatedAt);
         case 'updated_at':
           return a.updatedAt.compareTo(b.updatedAt);
+        case '-id':
+          return b.id.compareTo(a.id);
         default:
           return a.id.compareTo(b.id);
       }
@@ -242,7 +247,9 @@ class _FakeServer {
       query,
       rows.map((_ServerTransaction t) => t.toJson()).toList(),
     );
-    final int? cut = truncateListAfter;
+    final int? cut =
+        truncateListAfter ??
+        (truncatePage != null && query['page'] == '$truncatePage' ? 500 : null);
     if (cut == null || full.body.length <= cut) {
       return full;
     }
@@ -530,6 +537,128 @@ void main() {
       await runSync();
       server.resetRequests();
     }
+
+    List<_ServerTransaction> hundredRows() => <_ServerTransaction>[
+      for (int i = 0; i < 100; i++)
+        _ServerTransaction('tx-${i.toString().padLeft(3, '0')}', _at(500 - i)),
+    ];
+
+    List<int> pagesRead() => server.pageReads
+        .map((Uri u) => int.parse(u.queryParameters['page']!))
+        .toList();
+
+    test('an interrupted first read saves a checkpoint', () async {
+      server.transactions.addAll(hundredRows());
+      server.truncatePage = 4;
+
+      await runSync();
+
+      final SyncMetadata row = await metadata('transactions');
+      expect(row.fullReadNextPage, 4);
+      expect(row.fullReadSeenIds, hasLength(60));
+      expect(row.fullReadStartedAt, isNotNull);
+      expect(row.deltaCursor, isNull);
+      expect(row.lastFullSync, isNull);
+      expect(await localDescriptions(), hasLength(60));
+    });
+
+    test('the next sync resumes two pages before the failed page', () async {
+      server.transactions.addAll(hundredRows());
+      server.truncatePage = 4;
+      await runSync();
+      final DateTime startedAt = (await metadata(
+        'transactions',
+      )).fullReadStartedAt!;
+      server.truncatePage = null;
+      server.resetRequests();
+
+      await runSync();
+
+      expect(pagesRead(), <int>[2, 3, 4, 5]);
+      expect(await localDescriptions(), hasLength(100));
+      final SyncMetadata row = await metadata('transactions');
+      expect(row.deltaCursor, _at(500 - 99));
+      expect(row.lastFullSync, startedAt);
+      expect(row.fullReadNextPage, isNull);
+      expect(row.fullReadStartedAt, isNull);
+      expect(row.fullReadSeenIds, isNull);
+    });
+
+    test('the first read lists the newest rows first', () async {
+      server.transactions.addAll(hundredRows());
+
+      await runSync();
+
+      expect(server.pageReads.first.queryParameters['sort'], '-id');
+    });
+
+    test(
+      'a resumed read keeps rows read before and drops purged ones',
+      () async {
+        await seedLocal(_ServerTransaction('tx-purged', _at(900)));
+        server.transactions.addAll(hundredRows());
+        server.truncatePage = 4;
+        await runSync();
+        server.truncatePage = null;
+
+        await runSync();
+
+        final Set<String> ids = (await localDescriptions()).keys.toSet();
+        expect(ids, hasLength(100));
+        expect(ids, isNot(contains('tx-purged')));
+        // Pages 1 and 2 are not read again; their rows must survive.
+        expect(ids, containsAll(<String>['tx-099', 'tx-060']));
+      },
+    );
+
+    test('a checkpoint older than a day is ignored', () async {
+      server.transactions.addAll(hundredRows());
+      await isar.writeTxn(() async {
+        await isar.syncMetadatas.put(
+          SyncMetadata()
+            ..entityType = 'transactions'
+            ..fullReadNextPage = 4
+            ..fullReadStartedAt = DateTime.now().toUtc().subtract(
+              const Duration(hours: 25),
+            )
+            ..fullReadSeenIds = <String>['tx-099'],
+        );
+      });
+
+      await runSync();
+
+      expect(pagesRead().first, 1);
+      expect(pagesRead(), hasLength(5));
+    });
+
+    test('a forced full sync ignores the checkpoint', () async {
+      server.transactions.addAll(hundredRows());
+      await isar.writeTxn(() async {
+        await isar.syncMetadatas.put(
+          SyncMetadata()
+            ..entityType = 'transactions'
+            ..fullReadNextPage = 4
+            ..fullReadStartedAt = DateTime.now().toUtc()
+            ..fullReadSeenIds = <String>['tx-099'],
+        );
+      });
+
+      await runSync(forceFullSync: true);
+
+      expect(pagesRead().first, 1);
+    });
+
+    test('a server without the features saves no checkpoint', () async {
+      server.capabilities = <String>[];
+      server.transactions.addAll(hundredRows());
+      server.truncatePage = 3;
+
+      await runSync();
+
+      final SyncMetadata row = await metadata('transactions');
+      expect(row.fullReadNextPage, isNull);
+      expect(row.fullReadSeenIds, isNull);
+    });
 
     test('first sync reads everything and records the cursor', () async {
       server.transactions.addAll(<_ServerTransaction>[

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show max;
 
 import 'package:flutter/foundation.dart';
 import 'package:chopper/chopper.dart';
@@ -51,6 +52,20 @@ const Duration _deltaOverlap = Duration(hours: 2);
 /// A delta never reports rows that were purged on the server, so a full read
 /// is repeated at least this often.
 const Duration _fullReadInterval = Duration(days: 7);
+
+/// An interrupted full read continues from its checkpoint for this long.
+const Duration _fullReadCheckpointMaxAge = Duration(hours: 24);
+
+/// A resumed full read starts this many pages before the checkpoint, because
+/// rows deleted on the server meanwhile move later rows to earlier pages.
+const int _fullReadResumeOverlapPages = 2;
+
+/// The checkpoint is saved after every this many pages (and when a page fails).
+const int _fullReadCheckpointEveryPages = 5;
+
+/// Sort order of the full read: newest rows first, and stable while it runs
+/// because new rows only get higher ids.
+const String _sortNewestIdFirst = '-id';
 
 /// How often the changed list is read again when it moved while it was read.
 const int _deltaMaxReadAttempts = 3;
@@ -514,7 +529,11 @@ class SyncService extends ChangeNotifier {
         "Server does not announce incremental sync (anymore), forgetting "
         "the transactions cursor",
       );
-      await _updateSyncMetadata('transactions', clearDeltaCursor: true);
+      await _updateSyncMetadata(
+        'transactions',
+        clearDeltaCursor: true,
+        clearFullReadCheckpoint: true,
+      );
     }
 
     final bool announced = support == _IncrementalSupport.announced;
@@ -523,7 +542,12 @@ class SyncService extends ChangeNotifier {
       return;
     }
 
-    await _syncTransactionsFull(lastSync, recordCursor: announced);
+    await _syncTransactionsFull(
+      lastSync,
+      recordCursor: announced,
+      metadata: metadata,
+      forceFullSync: forceFullSync,
+    );
   }
 
   /// Asks the server which incremental features it announces.
@@ -602,18 +626,39 @@ class SyncService extends ChangeNotifier {
   Future<void> _syncTransactionsFull(
     DateTime? lastSync, {
     required bool recordCursor,
+    SyncMetadata? metadata,
+    bool forceFullSync = false,
   }) async {
     final TransactionRepository repo = TransactionRepository(isar);
     final FireflyIii api = fireflyService.api;
 
-    final DateTime startedAt = DateTime.now().toUtc();
-    final _CursorTracker cursor = _CursorTracker();
+    // Only a server that announces the delta features lists by id, which keeps
+    // pages stable enough to continue an interrupted read.
+    final _FullReadCheckpoint? checkpoint = recordCursor && !forceFullSync
+        ? _FullReadCheckpoint.from(metadata)
+        : null;
+
+    DateTime startedAt = DateTime.now().toUtc();
+    _CursorTracker cursor = _CursorTracker();
+    final Set<String> serverTransactionIds = <String>{};
     int page = 1;
+    if (checkpoint != null &&
+        startedAt.difference(checkpoint.startedAt) <=
+            _fullReadCheckpointMaxAge) {
+      page = max(1, checkpoint.nextPage - _fullReadResumeOverlapPages);
+      startedAt = checkpoint.startedAt;
+      cursor = checkpoint.tracker();
+      serverTransactionIds.addAll(checkpoint.seenIds);
+      log.config(
+        "Resuming the full read of transactions at page $page "
+        "(checkpoint at page ${checkpoint.nextPage}, "
+        "${serverTransactionIds.length} rows already read)",
+      );
+    }
+
     bool hasMore = true;
     int totalSynced = 0;
-    int rowsRead = 0;
     int? serverTotal;
-    final Set<String> serverTransactionIds = <String>{};
 
     while (hasMore) {
       try {
@@ -625,6 +670,7 @@ class SyncService extends ChangeNotifier {
           api,
           page: page,
           limit: _syncPageSize,
+          sort: recordCursor ? _sortNewestIdFirst : null,
         );
 
         if (!response.isSuccessful || response.body == null) {
@@ -642,7 +688,6 @@ class SyncService extends ChangeNotifier {
           hasMore = false;
           break;
         }
-        rowsRead += transactions.length;
 
         for (final TransactionRead transaction in transactions) {
           serverTransactionIds.add(transaction.id);
@@ -666,6 +711,7 @@ class SyncService extends ChangeNotifier {
         // Rows read of the rows the server holds, not rows rewritten: rows that
         // did not change are read too, and that is where the time goes. Without
         // a total from the server the progress stays open-ended.
+        final int rowsRead = serverTransactionIds.length;
         final int? knownTotal = serverTotal;
         _progressController?.add(
           SyncProgress(
@@ -685,8 +731,32 @@ class SyncService extends ChangeNotifier {
         } else {
           hasMore = false;
         }
+
+        if (recordCursor &&
+            hasMore &&
+            page % _fullReadCheckpointEveryPages == 0) {
+          await _updateSyncMetadata(
+            'transactions',
+            fullReadCheckpoint: _FullReadCheckpoint.of(
+              nextPage: page,
+              startedAt: startedAt,
+              tracker: cursor,
+              seenIds: serverTransactionIds,
+            ),
+          );
+        }
       } catch (e) {
         log.severe("Error syncing transactions page $page", e);
+        if (recordCursor) {
+          await _saveCheckpointAfterFailure(
+            _FullReadCheckpoint.of(
+              nextPage: page,
+              startedAt: startedAt,
+              tracker: cursor,
+              seenIds: serverTransactionIds,
+            ),
+          );
+        }
         rethrow;
       }
     }
@@ -708,8 +778,31 @@ class SyncService extends ChangeNotifier {
         'transactions',
         lastFullSync: startedAt,
         deltaCursor: newCursor,
+        clearFullReadCheckpoint: true,
       );
       log.config("Full read of transactions done, cursor=$newCursor");
+    }
+  }
+
+  /// Saves where an interrupted full read stopped. A failure to save is logged
+  /// but must not hide the error that interrupted the read, which the caller
+  /// rethrows.
+  Future<void> _saveCheckpointAfterFailure(
+    _FullReadCheckpoint checkpoint,
+  ) async {
+    try {
+      await _updateSyncMetadata('transactions', fullReadCheckpoint: checkpoint);
+      log.config(
+        "Saved the full read checkpoint at page ${checkpoint.nextPage} "
+        "(${checkpoint.seenIds.length} rows read)",
+      );
+    } catch (e, stackTrace) {
+      log.severe(
+        "Could not save the full read checkpoint at page "
+        "${checkpoint.nextPage}",
+        e,
+        stackTrace,
+      );
     }
   }
 
@@ -1638,6 +1731,8 @@ class SyncService extends ChangeNotifier {
     bool? credentialsInvalid,
     bool clearError = false,
     bool clearDeltaCursor = false,
+    _FullReadCheckpoint? fullReadCheckpoint,
+    bool clearFullReadCheckpoint = false,
   }) async {
     final SyncMetadata? existing = await isar.syncMetadatas
         .filter()
@@ -1657,6 +1752,8 @@ class SyncService extends ChangeNotifier {
         ..lastError = lastError
         ..credentialsValidated = credentialsValidated ?? false
         ..credentialsInvalid = credentialsInvalid ?? false;
+
+      _applyCheckpoint(metadata, fullReadCheckpoint, clearFullReadCheckpoint);
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(metadata);
@@ -1695,10 +1792,37 @@ class SyncService extends ChangeNotifier {
       if (credentialsInvalid != null) {
         existing.credentialsInvalid = credentialsInvalid;
       }
+      _applyCheckpoint(existing, fullReadCheckpoint, clearFullReadCheckpoint);
 
       await isar.writeTxn(() async {
         await isar.syncMetadatas.put(existing);
       });
+    }
+  }
+
+  /// Writes or clears the full read checkpoint on [metadata]; without either
+  /// argument the stored checkpoint stays as it is.
+  void _applyCheckpoint(
+    SyncMetadata metadata,
+    _FullReadCheckpoint? checkpoint,
+    bool clear,
+  ) {
+    if (clear) {
+      metadata
+        ..fullReadNextPage = null
+        ..fullReadStartedAt = null
+        ..fullReadNewest = null
+        ..fullReadHeldAt = null
+        ..fullReadBlocked = false
+        ..fullReadSeenIds = null;
+    } else if (checkpoint != null) {
+      metadata
+        ..fullReadNextPage = checkpoint.nextPage
+        ..fullReadStartedAt = checkpoint.startedAt
+        ..fullReadNewest = checkpoint.newest
+        ..fullReadHeldAt = checkpoint.heldAt
+        ..fullReadBlocked = checkpoint.blocked
+        ..fullReadSeenIds = checkpoint.seenIds.toList();
     }
   }
 
@@ -1785,6 +1909,20 @@ class _CursorTracker {
   DateTime? _heldAt;
   bool _blocked = false;
 
+  _CursorTracker();
+
+  _CursorTracker.restored({
+    DateTime? newest,
+    DateTime? heldAt,
+    bool blocked = false,
+  }) : _newest = newest,
+       _heldAt = heldAt,
+       _blocked = blocked;
+
+  DateTime? get newest => _newest;
+  DateTime? get heldAt => _heldAt;
+  bool get blocked => _blocked;
+
   /// A server change (updated or deleted moment) that was read.
   void seen(DateTime? at) {
     if (at != null && (_newest == null || at.isAfter(_newest!))) {
@@ -1814,4 +1952,57 @@ class _CursorTracker {
     }
     return candidate;
   }
+}
+
+/// Where an interrupted full read of the transactions stopped.
+class _FullReadCheckpoint {
+  const _FullReadCheckpoint({
+    required this.nextPage,
+    required this.startedAt,
+    required this.newest,
+    required this.heldAt,
+    required this.blocked,
+    required this.seenIds,
+  });
+
+  factory _FullReadCheckpoint.of({
+    required int nextPage,
+    required DateTime startedAt,
+    required _CursorTracker tracker,
+    required Set<String> seenIds,
+  }) => _FullReadCheckpoint(
+    nextPage: nextPage,
+    startedAt: startedAt,
+    newest: tracker.newest,
+    heldAt: tracker.heldAt,
+    blocked: tracker.blocked,
+    seenIds: seenIds,
+  );
+
+  /// The checkpoint stored in [metadata], or null when there is none.
+  static _FullReadCheckpoint? from(SyncMetadata? metadata) {
+    final int? nextPage = metadata?.fullReadNextPage;
+    final DateTime? startedAt = metadata?.fullReadStartedAt;
+    if (metadata == null || nextPage == null || startedAt == null) {
+      return null;
+    }
+    return _FullReadCheckpoint(
+      nextPage: nextPage,
+      startedAt: startedAt.toUtc(),
+      newest: metadata.fullReadNewest,
+      heldAt: metadata.fullReadHeldAt,
+      blocked: metadata.fullReadBlocked,
+      seenIds: (metadata.fullReadSeenIds ?? const <String>[]).toSet(),
+    );
+  }
+
+  final int nextPage;
+  final DateTime startedAt;
+  final DateTime? newest;
+  final DateTime? heldAt;
+  final bool blocked;
+  final Set<String> seenIds;
+
+  _CursorTracker tracker() =>
+      _CursorTracker.restored(newest: newest, heldAt: heldAt, blocked: blocked);
 }
