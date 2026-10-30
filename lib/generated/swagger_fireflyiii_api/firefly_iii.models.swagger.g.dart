@@ -4735,6 +4735,54 @@ SystemInfo _$SystemInfoFromJson(Map<String, dynamic> json) => SystemInfo(
 Map<String, dynamic> _$SystemInfoToJson(SystemInfo instance) =>
     <String, dynamic>{'data': instance.data?.toJson()};
 
+DeletedItemArray _$DeletedItemArrayFromJson(Map<String, dynamic> json) =>
+    DeletedItemArray(
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map((e) => DeletedItemRead.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      meta: Meta.fromJson(json['meta'] as Map<String, dynamic>),
+      links: PageLink.fromJson(json['links'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$DeletedItemArrayToJson(DeletedItemArray instance) =>
+    <String, dynamic>{
+      'data': instance.data.map((e) => e.toJson()).toList(),
+      'meta': instance.meta.toJson(),
+      'links': instance.links.toJson(),
+    };
+
+DeletedItemRead _$DeletedItemReadFromJson(Map<String, dynamic> json) =>
+    DeletedItemRead(
+      type: json['type'] as String,
+      id: json['id'] as String,
+      attributes: DeletedItemProperties.fromJson(
+        json['attributes'] as Map<String, dynamic>,
+      ),
+    );
+
+Map<String, dynamic> _$DeletedItemReadToJson(DeletedItemRead instance) =>
+    <String, dynamic>{
+      'type': instance.type,
+      'id': instance.id,
+      'attributes': instance.attributes.toJson(),
+    };
+
+DeletedItemProperties _$DeletedItemPropertiesFromJson(
+  Map<String, dynamic> json,
+) => DeletedItemProperties(
+  entity: deletedItemPropertiesEntityFromJson(json['entity']),
+  deletedAt: DateTime.parse(json['deleted_at'] as String),
+);
+
+Map<String, dynamic> _$DeletedItemPropertiesToJson(
+  DeletedItemProperties instance,
+) => <String, dynamic>{
+  'entity': deletedItemPropertiesEntityToJson(instance.entity),
+  'deleted_at': instance.deletedAt.toIso8601String(),
+};
+
 UserSingle _$UserSingleFromJson(Map<String, dynamic> json) =>
     UserSingle(data: UserRead.fromJson(json['data'] as Map<String, dynamic>));
 
@@ -4875,6 +4923,11 @@ SystemInfo$Data _$SystemInfo$DataFromJson(Map<String, dynamic> json) =>
       phpVersion: json['php_version'] as String?,
       os: json['os'] as String?,
       driver: json['driver'] as String?,
+      capabilities:
+          (json['capabilities'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
     );
 
 Map<String, dynamic> _$SystemInfo$DataToJson(SystemInfo$Data instance) =>
@@ -4884,6 +4937,7 @@ Map<String, dynamic> _$SystemInfo$DataToJson(SystemInfo$Data instance) =>
       'php_version': instance.phpVersion,
       'os': instance.os,
       'driver': instance.driver,
+      'capabilities': instance.capabilities,
     };
 
 Meta$Pagination _$Meta$PaginationFromJson(Map<String, dynamic> json) =>

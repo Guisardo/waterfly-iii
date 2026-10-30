@@ -586,6 +586,18 @@ enum UserRoleProperty {
   const UserRoleProperty(this.value);
 }
 
+enum DeletedItemPropertiesEntity {
+  @JsonValue(null)
+  swaggerGeneratedUnknown(null),
+
+  @JsonValue('transactions')
+  transactions('transactions');
+
+  final String? value;
+
+  const DeletedItemPropertiesEntity(this.value);
+}
+
 enum AccountTypeFilter {
   @JsonValue(null)
   swaggerGeneratedUnknown(null),

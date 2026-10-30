@@ -1404,16 +1404,12 @@ class TransactionRepository {
     });
   }
 
-  Future<int> deleteSyncedMissingFromServer(
-    Set<String> serverTransactionIds,
-  ) async {
-    final List<Transactions> localRows = await isar.transactions
-        .where()
-        .findAll();
+  /// Ids of transactions that have a local change waiting to be uploaded.
+  Future<Set<String>> _pendingTransactionIds() async {
     final List<PendingChanges> pendingChanges = await isar.pendingChanges
         .where()
         .findAll();
-    final Set<String> pendingTransactionIds = pendingChanges
+    return pendingChanges
         .where(
           (PendingChanges change) =>
               change.entityType == 'transactions' &&
@@ -1422,6 +1418,15 @@ class TransactionRepository {
         )
         .map((PendingChanges change) => change.entityId!)
         .toSet();
+  }
+
+  Future<int> deleteSyncedMissingFromServer(
+    Set<String> serverTransactionIds,
+  ) async {
+    final List<Transactions> localRows = await isar.transactions
+        .where()
+        .findAll();
+    final Set<String> pendingTransactionIds = await _pendingTransactionIds();
 
     final List<Id> idsToDelete = <Id>[];
     for (final Transactions row in localRows) {
@@ -1441,6 +1446,49 @@ class TransactionRepository {
       () =>
           'deleteSyncedMissingFromServer count=${idsToDelete.length} '
           'server=${serverTransactionIds.length} ids=${localRows.where((Transactions r) => idsToDelete.contains(r.id)).map((Transactions r) => r.transactionId).take(20).join(',')}',
+    );
+
+    return isar.writeTxn<int>(() {
+      return isar.transactions.deleteAll(idsToDelete);
+    });
+  }
+
+  /// Removes the synced local rows the server reported as deleted.
+  ///
+  /// Unlike [deleteSyncedMissingFromServer] it only touches the given ids, so
+  /// it is safe to call with the ids of a partial (delta) read. Rows that are
+  /// not synced, were deleted locally, are placeholders for a pending create,
+  /// or still have a local change waiting to be uploaded are kept.
+  Future<int> deleteSyncedByIds(Set<String> serverDeletedIds) async {
+    if (serverDeletedIds.isEmpty) {
+      return 0;
+    }
+
+    final Set<String> pendingTransactionIds = await _pendingTransactionIds();
+    final List<Id> idsToDelete = <Id>[];
+    final List<String> deletedTransactionIds = <String>[];
+    for (final String transactionId in serverDeletedIds) {
+      if (transactionId.startsWith('pending-')) continue;
+      if (pendingTransactionIds.contains(transactionId)) continue;
+
+      final Transactions? row = await isar.transactions
+          .filter()
+          .transactionIdEqualTo(transactionId)
+          .findFirst();
+      if (row == null || !row.synced || row.deletedAt != null) continue;
+
+      idsToDelete.add(row.id);
+      deletedTransactionIds.add(transactionId);
+    }
+
+    if (idsToDelete.isEmpty) {
+      return 0;
+    }
+
+    _diag.info(
+      () =>
+          'deleteSyncedByIds count=${idsToDelete.length} '
+          'ids=${deletedTransactionIds.take(20).join(',')}',
     );
 
     return isar.writeTxn<int>(() {
