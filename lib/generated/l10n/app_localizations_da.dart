@@ -1162,6 +1162,14 @@ class SDa extends S {
   String get syncSettingsEntityPiggyBanks => 'Sparegriser';
 
   @override
+  String get syncSettingsEntityInsights => 'Indsigter';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Venter på opdatering: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Aldrig synkroniseret';
 
   @override

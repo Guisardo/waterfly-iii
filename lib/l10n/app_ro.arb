@@ -1419,6 +1419,20 @@
     "@syncSettingsEntityPiggyBanks": {
         "description": "Entity type name: Piggy Banks"
     },
+    "syncSettingsEntityInsights": "Analize",
+    "@syncSettingsEntityInsights": {
+        "description": "Entity type name: Insights (the cached charts and totals)"
+    },
+    "syncSettingsInsightsPending": "În așteptarea actualizării: {count}",
+    "@syncSettingsInsightsPending": {
+        "description": "Number of cached insights that are out of date and wait for the next refresh",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "6743"
+            }
+        }
+    },
     "syncSettingsEntityStatusNeverSynced": "Niciodată sincronizat",
     "@syncSettingsEntityStatusNeverSynced": {
         "description": "Status text when an entity has never been synced"

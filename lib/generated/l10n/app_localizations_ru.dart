@@ -1174,6 +1174,14 @@ class SRu extends S {
   String get syncSettingsEntityPiggyBanks => 'Копилки';
 
   @override
+  String get syncSettingsEntityInsights => 'Аналитика';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Ожидают обновления: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced =>
       'Никогда не синхронизировалось';
 

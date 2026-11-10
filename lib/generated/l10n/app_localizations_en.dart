@@ -1161,6 +1161,14 @@ class SEn extends S {
   String get syncSettingsEntityPiggyBanks => 'Piggy Banks';
 
   @override
+  String get syncSettingsEntityInsights => 'Insights';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return '$count waiting to refresh';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Never synced';
 
   @override

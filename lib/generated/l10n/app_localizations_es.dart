@@ -1174,6 +1174,14 @@ class SEs extends S {
   String get syncSettingsEntityPiggyBanks => 'Huchas';
 
   @override
+  String get syncSettingsEntityInsights => 'Estadísticas';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Pendientes de actualizar: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Nunca sincronizado';
 
   @override

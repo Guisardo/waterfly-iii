@@ -1133,6 +1133,14 @@ class SZh extends S {
   String get syncSettingsEntityPiggyBanks => '存钱罐';
 
   @override
+  String get syncSettingsEntityInsights => '洞察';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return '等待刷新：$count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => '从未同步';
 
   @override
@@ -2239,6 +2247,14 @@ class SZhTw extends SZh {
 
   @override
   String get syncSettingsEntityPiggyBanks => '存錢罐';
+
+  @override
+  String get syncSettingsEntityInsights => '洞察';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return '等待重新整理：$count';
+  }
 
   @override
   String get syncSettingsEntityStatusNeverSynced => '從未同步';

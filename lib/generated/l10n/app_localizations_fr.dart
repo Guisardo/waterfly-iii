@@ -1179,6 +1179,14 @@ class SFr extends S {
   String get syncSettingsEntityPiggyBanks => 'Tirelires';
 
   @override
+  String get syncSettingsEntityInsights => 'Statistiques';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'En attente d\'actualisation : $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Jamais synchronisé';
 
   @override

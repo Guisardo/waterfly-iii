@@ -1423,6 +1423,20 @@
     "@syncSettingsEntityPiggyBanks": {
         "description": "Entity type name: Piggy Banks"
     },
+    "syncSettingsEntityInsights": "Insikter",
+    "@syncSettingsEntityInsights": {
+        "description": "Entity type name: Insights (the cached charts and totals)"
+    },
+    "syncSettingsInsightsPending": "Väntar på uppdatering: {count}",
+    "@syncSettingsInsightsPending": {
+        "description": "Number of cached insights that are out of date and wait for the next refresh",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "6743"
+            }
+        }
+    },
     "syncSettingsEntityStatusNeverSynced": "Aldrig synkroniserat",
     "@syncSettingsEntityStatusNeverSynced": {
         "description": "Status text when an entity has never been synced"

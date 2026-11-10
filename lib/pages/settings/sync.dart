@@ -251,13 +251,24 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
     String entityType,
   ) {
     final SyncMetadata? metadata = syncStatus.entityMetadata[entityType];
-    final bool isSyncing = syncStatus.currentSyncingEntity == entityType;
+    final bool isInsights = entityType == 'insights';
+    // Insights refresh after the download, so they have their own flag.
+    final bool isSyncing = isInsights
+        ? syncStatus.isRefreshingInsights
+        : syncStatus.currentSyncingEntity == entityType;
     final DateTime? lastSync = metadata?.lastDownloadSync;
     final bool isPaused = metadata?.syncPaused ?? false;
     final String? lastError = metadata?.lastError;
     final DateTime? nextRetryAt = metadata?.nextRetryAt;
-    final SyncProgress? progress =
-        isSyncing && syncStatus.currentProgress?.entityType == entityType
+    final SyncProgress? progress = isInsights
+        ? (isSyncing
+              ? SyncProgress(
+                  entityType: entityType,
+                  current: syncStatus.insightsRefreshCurrent,
+                  total: syncStatus.insightsRefreshTotal,
+                )
+              : null)
+        : isSyncing && syncStatus.currentProgress?.entityType == entityType
         ? syncStatus.currentProgress
         : null;
 
@@ -316,6 +327,9 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
         break;
       case 'piggy_banks':
         entityName = S.of(context).syncSettingsEntityPiggyBanks;
+        break;
+      case 'insights':
+        entityName = S.of(context).syncSettingsEntityInsights;
         break;
       default:
         entityName = entityType;
@@ -385,6 +399,13 @@ class _SyncSettingsPageState extends State<SyncSettingsPage> {
                   .syncSettingsLastSync(
                     DateFormat.yMd().add_Hms().format(lastSync),
                   ),
+            ),
+          if (isInsights && syncStatus.staleInsightsCount > 0)
+            Text(
+              S
+                  .of(context)
+                  .syncSettingsInsightsPending(syncStatus.staleInsightsCount),
+              style: const TextStyle(fontSize: 12),
             ),
           if (lastError != null && !isSyncing)
             Text(

@@ -1167,6 +1167,14 @@ class SCs extends S {
   String get syncSettingsEntityPiggyBanks => 'Pokladničky';
 
   @override
+  String get syncSettingsEntityInsights => 'Přehledy';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Čeká na aktualizaci: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Nikdy nesynchronizováno';
 
   @override

@@ -1162,6 +1162,14 @@ class SNl extends S {
   String get syncSettingsEntityPiggyBanks => 'Spaarpotten';
 
   @override
+  String get syncSettingsEntityInsights => 'Inzichten';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Wacht op vernieuwing: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Nooit gesynchroniseerd';
 
   @override

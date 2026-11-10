@@ -1162,6 +1162,14 @@ class SSv extends S {
   String get syncSettingsEntityPiggyBanks => 'Spargrisar';
 
   @override
+  String get syncSettingsEntityInsights => 'Insikter';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Väntar på uppdatering: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Aldrig synkroniserat';
 
   @override

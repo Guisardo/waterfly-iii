@@ -1968,6 +1968,18 @@ abstract class S {
   /// **'Piggy Banks'**
   String get syncSettingsEntityPiggyBanks;
 
+  /// Entity type name: Insights (the cached charts and totals)
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get syncSettingsEntityInsights;
+
+  /// Number of cached insights that are out of date and wait for the next refresh
+  ///
+  /// In en, this message translates to:
+  /// **'{count} waiting to refresh'**
+  String syncSettingsInsightsPending(int count);
+
   /// Status text when an entity has never been synced
   ///
   /// In en, this message translates to:

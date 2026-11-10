@@ -1162,6 +1162,14 @@ class STr extends S {
   String get syncSettingsEntityPiggyBanks => 'Kumbara';
 
   @override
+  String get syncSettingsEntityInsights => 'Öngörüler';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Yenilenmeyi bekleyen: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Hiç senkronize edilmedi';
 
   @override

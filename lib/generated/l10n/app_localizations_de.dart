@@ -1169,6 +1169,14 @@ class SDe extends S {
   String get syncSettingsEntityPiggyBanks => 'Sparschweine';
 
   @override
+  String get syncSettingsEntityInsights => 'Auswertungen';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Warten auf Aktualisierung: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Nie synchronisiert';
 
   @override

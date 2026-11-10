@@ -1175,6 +1175,14 @@ class SHu extends S {
   String get syncSettingsEntityPiggyBanks => 'Malacperselyek';
 
   @override
+  String get syncSettingsEntityInsights => 'Elemzések';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Frissítésre vár: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Soha nem szinkronizálva';
 
   @override

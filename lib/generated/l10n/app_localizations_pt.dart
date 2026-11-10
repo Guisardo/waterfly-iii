@@ -1161,6 +1161,14 @@ class SPt extends S {
   String get syncSettingsEntityPiggyBanks => 'Piggy Banks';
 
   @override
+  String get syncSettingsEntityInsights => 'Análises';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Aguardando atualização: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Never synced';
 
   @override
@@ -2296,6 +2304,14 @@ class SPtBr extends SPt {
 
   @override
   String get syncSettingsEntityPiggyBanks => 'Cofrinhos';
+
+  @override
+  String get syncSettingsEntityInsights => 'Análises';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Aguardando atualização: $count';
+  }
 
   @override
   String get syncSettingsEntityStatusNeverSynced => 'Nunca sincronizado';

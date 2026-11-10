@@ -1169,6 +1169,14 @@ class SRo extends S {
   String get syncSettingsEntityPiggyBanks => 'Pușculițe';
 
   @override
+  String get syncSettingsEntityInsights => 'Analize';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'În așteptarea actualizării: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Niciodată sincronizat';
 
   @override

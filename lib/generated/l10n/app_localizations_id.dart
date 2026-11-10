@@ -1165,6 +1165,14 @@ class SId extends S {
   String get syncSettingsEntityPiggyBanks => 'Celengan';
 
   @override
+  String get syncSettingsEntityInsights => 'Wawasan';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Menunggu pembaruan: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Belum pernah disinkronkan';
 
   @override

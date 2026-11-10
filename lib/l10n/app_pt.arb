@@ -1,6 +1,20 @@
 {
   "@@locale": "pt",
     "@@x-reference": true,
+    "syncSettingsEntityInsights": "Análises",
+    "@syncSettingsEntityInsights": {
+        "description": "Entity type name: Insights (the cached charts and totals)"
+    },
+    "syncSettingsInsightsPending": "Aguardando atualização: {count}",
+    "@syncSettingsInsightsPending": {
+        "description": "Number of cached insights that are out of date and wait for the next refresh",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "6743"
+            }
+        }
+    },
     "accountRoleAssetCashWallet": "Carteira de dinheiro",
     "@accountRoleAssetCashWallet": {
         "description": "Firefly Translation String: account_role_cashWalletAsset"

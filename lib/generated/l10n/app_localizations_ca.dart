@@ -1177,6 +1177,14 @@ class SCa extends S {
   String get syncSettingsEntityPiggyBanks => 'Guardioles';
 
   @override
+  String get syncSettingsEntityInsights => 'Estadístiques';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Pendents d\'actualitzar: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Mai sincronitzat';
 
   @override

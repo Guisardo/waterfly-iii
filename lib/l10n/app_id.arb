@@ -1332,6 +1332,20 @@
     "@syncSettingsEntityPiggyBanks": {
         "description": "Entity type name: Piggy Banks"
     },
+    "syncSettingsEntityInsights": "Wawasan",
+    "@syncSettingsEntityInsights": {
+        "description": "Entity type name: Insights (the cached charts and totals)"
+    },
+    "syncSettingsInsightsPending": "Menunggu pembaruan: {count}",
+    "@syncSettingsInsightsPending": {
+        "description": "Number of cached insights that are out of date and wait for the next refresh",
+        "placeholders": {
+            "count": {
+                "type": "int",
+                "example": "6743"
+            }
+        }
+    },
     "syncSettingsEntityStatusNeverSynced": "Belum pernah disinkronkan",
     "@syncSettingsEntityStatusNeverSynced": {
         "description": "Status text when an entity has never been synced"

@@ -1164,6 +1164,14 @@ class SUk extends S {
   String get syncSettingsEntityPiggyBanks => 'Скарбнички';
 
   @override
+  String get syncSettingsEntityInsights => 'Аналітика';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Очікують оновлення: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Ніколи не синхронізовано';
 
   @override

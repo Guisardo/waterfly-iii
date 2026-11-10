@@ -1166,6 +1166,14 @@ class SPl extends S {
   String get syncSettingsEntityPiggyBanks => 'Skarbonki';
 
   @override
+  String get syncSettingsEntityInsights => 'Analizy';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Oczekuje na odświeżenie: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Nigdy nie synchronizowano';
 
   @override

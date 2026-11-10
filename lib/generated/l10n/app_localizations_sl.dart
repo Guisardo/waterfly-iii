@@ -1165,6 +1165,14 @@ class SSl extends S {
   String get syncSettingsEntityPiggyBanks => 'Hranilniki';
 
   @override
+  String get syncSettingsEntityInsights => 'Vpogledi';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'Čaka na osvežitev: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Nikoli sinhronizirano';
 
   @override

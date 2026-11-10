@@ -1147,6 +1147,14 @@ class SKo extends S {
   String get syncSettingsEntityPiggyBanks => '저금통';
 
   @override
+  String get syncSettingsEntityInsights => '인사이트';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return '새로 고침 대기 중: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => '동기화되지 않음';
 
   @override

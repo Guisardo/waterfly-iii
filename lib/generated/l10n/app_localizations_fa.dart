@@ -1157,6 +1157,14 @@ class SFa extends S {
   String get syncSettingsEntityPiggyBanks => 'کمک‌های پس‌انداز';
 
   @override
+  String get syncSettingsEntityInsights => 'آمار';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'در انتظار به‌روزرسانی: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'هرگز همگام‌سازی نشده';
 
   @override

@@ -1166,6 +1166,14 @@ class SIt extends S {
   String get syncSettingsEntityPiggyBanks => 'Salvadanai';
 
   @override
+  String get syncSettingsEntityInsights => 'Statistiche';
+
+  @override
+  String syncSettingsInsightsPending(int count) {
+    return 'In attesa di aggiornamento: $count';
+  }
+
+  @override
   String get syncSettingsEntityStatusNeverSynced => 'Mai sincronizzato';
 
   @override
