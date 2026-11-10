@@ -55,6 +55,16 @@ bool shouldOpenTransactionsAfterSave({
   required bool fromSharedFiles,
 }) => isNewTransaction && !fromNotification && !fromSharedFiles;
 
+/// Hide a redundant category only in the transaction editor.
+@visibleForTesting
+String transactionCategoryForDialog(String? category, String? destination) =>
+    category == destination ? '' : category ?? '';
+
+/// Resolve the category using the effective destination of each split.
+@visibleForTesting
+String transactionCategoryForSave(String category, String destination) =>
+    category.trim().isEmpty ? destination : category;
+
 class TransactionPage extends StatefulWidget {
   const TransactionPage({
     super.key,
@@ -221,7 +231,12 @@ class _TransactionPageState extends State<TransactionPage>
         // Always in card view
         /// Category
         _categoryTextControllers.add(
-          TextEditingController(text: trans.categoryName),
+          TextEditingController(
+            text: transactionCategoryForDialog(
+              trans.categoryName,
+              trans.destinationName,
+            ),
+          ),
         );
         _categoryFocusNodes.add(FocusNode());
 
@@ -995,7 +1010,10 @@ class _TransactionPageState extends State<TransactionPage>
                                     TransactionTypeProperty.withdrawal)
                                 ? _budgetTextControllers[i].text
                                 : "",
-                            categoryName: _categoryTextControllers[i].text,
+                            categoryName: transactionCategoryForSave(
+                              _categoryTextControllers[i].text,
+                              destinationName,
+                            ),
                             date: _date,
                             description: _split
                                 ? _titleTextControllers[i].text
@@ -1104,7 +1122,10 @@ class _TransactionPageState extends State<TransactionPage>
                                       TransactionTypeProperty.withdrawal)
                                   ? _budgetTextControllers[i].text
                                   : "",
-                              categoryName: _categoryTextControllers[i].text,
+                              categoryName: transactionCategoryForSave(
+                                _categoryTextControllers[i].text,
+                                destinationName,
+                              ),
                               destinationName: destinationName,
                               // :HAX: Since nulled fields are not submitted, we set
                               // the value to 0 so the foreign currency is gone...
