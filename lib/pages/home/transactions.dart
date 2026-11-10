@@ -22,6 +22,11 @@ import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/timezonehandler.dart';
 
+/// Omit redundant category labels before aggregating split categories.
+@visibleForTesting
+bool transactionListShowsCategory(String? category, String? destination) =>
+    (category?.isNotEmpty ?? false) && category != destination;
+
 class TransactionSum {
   double withdrawals = 0;
   double deposits = 0;
@@ -596,7 +601,10 @@ class HomeTransactionsState extends State<HomeTransactions>
     List<String> tags = <String>[];
     late bool reconciled;
     for (TransactionSplit trans in transactions) {
-      if (trans.categoryName?.isNotEmpty ?? false) {
+      if (transactionListShowsCategory(
+        trans.categoryName,
+        trans.destinationName,
+      )) {
         categories++;
         if (category.isEmpty) {
           category = trans.categoryName!;
@@ -694,8 +702,8 @@ class HomeTransactionsState extends State<HomeTransactions>
             : sourceName,
       ),
     );
-    subtitle.add(const TextSpan(text: "\n"));
     if (category.isNotEmpty) {
+      subtitle.add(const TextSpan(text: "\n"));
       subtitle.add(
         TextSpan(
           text: category,
