@@ -236,6 +236,31 @@ class InsightRepository {
     return isar.insights.filter().staleEqualTo(true).findAll();
   }
 
+  /// Marks only the insights with the given [ids] as no longer stale, leaving
+  /// every other stale insight for a later refresh.
+  Future<void> clearStale(Iterable<int> ids) async {
+    final DateTime now = _getNow();
+
+    await isar.writeTxn(() async {
+      for (final int id in ids) {
+        final Insights? insight = await isar.insights.get(id);
+        if (insight == null || !insight.stale) {
+          continue;
+        }
+        final Insights updated = Insights()
+          ..id = insight.id
+          ..insightType = insight.insightType
+          ..insightSubtype = insight.insightSubtype
+          ..startDate = insight.startDate
+          ..endDate = insight.endDate
+          ..data = insight.data
+          ..cachedAt = now
+          ..stale = false;
+        await isar.insights.put(updated);
+      }
+    });
+  }
+
   /// Cache chart data (ChartDataSet list or ChartLine) to the database
   Future<void> cacheChartData(
     String chartType,

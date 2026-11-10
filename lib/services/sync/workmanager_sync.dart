@@ -83,6 +83,9 @@ void callbackDispatcher() {
       if (task == syncTaskName) {
         log.config("Running download sync in background");
         await syncService.sync();
+        // Awaited: the background isolate ends with the task, and the refresh
+        // is capped per run.
+        await syncService.refreshInsights();
       } else if (task == uploadTaskName) {
         log.config("Running upload sync in background");
         await uploadService.uploadPendingChanges();

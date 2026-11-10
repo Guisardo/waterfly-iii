@@ -386,6 +386,41 @@ void main() {
       expect(staleInsights, isEmpty);
     });
 
+    test('clearStale clears only the given insights', () async {
+      final DateTime start1 = DateTime(2024, 1, 1);
+      final DateTime end1 = DateTime(2024, 1, 31);
+      final DateTime start2 = DateTime(2024, 2, 1);
+      final DateTime end2 = DateTime(2024, 2, 28);
+
+      await repository.cacheInsight(
+        'expense',
+        'total',
+        start1,
+        end1,
+        <dynamic>[],
+      );
+      await repository.cacheInsight(
+        'expense',
+        'total',
+        start2,
+        end2,
+        <dynamic>[],
+      );
+      await repository.markStale(null, null);
+
+      final List<Insights> stale = await repository.getStaleInsights();
+      expect(stale.length, 2);
+      final Insights january = stale.firstWhere(
+        (Insights i) => i.startDate.month == 1,
+      );
+
+      await repository.clearStale(<int>[january.id]);
+
+      final List<Insights> remaining = await repository.getStaleInsights();
+      expect(remaining.length, 1);
+      expect(remaining.single.startDate.month, 2);
+    });
+
     test('getStaleInsights returns only stale insights', () async {
       final DateTime start1 = DateTime(2024, 1, 1);
       final DateTime end1 = DateTime(2024, 1, 31);

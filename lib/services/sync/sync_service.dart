@@ -32,6 +32,12 @@ import 'package:waterflyiii/timezonehandler.dart';
 import 'package:waterflyiii/extensions.dart';
 
 final Logger log = Logger("Sync");
+final Logger _diagSync = Logger('Diag.Sync');
+
+/// Stale insights refreshed per run. Every upload marks all insights stale, so
+/// the backlog can reach thousands; the most recent ones are refreshed first
+/// and the rest wait for the next run.
+const int defaultInsightRefreshBatch = 50;
 
 /// Capabilities, announced by GET /v1/about, that the delta sync depends on.
 const String _capabilityIncrementalTransactions = 'incremental.transactions';
@@ -116,6 +122,18 @@ class SyncService extends ChangeNotifier {
 
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
+
+  bool _isRefreshingInsights = false;
+  bool get isRefreshingInsights => _isRefreshingInsights;
+
+  int _insightsRefreshCurrent = 0;
+  int _insightsRefreshTotal = 0;
+
+  /// Insights refreshed so far in the running [refreshInsights], 0 when idle.
+  int get insightsRefreshCurrent => _insightsRefreshCurrent;
+
+  /// Insights the running [refreshInsights] will refresh, 0 when idle.
+  int get insightsRefreshTotal => _insightsRefreshTotal;
 
   StreamController<SyncProgress>? _progressController;
   StreamSubscription<SyncProgress>? _notificationProgress;
@@ -297,8 +315,11 @@ class SyncService extends ChangeNotifier {
       final Map<String, String> failures = <String, String>{};
       for (final String type in entityTypes) {
         try {
+          _diagSync.info('entity start type=$type');
           await _syncEntityType(type, forceFullSync: forceFullSync);
+          _diagSync.info('entity done type=$type');
         } catch (e, stackTrace) {
+          _diagSync.info('entity failed type=$type error=$e');
           log.severe("Error syncing $type", e, stackTrace);
           // Record error in metadata even when sync fails
           await _updateSyncMetadata(
@@ -323,12 +344,6 @@ class SyncService extends ChangeNotifier {
       if (failures.isNotEmpty) {
         await _recordSyncFailures(entityTypes, failures);
       }
-
-      // Refresh stale insights
-      await _refreshStaleInsights();
-
-      // Prefetch common date range insights for dashboard
-      await _prefetchCommonInsights();
 
       if (failures.isNotEmpty) {
         // Errors of the failed entities stay visible and the download sync is
@@ -1421,17 +1436,124 @@ class SyncService extends ChangeNotifier {
     }
   }
 
-  Future<void> _refreshStaleInsights() async {
-    final InsightRepository insightRepo = InsightRepository(isar);
-    final List<Insights> staleInsights = await insightRepo.getStaleInsights();
-
-    if (staleInsights.isEmpty) {
+  /// Refreshes the cached insights without holding the download sync open.
+  ///
+  /// Runs on its own guard so it can overlap with [sync] and uploads. At most
+  /// [maxStale] stale insights are refreshed, most recent first.
+  Future<void> refreshInsights({
+    int maxStale = defaultInsightRefreshBatch,
+  }) async {
+    if (_isRefreshingInsights) {
+      log.config("Insight refresh already in progress, skipping");
+      return;
+    }
+    if (!await _canRefreshInsights()) {
       return;
     }
 
+    _isRefreshingInsights = true;
+    _notifyListenersIfNotDisposed();
+    try {
+      _diagSync.info('stale insights start');
+      final ({int attempted, int failed}) result = await _refreshStaleInsights(
+        maxStale,
+      );
+      _diagSync.info('stale insights done');
+
+      _diagSync.info('prefetch insights start');
+      await _prefetchCommonInsights();
+      _diagSync.info('prefetch insights done');
+
+      await _recordInsightsRefresh(result);
+    } catch (e) {
+      await _updateSyncMetadata('insights', lastError: e.toString());
+      rethrow;
+    } finally {
+      _isRefreshingInsights = false;
+      _insightsRefreshCurrent = 0;
+      _insightsRefreshTotal = 0;
+      _notifyListenersIfNotDisposed();
+    }
+  }
+
+  /// Keeps the outcome of a refresh on the `insights` row, next to the other
+  /// entities, so the sync settings can show it.
+  Future<void> _recordInsightsRefresh(
+    ({int attempted, int failed}) result,
+  ) async {
+    if (result.failed > 0) {
+      await _updateSyncMetadata(
+        'insights',
+        lastError:
+            "${result.failed} of ${result.attempted} insights failed to refresh",
+      );
+      return;
+    }
+    await _updateSyncMetadata(
+      'insights',
+      lastDownloadSync: DateTime.now().toUtc(),
+      clearError: true,
+    );
+  }
+
+  /// The gates [sync] applies before it talks to the server. Credentials are
+  /// not re-validated here: [sync] does that, and a refresh without a prior
+  /// validated sync has nothing to refresh against.
+  Future<bool> _canRefreshInsights() async {
+    if (!fireflyService.signedIn) {
+      log.config("Not signed in, skipping insight refresh");
+      return false;
+    }
+    if (!connectivityService.isOnline) {
+      log.config("Device is offline, skipping insight refresh");
+      return false;
+    }
+    if (connectivityService.isMobile &&
+        (settingsProvider?.syncUseMobileData ?? false) == false) {
+      log.config("Mobile data sync disabled, skipping insight refresh");
+      return false;
+    }
+    final SyncMetadata? authMetadata = await retryManager.getMetadata('auth');
+    if (authMetadata == null ||
+        !authMetadata.credentialsValidated ||
+        authMetadata.credentialsInvalid) {
+      log.config("Credentials not validated, skipping insight refresh");
+      return false;
+    }
+    return true;
+  }
+
+  Future<({int attempted, int failed})> _refreshStaleInsights(
+    int maxStale,
+  ) async {
+    final InsightRepository insightRepo = InsightRepository(isar);
+    final List<Insights> allStale = await insightRepo.getStaleInsights();
+
+    if (allStale.isEmpty) {
+      return (attempted: 0, failed: 0);
+    }
+
+    final List<Insights> staleInsights =
+        (allStale..sort(
+              (Insights a, Insights b) => b.endDate.compareTo(a.endDate),
+            ))
+            .take(maxStale)
+            .toList();
+
     final FireflyIii api = fireflyService.api;
 
+    _diagSync.info(
+      'stale insights count=${allStale.length} refreshing=${staleInsights.length}',
+    );
+    _insightsRefreshTotal = staleInsights.length;
+    _insightsRefreshCurrent = 0;
+    _notifyListenersIfNotDisposed();
+    int failed = 0;
     for (final Insights insight in staleInsights) {
+      _diagSync.info(
+        'stale insight request ${insight.insightType}/${insight.insightSubtype} '
+        '${insight.startDate}..${insight.endDate}',
+      );
       try {
         dynamic data;
 
@@ -1591,6 +1713,10 @@ class SyncService extends ChangeNotifier {
           }
         }
 
+        _diagSync.info(
+          'stale insight response ${insight.insightType}/${insight.insightSubtype} '
+          'hasData=${data != null}',
+        );
         if (data != null) {
           await insightRepo.cacheInsight(
             insight.insightType,
@@ -1599,14 +1725,20 @@ class SyncService extends ChangeNotifier {
             insight.endDate,
             data,
           );
+        } else {
+          failed++;
         }
       } catch (e) {
         log.warning("Failed to refresh insight", e);
+        failed++;
         // Continue with other insights
       }
+      _insightsRefreshCurrent++;
+      _notifyListenersIfNotDisposed();
     }
 
-    await insightRepo.refreshStaleInsights();
+    await insightRepo.clearStale(staleInsights.map((Insights i) => i.id));
+    return (attempted: staleInsights.length, failed: failed);
   }
 
   Future<void> _prefetchCommonInsights() async {
@@ -1628,6 +1760,10 @@ class SyncService extends ChangeNotifier {
           .getGrouped('income', 'category', monthStart, monthEnd);
 
       // Only fetch if not cached
+      _diagSync.info(
+        'prefetch categories cached expense=${expenseCategories.length} '
+        'income=${incomeCategories.length}',
+      );
       if (expenseCategories.isEmpty || incomeCategories.isEmpty) {
         try {
           // Fetch expense categories
@@ -1712,6 +1848,10 @@ class SyncService extends ChangeNotifier {
         );
 
         // Only fetch if not cached
+        _diagSync.info(
+          'prefetch totals $start..$end cached expense=${expenseTotal.length} '
+          'income=${incomeTotal.length}',
+        );
         if (expenseTotal.isEmpty || incomeTotal.isEmpty) {
           try {
             // Fetch expense total

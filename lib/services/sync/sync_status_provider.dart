@@ -1,14 +1,18 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
+import 'package:logging/logging.dart';
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/local/database/tables/insights.dart';
 import 'package:waterflyiii/data/local/database/tables/sync_metadata.dart';
 import 'package:waterflyiii/services/connectivity/connectivity_service.dart';
 import 'package:waterflyiii/services/sync/sync_notifications.dart';
 import 'package:waterflyiii/services/sync/sync_service.dart';
 import 'package:waterflyiii/services/sync/upload_service.dart';
 import 'package:waterflyiii/settings.dart';
+
+final Logger _log = Logger("SyncStatusProvider");
 
 /// Global provider for sync status that can be watched from anywhere in the app
 class SyncStatusProvider extends ChangeNotifier {
@@ -18,6 +22,7 @@ class SyncStatusProvider extends ChangeNotifier {
   SyncMetadata? _uploadMetadata;
   SyncMetadata? _authMetadata;
   Map<String, SyncMetadata> _entityMetadata = <String, SyncMetadata>{};
+  int _staleInsightsCount = 0;
   String? _currentSyncingEntity;
   StreamSubscription<SyncProgress>? _progressSubscription;
   SyncProgress? _currentProgress;
@@ -33,10 +38,15 @@ class SyncStatusProvider extends ChangeNotifier {
     'budgets',
     'currencies',
     'piggy_banks',
+    'insights',
   ];
 
   bool get isDownloadSyncing => _syncService?.isSyncing ?? false;
   bool get isUploading => _uploadService?.isUploading ?? false;
+  bool get isRefreshingInsights => _syncService?.isRefreshingInsights ?? false;
+  int get insightsRefreshCurrent => _syncService?.insightsRefreshCurrent ?? 0;
+  int get insightsRefreshTotal => _syncService?.insightsRefreshTotal ?? 0;
+  int get staleInsightsCount => _staleInsightsCount;
   bool get isSyncing => isDownloadSyncing || isUploading;
   SyncMetadata? get downloadMetadata => _downloadMetadata;
   SyncMetadata? get uploadMetadata => _uploadMetadata;
@@ -55,11 +65,15 @@ class SyncStatusProvider extends ChangeNotifier {
 
   /// Initialize sync services (call once when app starts)
   /// [isar] - Optional Isar instance for testing, falls back to AppDatabase.instance
+  /// [syncService] / [uploadService] - Optional overrides for testing, built
+  /// from the other arguments when omitted
   Future<void> initialize({
     required FireflyService fireflyService,
     required ConnectivityService connectivityService,
     required SettingsProvider settingsProvider,
     Isar? isar,
+    SyncService? syncService,
+    UploadService? uploadService,
   }) async {
     if (_syncService != null && _uploadService != null) {
       return; // Already initialized
@@ -71,21 +85,25 @@ class SyncStatusProvider extends ChangeNotifier {
       final SyncNotifications notifications = SyncNotifications();
       notifications.setSettingsProvider(settingsProvider);
 
-      _syncService = SyncService(
-        isar: isarInstance,
-        fireflyService: fireflyService,
-        connectivityService: connectivityService,
-        notifications: notifications,
-        settingsProvider: settingsProvider,
-      );
+      _syncService =
+          syncService ??
+          SyncService(
+            isar: isarInstance,
+            fireflyService: fireflyService,
+            connectivityService: connectivityService,
+            notifications: notifications,
+            settingsProvider: settingsProvider,
+          );
 
-      _uploadService = UploadService(
-        isar: isarInstance,
-        fireflyService: fireflyService,
-        connectivityService: connectivityService,
-        notifications: notifications,
-        settingsProvider: settingsProvider,
-      );
+      _uploadService =
+          uploadService ??
+          UploadService(
+            isar: isarInstance,
+            fireflyService: fireflyService,
+            connectivityService: connectivityService,
+            notifications: notifications,
+            settingsProvider: settingsProvider,
+          );
 
       // Listen to sync service changes
       _syncService!.addListener(_onSyncStatusChanged);
@@ -160,6 +178,10 @@ class SyncStatusProvider extends ChangeNotifier {
         }
       }
       _entityMetadata = entityMetadata;
+      _staleInsightsCount = await isar.insights
+          .filter()
+          .staleEqualTo(true)
+          .count();
 
       // Clear current syncing entity and progress if sync is not active
       if (!isDownloadSyncing) {
@@ -180,6 +202,8 @@ class SyncStatusProvider extends ChangeNotifier {
       return;
     }
     await _syncService!.sync(forceRetry: forceRetry);
+    // The refresh can take long, so it must not keep the download "running".
+    unawaited(_refreshInsightsInBackground());
     // Small delay to ensure database transactions are committed
     await Future<void>.delayed(const Duration(milliseconds: 100));
     await refreshMetadata();
@@ -196,12 +220,32 @@ class SyncStatusProvider extends ChangeNotifier {
 
   /// Trigger both download and upload sync
   /// [forceRetry] - If true, bypasses pause state and clears errors (for manual sync)
+  ///
+  /// Download and upload run independently: a download that is slow or stuck
+  /// must not keep pending changes from being uploaded, and vice versa. Both
+  /// always run to the end; the first error is rethrown afterwards.
   Future<void> syncAll({bool forceRetry = false}) async {
-    await sync(forceRetry: forceRetry);
-    await upload();
+    await Future.wait<void>(<Future<void>>[
+      sync(forceRetry: forceRetry),
+      upload(),
+    ]);
     // Small delay to ensure database transactions are committed
     await Future<void>.delayed(const Duration(milliseconds: 100));
     // Ensure metadata is refreshed after both syncs complete
+    await refreshMetadata();
+  }
+
+  Future<void> _refreshInsightsInBackground() async {
+    try {
+      await _syncService?.refreshInsights();
+    } catch (e, stackTrace) {
+      _log.severe(
+        "SyncStatusProvider: background insight refresh failed",
+        e,
+        stackTrace,
+      );
+    }
+    // Also after a failure, which is recorded on the insights metadata.
     await refreshMetadata();
   }
 
