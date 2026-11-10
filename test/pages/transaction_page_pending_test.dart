@@ -18,6 +18,7 @@ import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.
 import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:waterflyiii/timezonehandler.dart';
+import 'package:waterflyiii/widgets/number_keyboard.dart';
 
 import '../helpers/test_database.dart';
 
@@ -83,6 +84,45 @@ void main() {
         .setMockMethodCallHandler(timezoneChannel, null);
     await TestDatabase.close();
   });
+
+  testWidgets(
+    'new transaction initially focuses amount and opens math keyboard',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: <SingleChildWidget>[
+            ChangeNotifierProvider<FireflyService>.value(value: fireflyService),
+            ChangeNotifierProvider<SettingsProvider>(
+              create: (_) => SettingsProvider(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: S.localizationsDelegates,
+            supportedLocales: S.supportedLocales,
+            home: TransactionPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      final EditableText amount = tester.widget<EditableText>(
+        find.byType(EditableText).first,
+      );
+      expect(amount.focusNode.hasFocus, isTrue);
+      expect(find.byType(NumberKeyboard), findsOneWidget);
+      final Finder title = find.descendant(
+        of: find.byType(TransactionTitle).first,
+        matching: find.byType(EditableText),
+      );
+      await tester.tap(title);
+      await tester.pumpAndSettle();
+      expect(tester.widget<EditableText>(title).focusNode.hasFocus, isTrue);
+      expect(find.byType(NumberKeyboard), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('pending transaction opens and saves through edit page', (
     WidgetTester tester,
@@ -155,9 +195,25 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Edit Transaction'), findsOneWidget);
     expect(find.text('Pending widget original'), findsWidgets);
+    final Finder amountField = find.byType(EditableText).first;
+    final Finder titleField = find.descendant(
+      of: find.byType(TransactionTitle).first,
+      matching: find.byType(EditableText),
+    );
+    expect(tester.widget<EditableText>(amountField).controller.text, '12.34');
+    expect(tester.widget<EditableText>(amountField).focusNode.hasFocus, isTrue);
+    expect(tester.widget<EditableText>(titleField).focusNode.hasFocus, isFalse);
+    expect(find.byType(NumberKeyboard), findsOneWidget);
+    expect(
+      tester.getTopLeft(amountField).dy,
+      lessThan(tester.getTopLeft(titleField).dy),
+    );
 
     await tester.enterText(
-      find.byType(EditableText).first,
+      find.descendant(
+        of: find.byType(TransactionTitle).first,
+        matching: find.byType(EditableText),
+      ),
       'Pending widget edited',
     );
     await tester.pumpAndSettle();

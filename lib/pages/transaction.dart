@@ -365,7 +365,6 @@ class _TransactionPageState extends State<TransactionPage>
       _split = (_localAmounts.length > 1);
     } else {
       // New transaction
-      _titleFocusNode.requestFocus();
       _transactionType = TransactionTypeProperty.swaggerGeneratedUnknown;
 
       if (widget.notification != null) {
@@ -529,6 +528,18 @@ class _TransactionPageState extends State<TransactionPage>
       );
       _hasAttachments = false;
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _savingInProgress) {
+        return;
+      }
+      // The summary amount is read-only for splits and reconciled entries.
+      if (_split || (_reconciled && _initiallyReconciled)) {
+        _titleFocusNode.requestFocus();
+      } else {
+        _localAmountFocusNode.requestFocus();
+      }
+    });
   }
 
   @override
@@ -1271,40 +1282,6 @@ class _TransactionPageState extends State<TransactionPage>
     const Widget hDivider = SizedBox(height: 16);
     const Widget vDivider = SizedBox(width: 16);
 
-    // Title
-    childs.add(
-      Row(
-        children: <Widget>[
-          TransactionTitle(
-            textController: _titleTextController,
-            focusNode: _titleFocusNode,
-          ),
-          const SizedBox(width: 12),
-          AttachmentButton(
-            attachments: _attachments,
-            onPressed: () async {
-              final List<AttachmentRead> dialogAttachments =
-                  _attachments ?? <AttachmentRead>[];
-              await showDialog<List<AttachmentRead>>(
-                context: context,
-                builder: (BuildContext context) => AttachmentDialog(
-                  attachments: dialogAttachments,
-                  transactionId: _transactionJournalIDs.firstWhereOrNull(
-                    (String? element) => element != null,
-                  ),
-                ),
-              );
-              setState(() {
-                _attachments = dialogAttachments;
-                _hasAttachments = _attachments?.isNotEmpty ?? false;
-              });
-            },
-          ),
-        ],
-      ),
-    );
-    childs.add(hDivider);
-
     // Amount, Date & Time
     childs.add(
       // Amount, date and time must always be fully visible: scale the row
@@ -1354,6 +1331,40 @@ class _TransactionPageState extends State<TransactionPage>
             ),
           ],
         ),
+      ),
+    );
+    childs.add(hDivider);
+
+    // Title
+    childs.add(
+      Row(
+        children: <Widget>[
+          TransactionTitle(
+            textController: _titleTextController,
+            focusNode: _titleFocusNode,
+          ),
+          const SizedBox(width: 12),
+          AttachmentButton(
+            attachments: _attachments,
+            onPressed: () async {
+              final List<AttachmentRead> dialogAttachments =
+                  _attachments ?? <AttachmentRead>[];
+              await showDialog<List<AttachmentRead>>(
+                context: context,
+                builder: (BuildContext context) => AttachmentDialog(
+                  attachments: dialogAttachments,
+                  transactionId: _transactionJournalIDs.firstWhereOrNull(
+                    (String? element) => element != null,
+                  ),
+                ),
+              );
+              setState(() {
+                _attachments = dialogAttachments;
+                _hasAttachments = _attachments?.isNotEmpty ?? false;
+              });
+            },
+          ),
+        ],
       ),
     );
     childs.add(hDivider);
