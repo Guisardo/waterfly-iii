@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:waterflyiii/utils/autocomplete_recency.dart';
 
 import 'package:async/async.dart';
 import 'package:badges/badges.dart' as badges;
@@ -980,6 +981,63 @@ class _TransactionPageState extends State<TransactionPage>
                     final TransactionRepository transactionRepo =
                         TransactionRepository(isar);
 
+                    final Map<String, List<String>>
+                    recentValues = <String, List<String>>{
+                      'description': <String>[
+                        _titleTextController.text,
+                        if (_split)
+                          ..._titleTextControllers.map(
+                            (TextEditingController c) => c.text,
+                          ),
+                      ],
+                      'account': <String>[
+                        for (
+                          int i = 0;
+                          i < _localAmounts.length;
+                          i++
+                        ) ...<String>[
+                          _sourceAccountTextControllers[i].text.isEmpty
+                              ? _sourceAccountTextController.text
+                              : _sourceAccountTextControllers[i].text,
+                          _destinationAccountTextControllers[i].text.isEmpty
+                              ? _destinationAccountTextController.text
+                              : _destinationAccountTextControllers[i].text,
+                        ],
+                      ],
+                      'category': <String>[
+                        for (int i = 0; i < _localAmounts.length; i++)
+                          transactionCategoryForSave(
+                            _categoryTextControllers[i].text,
+                            _destinationAccountTextControllers[i].text.isEmpty
+                                ? _destinationAccountTextController.text
+                                : _destinationAccountTextControllers[i].text,
+                          ),
+                      ],
+                      'budget': <String>[
+                        if (_transactionType ==
+                            TransactionTypeProperty.withdrawal)
+                          ..._budgetTextControllers.map(
+                            (TextEditingController c) => c.text,
+                          ),
+                      ],
+                      'tag': <String>[
+                        for (final Tags tags in _tags) ...tags.tags,
+                      ],
+                      'bill': <String>[
+                        for (final BillRead? bill in _bills)
+                          if (bill != null) bill.id,
+                      ],
+                      'piggy': <String>[
+                        if (_newTX)
+                          for (final PiggyBankRead? piggy in _piggy)
+                            if (piggy != null) piggy.id,
+                      ],
+                      'currency': <String>[
+                        if (_localCurrency != null) _localCurrency!.id,
+                        for (final CurrencyRead? currency in _foreignCurrencies)
+                          if (currency != null) currency.id,
+                      ],
+                    };
                     stage = 'persist';
                     try {
                       // Update existing transaction
@@ -1183,6 +1241,17 @@ class _TransactionPageState extends State<TransactionPage>
                         }
                       }
 
+                      // Never report a persisted transaction as failed because
+                      // remembering suggestion order failed.
+                      try {
+                        await AutocompleteRecency.record(recentValues);
+                      } catch (error, stack) {
+                        log.warning(
+                          'Could not remember recent values',
+                          error,
+                          stack,
+                        );
+                      }
                       stage = 'post-persist';
                       _diagSave.info(
                         'save#$attempt post-persist mounted=$mounted '
@@ -1401,7 +1470,7 @@ class _TransactionPageState extends State<TransactionPage>
               vDivider,
               Expanded(
                 child: AutoCompleteText<AutocompleteAccount>(
-                  sortOptions: true,
+                  recencyField: 'account',
                   labelText: S.of(context).generalSourceAccount,
                   //labelIcon: Icons.account_balance,
                   textController: _sourceAccountTextController,
@@ -1487,7 +1556,7 @@ class _TransactionPageState extends State<TransactionPage>
                 vDivider,
                 Expanded(
                   child: AutoCompleteText<AutocompleteAccount>(
-                    sortOptions: true,
+                    recencyField: 'account',
                     labelText: S.of(context).generalDestinationAccount,
                     textController: _destinationAccountTextController,
                     focusNode: _destinationAccountFocusNode,
@@ -1791,7 +1860,7 @@ class _TransactionPageState extends State<TransactionPage>
                             children: <Widget>[
                               Expanded(
                                 child: AutoCompleteText<AutocompleteAccount>(
-                                  sortOptions: true,
+                                  recencyField: 'account',
                                   disabled: _savingInProgress,
                                   labelText: S.of(context).generalSourceAccount,
                                   labelIcon: Icons.logout,
@@ -1853,7 +1922,7 @@ class _TransactionPageState extends State<TransactionPage>
                             children: <Widget>[
                               Expanded(
                                 child: AutoCompleteText<AutocompleteAccount>(
-                                  sortOptions: true,
+                                  recencyField: 'account',
                                   disabled: _savingInProgress,
                                   labelText: S
                                       .of(context)
@@ -2378,7 +2447,7 @@ class TransactionTitle extends StatelessWidget {
     log.finest(() => "build()");
     return Expanded(
       child: AutoCompleteText<String>(
-        sortOptions: true,
+        recencyField: 'description',
         disabled: _savingInProgress,
         labelText: S.of(context).transactionFormLabelTitle,
         labelIcon: Icons.receipt_long,
@@ -2388,7 +2457,12 @@ class TransactionTitle extends StatelessWidget {
           try {
             unawaited(fetchOp?.cancel());
 
-            final FireflyIii api = context.read<FireflyService>().api;
+            final FireflyService service = context.read<FireflyService>();
+            // Local suggestion lookup must not trigger sign-out without an API.
+            if (!service.hasApi) {
+              return const <String>[];
+            }
+            final FireflyIii api = service.api;
             fetchOp =
                 CancelableOperation<
                   Response<AutocompleteTransactionArray>
@@ -2471,7 +2545,7 @@ class TransactionCategory extends StatelessWidget {
       children: <Widget>[
         Expanded(
           child: AutoCompleteText<String>(
-            sortOptions: true,
+            recencyField: 'category',
             disabled: _savingInProgress,
             labelText: S.of(context).generalCategory,
             labelIcon: Icons.assignment,
@@ -2586,7 +2660,7 @@ class _TransactionBudgetState extends State<TransactionBudget> {
       children: <Widget>[
         Expanded(
           child: AutoCompleteText<AutocompleteBudget>(
-            sortOptions: true,
+            recencyField: 'budget',
             disabled: _savingInProgress,
             labelText: S.of(context).generalBudget,
             labelIcon: Icons.payments,

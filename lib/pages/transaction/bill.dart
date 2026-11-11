@@ -78,7 +78,8 @@ class _BillDialogState extends State<BillDialog> {
       content: SizedBox(
         width: 500,
         child: AutoCompleteText<AutocompleteBill>(
-          sortOptions: true,
+          recencyField: 'bill',
+          recencyKeyForOption: (AutocompleteBill option) => option.id,
           labelText: "Bill Name",
           //labelIcon: Icons.calendar_today,
           textController: _billTextController,

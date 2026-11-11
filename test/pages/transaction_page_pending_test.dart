@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:waterflyiii/utils/autocomplete_recency.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
+import 'package:waterflyiii/data/local/database/tables/transactions.dart';
 import 'package:waterflyiii/data/local/database/tables/pending_changes.dart';
 import 'package:waterflyiii/data/repositories/transaction_repository.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
@@ -57,7 +59,9 @@ void main() {
   });
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'recency_test_sentinel': 'keep',
+    });
     await TestDatabase.clear();
     AppDatabase.setTestInstance(isar);
     repository = TransactionRepository(isar);
@@ -118,6 +122,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.widget<EditableText>(title).focusNode.hasFocus, isTrue);
       expect(find.byType(NumberKeyboard), findsNothing);
+      await tester.runAsync(() async {
+        await AutocompleteRecency.load();
+      });
+      await tester.pumpAndSettle();
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
@@ -209,6 +217,9 @@ void main() {
       lessThan(tester.getTopLeft(titleField).dy),
     );
 
+    await tester.runAsync(() async {
+      await AutocompleteRecency.load();
+    });
     await tester.enterText(
       find.descendant(
         of: find.byType(TransactionTitle).first,
@@ -219,7 +230,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('Save'));
+    await tester.runAsync(() async {
+      await tester.tap(find.text('Save'));
+      final Stopwatch deadline = Stopwatch()..start();
+      while (true) {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        if (prefs
+                .getString(AutocompleteRecency.preferenceKey)
+                ?.contains('Pending widget edited') ??
+            false) {
+          break;
+        }
+        if (deadline.elapsed > const Duration(seconds: 5)) {
+          throw StateError(
+            'Saved recency did not complete within five seconds',
+          );
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+    });
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
@@ -232,5 +261,18 @@ void main() {
       jsonDecode(pendingCreate!.data!) as Map<String, dynamic>,
     );
     expect(queuedStore.transactions.first.description, 'Pending widget edited');
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('recency_test_sentinel'), 'keep');
+    expect(fireflyService.hasApi, isFalse);
+    final AutocompleteRecency recent = await AutocompleteRecency.load(
+      history: const <Transactions>[],
+    );
+    expect(
+      recent.sorted<String>('description', <String>[
+        'unused',
+        'Pending widget edited',
+      ], (String s) => s).first,
+      'Pending widget edited',
+    );
   });
 }

@@ -73,7 +73,8 @@ class _PiggyDialogState extends State<PiggyDialog> {
       content: SizedBox(
         width: 500,
         child: AutoCompleteText<AutocompletePiggy>(
-          sortOptions: true,
+          recencyField: 'piggy',
+          recencyKeyForOption: (AutocompletePiggy option) => option.id,
           labelText: "Piggy Bank Name",
           //labelIcon: Icons.calendar_today,
           textController: _piggyTextController,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:waterflyiii/utils/autocomplete_sort.dart';
+import 'package:waterflyiii/utils/autocomplete_recency.dart';
 import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/animations.dart';
@@ -151,6 +151,7 @@ class _TagDialogState extends State<TagDialog> {
   final TextEditingController _newTagTextController = TextEditingController();
 
   late List<String> _newSelectedTags;
+  AutocompleteRecency _recency = AutocompleteRecency();
 
   @override
   void initState() {
@@ -170,6 +171,7 @@ class _TagDialogState extends State<TagDialog> {
     final Isar isar = await AppDatabase.instance;
     final TagRepository tagRepo = TagRepository(isar);
     final List<TagRead> tags = await tagRepo.getAll();
+    _recency = await AutocompleteRecency.load();
     return tags
         .map((TagRead e) => e.attributes.tag)
         .where((String tag) => tag.isNotEmpty)
@@ -240,17 +242,11 @@ class _TagDialogState extends State<TagDialog> {
                     !_newSelectedTags.containsIgnoreCase(
                       _newTagTextController.text,
                     );
-                allTags.sort((String a, String b) {
-                  if (_newSelectedTags.containsIgnoreCase(a) &&
-                      !_newSelectedTags.containsIgnoreCase(b)) {
-                    return -1;
-                  } else if (!_newSelectedTags.containsIgnoreCase(a) &&
-                      _newSelectedTags.containsIgnoreCase(b)) {
-                    return 1;
-                  } else {
-                    return compareAutocompleteLabels(a, b);
-                  }
-                });
+                final List<String> orderedTags = _recency.sorted<String>(
+                  'tag',
+                  allTags,
+                  (String tag) => tag,
+                );
                 final List<Widget> child = <Widget>[
                   TextField(
                     controller: _newTagTextController,
@@ -285,7 +281,7 @@ class _TagDialogState extends State<TagDialog> {
                   ),
                   const Divider(),
                 ];
-                final Iterable<String> filteredTags = allTags.where(
+                final Iterable<String> filteredTags = orderedTags.where(
                   (String t) =>
                       _newTagTextController.text.isEmpty ||
                       (_newTagTextController.text.isNotEmpty &&

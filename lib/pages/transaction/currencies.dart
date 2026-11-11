@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:waterflyiii/utils/autocomplete_sort.dart';
+import 'package:waterflyiii/utils/autocomplete_recency.dart';
 import 'package:isar_community/isar.dart';
 import 'package:provider/provider.dart';
 import 'package:waterflyiii/auth.dart';
@@ -22,17 +22,12 @@ class CurrencyDialog extends StatelessWidget {
       (CurrencyRead currency) => currency.attributes.enabled != true,
     );
 
-    currencies.sort((CurrencyRead a, CurrencyRead b) {
-      if (a.id == b.id) return 0;
-      if (a.id == context.read<FireflyService>().defaultCurrency.id) {
-        return -1;
-      } else if (b.id == context.read<FireflyService>().defaultCurrency.id) {
-        return 1;
-      } else {
-        return compareAutocompleteLabels(a.attributes.code, b.attributes.code);
-      }
-    });
-    return currencies;
+    final AutocompleteRecency recency = await AutocompleteRecency.load();
+    return recency.sorted<CurrencyRead>(
+      'currency',
+      currencies,
+      (CurrencyRead c) => c.id,
+    );
   }
 
   @override

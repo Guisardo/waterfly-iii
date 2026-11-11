@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'package:async/async.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:logging/logging.dart';
-import 'package:waterflyiii/utils/autocomplete_sort.dart';
+import 'package:waterflyiii/utils/autocomplete_recency.dart';
 import 'package:waterflyiii/widgets/erroricon.dart';
 
 final Logger log = Logger("Widgets.AutoCompleteText");
@@ -23,7 +24,8 @@ class AutoCompleteText<T extends Object> extends StatefulWidget {
     this.style,
     this.errorText,
     this.errorIconOnly = false,
-    this.sortOptions = false,
+    this.recencyField,
+    this.recencyKeyForOption,
   });
 
   final TextEditingController textController;
@@ -39,8 +41,9 @@ class AutoCompleteText<T extends Object> extends StatefulWidget {
   final String? errorText;
   final bool errorIconOnly;
 
-  /// Opt-in alphabetical suggestion sorting.
-  final bool sortOptions;
+  /// Set only for transaction-editor suggestions.
+  final String? recencyField;
+  final String Function(T)? recencyKeyForOption;
 
   static String defaultStringForOption(dynamic option) {
     return option.toString();
@@ -52,6 +55,67 @@ class AutoCompleteText<T extends Object> extends StatefulWidget {
 
 class _AutoCompleteTextState<T extends Object>
     extends State<AutoCompleteText<T>> {
+  Future<AutocompleteRecency>? _recency;
+  final Set<CancelableOperation<Iterable<T>>> _pending =
+      <CancelableOperation<Iterable<T>>>{};
+
+  Future<Iterable<T>> _lifecycleOptions(TextEditingValue value) {
+    final CancelableOperation<Iterable<T>> operation =
+        CancelableOperation<Iterable<T>>.fromFuture(
+          Future<Iterable<T>>.sync(
+            () => widget.recencyField == null
+                ? widget.optionsBuilder(value)
+                : _recentOptions(value),
+          ),
+        );
+    _pending.add(operation);
+    // Cancelled values intentionally never resume RawAutocomplete after disposal.
+    return operation.value.whenComplete(() {
+      _pending.remove(operation);
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.textController.removeListener(_handleTextChanges);
+    for (final CancelableOperation<Iterable<T>> operation in _pending) {
+      unawaited(operation.cancel());
+    }
+    _pending.clear();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant AutoCompleteText<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.textController != widget.textController) {
+      oldWidget.textController.removeListener(_handleTextChanges);
+      widget.textController.addListener(_handleTextChanges);
+    }
+  }
+
+  Future<Iterable<T>> _recentOptions(TextEditingValue value) async {
+    final Iterable<T> options = await widget.optionsBuilder(value);
+    if (!mounted) {
+      return <T>[];
+    }
+    try {
+      final AutocompleteRecency recency = await (_recency ??=
+          AutocompleteRecency.load());
+      if (!mounted) {
+        return <T>[];
+      }
+      return recency.sorted<T>(
+        widget.recencyField!,
+        options,
+        widget.recencyKeyForOption ?? widget.displayStringForOption,
+      );
+    } catch (error, stack) {
+      log.warning('Could not rank recent suggestions', error, stack);
+      return options;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -77,13 +141,7 @@ class _AutoCompleteTextState<T extends Object>
             focusNode: widget.focusNode,
             onSelected: widget.onSelected,
             displayStringForOption: widget.displayStringForOption,
-            optionsBuilder: widget.sortOptions
-                ? (TextEditingValue value) async =>
-                      sortedAutocompleteOptions<T>(
-                        await widget.optionsBuilder(value),
-                        widget.displayStringForOption,
-                      )
-                : widget.optionsBuilder,
+            optionsBuilder: _lifecycleOptions,
             fieldViewBuilder:
                 (
                   BuildContext context,
