@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:waterflyiii/utils/autocomplete_sort.dart';
 import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
 import 'package:waterflyiii/animations.dart';
@@ -247,7 +248,7 @@ class _TagDialogState extends State<TagDialog> {
                       _newSelectedTags.containsIgnoreCase(b)) {
                     return 1;
                   } else {
-                    return a.toLowerCase().compareTo(b.toLowerCase());
+                    return compareAutocompleteLabels(a, b);
                   }
                 });
                 final List<Widget> child = <Widget>[

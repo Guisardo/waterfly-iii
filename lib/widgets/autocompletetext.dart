@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:logging/logging.dart';
+import 'package:waterflyiii/utils/autocomplete_sort.dart';
 import 'package:waterflyiii/widgets/erroricon.dart';
 
 final Logger log = Logger("Widgets.AutoCompleteText");
@@ -22,6 +23,7 @@ class AutoCompleteText<T extends Object> extends StatefulWidget {
     this.style,
     this.errorText,
     this.errorIconOnly = false,
+    this.sortOptions = false,
   });
 
   final TextEditingController textController;
@@ -36,6 +38,9 @@ class AutoCompleteText<T extends Object> extends StatefulWidget {
   final TextStyle? style;
   final String? errorText;
   final bool errorIconOnly;
+
+  /// Opt-in alphabetical suggestion sorting.
+  final bool sortOptions;
 
   static String defaultStringForOption(dynamic option) {
     return option.toString();
@@ -72,7 +77,13 @@ class _AutoCompleteTextState<T extends Object>
             focusNode: widget.focusNode,
             onSelected: widget.onSelected,
             displayStringForOption: widget.displayStringForOption,
-            optionsBuilder: widget.optionsBuilder,
+            optionsBuilder: widget.sortOptions
+                ? (TextEditingValue value) async =>
+                      sortedAutocompleteOptions<T>(
+                        await widget.optionsBuilder(value),
+                        widget.displayStringForOption,
+                      )
+                : widget.optionsBuilder,
             fieldViewBuilder:
                 (
                   BuildContext context,

@@ -1401,6 +1401,7 @@ class _TransactionPageState extends State<TransactionPage>
               vDivider,
               Expanded(
                 child: AutoCompleteText<AutocompleteAccount>(
+                  sortOptions: true,
                   labelText: S.of(context).generalSourceAccount,
                   //labelIcon: Icons.account_balance,
                   textController: _sourceAccountTextController,
@@ -1486,6 +1487,7 @@ class _TransactionPageState extends State<TransactionPage>
                 vDivider,
                 Expanded(
                   child: AutoCompleteText<AutocompleteAccount>(
+                    sortOptions: true,
                     labelText: S.of(context).generalDestinationAccount,
                     textController: _destinationAccountTextController,
                     focusNode: _destinationAccountFocusNode,
@@ -1789,6 +1791,7 @@ class _TransactionPageState extends State<TransactionPage>
                             children: <Widget>[
                               Expanded(
                                 child: AutoCompleteText<AutocompleteAccount>(
+                                  sortOptions: true,
                                   disabled: _savingInProgress,
                                   labelText: S.of(context).generalSourceAccount,
                                   labelIcon: Icons.logout,
@@ -1850,6 +1853,7 @@ class _TransactionPageState extends State<TransactionPage>
                             children: <Widget>[
                               Expanded(
                                 child: AutoCompleteText<AutocompleteAccount>(
+                                  sortOptions: true,
                                   disabled: _savingInProgress,
                                   labelText: S
                                       .of(context)
@@ -2374,6 +2378,7 @@ class TransactionTitle extends StatelessWidget {
     log.finest(() => "build()");
     return Expanded(
       child: AutoCompleteText<String>(
+        sortOptions: true,
         disabled: _savingInProgress,
         labelText: S.of(context).transactionFormLabelTitle,
         labelIcon: Icons.receipt_long,
@@ -2466,6 +2471,7 @@ class TransactionCategory extends StatelessWidget {
       children: <Widget>[
         Expanded(
           child: AutoCompleteText<String>(
+            sortOptions: true,
             disabled: _savingInProgress,
             labelText: S.of(context).generalCategory,
             labelIcon: Icons.assignment,
@@ -2580,6 +2586,7 @@ class _TransactionBudgetState extends State<TransactionBudget> {
       children: <Widget>[
         Expanded(
           child: AutoCompleteText<AutocompleteBudget>(
+            sortOptions: true,
             disabled: _savingInProgress,
             labelText: S.of(context).generalBudget,
             labelIcon: Icons.payments,
