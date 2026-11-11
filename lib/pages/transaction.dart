@@ -409,7 +409,10 @@ class _TransactionPageState extends State<TransactionPage>
 
           (currency, amount) = await parseNotificationText(
             api,
-            widget.notification!.body,
+            notificationMoneyText(
+              widget.notification!.body,
+              widget.notification!.title,
+            ),
             _localCurrency!,
           );
 

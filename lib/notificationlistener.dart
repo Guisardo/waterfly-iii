@@ -144,6 +144,15 @@ final RegExp rFindMoney = RegExp(
   r'(?:^|[^\w])(?<preCurrency>(?:[^\r\n\t\f\v 0-9]){0,3})\s*(?<amount>\d[.,\s\d]+(?:[.,]\d+)?)\s*(?<postCurrency>(?:[^\r\n\t\f\v 0-9]){0,3})(?:$|\s|\.|,)',
 );
 
+// Keep body amounts ahead of title-only balances.
+// Normalize only spacing proven to interfere with currency recognition.
+// Keep original notification text and punctuation unchanged elsewhere.
+String normalizeNotificationMoneyText(String text) =>
+    text.replaceAll(RegExp(r'[\u00a0\u202f]'), ' ');
+
+String notificationMoneyText(String body, String title) =>
+    normalizeNotificationMoneyText('$body\n$title');
+
 Future<NotificationListenerStatus> nlStatus() async {
   return NotificationListenerStatus(
     await NotificationServicePlugin.instance.isServicePermissionGranted(),
@@ -172,7 +181,9 @@ void nlCallback() {
     if (evt.state == NotificationState.remove) {
       return;
     }
-    final Iterable<RegExpMatch> matches = rFindMoney.allMatches(evt.text ?? "");
+    final Iterable<RegExpMatch> matches = rFindMoney.allMatches(
+      notificationMoneyText(evt.text ?? "", evt.title ?? ""),
+    );
     if (matches.isEmpty) {
       log.finer(() => "nlCallback(${evt.packageName}): no money found");
       return;
@@ -222,7 +233,7 @@ void nlCallback() {
 
         (currency, amount) = await parseNotificationText(
           api,
-          evt.text!,
+          notificationMoneyText(evt.text ?? "", evt.title ?? ""),
           localCurrency,
         );
 
@@ -384,15 +395,19 @@ Future<(CurrencyRead?, double)> parseNotificationText(
   double amount = 0;
 
   // Try to extract substrings that may (or may not) relate to spending amount
-  final Iterable<RegExpMatch> matches = rFindMoney.allMatches(notificationBody);
+  final Iterable<RegExpMatch> matches = rFindMoney.allMatches(
+    normalizeNotificationMoneyText(notificationBody),
+  );
 
   if (matches.isNotEmpty) {
-    final List<CurrencyRead> currencies =
-        (await api.v1CurrenciesGet()).body!.data;
+    final List<CurrencyRead> currencies = List<CurrencyRead>.of(
+      (await api.v1CurrenciesGet()).body!.data,
+    );
     currencies.removeWhere(
       (CurrencyRead currency) => currency.attributes.enabled != true,
     );
-    currencies.add(localCurrency);
+    currencies.removeWhere((CurrencyRead item) => item.id == localCurrency.id);
+    currencies.insert(0, localCurrency);
 
     int bestMatchIndex = -1;
 
@@ -414,14 +429,18 @@ Future<(CurrencyRead?, double)> parseNotificationText(
           bestMatchIndex = i;
         }
 
-        for (CurrencyRead apiCurrency in currencies) {
-          if (apiCurrency.attributes.code == preCurrency ||
-              apiCurrency.attributes.symbol == preCurrency ||
-              apiCurrency.attributes.code == postCurrency ||
-              apiCurrency.attributes.symbol == postCurrency) {
-            bestMatchIndex = i;
-            currency = apiCurrency;
-            break matchesloop;
+        // Explicit codes take precedence over shared symbols.
+        for (final bool matchCode in <bool>[true, false]) {
+          for (final CurrencyRead apiCurrency in currencies) {
+            final String token = matchCode
+                ? apiCurrency.attributes.code
+                : apiCurrency.attributes.symbol;
+            if (token.isNotEmpty &&
+                (token == preCurrency || token == postCurrency)) {
+              bestMatchIndex = i;
+              currency = apiCurrency;
+              break matchesloop;
+            }
           }
         }
       }

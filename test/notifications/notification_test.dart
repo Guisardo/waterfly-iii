@@ -87,6 +87,250 @@ void main() {
     );
   });
 
+  group('Payment notification formats', () {
+    const CurrencyRead arsCurrency = CurrencyRead(
+      type: 'currencies',
+      id: 'ars',
+      attributes: CurrencyProperties(
+        code: 'ARS',
+        name: 'Argentine peso',
+        symbol: r'$',
+      ),
+    );
+    test('Payment format 1', () async {
+      final String text = notificationMoneyText(
+        r'A MERPAGO*ABC con tu Tarjeta Santander Visa Crédito terminada en 8765, el 08/11/2026 a las 18:29 horas. (s.e.u.o.).',
+        r'Pagaste $ 12.345,67',
+      );
+      expect(
+        rFindMoney
+            .allMatches(text)
+            .any(
+              (RegExpMatch match) =>
+                  (match.namedGroup('preCurrency')?.contains(r'$') ?? false) ||
+                  (match.namedGroup('postCurrency')?.contains(r'$') ?? false),
+            ),
+        isTrue,
+      );
+      final (CurrencyRead? currency, double amount) =
+          await parseNotificationText(apiService, text, arsCurrency);
+      expect(amount, 12345.67);
+      expect(currency?.attributes.code, 'ARS');
+    });
+    test('Payment format 2', () async {
+      final String text = notificationMoneyText(
+        r'Debitamos $ 123.567,89 por le pago a ABCDEF SA de tu Tarjeta Santander Visa Crédito terminada en 8765 (s.e.u.o.).',
+        r'Aviso de débito automático',
+      );
+      expect(
+        rFindMoney
+            .allMatches(text)
+            .any(
+              (RegExpMatch match) =>
+                  (match.namedGroup('preCurrency')?.contains(r'$') ?? false) ||
+                  (match.namedGroup('postCurrency')?.contains(r'$') ?? false),
+            ),
+        isTrue,
+      );
+      final (CurrencyRead? currency, double amount) =
+          await parseNotificationText(apiService, text, arsCurrency);
+      expect(amount, 123567.89);
+      expect(currency?.attributes.code, 'ARS');
+    });
+    test('Payment format 3', () async {
+      final String text = notificationMoneyText(
+        r'Abcd Efghij pagó $ 123.456,78 a MERPAGO*CDE  con la tarjeta Santander American Express Crédito terminada en 5678, el 05/11/2026 a las 14:39 (s.e.u.o.).',
+        r'Tu adicional hizo un consumo',
+      );
+      expect(
+        rFindMoney
+            .allMatches(text)
+            .any(
+              (RegExpMatch match) =>
+                  (match.namedGroup('preCurrency')?.contains(r'$') ?? false) ||
+                  (match.namedGroup('postCurrency')?.contains(r'$') ?? false),
+            ),
+        isTrue,
+      );
+      final (CurrencyRead? currency, double amount) =
+          await parseNotificationText(apiService, text, arsCurrency);
+      expect(amount, 123456.78);
+      expect(currency?.attributes.code, 'ARS');
+    });
+    test('Payment format 4', () async {
+      final String text = notificationMoneyText(
+        r'Debitamos $ 1.234,56 por el pago a MERPAGO*MELI de la Tarjeta Santander Visa Crédito terminada en 8760 de Abcd Efghij (s.e.u.o.).',
+        r'Débito automático de tu adicional',
+      );
+      expect(
+        rFindMoney
+            .allMatches(text)
+            .any(
+              (RegExpMatch match) =>
+                  (match.namedGroup('preCurrency')?.contains(r'$') ?? false) ||
+                  (match.namedGroup('postCurrency')?.contains(r'$') ?? false),
+            ),
+        isTrue,
+      );
+      final (CurrencyRead? currency, double amount) =
+          await parseNotificationText(apiService, text, arsCurrency);
+      expect(amount, 1234.56);
+      expect(currency?.attributes.code, 'ARS');
+    });
+    test('Payment format 5', () async {
+      final String text = notificationMoneyText(
+        r'Enviaste $ 654.321,09 a Abc Defg Hij .',
+        r'Transferiste con éxito',
+      );
+      expect(
+        rFindMoney
+            .allMatches(text)
+            .any(
+              (RegExpMatch match) =>
+                  (match.namedGroup('preCurrency')?.contains(r'$') ?? false) ||
+                  (match.namedGroup('postCurrency')?.contains(r'$') ?? false),
+            ),
+        isTrue,
+      );
+      final (CurrencyRead? currency, double amount) =
+          await parseNotificationText(apiService, text, arsCurrency);
+      expect(amount, 654321.09);
+      expect(currency?.attributes.code, 'ARS');
+    });
+    test('Payment format 6', () async {
+      final String text = notificationMoneyText(
+        r'Pagaste $123456.56 a ASBCD',
+        r'Se aprobó tu pago',
+      );
+      expect(
+        rFindMoney
+            .allMatches(text)
+            .any(
+              (RegExpMatch match) =>
+                  (match.namedGroup('preCurrency')?.contains(r'$') ?? false) ||
+                  (match.namedGroup('postCurrency')?.contains(r'$') ?? false),
+            ),
+        isTrue,
+      );
+      final (CurrencyRead? currency, double amount) =
+          await parseNotificationText(apiService, text, arsCurrency);
+      expect(amount, 123456.56);
+      expect(currency?.attributes.code, 'ARS');
+    });
+    test('Payment format 7', () async {
+      final String text = notificationMoneyText(
+        r'Paid $12.34',
+        r'Balance $987.65',
+      );
+      expect(
+        rFindMoney
+            .allMatches(text)
+            .any(
+              (RegExpMatch match) =>
+                  (match.namedGroup('preCurrency')?.contains(r'$') ?? false) ||
+                  (match.namedGroup('postCurrency')?.contains(r'$') ?? false),
+            ),
+        isTrue,
+      );
+      final (CurrencyRead? currency, double amount) =
+          await parseNotificationText(apiService, text, arsCurrency);
+      expect(amount, 12.34);
+      expect(currency?.attributes.code, 'ARS');
+    });
+    test('Explicit foreign code beats shared local symbol', () async {
+      final (
+        CurrencyRead? currency,
+        double amount,
+      ) = await parseNotificationText(
+        apiService,
+        r'Paid $4.99 CAD at VENDOR.',
+        arsCurrency,
+      );
+      expect(amount, 4.99);
+      expect(currency?.attributes.code, 'CAD');
+    });
+  });
+
+  group('Notification Unicode presentation', () {
+    const CurrencyRead localCurrency = CurrencyRead(
+      type: 'currencies',
+      id: 'ars',
+      attributes: CurrencyProperties(
+        code: 'ARS',
+        name: 'Argentine peso',
+        symbol: r'$',
+      ),
+    );
+    final Map<String, String> cases = <String, String>{
+      'emoji before currency': '\u{1F4B3} Pagaste \$ 12.345,67',
+      'emoji after amount': 'Pagaste \$ 12.345,67 \u{2705}',
+      'nonbreaking currency space': 'Pagaste \$\u00a012.345,67',
+      'narrow nonbreaking currency space': 'Pagaste \$\u202f12.345,67',
+      'nonbreaking grouping space': 'Pagaste \$ 12\u00a0345,67',
+      'narrow nonbreaking grouping space': 'Pagaste \$ 12\u202f345,67',
+    };
+    for (final MapEntry<String, String> entry in cases.entries) {
+      for (final bool titleOnly in <bool>[false, true]) {
+        test('${entry.key}, titleOnly=$titleOnly', () async {
+          final String text = notificationMoneyText(
+            titleOnly ? '' : entry.value,
+            titleOnly ? entry.value : 'Payment notification',
+          );
+          expect(
+            rFindMoney
+                .allMatches(text)
+                .any(
+                  (RegExpMatch match) =>
+                      (match.namedGroup('preCurrency')?.isNotEmpty ?? false) ||
+                      (match.namedGroup('postCurrency')?.isNotEmpty ?? false),
+                ),
+            isTrue,
+          );
+          final (CurrencyRead? currency, double amount) =
+              await parseNotificationText(apiService, text, localCurrency);
+          expect(amount, 12345.67);
+          expect(currency?.attributes.code, 'ARS');
+        });
+      }
+    }
+  });
+
+  group('Direct parser Unicode spacing', () {
+    const CurrencyRead localCurrency = CurrencyRead(
+      type: 'currencies',
+      id: 'ars',
+      attributes: CurrencyProperties(
+        code: 'ARS',
+        name: 'Argentine peso',
+        symbol: r'$',
+      ),
+    );
+    for (final String space in <String>['\u00a0', '\u202f']) {
+      test('Direct parsing space ${space.codeUnitAt(0)}', () async {
+        final (
+          CurrencyRead? currency,
+          double amount,
+        ) = await parseNotificationText(
+          apiService,
+          'Pagaste \$${space}12.345,67',
+          localCurrency,
+        );
+        expect(amount, 12345.67);
+        expect(currency?.attributes.code, 'ARS');
+      });
+    }
+    test('Normalization preserves emoji punctuation and line breaks', () {
+      const String original = '\u{1F4B3} Paid \$12.34!\nBalance: \$56.78';
+      expect(normalizeNotificationMoneyText(original), original);
+    });
+    test('Normalization is idempotent', () {
+      const String original = 'Pagaste \$\u00a012\u202f345,67';
+      final String normalized = normalizeNotificationMoneyText(original);
+      expect(normalized, r'Pagaste $ 12 345,67');
+      expect(normalizeNotificationMoneyText(normalized), normalized);
+    });
+  });
+
   group('Notification listener', () {
     test('- Text parsing tests', () async {
       CurrencyRead? extractedCurrency;
