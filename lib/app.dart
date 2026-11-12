@@ -31,6 +31,10 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>(
   debugLabel: "Main Navigator",
 );
 
+/// Launcher shortcut that opens a new transaction.
+bool isAddTransactionQuickAction(String? shortcutType) =>
+    shortcutType == "action_transaction_add";
+
 class WaterflyApp extends StatefulWidget {
   const WaterflyApp({super.key});
 
@@ -85,6 +89,8 @@ class _WaterflyAppState extends State<WaterflyApp> {
       _quickAction = shortcutType;
       if (!_startup && navigatorKey.currentState != null) {
         log.finest(() => "App already started, pushing route");
+        // Pushed now; must not be replayed when home is rebuilt.
+        _quickAction = null;
         navigatorKey.currentState!.push(
           MaterialPageRoute<Widget>(
             builder: (BuildContext context) => const TransactionPage(),
@@ -439,14 +445,21 @@ class _WaterflyAppState extends State<WaterflyApp> {
                   ? const SplashPage()
                   : signedInForUI
                   ? (_notificationPayload != null ||
-                            _quickAction == "action_transaction_add" ||
                             (_filesSharedToApp != null &&
                                 _filesSharedToApp!.isNotEmpty))
                         ? TransactionPage(
                             notification: _notificationPayload,
                             files: _filesSharedToApp,
                           )
-                        : const NavPage()
+                        : NavPage(
+                            initialHomeTab:
+                                isAddTransactionQuickAction(_quickAction)
+                                ? 1
+                                : 0,
+                            openAddTransaction: isAddTransactionQuickAction(
+                              _quickAction,
+                            ),
+                          )
                   : const LoginPage(),
             );
           },

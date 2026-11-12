@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +12,7 @@ import 'package:waterflyiii/pages/categories.dart';
 import 'package:waterflyiii/pages/home.dart';
 import 'package:waterflyiii/pages/settings.dart';
 import 'package:waterflyiii/pages/settings/sync.dart';
+import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/services/sync/sync_status_provider.dart';
 
 final Logger log = Logger("Pages.Navigation");
@@ -82,10 +85,18 @@ class NavPageElements with ChangeNotifier {
 }
 
 class NavPage extends StatefulWidget {
-  const NavPage({super.key, this.initialHomeTab = 0});
+  const NavPage({
+    super.key,
+    this.initialHomeTab = 0,
+    this.openAddTransaction = false,
+  });
 
   /// Home tab shown first (0 = Main, 1 = Transactions).
   final int initialHomeTab;
+
+  /// Opens a new transaction on top once, so back/cancel returns here
+  /// instead of leaving the app (launcher shortcut).
+  final bool openAddTransaction;
 
   @override
   State<NavPage> createState() => NavPageState();
@@ -97,6 +108,23 @@ class NavPageState extends State<NavPage> with TickerProviderStateMixin {
   late TabController _tabController;
   int screenIndex = 0;
   late List<NavDestination> navDestinations;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.openAddTransaction) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (BuildContext context) => const TransactionPage(),
+            ),
+          ),
+        );
+      });
+    }
+  }
 
   @override
   void didChangeDependencies() {
