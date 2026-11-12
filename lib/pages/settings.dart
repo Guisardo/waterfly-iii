@@ -149,6 +149,15 @@ class SettingsPageState extends State<SettingsPage>
             settings.useServerTime = value;
           },
         ),
+        SwitchListTile.adaptive(
+          title: Text(
+            S.of(context).homeTransactionsDialogFilterBalanceStartAtZero,
+          ),
+          subtitle: Text(S.of(context).settingsBalanceStartAtZeroHelp),
+          value: context.select((SettingsProvider s) => s.balanceStartAtZero),
+          secondary: const CircleAvatar(child: Icon(Icons.exposure_zero)),
+          onChanged: (bool value) => settings.balanceStartAtZero = value,
+        ),
         const Divider(),
         SwitchListTile.adaptive(
           title: Text(S.of(context).settingsLockscreen),

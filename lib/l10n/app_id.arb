@@ -1410,5 +1410,6 @@
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
     },
-  "homeTransactionsDialogFilterBalanceStartAtZero": "Saldo mulai dari nol di awal rentang"
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Saldo mulai dari nol di awal rentang",
+  "settingsBalanceStartAtZeroHelp": "Tampilkan saldo sebagai perubahan sejak awal rentang tanggal transaksi"
 }

@@ -1216,4 +1216,8 @@ class SFr extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Soldes à zéro au début de la période';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Afficher les soldes comme la variation depuis le début de la plage de dates des transactions';
 }

@@ -1197,4 +1197,8 @@ class SEn extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Start balances at zero on the range start';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Show balances as the change since the start of the transaction date range';
 }

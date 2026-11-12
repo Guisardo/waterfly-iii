@@ -1199,4 +1199,8 @@ class SNl extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Saldi beginnen bij nul aan het begin van de periode';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Toon saldi als de verandering sinds het begin van het datumbereik van transacties';
 }

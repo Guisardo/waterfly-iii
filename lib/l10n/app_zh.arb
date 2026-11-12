@@ -1497,5 +1497,6 @@
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
     },
-  "homeTransactionsDialogFilterBalanceStartAtZero": "在日期范围开始时余额从零开始"
+  "homeTransactionsDialogFilterBalanceStartAtZero": "在日期范围开始时余额从零开始",
+  "settingsBalanceStartAtZeroHelp": "将余额显示为自交易日期范围开始以来的变动"
 }

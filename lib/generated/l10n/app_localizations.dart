@@ -2033,6 +2033,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Start balances at zero on the range start'**
   String get homeTransactionsDialogFilterBalanceStartAtZero;
+
+  /// Settings: help for the zero-start balance switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Show balances as the change since the start of the transaction date range'**
+  String get settingsBalanceStartAtZeroHelp;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

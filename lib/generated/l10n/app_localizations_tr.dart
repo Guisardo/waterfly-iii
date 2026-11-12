@@ -1199,4 +1199,8 @@ class STr extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Bakiyeleri dönem başında sıfırdan başlat';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Bakiyeleri işlem tarih aralığının başlangıcından bu yana değişim olarak göster';
 }

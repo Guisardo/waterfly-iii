@@ -1203,4 +1203,8 @@ class SIt extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Saldi da zero all\'inizio del periodo';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Mostra i saldi come variazione dall\'inizio del periodo delle transazioni';
 }

@@ -71,6 +71,8 @@ class HomeTransactionsState extends State<HomeTransactions>
         type == ShortAccountTypeProperty.expense;
   }
 
+  bool? _lastZeroStart;
+
   void _resetBalances() {
     _lastCalculatedBalance = null;
     _runningBalancesByTransactionId.clear();
@@ -121,7 +123,6 @@ class HomeTransactionsState extends State<HomeTransactions>
                 final SettingsProvider settings = context
                     .read<SettingsProvider>();
                 final bool oldShowFutureTXs = settings.showFutureTXs;
-                final bool oldBalanceStartAtZero = settings.balanceStartAtZero;
                 final TransactionDateFilter oldTransactionDateFilter =
                     settings.transactionDateFilter;
                 final bool? ok = await showDialog<bool>(
@@ -132,7 +133,6 @@ class HomeTransactionsState extends State<HomeTransactions>
                   ),
                 );
                 if (ok == null || !ok) {
-                  settings.balanceStartAtZero = oldBalanceStartAtZero;
                   if (settings.showFutureTXs != oldShowFutureTXs) {
                     settings.showFutureTXs = oldShowFutureTXs;
                     _txSum = TransactionSum();
@@ -164,7 +164,6 @@ class HomeTransactionsState extends State<HomeTransactions>
                 }
                 if (oldFilters == _filters &&
                     settings.showFutureTXs == oldShowFutureTXs &&
-                    settings.balanceStartAtZero == oldBalanceStartAtZero &&
                     settings.transactionDateFilter ==
                         oldTransactionDateFilter) {
                   return;
@@ -240,27 +239,10 @@ class HomeTransactionsState extends State<HomeTransactions>
       // Get start date
       late DateTime startDate;
       final DateTime now = _tzHandler.sNow().clearTime();
-      switch (settingsProvider.transactionDateFilter) {
-        case TransactionDateFilter.currentMonth:
-          startDate = now.copyWith(day: 1);
-          break;
-        case .currentYear:
-          startDate = now.copyWith(month: 1, day: 1);
-          break;
-        case .last30Days:
-          startDate = now.subtract(const Duration(days: 30));
-          break;
-        case .lastYear:
-          startDate = now.copyWith(year: now.year - 1);
-          break;
-        default:
-          // Don't use 0 seconds, as DST & stuff might throw an error:
-          // "The start must be a date after 1970-01-02."
-          startDate = DateTime.fromMillisecondsSinceEpoch(
-            365 * 24 * 60 * 60 * 1000,
-          );
-          break;
-      }
+      startDate = transactionWindowStart(
+        settingsProvider.transactionDateFilter,
+        now,
+      );
 
       // Use repository instead of stock
       final DateTime? endDate = settingsProvider.showFutureTXs ? null : now;
@@ -404,6 +386,14 @@ class HomeTransactionsState extends State<HomeTransactions>
 
   @override
   Widget build(BuildContext context) {
+    final bool zeroStart = context.select(
+      (SettingsProvider s) => s.balanceStartAtZero,
+    );
+    if (_lastZeroStart != null && _lastZeroStart != zeroStart) {
+      _resetBalances();
+      _pagingState = _pagingState.reset();
+    }
+    _lastZeroStart = zeroStart;
     log.finest(() => "build()");
     super.build(context);
 

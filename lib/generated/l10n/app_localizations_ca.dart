@@ -1214,4 +1214,8 @@ class SCa extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Saldos des de zero a l\'inici del període';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Mostra els saldos com la variació des de l\'inici de l\'interval de dates de les transaccions';
 }

@@ -1201,4 +1201,8 @@ class SUk extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Починати залишки з нуля на початку періоду';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Показувати залишки як зміну з початку діапазону дат транзакцій';
 }

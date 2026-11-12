@@ -1211,4 +1211,8 @@ class SEs extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Saldos desde cero al inicio del período';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Mostrar los saldos como la variación desde el inicio del rango de fechas de las transacciones';
 }

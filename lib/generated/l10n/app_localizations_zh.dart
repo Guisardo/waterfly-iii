@@ -1168,6 +1168,9 @@ class SZh extends S {
 
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero => '在日期范围开始时余额从零开始';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp => '将余额显示为自交易日期范围开始以来的变动';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2287,4 +2290,7 @@ class SZhTw extends SZh {
 
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero => '在日期範圍開始時餘額從零開始';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp => '將餘額顯示為自交易日期範圍開始以來的變動';
 }

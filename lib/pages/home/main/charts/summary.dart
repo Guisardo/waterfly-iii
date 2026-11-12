@@ -9,6 +9,8 @@ import 'package:waterflyiii/auth.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
+import 'package:waterflyiii/pages/home/transactions/running_balance.dart';
+import 'package:waterflyiii/settings.dart' show SettingsProvider;
 import 'package:waterflyiii/widgets/charts.dart';
 
 class SummaryChart extends StatefulWidget {
@@ -142,6 +144,7 @@ class _SummaryChartPopupState extends State<SummaryChartPopup> {
 
   Future<List<ChartDataSet>> _fetchData(BuildContext context) async {
     final FireflyIii api = context.read<FireflyService>().api;
+    final bool zeroStart = context.read<SettingsProvider>().balanceStartAtZero;
     final DateTime now = DateTime.now().toLocal().clearTime();
 
     final Response<ChartLine> respChartData = await api
@@ -153,6 +156,9 @@ class _SummaryChartPopupState extends State<SummaryChartPopup> {
           period: .value_1d,
         );
     apiThrowErrorIfEmpty(respChartData, mounted ? context : null);
+    final List<ChartDataSet> body = zeroStart
+        ? rebaseChartDataSets(respChartData.body!)
+        : respChartData.body!;
 
     currencies.clear();
     balances.clear();
@@ -160,7 +166,7 @@ class _SummaryChartPopupState extends State<SummaryChartPopup> {
 
     // Initialize table variables
     DateTime? latestDate;
-    for (ChartDataSet e in respChartData.body!) {
+    for (ChartDataSet e in body) {
       if (latestDate == null || e.endDate!.isAfter(latestDate)) {
         latestDate = e.endDate;
       }
@@ -185,7 +191,7 @@ class _SummaryChartPopupState extends State<SummaryChartPopup> {
     }
     date.value = latestDate!.clearTime();
 
-    return respChartData.body!;
+    return body;
   }
 
   void trackballPositionChange(

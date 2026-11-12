@@ -1,12 +1,12 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
+import 'package:waterflyiii/pages/home/accounts/balance_text.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart'
     show AccountArray, AccountRead, AccountTypeFilter, Meta;
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.models.swagger.dart'
@@ -103,59 +103,29 @@ class _HomeBalanceState extends State<HomeBalance>
                     ),
                     closedElevation: 0,
                     closedBuilder:
-                        (
-                          BuildContext context,
-                          Function openContainer,
-                        ) => ListTile(
-                          title: Text(account.attributes.name),
-                          subtitle: Text(
-                            account.attributes.accountRole?.friendlyName(
-                                  context,
-                                ) ??
-                                S.of(context).generalUnknown,
-                          ),
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(16),
-                              bottomLeft: Radius.circular(16),
-                            ),
-                          ),
-                          isThreeLine: false,
-                          trailing: RichText(
-                            textAlign: TextAlign.end,
-                            maxLines: 2,
-                            text: TextSpan(
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              children: <InlineSpan>[
-                                TextSpan(
-                                  text: currency.fmt(balance),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium!
-                                      .copyWith(
-                                        color: (balance < 0)
-                                            ? Colors.red
-                                            : Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                        fontFeatures: const <FontFeature>[
-                                          FontFeature.tabularFigures(),
-                                        ],
-                                      ),
+                        (BuildContext context, Function openContainer) =>
+                            ListTile(
+                              title: Text(account.attributes.name),
+                              subtitle: Text(
+                                account.attributes.accountRole?.friendlyName(
+                                      context,
+                                    ) ??
+                                    S.of(context).generalUnknown,
+                              ),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(16),
+                                  bottomLeft: Radius.circular(16),
                                 ),
-                                const TextSpan(text: "\n"),
-                                TextSpan(
-                                  text: account.attributes.lastActivity != null
-                                      ? DateFormat.yMd().add_Hms().format(
-                                          account.attributes.lastActivity!
-                                              .toLocal(),
-                                        )
-                                      : S.of(context).generalNever,
-                                ),
-                              ],
+                              ),
+                              isThreeLine: false,
+                              trailing: AccountBalanceText(
+                                account: account,
+                                currency: currency,
+                                amount: balance,
+                              ),
+                              onTap: () => openContainer(),
                             ),
-                          ),
-                          onTap: () => openContainer(),
-                        ),
                   );
                 }),
               ],

@@ -1497,5 +1497,6 @@
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
     },
-  "homeTransactionsDialogFilterBalanceStartAtZero": "Saldi da zero all'inizio del periodo"
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Saldi da zero all'inizio del periodo",
+  "settingsBalanceStartAtZeroHelp": "Mostra i saldi come variazione dall'inizio del periodo delle transazioni"
 }

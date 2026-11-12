@@ -1212,4 +1212,8 @@ class SHu extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Egyenlegek nulláról az időszak elején';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Az egyenlegek megjelenítése a tranzakciós dátumtartomány kezdete óta bekövetkezett változásként';
 }

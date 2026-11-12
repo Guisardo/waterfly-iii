@@ -1497,5 +1497,6 @@
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
     },
-  "homeTransactionsDialogFilterBalanceStartAtZero": "شروع موجودی از صفر در ابتدای بازه"
+  "homeTransactionsDialogFilterBalanceStartAtZero": "شروع موجودی از صفر در ابتدای بازه",
+  "settingsBalanceStartAtZeroHelp": "نمایش موجودی‌ها به‌صورت تغییر از ابتدای بازه زمانی تراکنش‌ها"
 }

@@ -1203,4 +1203,8 @@ class SPl extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Salda od zera na początku zakresu';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Pokazuj salda jako zmianę od początku zakresu dat transakcji';
 }

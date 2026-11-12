@@ -1202,4 +1202,8 @@ class SId extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Saldo mulai dari nol di awal rentang';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Tampilkan saldo sebagai perubahan sejak awal rentang tanggal transaksi';
 }

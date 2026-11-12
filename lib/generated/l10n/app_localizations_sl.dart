@@ -1202,4 +1202,8 @@ class SSl extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Stanja od nič na začetku obdobja';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Prikaži stanja kot spremembo od začetka časovnega obdobja transakcij';
 }

@@ -1198,6 +1198,10 @@ class SPt extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Saldos a partir de zero no início do período';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Mostrar saldos como a variação desde o início do intervalo de datas das transações';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -2347,4 +2351,8 @@ class SPtBr extends SPt {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Saldos a partir de zero no início do período';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Mostrar saldos como a variação desde o início do intervalo de datas das transações';
 }

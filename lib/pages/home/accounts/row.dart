@@ -1,6 +1,5 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:isar_community/isar.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +8,7 @@ import 'package:waterflyiii/data/local/database/app_database.dart';
 import 'package:waterflyiii/data/repositories/account_repository.dart';
 import 'package:waterflyiii/extensions.dart';
 import 'package:waterflyiii/generated/l10n/app_localizations.dart';
+import 'package:waterflyiii/pages/home/accounts/balance_text.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/home/transactions.dart';
 import 'package:waterflyiii/pages/home/transactions/filter.dart';
@@ -139,30 +139,10 @@ Widget accountRowBuilder(
       isThreeLine:
           account.attributes.type == ShortAccountTypeProperty.asset ||
           account.attributes.type == ShortAccountTypeProperty.liabilities,
-      trailing: RichText(
-        textAlign: TextAlign.end,
-        maxLines: 2,
-        text: TextSpan(
-          style: Theme.of(context).textTheme.bodyMedium,
-          children: <InlineSpan>[
-            TextSpan(
-              text: currency.fmt(currentAmount),
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                color: (currentAmount < 0) ? Colors.red : Colors.green,
-                fontWeight: FontWeight.bold,
-                fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
-              ),
-            ),
-            const TextSpan(text: "\n"),
-            TextSpan(
-              text: account.attributes.lastActivity != null
-                  ? DateFormat.yMd().add_Hms().format(
-                      account.attributes.lastActivity!.toLocal(),
-                    )
-                  : S.of(context).generalNever,
-            ),
-          ],
-        ),
+      trailing: AccountBalanceText(
+        account: account,
+        currency: currency,
+        amount: currentAmount,
       ),
       enabled: account.attributes.active ?? true,
       shape: const RoundedRectangleBorder(

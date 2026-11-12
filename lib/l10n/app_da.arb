@@ -1497,5 +1497,6 @@
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
     },
-  "homeTransactionsDialogFilterBalanceStartAtZero": "Saldi starter fra nul ved periodens start"
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Saldi starter fra nul ved periodens start",
+  "settingsBalanceStartAtZeroHelp": "Vis saldi som ændringen siden starten af transaktionernes datointerval"
 }

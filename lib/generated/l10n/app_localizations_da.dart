@@ -1199,4 +1199,8 @@ class SDa extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Saldi starter fra nul ved periodens start';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Vis saldi som ændringen siden starten af transaktionernes datointerval';
 }

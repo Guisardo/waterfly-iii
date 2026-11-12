@@ -1206,4 +1206,8 @@ class SDe extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Salden zu Beginn des Zeitraums bei null starten';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Salden als Veränderung seit Beginn des Transaktionszeitraums anzeigen';
 }

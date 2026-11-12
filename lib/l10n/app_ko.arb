@@ -1141,5 +1141,6 @@
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
     },
-  "homeTransactionsDialogFilterBalanceStartAtZero": "기간 시작 시 잔액을 0부터 시작"
+  "homeTransactionsDialogFilterBalanceStartAtZero": "기간 시작 시 잔액을 0부터 시작",
+  "settingsBalanceStartAtZeroHelp": "거래 기간 시작 이후의 변동액으로 잔액 표시"
 }

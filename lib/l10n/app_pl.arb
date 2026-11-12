@@ -1497,5 +1497,6 @@
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
     },
-  "homeTransactionsDialogFilterBalanceStartAtZero": "Salda od zera na początku zakresu"
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Salda od zera na początku zakresu",
+  "settingsBalanceStartAtZeroHelp": "Pokazuj salda jako zmianę od początku zakresu dat transakcji"
 }

@@ -21,6 +21,7 @@ import 'package:waterflyiii/pages/home/main/charts/netearnings.dart';
 import 'package:waterflyiii/pages/home/main/charts/networth.dart';
 import 'package:waterflyiii/pages/home/main/charts/summary.dart';
 import 'package:waterflyiii/pages/home/main/dashboard.dart';
+import 'package:waterflyiii/pages/home/transactions/running_balance.dart';
 import 'package:waterflyiii/settings.dart';
 import 'package:isar_community/isar.dart';
 import 'package:waterflyiii/data/local/database/app_database.dart';
@@ -64,6 +65,7 @@ class _HomeMainState extends State<HomeMain>
   Future<bool>? _cachedFetchBalance;
   Future<bool>? _cachedFetchCategories;
   Future<bool>? _cachedFetchCategoriesTags;
+  bool? _lastZeroStart;
 
   // Track data version to force widget rebuilds when data changes
   final ValueNotifier<int> _lastDaysDataVersion = ValueNotifier<int>(0);
@@ -626,6 +628,7 @@ class _HomeMainState extends State<HomeMain>
     }
 
     final FireflyIii api = context.read<FireflyService>().api;
+    final bool zeroStart = context.read<SettingsProvider>().balanceStartAtZero;
     final TimeZoneHandler tzHandler = context.read<FireflyService>().tzHandler;
 
     final DateTime now = tzHandler.sNow().clearTime();
@@ -744,6 +747,7 @@ class _HomeMainState extends State<HomeMain>
         lastMonthsLiabilities.entries.toList()
           ..sortBy((MapEntry<DateTime, double> e) => e.key),
       );
+      _applyZeroStartNetWorth(zeroStart);
       if (mounted) {
         setState(() {});
         _balanceDataVersion.value++;
@@ -776,6 +780,7 @@ class _HomeMainState extends State<HomeMain>
       if (lastMonthsEarned.isNotEmpty ||
           lastMonthsAssets.isNotEmpty ||
           lastMonthsLiabilities.isNotEmpty) {
+        _applyZeroStartNetWorth(zeroStart);
         if (mounted) {
           setState(() {});
           _balanceDataVersion.value++;
@@ -881,6 +886,7 @@ class _HomeMainState extends State<HomeMain>
           lastMonthsLiabilities.entries.toList()
             ..sortBy((MapEntry<DateTime, double> e) => e.key),
         );
+        _applyZeroStartNetWorth(zeroStart);
         if (mounted) {
           setState(() {});
           _balanceDataVersion.value++;
@@ -890,6 +896,7 @@ class _HomeMainState extends State<HomeMain>
 
       // No cached data and API failed - return success with empty data
       // This allows the widget to render with empty state instead of showing error
+      _applyZeroStartNetWorth(zeroStart);
       if (mounted) {
         setState(() {});
         _balanceDataVersion.value++;
@@ -984,12 +991,22 @@ class _HomeMainState extends State<HomeMain>
         ..sortBy((MapEntry<DateTime, double> e) => e.key),
     );
 
+    _applyZeroStartNetWorth(zeroStart);
     if (mounted) {
       setState(() {});
       _balanceDataVersion.value++;
     }
 
     return true;
+  }
+
+  /// Assets and liabilities counted from zero at the first chart month.
+  void _applyZeroStartNetWorth(bool zeroStart) {
+    if (!zeroStart) {
+      return;
+    }
+    lastMonthsAssets = rebaseMonthlySeries(lastMonthsAssets);
+    lastMonthsLiabilities = rebaseMonthlySeries(lastMonthsLiabilities);
   }
 
   Future<void> _refreshStats() async {
@@ -1032,6 +1049,20 @@ class _HomeMainState extends State<HomeMain>
     final CurrencyRead defaultCurrency = context
         .read<FireflyService>()
         .defaultCurrency;
+    final bool zeroStart = context.select(
+      (SettingsProvider s) => s.balanceStartAtZero,
+    );
+    if (_lastZeroStart != null && _lastZeroStart != zeroStart) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _refreshStats();
+        }
+      });
+    }
+    _lastZeroStart = zeroStart;
+    final List<ChartDataSet> overviewShown = zeroStart
+        ? rebaseChartDataSets(overviewChartData)
+        : overviewChartData;
 
     final List<DashboardCards> cards = List<DashboardCards>.from(
       context.watch<SettingsProvider>().dashboardOrder,
@@ -1129,7 +1160,7 @@ class _HomeMainState extends State<HomeMain>
                         ),
                       ],
                     ),
-                    ...overviewChartData.mapIndexed((int i, ChartDataSet e) {
+                    ...overviewShown.mapIndexed((int i, ChartDataSet e) {
                       final Map<String, dynamic> entries =
                           e.entries as Map<String, dynamic>;
                       final double balance =
@@ -1187,7 +1218,7 @@ class _HomeMainState extends State<HomeMain>
                   builder: (BuildContext context) => const SummaryChartPopup(),
                 ),
                 child: () => SummaryChart(
-                  data: overviewChartData,
+                  data: overviewShown,
                   dataVersion: _overviewDataVersion.value,
                 ),
               ),

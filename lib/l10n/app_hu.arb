@@ -1497,5 +1497,6 @@
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
     },
-  "homeTransactionsDialogFilterBalanceStartAtZero": "Egyenlegek nulláról az időszak elején"
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Egyenlegek nulláról az időszak elején",
+  "settingsBalanceStartAtZeroHelp": "Az egyenlegek megjelenítése a tranzakciós dátumtartomány kezdete óta bekövetkezett változásként"
 }

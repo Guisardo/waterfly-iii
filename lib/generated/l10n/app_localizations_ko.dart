@@ -1183,4 +1183,7 @@ class SKo extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       '기간 시작 시 잔액을 0부터 시작';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp => '거래 기간 시작 이후의 변동액으로 잔액 표시';
 }

@@ -1199,4 +1199,8 @@ class SSv extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Saldon börjar på noll vid periodens start';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Visa saldon som förändringen sedan början av transaktionernas datumintervall';
 }

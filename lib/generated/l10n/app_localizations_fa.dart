@@ -1193,4 +1193,8 @@ class SFa extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'شروع موجودی از صفر در ابتدای بازه';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'نمایش موجودی‌ها به‌صورت تغییر از ابتدای بازه زمانی تراکنش‌ها';
 }

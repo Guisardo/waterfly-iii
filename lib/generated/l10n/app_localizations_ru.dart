@@ -1212,4 +1212,8 @@ class SRu extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Начинать остатки с нуля в начале периода';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Показывать остатки как изменение с начала диапазона дат транзакций';
 }

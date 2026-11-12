@@ -537,5 +537,6 @@
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
     },
-  "homeTransactionsDialogFilterBalanceStartAtZero": "Починати залишки з нуля на початку періоду"
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Починати залишки з нуля на початку періоду",
+  "settingsBalanceStartAtZeroHelp": "Показувати залишки як зміну з початку діапазону дат транзакцій"
 }

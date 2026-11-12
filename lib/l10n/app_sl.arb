@@ -1497,5 +1497,6 @@
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
     },
-  "homeTransactionsDialogFilterBalanceStartAtZero": "Stanja od nič na začetku obdobja"
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Stanja od nič na začetku obdobja",
+  "settingsBalanceStartAtZeroHelp": "Prikaži stanja kot spremembo od začetka časovnega obdobja transakcij"
 }

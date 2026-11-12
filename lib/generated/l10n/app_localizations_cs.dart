@@ -1204,4 +1204,8 @@ class SCs extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Zůstatky od nuly na začátku období';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Zobrazit zůstatky jako změnu od začátku rozsahu dat transakcí';
 }

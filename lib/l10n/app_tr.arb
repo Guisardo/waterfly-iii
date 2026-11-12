@@ -305,5 +305,6 @@
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
     },
-  "homeTransactionsDialogFilterBalanceStartAtZero": "Bakiyeleri dönem başında sıfırdan başlat"
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Bakiyeleri dönem başında sıfırdan başlat",
+  "settingsBalanceStartAtZeroHelp": "Bakiyeleri işlem tarih aralığının başlangıcından bu yana değişim olarak göster"
 }

@@ -1206,4 +1206,8 @@ class SRo extends S {
   @override
   String get homeTransactionsDialogFilterBalanceStartAtZero =>
       'Solduri de la zero la începutul perioadei';
+
+  @override
+  String get settingsBalanceStartAtZeroHelp =>
+      'Afișează soldurile ca variație de la începutul intervalului de date al tranzacțiilor';
 }
