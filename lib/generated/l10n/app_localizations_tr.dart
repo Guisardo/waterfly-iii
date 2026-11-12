@@ -1195,4 +1195,8 @@ class STr extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Senkronizasyon ayarları ve durumu';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Bakiyeleri dönem başında sıfırdan başlat';
 }

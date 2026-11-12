@@ -1409,5 +1409,6 @@
     "notificationListenerChannelDescription": "Notification asking to create a transaction from another Notification.",
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
-    }
+    },
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Saldo mulai dari nol di awal rentang"
 }

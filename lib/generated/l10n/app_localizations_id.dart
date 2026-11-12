@@ -1198,4 +1198,8 @@ class SId extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Pengaturan dan status sinkronisasi';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Saldo mulai dari nol di awal rentang';
 }

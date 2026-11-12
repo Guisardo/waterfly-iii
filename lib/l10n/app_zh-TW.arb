@@ -1500,5 +1500,6 @@
     "notificationListenerChannelDescription": "Notification asking to create a transaction from another Notification.",
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
-    }
+    },
+  "homeTransactionsDialogFilterBalanceStartAtZero": "在日期範圍開始時餘額從零開始"
 }

@@ -1194,6 +1194,10 @@ class SPt extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Configurações e status de sincronização';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Saldos a partir de zero no início do período';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -2339,4 +2343,8 @@ class SPtBr extends SPt {
   @override
   String get settingsSynchronizationSubtitle =>
       'Configurações e status de sincronização';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Saldos a partir de zero no início do período';
 }

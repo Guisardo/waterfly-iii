@@ -1198,4 +1198,8 @@ class SSl extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Nastavitve in stanje sinhronizacije';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Stanja od nič na začetku obdobja';
 }

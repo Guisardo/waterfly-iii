@@ -1202,4 +1202,8 @@ class SRo extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Setări și stare de sincronizare';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Solduri de la zero la începutul perioadei';
 }

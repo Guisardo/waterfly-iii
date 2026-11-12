@@ -1195,4 +1195,8 @@ class SSv extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Synkroniseringsinställningar och status';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Saldon börjar på noll vid periodens start';
 }

@@ -1564,5 +1564,9 @@
     "settingsSynchronizationSubtitle": "Sync settings and status",
     "@settingsSynchronizationSubtitle": {
         "description": "Subtitle for synchronization settings option in main settings page"
-    }
+    },
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Start balances at zero on the range start",
+  "@homeTransactionsDialogFilterBalanceStartAtZero": {
+    "description": "Filter switch: running account balances start at zero on the selected date range start."
+  }
 }

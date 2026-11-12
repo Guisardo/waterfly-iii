@@ -1199,4 +1199,8 @@ class SIt extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Impostazioni e stato di sincronizzazione';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Saldi da zero all\'inizio del periodo';
 }

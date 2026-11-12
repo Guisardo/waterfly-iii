@@ -1208,4 +1208,8 @@ class SRu extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Настройки и статус синхронизации';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Начинать остатки с нуля в начале периода';
 }

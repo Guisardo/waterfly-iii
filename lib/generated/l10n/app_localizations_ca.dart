@@ -1210,4 +1210,8 @@ class SCa extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Configuració i estat de sincronització';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Saldos des de zero a l\'inici del període';
 }

@@ -1165,6 +1165,9 @@ class SZh extends S {
 
   @override
   String get settingsSynchronizationSubtitle => '同步设置和状态';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero => '在日期范围开始时余额从零开始';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -2281,4 +2284,7 @@ class SZhTw extends SZh {
 
   @override
   String get settingsSynchronizationSubtitle => '同步設定和狀態';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero => '在日期範圍開始時餘額從零開始';
 }

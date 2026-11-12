@@ -1496,5 +1496,6 @@
     "notificationListenerChannelDescription": "Notification asking to create a transaction from another Notification.",
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
-    }
+    },
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Saldos a partir de zero no início do período"
 }

@@ -1207,4 +1207,8 @@ class SEs extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Configuración y estado de sincronización';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Saldos desde cero al inicio del período';
 }

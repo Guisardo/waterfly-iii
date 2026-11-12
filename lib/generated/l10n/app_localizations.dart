@@ -2027,6 +2027,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Sync settings and status'**
   String get settingsSynchronizationSubtitle;
+
+  /// Filter switch: running account balances start at zero on the selected date range start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start balances at zero on the range start'**
+  String get homeTransactionsDialogFilterBalanceStartAtZero;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

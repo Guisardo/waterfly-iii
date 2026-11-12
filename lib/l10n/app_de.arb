@@ -1496,5 +1496,6 @@
     "notificationListenerChannelDescription": "Benachrichtigung, die zum Erstellen einer Transaktion aus einer anderen Benachrichtigung auffordert.",
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
-    }
+    },
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Salden zu Beginn des Zeitraums bei null starten"
 }

@@ -1200,4 +1200,8 @@ class SCs extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Nastavení a stav synchronizace';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Zůstatky od nuly na začátku období';
 }

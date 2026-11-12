@@ -1195,4 +1195,8 @@ class SDa extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Synkroniseringsindstillinger og status';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Saldi starter fra nul ved periodens start';
 }

@@ -1208,4 +1208,8 @@ class SHu extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Szinkronizálási beállítások és állapot';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Egyenlegek nulláról az időszak elején';
 }

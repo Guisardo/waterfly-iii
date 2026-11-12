@@ -1193,4 +1193,8 @@ class SEn extends S {
 
   @override
   String get settingsSynchronizationSubtitle => 'Sync settings and status';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Start balances at zero on the range start';
 }

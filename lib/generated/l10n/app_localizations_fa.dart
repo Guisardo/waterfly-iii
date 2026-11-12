@@ -1189,4 +1189,8 @@ class SFa extends S {
 
   @override
   String get settingsSynchronizationSubtitle => 'تنظیمات و وضعیت همگام‌سازی';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'شروع موجودی از صفر در ابتدای بازه';
 }

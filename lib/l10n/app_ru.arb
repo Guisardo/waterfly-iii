@@ -1437,5 +1437,6 @@
     "notificationListenerChannelDescription": "Уведомление с запросом на создание транзакции из другого уведомления.",
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
-    }
+    },
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Начинать остатки с нуля в начале периода"
 }

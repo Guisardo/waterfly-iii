@@ -13,6 +13,7 @@ import 'package:waterflyiii/generated/l10n/app_localizations.dart';
 import 'package:waterflyiii/generated/swagger_fireflyiii_api/firefly_iii.swagger.dart';
 import 'package:waterflyiii/pages/home.dart';
 import 'package:waterflyiii/pages/home/transactions/filter.dart';
+import 'package:waterflyiii/pages/home/transactions/running_balance.dart';
 import 'package:waterflyiii/pages/transaction.dart';
 import 'package:waterflyiii/pages/transaction/delete.dart';
 import 'package:waterflyiii/settings.dart';
@@ -70,6 +71,11 @@ class HomeTransactionsState extends State<HomeTransactions>
         type == ShortAccountTypeProperty.expense;
   }
 
+  void _resetBalances() {
+    _lastCalculatedBalance = null;
+    _runningBalancesByTransactionId.clear();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -115,6 +121,7 @@ class HomeTransactionsState extends State<HomeTransactions>
                 final SettingsProvider settings = context
                     .read<SettingsProvider>();
                 final bool oldShowFutureTXs = settings.showFutureTXs;
+                final bool oldBalanceStartAtZero = settings.balanceStartAtZero;
                 final TransactionDateFilter oldTransactionDateFilter =
                     settings.transactionDateFilter;
                 final bool? ok = await showDialog<bool>(
@@ -125,6 +132,7 @@ class HomeTransactionsState extends State<HomeTransactions>
                   ),
                 );
                 if (ok == null || !ok) {
+                  settings.balanceStartAtZero = oldBalanceStartAtZero;
                   if (settings.showFutureTXs != oldShowFutureTXs) {
                     settings.showFutureTXs = oldShowFutureTXs;
                     _txSum = TransactionSum();
@@ -156,12 +164,14 @@ class HomeTransactionsState extends State<HomeTransactions>
                 }
                 if (oldFilters == _filters &&
                     settings.showFutureTXs == oldShowFutureTXs &&
+                    settings.balanceStartAtZero == oldBalanceStartAtZero &&
                     settings.transactionDateFilter ==
                         oldTransactionDateFilter) {
                   return;
                 }
                 _filters.updateFilters();
                 _rowsWithDate.clear();
+                _resetBalances();
                 _lastDate = null;
                 _txSum = TransactionSum();
                 _txSumUsed.clear();
@@ -186,7 +196,7 @@ class HomeTransactionsState extends State<HomeTransactions>
   void notifRefresh() {
     Logger('Diag.TxList').info(() => 'notifRefresh');
     setState(() {
-      _lastCalculatedBalance = null;
+      _resetBalances();
       _pagingState = _pagingState.reset();
     });
   }
@@ -265,80 +275,72 @@ class HomeTransactionsState extends State<HomeTransactions>
             'serverTZ=${_tzHandler.serverTimezone} useServerTime=${_tzHandler.useServerTime}',
       );
 
-      if (widget.filters?.account != null) {
-        transactionList = await repo.getByAccount(
-          _filters.account!.id,
-          startDate,
-          endDate,
-          page: pageKey,
-          limit: _numberOfPostsPerRequest,
-        );
-      } else if (_filters.hasFilters) {
-        transactionList = await repo.searchWithFilters(
-          text: _filters.text,
-          accountId: _filters.account?.id,
-          currencyCode: _filters.currency?.attributes.code,
-          categoryId: _filters.category?.id,
-          categoryName: _filters.category?.id != "-1"
-              ? _filters.category?.attributes.name
-              : null,
-          budgetId: _filters.budget?.id,
-          budgetName: _filters.budget?.id != "-1"
-              ? _filters.budget?.attributes.name
-              : null,
-          billId: _filters.bill?.id,
-          billName: _filters.bill?.id != "-1"
-              ? _filters.bill?.attributes.name
-              : null,
-          tags: _filters.tags?.tags,
-          startDate: startDate,
-          endDate: endDate,
-          page: pageKey,
-          limit: _numberOfPostsPerRequest,
-        );
-      } else {
-        transactionList = await repo.getByDateRange(
+      Future<List<TransactionRead>> query({int? page, int? limit}) {
+        if (widget.filters?.account != null) {
+          return repo.getByAccount(
+            _filters.account!.id,
+            startDate,
+            endDate,
+            page: page,
+            limit: limit,
+          );
+        }
+        if (_filters.hasFilters) {
+          return repo.searchWithFilters(
+            text: _filters.text,
+            accountId: _filters.account?.id,
+            currencyCode: _filters.currency?.attributes.code,
+            categoryId: _filters.category?.id,
+            categoryName: _filters.category?.id != "-1"
+                ? _filters.category?.attributes.name
+                : null,
+            budgetId: _filters.budget?.id,
+            budgetName: _filters.budget?.id != "-1"
+                ? _filters.budget?.attributes.name
+                : null,
+            billId: _filters.bill?.id,
+            billName: _filters.bill?.id != "-1"
+                ? _filters.bill?.attributes.name
+                : null,
+            tags: _filters.tags?.tags,
+            startDate: startDate,
+            endDate: endDate,
+            page: page,
+            limit: limit,
+          );
+        }
+        return repo.getByDateRange(
           startDate,
           TransactionRepository.listQueryEnd(endDate, now),
-          page: pageKey,
-          limit: _numberOfPostsPerRequest,
+          page: page,
+          limit: limit,
         );
       }
 
+      transactionList = await query(
+        page: pageKey,
+        limit: _numberOfPostsPerRequest,
+      );
+
       if (_filters.account != null) {
         final AccountRead account = _filters.account!;
-        // Attempt to retrieve the opening balance
-        double balance =
-            _lastCalculatedBalance ??
-            double.tryParse(account.attributes.currentBalance!) ??
-            0.0;
-        // If the account is a revenue/expense account, we need to invert the balance
-        if (_lastCalculatedBalance == null &&
-            _isRevenueOrExpense(account.attributes.type)) {
-          balance *= -1;
-        }
-        for (TransactionRead item in transactionList) {
-          _runningBalancesByTransactionId[item.id] = balance;
-          // Attempt to retrieve the transaction total amount
-          for (TransactionSplit tx in item.attributes.transactions) {
-            final double amount = double.tryParse(tx.amount) ?? 0.0;
-            // Should never be the case
-            if (amount == 0.0) {
-              continue;
-            }
-
-            if (tx.type == .withdrawal) {
-              balance += amount;
-            } else if (tx.type == .transfer) {
-              if (tx.destinationId == account.id) {
-                balance -= amount;
-              } else {
-                balance += amount;
-              }
-            } else {
-              balance -= amount;
-            }
+        late double balance;
+        if (_lastCalculatedBalance != null) {
+          balance = _lastCalculatedBalance!;
+        } else if (settingsProvider.balanceStartAtZero) {
+          // Zero before the oldest row of the whole window, not just this page.
+          balance = windowBalanceTotal(await query(), account.id);
+        } else {
+          balance =
+              double.tryParse(account.attributes.currentBalance ?? "") ?? 0.0;
+          // If the account is a revenue/expense account, invert the balance
+          if (_isRevenueOrExpense(account.attributes.type)) {
+            balance *= -1;
           }
+        }
+        for (final TransactionRead item in transactionList) {
+          _runningBalancesByTransactionId[item.id] = balance;
+          balance -= transactionBalanceEffect(item, account.id);
           _lastCalculatedBalance = balance;
         }
       }
@@ -413,7 +415,7 @@ class HomeTransactionsState extends State<HomeTransactions>
         _txSumUsed.clear();
         // Note: Repository data is refreshed by sync service, no need to clear
         setState(() {
-          _lastCalculatedBalance = null;
+          _resetBalances();
           _pagingState = _pagingState.reset();
         });
       }),
@@ -744,7 +746,8 @@ class HomeTransactionsState extends State<HomeTransactions>
     // Account balance
     late double balance;
     if (_filters.account != null) {
-      if (item.attributes.transactions.first.sourceBalanceAfter != null) {
+      if (!context.read<SettingsProvider>().balanceStartAtZero &&
+          item.attributes.transactions.first.sourceBalanceAfter != null) {
         balance =
             double.tryParse(
               item.attributes.transactions.first.destinationId ==
@@ -805,7 +808,7 @@ class HomeTransactionsState extends State<HomeTransactions>
                     }
                   }
                   setState(() {
-                    _lastCalculatedBalance = null;
+                    _resetBalances();
                     _pagingState = _pagingState.reset();
                   });
                 },
@@ -843,7 +846,7 @@ class HomeTransactionsState extends State<HomeTransactions>
                     // Cache is managed by Isar repository - no manual clearing needed
                   }
                   setState(() {
-                    _lastCalculatedBalance = null;
+                    _resetBalances();
                     _pagingState = _pagingState.reset();
                   });
                 },
@@ -1039,7 +1042,7 @@ class HomeTransactionsState extends State<HomeTransactions>
           }
         }
         setState(() {
-          _lastCalculatedBalance = null;
+          _resetBalances();
           _pagingState = _pagingState.reset();
         });
       },

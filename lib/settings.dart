@@ -70,6 +70,7 @@ enum BoolSettings {
   billsShowOnlyActive,
   billsShowOnlyExpected,
   syncUseMobileData,
+  balanceStartAtZero,
 }
 
 enum TransactionDateFilter {
@@ -192,6 +193,8 @@ class SettingsProvider with ChangeNotifier {
       _loaded ? _boolSettings[BoolSettings.billsShowOnlyExpected] : false;
   bool get syncUseMobileData =>
       _loaded ? _boolSettings[BoolSettings.syncUseMobileData] : false;
+  bool get balanceStartAtZero =>
+      _loaded ? _boolSettings[BoolSettings.balanceStartAtZero] : false;
 
   ThemeMode _theme = .system;
   ThemeMode get theme => _theme;
@@ -228,7 +231,7 @@ class SettingsProvider with ChangeNotifier {
   late SettingsBitmask _boolSettings;
   SettingsBitmask get boolSettings => _boolSettings;
 
-  TransactionDateFilter _transactionDateFilter = .all;
+  TransactionDateFilter _transactionDateFilter = .last30Days;
 
   TransactionDateFilter get transactionDateFilter => _transactionDateFilter;
 
@@ -243,7 +246,7 @@ class SettingsProvider with ChangeNotifier {
       _boolSettings[.debug] = oldPrefs.getBool(settingDebug) ?? false;
       _boolSettings[.lock] = oldPrefs.getBool(settingLock) ?? false;
       _boolSettings[.showFutureTXs] =
-          oldPrefs.getBool(settingShowFutureTXs) ?? false;
+          oldPrefs.getBool(settingShowFutureTXs) ?? true;
       _boolSettings[.dynamicColors] =
           oldPrefs.getBool(settingDynamicColors) ?? false;
       _boolSettings[.useServerTime] =
@@ -439,7 +442,7 @@ class SettingsProvider with ChangeNotifier {
       settingTransactionDateFilter,
     );
     _transactionDateFilter = txDateFilterIndex == null
-        ? .all
+        ? .last30Days
         : .values[txDateFilterIndex];
 
     _loaded = _loading = true;
@@ -504,6 +507,8 @@ class SettingsProvider with ChangeNotifier {
       _setBool(BoolSettings.billsShowOnlyExpected, enabled);
   set syncUseMobileData(bool enabled) =>
       _setBool(BoolSettings.syncUseMobileData, enabled);
+  set balanceStartAtZero(bool enabled) =>
+      _setBool(BoolSettings.balanceStartAtZero, enabled);
 
   Future<void> setTheme(ThemeMode theme) async {
     _theme = theme;

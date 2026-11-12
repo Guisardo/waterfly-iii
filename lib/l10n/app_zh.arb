@@ -1496,5 +1496,6 @@
     "notificationListenerChannelDescription": "请求从另一个通知创建交易的通知。",
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
-    }
+    },
+  "homeTransactionsDialogFilterBalanceStartAtZero": "在日期范围开始时余额从零开始"
 }

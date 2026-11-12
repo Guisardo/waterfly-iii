@@ -1202,4 +1202,8 @@ class SDe extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Synchronisierungseinstellungen und Status';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Salden zu Beginn des Zeitraums bei null starten';
 }

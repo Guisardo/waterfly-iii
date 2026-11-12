@@ -1212,4 +1212,8 @@ class SFr extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Paramètres et statut de synchronisation';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Soldes à zéro au début de la période';
 }

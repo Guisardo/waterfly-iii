@@ -1179,4 +1179,8 @@ class SKo extends S {
 
   @override
   String get settingsSynchronizationSubtitle => '동기화 설정 및 상태';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      '기간 시작 시 잔액을 0부터 시작';
 }

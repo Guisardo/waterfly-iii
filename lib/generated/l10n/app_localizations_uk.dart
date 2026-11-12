@@ -1197,4 +1197,8 @@ class SUk extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Налаштування та статус синхронізації';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Починати залишки з нуля на початку періоду';
 }

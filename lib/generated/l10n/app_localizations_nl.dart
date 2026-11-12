@@ -1195,4 +1195,8 @@ class SNl extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Synchronisatie-instellingen en status';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Saldi beginnen bij nul aan het begin van de periode';
 }

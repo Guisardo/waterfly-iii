@@ -1496,5 +1496,6 @@
     "notificationListenerChannelDescription": "Melding die vraagt om een transactie aan te maken van een andere melding.",
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
-    }
+    },
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Saldi beginnen bij nul aan het begin van de periode"
 }

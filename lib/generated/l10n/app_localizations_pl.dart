@@ -1199,4 +1199,8 @@ class SPl extends S {
   @override
   String get settingsSynchronizationSubtitle =>
       'Ustawienia i status synchronizacji';
+
+  @override
+  String get homeTransactionsDialogFilterBalanceStartAtZero =>
+      'Salda od zera na początku zakresu';
 }

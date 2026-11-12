@@ -536,5 +536,6 @@
     "notificationListenerChannelDescription": "Notification asking to create a transaction from another Notification.",
     "@notificationListenerChannelDescription": {
         "description": "Description of the notification listener channel"
-    }
+    },
+  "homeTransactionsDialogFilterBalanceStartAtZero": "Починати залишки з нуля на початку періоду"
 }
